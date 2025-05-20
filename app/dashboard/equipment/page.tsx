@@ -1,335 +1,379 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 
-// Equipment type definition
-type Equipment = {
-  id: number
-  name: string
-  type: string
-  status: "Available" | "In Use" | "Maintenance" | "Out of Service"
-  assignedTo: string | null
-  location: string | null
-  lastMaintenance: string | null
-  nextMaintenance: string | null
-  purchaseDate: string
-  serialNumber: string
-  model: string
-  manufacturer: string
-  notes: string
+// Mock data for equipment
+const initialEquipment = [
+  {
+    id: "eq1",
+    name: "Excavator #103",
+    type: "Heavy Equipment",
+    make: "Caterpillar",
+    model: "336",
+    year: 2020,
+    serialNumber: "CAT336-2020-103",
+    status: "in-use",
+    assignedTo: "Foundation Team",
+    location: "Main Street Development",
+    nextMaintenance: "2025-06-15",
+    purchaseDate: "2020-03-12",
+    purchasePrice: 250000,
+    currentValue: 175000,
+    image: "/large-yellow-excavator.png",
+  },
+  {
+    id: "eq2",
+    name: "Bulldozer #87",
+    type: "Heavy Equipment",
+    make: "John Deere",
+    model: "700K",
+    year: 2019,
+    serialNumber: "JD700K-2019-87",
+    status: "available",
+    assignedTo: null,
+    location: "Equipment Yard",
+    nextMaintenance: "2025-05-30",
+    purchaseDate: "2019-06-20",
+    purchasePrice: 180000,
+    currentValue: 120000,
+    image: "/powerful-bulldozer.png",
+  },
+  {
+    id: "eq3",
+    name: "Cement Mixer #42",
+    type: "Medium Equipment",
+    make: "SANY",
+    model: "SY204C-8",
+    year: 2021,
+    serialNumber: "SANY204C-2021-42",
+    status: "in-use",
+    assignedTo: "Foundation Team",
+    location: "Main Street Development",
+    nextMaintenance: "2025-07-10",
+    purchaseDate: "2021-02-15",
+    purchasePrice: 85000,
+    currentValue: 70000,
+    image: "/placeholder-tdvdz.png",
+  },
+  {
+    id: "eq4",
+    name: "Forklift #29",
+    type: "Medium Equipment",
+    make: "Toyota",
+    model: "8FGU25",
+    year: 2022,
+    serialNumber: "TOYO8FGU-2022-29",
+    status: "maintenance",
+    assignedTo: null,
+    location: "Service Center",
+    nextMaintenance: "2025-05-22",
+    purchaseDate: "2022-01-10",
+    purchasePrice: 35000,
+    currentValue: 30000,
+    image: "/warehouse-forklift-operation.png",
+  },
+  {
+    id: "eq5",
+    name: "Generator #56",
+    type: "Small Equipment",
+    make: "Honda",
+    model: "EU7000is",
+    year: 2023,
+    serialNumber: "HONDA-EU7000-2023-56",
+    status: "in-use",
+    assignedTo: "Electrical Team",
+    location: "Downtown Project",
+    nextMaintenance: "2025-08-05",
+    purchaseDate: "2023-04-18",
+    purchasePrice: 5500,
+    currentValue: 4800,
+    image: "/abstract-energy-flow.png",
+  },
+  {
+    id: "eq6",
+    name: "Concrete Saw #17",
+    type: "Small Equipment",
+    make: "Husqvarna",
+    model: "K770",
+    year: 2022,
+    serialNumber: "HUSQ-K770-2022-17",
+    status: "available",
+    assignedTo: null,
+    location: "Equipment Yard",
+    nextMaintenance: "2025-06-20",
+    purchaseDate: "2022-05-30",
+    purchasePrice: 1200,
+    currentValue: 900,
+    image: "/concrete-saw.png",
+  },
+  {
+    id: "eq7",
+    name: "Backhoe Loader #64",
+    type: "Heavy Equipment",
+    make: "JCB",
+    model: "3CX",
+    year: 2021,
+    serialNumber: "JCB3CX-2021-64",
+    status: "in-use",
+    assignedTo: "Framing Crew",
+    location: "Riverside Apartments",
+    nextMaintenance: "2025-07-15",
+    purchaseDate: "2021-03-25",
+    purchasePrice: 95000,
+    currentValue: 80000,
+    image: "/backhoe-loader.png",
+  },
+  {
+    id: "eq8",
+    name: "Air Compressor #38",
+    type: "Medium Equipment",
+    make: "Ingersoll Rand",
+    model: "P185",
+    year: 2020,
+    serialNumber: "IR-P185-2020-38",
+    status: "available",
+    assignedTo: null,
+    location: "Equipment Yard",
+    nextMaintenance: "2025-06-10",
+    purchaseDate: "2020-07-12",
+    purchasePrice: 15000,
+    currentValue: 10000,
+    image: "/placeholder-wzca7.png",
+  },
+  {
+    id: "eq9",
+    name: "Skid Steer #51",
+    type: "Medium Equipment",
+    make: "Bobcat",
+    model: "S650",
+    year: 2022,
+    serialNumber: "BOB-S650-2022-51",
+    status: "in-use",
+    assignedTo: "Finishing Crew",
+    location: "Johnson Residence",
+    nextMaintenance: "2025-08-20",
+    purchaseDate: "2022-02-28",
+    purchasePrice: 45000,
+    currentValue: 38000,
+    image: "/placeholder.svg?height=200&width=200&query=skid+steer",
+  },
+  {
+    id: "eq10",
+    name: "Scissor Lift #73",
+    type: "Medium Equipment",
+    make: "Genie",
+    model: "GS-1930",
+    year: 2021,
+    serialNumber: "GENIE-GS1930-2021-73",
+    status: "maintenance",
+    assignedTo: null,
+    location: "Service Center",
+    nextMaintenance: "2025-05-25",
+    purchaseDate: "2021-05-10",
+    purchasePrice: 12000,
+    currentValue: 9000,
+    image: "/placeholder.svg?height=200&width=200&query=scissor+lift",
+  },
+  {
+    id: "eq11",
+    name: "Portable Welder #22",
+    type: "Small Equipment",
+    make: "Lincoln Electric",
+    model: "Ranger 305 G",
+    year: 2023,
+    serialNumber: "LE-R305G-2023-22",
+    status: "available",
+    assignedTo: null,
+    location: "Equipment Yard",
+    nextMaintenance: "2025-09-05",
+    purchaseDate: "2023-01-15",
+    purchasePrice: 8000,
+    currentValue: 7500,
+    image: "/placeholder.svg?height=200&width=200&query=portable+welder",
+  },
+  {
+    id: "eq12",
+    name: "Boom Lift #45",
+    type: "Heavy Equipment",
+    make: "JLG",
+    model: "600AJ",
+    year: 2020,
+    serialNumber: "JLG-600AJ-2020-45",
+    status: "in-use",
+    assignedTo: "Electrical Team",
+    location: "Downtown Project",
+    nextMaintenance: "2025-07-30",
+    purchaseDate: "2020-04-20",
+    purchasePrice: 65000,
+    currentValue: 48000,
+    image: "/placeholder.svg?height=200&width=200&query=boom+lift",
+  },
+]
+
+// Status options with colors and labels
+const statusOptions = {
+  "in-use": { label: "In Use", color: "badge-primary" },
+  available: { label: "Available", color: "badge-success" },
+  maintenance: { label: "Maintenance", color: "badge-warning" },
+  repair: { label: "Under Repair", color: "badge-error" },
+  retired: { label: "Retired", color: "badge-neutral" },
 }
 
 export default function EquipmentPage() {
-  const [equipment, setEquipment] = useState<Equipment[]>([
-    {
-      id: 1,
-      name: "Excavator #EX-101",
-      type: "Heavy Equipment",
-      status: "In Use",
-      assignedTo: "Riverside Apartments",
-      location: "123 Riverside Dr",
-      lastMaintenance: "2025-04-15",
-      nextMaintenance: "2025-06-15",
-      purchaseDate: "2023-05-10",
-      serialNumber: "EX101-2023-05678",
-      model: "CAT 320",
-      manufacturer: "Caterpillar",
-      notes: "Regular maintenance required every 2 months",
-    },
-    {
-      id: 2,
-      name: "Cement Mixer #CM-203",
-      type: "Heavy Equipment",
-      status: "Available",
-      assignedTo: null,
-      location: "Main Warehouse",
-      lastMaintenance: "2025-05-01",
-      nextMaintenance: "2025-07-01",
-      purchaseDate: "2024-01-15",
-      serialNumber: "CM203-2024-12345",
-      model: "MX-2000",
-      manufacturer: "Concrete Solutions",
-      notes: "New mixer, replaced old unit in January",
-    },
-    {
-      id: 3,
-      name: "Bulldozer #BD-105",
-      type: "Heavy Equipment",
-      status: "Maintenance",
-      assignedTo: null,
-      location: "Service Center",
-      lastMaintenance: "2025-05-10",
-      nextMaintenance: "2025-05-20",
-      purchaseDate: "2022-08-22",
-      serialNumber: "BD105-2022-98765",
-      model: "D6 XE",
-      manufacturer: "Caterpillar",
-      notes: "Currently undergoing major hydraulic system repair",
-    },
-    {
-      id: 4,
-      name: "Portable Generator #PG-42",
-      type: "Power Equipment",
-      status: "In Use",
-      assignedTo: "Downtown Office Tower",
-      location: "456 Main St",
-      lastMaintenance: "2025-04-30",
-      nextMaintenance: "2025-06-30",
-      purchaseDate: "2023-11-05",
-      serialNumber: "PG42-2023-54321",
-      model: "PowerPro 7500",
-      manufacturer: "GenTech",
-      notes: "Fuel efficiency has been decreasing, may need service soon",
-    },
-    {
-      id: 5,
-      name: "Jackhammer Set #JH-12",
-      type: "Power Tools",
-      status: "Available",
-      assignedTo: null,
-      location: "Tool Shed",
-      lastMaintenance: "2025-05-05",
-      nextMaintenance: "2025-07-05",
-      purchaseDate: "2024-02-10",
-      serialNumber: "JH12-2024-13579",
-      model: "Demolisher Pro",
-      manufacturer: "BreakTech",
-      notes: "Set includes 3 jackhammers of varying sizes",
-    },
-    {
-      id: 6,
-      name: "Crane #CR-007",
-      type: "Heavy Equipment",
-      status: "Out of Service",
-      assignedTo: null,
-      location: "Repair Yard",
-      lastMaintenance: "2025-03-20",
-      nextMaintenance: null,
-      purchaseDate: "2020-06-15",
-      serialNumber: "CR007-2020-24680",
-      model: "Tower Crane TC-5000",
-      manufacturer: "LiftMaster",
-      notes: "Major structural issues detected, awaiting decision on repair vs. replace",
-    },
-    {
-      id: 7,
-      name: "Forklift #FL-22",
-      type: "Heavy Equipment",
-      status: "In Use",
-      assignedTo: "Hillside Villas",
-      location: "789 Hill Rd",
-      lastMaintenance: "2025-04-10",
-      nextMaintenance: "2025-06-10",
-      purchaseDate: "2022-12-01",
-      serialNumber: "FL22-2022-11223",
-      model: "FT-5000",
-      manufacturer: "LiftTech",
-      notes: "Dedicated to Hillside Villas project until completion",
-    },
-    {
-      id: 8,
-      name: "Power Drill Set #PD-35",
-      type: "Power Tools",
-      status: "In Use",
-      assignedTo: "Team Alpha",
-      location: "With Crew",
-      lastMaintenance: "2025-05-02",
-      nextMaintenance: "2025-07-02",
-      purchaseDate: "2024-03-15",
-      serialNumber: "PD35-2024-99887",
-      model: "DrillMaster Pro",
-      manufacturer: "PowerTools Inc",
-      notes: "Set includes 5 drills with various bits and attachments",
-    },
-  ])
-
-  const [searchQuery, setSearchQuery] = useState("")
+  const [equipment, setEquipment] = useState(initialEquipment)
+  const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newEquipmentData, setNewEquipmentData] = useState({
+  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false)
+  const [newEquipment, setNewEquipment] = useState({
     name: "",
     type: "Heavy Equipment",
+    make: "",
     model: "",
-    manufacturer: "",
+    year: new Date().getFullYear(),
     serialNumber: "",
-    purchaseDate: "",
+    status: "available",
+    purchasePrice: 0,
   })
 
-  // Filter equipment based on search query, type filter, and status filter
+  // Filter equipment based on search term, type, and status
   const filteredEquipment = equipment.filter((item) => {
     const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.assignedTo && item.assignedTo.toLowerCase().includes(searchQuery.toLowerCase()))
-
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = typeFilter === "all" || item.type === typeFilter
     const matchesStatus = statusFilter === "all" || item.status === statusFilter
-
     return matchesSearch && matchesType && matchesStatus
   })
 
-  const handleCreateEquipment = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Get unique equipment types for filter dropdown
+  const equipmentTypes = ["all", ...new Set(equipment.map((item) => item.type))]
 
-    const newEquipment: Equipment = {
-      id: equipment.length + 1,
-      name: newEquipmentData.name,
-      type: newEquipmentData.type,
-      status: "Available",
+  const handleAddEquipment = () => {
+    const item = {
+      id: `eq${equipment.length + 1}`,
+      ...newEquipment,
       assignedTo: null,
-      location: "Main Warehouse",
-      lastMaintenance: null,
-      nextMaintenance: null,
-      purchaseDate: newEquipmentData.purchaseDate,
-      serialNumber: newEquipmentData.serialNumber,
-      model: newEquipmentData.model,
-      manufacturer: newEquipmentData.manufacturer,
-      notes: "",
+      location: "Equipment Yard",
+      nextMaintenance: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0],
+      purchaseDate: new Date().toISOString().split("T")[0],
+      currentValue: newEquipment.purchasePrice,
+      image: `/placeholder.svg?height=200&width=200&query=${encodeURIComponent(newEquipment.name)}`,
     }
-
-    setEquipment([...equipment, newEquipment])
-    setNewEquipmentData({
+    setEquipment([...equipment, item])
+    setNewEquipment({
       name: "",
       type: "Heavy Equipment",
+      make: "",
       model: "",
-      manufacturer: "",
+      year: new Date().getFullYear(),
       serialNumber: "",
-      purchaseDate: "",
+      status: "available",
+      purchasePrice: 0,
     })
-    setShowCreateModal(false)
+    setShowAddEquipmentModal(false)
   }
-
-  const handleDeleteEquipment = (id: number) => {
-    setEquipment(equipment.filter((item) => item.id !== id))
-  }
-
-  // Get unique equipment types for filter dropdown
-  const equipmentTypes = Array.from(new Set(equipment.map((item) => item.type)))
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Equipment</h1>
-          <p className="text-base-content/70">Manage your equipment inventory and maintenance</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          <i className="fas fa-plus mr-2"></i>
-          Add Equipment
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Equipment Management</h1>
+        <button className="btn btn-primary" onClick={() => setShowAddEquipmentModal(true)}>
+          <i className="fas fa-plus mr-2"></i> Add Equipment
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="form-control flex-1">
-          <div className="input-group">
-            <input
-              type="text"
-              placeholder="Search equipment..."
-              className="input input-bordered w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button className="btn btn-square">
-              <i className="fas fa-search"></i>
-            </button>
+      <div className="card bg-base-100 shadow-sm mb-6">
+        <div className="card-body">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="form-control flex-1">
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="Search equipment..."
+                  className="input input-bordered w-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className="btn btn-square">
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            <select
+              className="select select-bordered"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="all">All Types</option>
+              {equipmentTypes
+                .filter((type) => type !== "all")
+                .map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+            </select>
+            <select
+              className="select select-bordered"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Statuses</option>
+              {Object.entries(statusOptions).map(([value, { label }]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <select className="select select-bordered" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-            <option value="all">All Types</option>
-            {equipmentTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-          <select
-            className="select select-bordered"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            <option value="Available">Available</option>
-            <option value="In Use">In Use</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Out of Service">Out of Service</option>
-          </select>
         </div>
       </div>
 
-      {/* Equipment Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEquipment.map((item) => (
-          <div key={item.id} className="card bg-base-100 shadow-xl">
+          <div key={item.id} className="card bg-base-100 shadow-sm">
+            <figure className="px-4 pt-4">
+              <img
+                src={item.image || "/placeholder.svg"}
+                alt={item.name}
+                className="rounded-xl h-48 w-full object-cover"
+              />
+            </figure>
             <div className="card-body">
               <div className="flex justify-between items-start">
                 <h2 className="card-title">{item.name}</h2>
-                <div
-                  className={`badge ${
-                    item.status === "Available"
-                      ? "badge-success"
-                      : item.status === "In Use"
-                        ? "badge-primary"
-                        : item.status === "Maintenance"
-                          ? "badge-warning"
-                          : "badge-error"
-                  }`}
-                >
-                  {item.status}
-                </div>
+                <div className={`badge ${statusOptions[item.status].color}`}>{statusOptions[item.status].label}</div>
               </div>
-              <p className="text-sm">
-                {item.manufacturer} {item.model}
-              </p>
-              <div className="mt-2 space-y-1 text-sm">
-                <div className="flex items-center">
-                  <i className="fas fa-tag w-5 opacity-70"></i>
-                  <span>{item.type}</span>
-                </div>
+              <div className="mt-2 space-y-1">
+                <p className="text-sm">
+                  <span className="font-semibold">Make/Model:</span> {item.make} {item.model}
+                </p>
+                <p className="text-sm">
+                  <span className="font-semibold">Type:</span> {item.type}
+                </p>
+                <p className="text-sm">
+                  <span className="font-semibold">Year:</span> {item.year}
+                </p>
                 {item.assignedTo && (
-                  <div className="flex items-center">
-                    <i className="fas fa-map-marker-alt w-5 opacity-70"></i>
-                    <span>
-                      Assigned to: <span className="font-medium">{item.assignedTo}</span>
-                    </span>
-                  </div>
+                  <p className="text-sm">
+                    <span className="font-semibold">Assigned to:</span> {item.assignedTo}
+                  </p>
                 )}
-                {item.nextMaintenance && (
-                  <div className="flex items-center">
-                    <i className="fas fa-tools w-5 opacity-70"></i>
-                    <span>
-                      Next maintenance: <span className="font-medium">{item.nextMaintenance}</span>
-                    </span>
-                  </div>
-                )}
+                <p className="text-sm">
+                  <span className="font-semibold">Location:</span> {item.location}
+                </p>
+                <p className="text-sm">
+                  <span className="font-semibold">Next Maintenance:</span>{" "}
+                  {new Date(item.nextMaintenance).toLocaleDateString()}
+                </p>
               </div>
               <div className="card-actions justify-end mt-4">
-                <div className="dropdown dropdown-end">
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
-                    <i className="fas fa-ellipsis-v"></i>
-                  </div>
-                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                    <li>
-                      <Link href={`/dashboard/equipment/${item.id}`}>View Details</Link>
-                    </li>
-                    <li>
-                      <Link href={`/dashboard/equipment/${item.id}/edit`}>Edit Equipment</Link>
-                    </li>
-                    <li>
-                      <a onClick={() => handleDeleteEquipment(item.id)} className="text-error">
-                        Delete
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-                <Link href={`/dashboard/equipment/${item.id}`} className="btn btn-primary btn-sm">
-                  Manage
+                <Link href={`/dashboard/equipment/${item.id}`} className="btn btn-sm btn-outline">
+                  View Details
                 </Link>
               </div>
             </div>
@@ -337,115 +381,139 @@ export default function EquipmentPage() {
         ))}
       </div>
 
-      {/* Create Equipment Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {filteredEquipment.length === 0 && (
+        <div className="text-center py-12">
+          <i className="fas fa-search text-4xl text-base-content/30 mb-4"></i>
+          <h3 className="text-xl font-semibold mb-2">No equipment found</h3>
+          <p className="text-base-content/70">Try adjusting your search or filters</p>
+        </div>
+      )}
+
+      {/* Add Equipment Modal */}
+      {showAddEquipmentModal && (
+        <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Add New Equipment</h3>
-            <form onSubmit={handleCreateEquipment} className="mt-4 space-y-4">
+            <h3 className="font-bold text-lg mb-4">Add New Equipment</h3>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Equipment Name</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter equipment name"
+                className="input input-bordered"
+                value={newEquipment.name}
+                onChange={(e) => setNewEquipment({ ...newEquipment, name: e.target.value })}
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Equipment Type</span>
+              </label>
+              <select
+                className="select select-bordered"
+                value={newEquipment.type}
+                onChange={(e) => setNewEquipment({ ...newEquipment, type: e.target.value })}
+              >
+                <option>Heavy Equipment</option>
+                <option>Medium Equipment</option>
+                <option>Small Equipment</option>
+                <option>Tools</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Equipment Name</span>
+                  <span className="label-text">Make</span>
                 </label>
                 <input
                   type="text"
-                  value={newEquipmentData.name}
-                  onChange={(e) => setNewEquipmentData({ ...newEquipmentData, name: e.target.value })}
+                  placeholder="Enter make"
                   className="input input-bordered"
-                  placeholder="e.g. Excavator #EX-102"
-                  required
+                  value={newEquipment.make}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, make: e.target.value })}
                 />
               </div>
-
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Equipment Type</span>
+                  <span className="label-text">Model</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter model"
+                  className="input input-bordered"
+                  value={newEquipment.model}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Year</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="Enter year"
+                  className="input input-bordered"
+                  value={newEquipment.year}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, year: Number(e.target.value) })}
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Serial Number</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter serial number"
+                  className="input input-bordered"
+                  value={newEquipment.serialNumber}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Status</span>
                 </label>
                 <select
-                  value={newEquipmentData.type}
-                  onChange={(e) => setNewEquipmentData({ ...newEquipmentData, type: e.target.value })}
                   className="select select-bordered"
-                  required
+                  value={newEquipment.status}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, status: e.target.value })}
                 >
-                  <option value="Heavy Equipment">Heavy Equipment</option>
-                  <option value="Power Equipment">Power Equipment</option>
-                  <option value="Power Tools">Power Tools</option>
-                  <option value="Hand Tools">Hand Tools</option>
-                  <option value="Safety Equipment">Safety Equipment</option>
-                  <option value="Vehicles">Vehicles</option>
-                  <option value="Other">Other</option>
+                  {Object.entries(statusOptions).map(([value, { label }]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Manufacturer</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newEquipmentData.manufacturer}
-                    onChange={(e) => setNewEquipmentData({ ...newEquipmentData, manufacturer: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. Caterpillar"
-                    required
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Model</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newEquipmentData.model}
-                    onChange={(e) => setNewEquipmentData({ ...newEquipmentData, model: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. CAT 320"
-                    required
-                  />
-                </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Purchase Price</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="Enter purchase price"
+                  className="input input-bordered"
+                  value={newEquipment.purchasePrice}
+                  onChange={(e) => setNewEquipment({ ...newEquipment, purchasePrice: Number(e.target.value) })}
+                />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Serial Number</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newEquipmentData.serialNumber}
-                    onChange={(e) => setNewEquipmentData({ ...newEquipmentData, serialNumber: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. EX102-2023-12345"
-                    required
-                  />
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Purchase Date</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={newEquipmentData.purchaseDate}
-                    onChange={(e) => setNewEquipmentData({ ...newEquipmentData, purchaseDate: e.target.value })}
-                    className="input input-bordered"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowCreateModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Add Equipment
-                </button>
-              </div>
-            </form>
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setShowAddEquipmentModal(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleAddEquipment}>
+                Add Equipment
+              </button>
+            </div>
           </div>
+          <div className="modal-backdrop" onClick={() => setShowAddEquipmentModal(false)}></div>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import Script from "next/script"; 
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -14,18 +15,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous"></script>
-      </head>
-      <body className={`${inter.className} antialiased bg-base-200 flex min-h-screen`}>
-        <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem themes={["light", "dark"]}>
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+            <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
+      <body className={inter.className}>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

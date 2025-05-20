@@ -1,275 +1,185 @@
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
 import Link from "next/link"
+
+// Pricing data from the provided JSON
+const pricingData = [
+  {
+    id: "starter",
+    name: "Starter",
+    trial_days: 30,
+    monthly_price: 9.99,
+    annual_price: 99.99,
+    included_users: 1,
+    extra_user_price: 0,
+    ai_addon_available: true,
+    ai_addon_price: 5.0,
+    features: [
+      "1 user only",
+      "Core project and task management",
+      "Crew and equipment tracking",
+      "Mobile access",
+      "100MB storage",
+      "No AI tools (optional upgrade available)",
+    ],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    monthly_price: 49,
+    annual_price: 499,
+    included_users: 10,
+    extra_user_price: 5,
+    ai_addon_available: true,
+    ai_addon_price: 15.0,
+    features: [
+      "Up to 10 users",
+      "All Starter features",
+      "5GB storage",
+      "Invoicing & scheduling",
+      "Custom branding",
+      "Email support",
+      "AI tools available as add-on",
+    ],
+  },
+  {
+    id: "business",
+    name: "Business",
+    monthly_price: 149,
+    annual_price: 1499,
+    included_users: 50,
+    extra_user_price: 3,
+    ai_addon_available: false,
+    features: [
+      "Up to 50 users",
+      "All Pro features",
+      "20GB storage",
+      "Priority support",
+      "Basic AI assistance",
+      "Report exports",
+    ],
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    monthly_price: 500,
+    annual_price: 6000,
+    included_users: 100,
+    extra_user_price: 0,
+    ai_addon_available: false,
+    features: [
+      "Unlimited users",
+      "All Business features",
+      "100GB+ storage",
+      "Dedicated support rep",
+      "Advanced AI assistance",
+    ],
+  },
+]
 
 export default function Pricing() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="navbar bg-base-100 shadow-md">
-        <div className="navbar-start">
-          <div className="dropdown">
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-              <i className="fas fa-bars"></i>
-            </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <Link href="/features">Features</Link>
-              </li>
-              <li>
-                <Link href="/pricing">Pricing</Link>
-              </li>
-              <li>
-                <Link href="/about">About</Link>
-              </li>
-            </ul>
-          </div>
-          <Link href="/" className="btn btn-ghost text-xl">
-            <i className="fas fa-hard-hat text-primary mr-2"></i>
-            JobSight
-          </Link>
-        </div>
-        <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">
-            <li>
-              <Link href="/features">Features</Link>
-            </li>
-            <li>
-              <Link href="/pricing">Pricing</Link>
-            </li>
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-          </ul>
-        </div>
-        <div className="navbar-end">
-          <Link href="/login" className="btn btn-ghost">
-            Login
-          </Link>
-          <Link href="/register" className="btn btn-primary">
-            Get Started
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen flex flex-col">
+      <Navbar />
 
-      {/* Pricing Section */}
-      <section className="py-16 bg-base-200">
+      <section className="py-12 bg-base-200">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
-            <p className="text-lg max-w-2xl mx-auto">
-              Choose the plan that's right for your business. All plans include a 14-day free trial.
-            </p>
-          </div>
+          <h1 className="text-4xl font-bold text-center mb-4">Simple, Transparent Pricing</h1>
+          <p className="text-center mb-12 max-w-2xl mx-auto">
+            Choose the plan that fits your business needs. All plans include a 30-day free trial.
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Tier 1 */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-2xl">Tier 1</h2>
-                <p className="text-3xl font-bold mt-4">
-                  $49<span className="text-lg font-normal">/month</span>
-                </p>
-                <p className="text-sm text-base-content/70 mt-1">Billed annually or $59 monthly</p>
-
-                <div className="divider"></div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Up to 5 users</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>10 active projects</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Basic reporting</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>5GB storage</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Email support</span>
-                  </li>
-                </ul>
-
-                <div className="card-actions mt-6">
-                  <Link href="/register?plan=tier1" className="btn btn-primary w-full">
-                    Get Started
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Tier 2 */}
-            <div className="card bg-base-100 shadow-xl border-2 border-primary">
-              <div className="card-body">
-                <div className="badge badge-primary mx-auto mb-2">Most Popular</div>
-                <h2 className="card-title text-2xl">Tier 2</h2>
-                <p className="text-3xl font-bold mt-4">
-                  $99<span className="text-lg font-normal">/month</span>
-                </p>
-                <p className="text-sm text-base-content/70 mt-1">Billed annually or $119 monthly</p>
-
-                <div className="divider"></div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Up to 15 users</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Unlimited projects</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Advanced reporting</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>25GB storage</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Priority email support</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Client portal access</span>
-                  </li>
-                </ul>
-
-                <div className="card-actions mt-6">
-                  <Link href="/register?plan=tier2" className="btn btn-primary w-full">
-                    Get Started
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Tier 3 */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-2xl">Tier 3</h2>
-                <p className="text-3xl font-bold mt-4">
-                  $199<span className="text-lg font-normal">/month</span>
-                </p>
-                <p className="text-sm text-base-content/70 mt-1">Billed annually or $239 monthly</p>
-
-                <div className="divider"></div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Unlimited users</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Unlimited projects</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Custom reporting</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>100GB storage</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>24/7 phone & email support</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>Advanced client portal</span>
-                  </li>
-                  <li className="flex items-start">
-                    <i className="fas fa-check text-success mt-1 mr-2"></i>
-                    <span>API access</span>
-                  </li>
-                </ul>
-
-                <div className="card-actions mt-6">
-                  <Link href="/register?plan=tier3" className="btn btn-primary w-full">
-                    Get Started
-                  </Link>
-                </div>
-              </div>
+          <div className="flex justify-center mb-8">
+            <div className="tabs tabs-boxed">
+              <a className="tab tab-active">Monthly</a>
+              <a className="tab">Annual (Save 15%)</a>
             </div>
           </div>
 
-          <div className="text-center mt-16">
-            <h3 className="text-2xl font-bold mb-4">Need a custom solution?</h3>
-            <p className="mb-6">Contact our sales team for enterprise pricing and custom solutions.</p>
-            <Link href="/contact" className="btn btn-secondary">
-              Contact Sales
-            </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {pricingData.map((plan) => (
+              <div key={plan.id} className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title text-2xl justify-center">{plan.name}</h2>
+                  <div className="text-center my-4">
+                    <span className="text-4xl font-bold">${plan.monthly_price}</span>
+                    <span className="text-base-content/70">/month</span>
+                  </div>
+
+                  <div className="divider"></div>
+
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <i className="fas fa-check text-success mt-1 mr-2"></i>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {plan.ai_addon_available && (
+                    <div className="bg-base-200 p-3 rounded-lg mt-4 text-sm">
+                      <p className="font-semibold">AI Add-on Available</p>
+                      <p>+${plan.ai_addon_price}/month</p>
+                    </div>
+                  )}
+
+                  <div className="card-actions justify-center mt-6">
+                    <Link href={`/register?plan=${plan.id}`} className="btn btn-primary btn-block">
+                      Choose {plan.name}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-base-100">
+      <section className="py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
 
-          <div className="max-w-3xl mx-auto space-y-4">
-            <div className="collapse collapse-plus bg-base-200">
-              <input type="radio" name="faq-accordion" checked />
-              <div className="collapse-title text-xl font-medium">How does the 14-day free trial work?</div>
+          <div className="max-w-3xl mx-auto">
+            <div className="collapse collapse-plus bg-base-200 mb-4">
+              <input type="radio" name="my-accordion-3" checked={true} readOnly />
+              <div className="collapse-title text-xl font-medium">What's included in the free trial?</div>
               <div className="collapse-content">
                 <p>
-                  You can sign up for any plan and try all features for 14 days without being charged. No credit card is
-                  required to start your trial. At the end of your trial, you can choose to subscribe or your account
-                  will be automatically downgraded to a limited free version.
+                  Your 30-day free trial includes all features of your selected plan with no restrictions. No credit
+                  card required to start.
                 </p>
               </div>
             </div>
 
-            <div className="collapse collapse-plus bg-base-200">
-              <input type="radio" name="faq-accordion" />
+            <div className="collapse collapse-plus bg-base-200 mb-4">
+              <input type="radio" name="my-accordion-3" />
               <div className="collapse-title text-xl font-medium">Can I change plans later?</div>
               <div className="collapse-content">
                 <p>
-                  Yes, you can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the
-                  prorated difference immediately. When downgrading, the new rate will apply at the start of your next
-                  billing cycle.
+                  Yes, you can upgrade or downgrade your plan at any time. Upgrades take effect immediately, while
+                  downgrades take effect at the end of your billing cycle.
                 </p>
               </div>
             </div>
 
-            <div className="collapse collapse-plus bg-base-200">
-              <input type="radio" name="faq-accordion" />
-              <div className="collapse-title text-xl font-medium">Is there a discount for annual billing?</div>
-              <div className="collapse-content">
-                <p>Yes, you save approximately 15% when you choose annual billing compared to monthly billing.</p>
-              </div>
-            </div>
-
-            <div className="collapse collapse-plus bg-base-200">
-              <input type="radio" name="faq-accordion" />
+            <div className="collapse collapse-plus bg-base-200 mb-4">
+              <input type="radio" name="my-accordion-3" />
               <div className="collapse-title text-xl font-medium">What payment methods do you accept?</div>
               <div className="collapse-content">
                 <p>
-                  We accept all major credit cards (Visa, Mastercard, American Express, Discover) as well as PayPal. For
-                  annual enterprise plans, we can also accept bank transfers.
+                  We accept all major credit cards and PayPal. For Enterprise plans, we also offer invoicing options.
                 </p>
               </div>
             </div>
 
             <div className="collapse collapse-plus bg-base-200">
-              <input type="radio" name="faq-accordion" />
-              <div className="collapse-title text-xl font-medium">Can I cancel my subscription?</div>
+              <input type="radio" name="my-accordion-3" />
+              <div className="collapse-title text-xl font-medium">What is the AI add-on?</div>
               <div className="collapse-content">
                 <p>
-                  Yes, you can cancel your subscription at any time from your account settings. Your subscription will
-                  remain active until the end of your current billing period.
+                  The AI add-on provides intelligent assistance for project planning, resource allocation, and automated
+                  reporting. It helps save time and improve decision-making.
                 </p>
               </div>
             </div>
@@ -277,71 +187,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer p-10 bg-neutral text-neutral-content">
-        <div>
-          <i className="fas fa-hard-hat text-4xl"></i>
-          <p className="font-bold text-lg">JobSight</p>
-          <p>Your Entire Jobsite, One App</p>
-        </div>
-        <div>
-          <span className="footer-title">Company</span>
-          <Link href="/about" className="link link-hover">
-            About
-          </Link>
-          <Link href="/contact" className="link link-hover">
-            Contact
-          </Link>
-          <Link href="/careers" className="link link-hover">
-            Careers
-          </Link>
-        </div>
-        <div>
-          <span className="footer-title">Product</span>
-          <Link href="/features" className="link link-hover">
-            Features
-          </Link>
-          <Link href="/pricing" className="link link-hover">
-            Pricing
-          </Link>
-          <Link href="/roadmap" className="link link-hover">
-            Roadmap
-          </Link>
-        </div>
-        <div>
-          <span className="footer-title">Legal</span>
-          <Link href="/terms" className="link link-hover">
-            Terms of use
-          </Link>
-          <Link href="/privacy" className="link link-hover">
-            Privacy policy
-          </Link>
-          <Link href="/cookies" className="link link-hover">
-            Cookie policy
-          </Link>
-        </div>
-      </footer>
-      <footer className="footer px-10 py-4 border-t bg-neutral text-neutral-content border-base-300">
-        <div className="items-center grid-flow-col">
-          <p>© 2025 JobSight. All rights reserved.</p>
-        </div>
-        <div className="md:place-self-center md:justify-self-end">
-          <div className="grid grid-flow-col gap-4">
-            <Link href="#">
-              <i className="fab fa-twitter text-xl"></i>
-            </Link>
-            <Link href="#">
-              <i className="fab fa-facebook text-xl"></i>
-            </Link>
-            <Link href="#">
-              <i className="fab fa-linkedin text-xl"></i>
-            </Link>
-            <Link href="#">
-              <i className="fab fa-instagram text-xl"></i>
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <Footer />
+    </main>
   )
 }

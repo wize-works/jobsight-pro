@@ -1,27 +1,25 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <div className="w-10 h-10"></div>
-  }
 
   return (
-    <button
-      className="btn btn-ghost btn-circle"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? <i className="fas fa-sun"></i> : <i className="fas fa-moon"></i>}
-    </button>
+    <label className="swap swap-rotate btn btn-ghost btn-circle">
+      {/* this hidden checkbox controls the state */}
+      <input
+        type="checkbox"
+        checked={theme === "dark"}
+        onChange={() => setTheme(theme === "light" ? "dark" : "light")}
+        className="hidden"
+      />
+
+      {/* sun icon */}
+      <i className="fas fa-sun swap-on text-yellow-500 text-lg"></i>
+
+      {/* moon icon */}
+      <i className="fas fa-moon swap-off text-slate-400 text-lg"></i>
+    </label>
   )
 }

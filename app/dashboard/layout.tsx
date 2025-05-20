@@ -1,10 +1,5 @@
-"use client"
-
 import type React from "react"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function DashboardLayout({
@@ -12,318 +7,59 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    // Check for auth cookie on client side
-    const cookies = document.cookie.split(";")
-    const authCookie = cookies.find((cookie) => cookie.trim().startsWith("auth_session="))
-
-    if (!authCookie) {
-      router.push("/login")
-    } else {
-      setIsAuthenticated(true)
-    }
-
-    setIsLoading(false)
-  }, [router])
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    )
-  }
-
-  // If not authenticated, the useEffect will redirect to login
-  if (!isAuthenticated) {
-    return null
-  }
-
-  // Check if a path is active
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`)
-  }
-
-  // Mock user data for preview
-  const user = {
-    given_name: "John",
-    family_name: "Doe",
-    email: "john.doe@example.com",
-    picture: null,
-  }
-
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Sidebar for desktop */}
-      <aside className="w-64 bg-base-200 hidden md:flex flex-col h-screen sticky top-0">
-        <div className="p-4 border-b border-base-300">
-          <Link href="/dashboard" className="flex items-center">
-            <i className="fas fa-hard-hat text-primary text-2xl mr-2"></i>
-            <span className="text-xl font-bold">JobSight</span>
-          </Link>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto p-4">
-          <ul className="menu menu-md gap-2">
-            <li>
-              <Link href="/dashboard" className={isActive("/dashboard") && !isActive("/dashboard/") ? "active" : ""}>
-                <i className="fas fa-tachometer-alt w-5"></i>
-                <span>Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/projects" className={isActive("/dashboard/projects") ? "active" : ""}>
-                <i className="fas fa-project-diagram w-5"></i>
-                <span>Projects</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/tasks" className={isActive("/dashboard/tasks") ? "active" : ""}>
-                <i className="fas fa-tasks w-5"></i>
-                <span>Tasks</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/crews" className={isActive("/dashboard/crews") ? "active" : ""}>
-                <i className="fas fa-users w-5"></i>
-                <span>Crews</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/equipment" className={isActive("/dashboard/equipment") ? "active" : ""}>
-                <i className="fas fa-truck w-5"></i>
-                <span>Equipment</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/clients" className={isActive("/dashboard/clients") ? "active" : ""}>
-                <i className="fas fa-user-tie w-5"></i>
-                <span>Clients</span>
-                {isActive("/dashboard/clients") && <span className="badge badge-sm badge-primary">New</span>}
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/daily-logs" className={isActive("/dashboard/daily-logs") ? "active" : ""}>
-                <i className="fas fa-clipboard-list w-5"></i>
-                <span>Daily Logs</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/invoices" className={isActive("/dashboard/invoices") ? "active" : ""}>
-                <i className="fas fa-file-invoice-dollar w-5"></i>
-                <span>Invoices</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/media" className={isActive("/dashboard/media") ? "active" : ""}>
-                <i className="fas fa-images w-5"></i>
-                <span>Media</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/reports" className={isActive("/dashboard/reports") ? "active" : ""}>
-                <i className="fas fa-chart-bar w-5"></i>
-                <span>Reports</span>
-              </Link>
-            </li>
-          </ul>
-
-          <div className="divider"></div>
-
-          <ul className="menu menu-md gap-2">
-            <li>
-              <Link href="/dashboard/organization" className={isActive("/dashboard/organization") ? "active" : ""}>
-                <i className="fas fa-building w-5"></i>
-                <span>Organization</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/settings" className={isActive("/dashboard/settings") ? "active" : ""}>
-                <i className="fas fa-cog w-5"></i>
-                <span>Settings</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/help" className={isActive("/dashboard/help") ? "active" : ""}>
-                <i className="fas fa-question-circle w-5"></i>
-                <span>Help</span>
-              </Link>
-            </li>
-          </ul>
-        </nav>
-
-        <div className="p-4 border-t border-base-300">
-          <div className="flex items-center">
-            <div className="avatar">
-              <div className="w-10 rounded-full">
-                {user?.picture ? (
-                  <img src={user.picture || "/placeholder.svg"} alt={user.given_name || "User"} />
-                ) : (
-                  <div className="bg-primary text-primary-content flex items-center justify-center h-full text-lg font-semibold">
-                    {user?.given_name?.[0] || user?.email?.[0] || "U"}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="ml-3">
-              <p className="font-medium">{user?.given_name || user?.email || "User"}</p>
-              <p className="text-xs text-base-content/70">Admin</p>
-            </div>
-            <div className="dropdown dropdown-end ml-auto">
-              <div tabIndex={0} role="button" className="btn btn-ghost btn-xs">
-                <i className="fas fa-ellipsis-v"></i>
-              </div>
-              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                <li>
-                  <Link href="/dashboard/profile">Profile</Link>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      document.cookie = "auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-                      router.push("/")
-                    }}
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            </div>
+    <div className="drawer lg:drawer-open">
+      <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content flex flex-col">
+        {/* Navbar */}
+        <div className="navbar bg-base-100 border-b">
+          <div className="flex-none lg:hidden">
+            <label htmlFor="my-drawer-2" className="btn btn-square btn-ghost">
+              <i className="fas fa-bars"></i>
+            </label>
           </div>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top navbar */}
-        <header className="navbar bg-base-100 shadow-md sticky top-0 z-10 md:pl-4">
-          <div className="navbar-start">
-            <div className="dropdown md:hidden">
-              <div tabIndex={0} role="button" className="btn btn-ghost">
-                <i className="fas fa-bars"></i>
-              </div>
-              <ul
-                tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-              >
-                <li>
-                  <Link
-                    href="/dashboard"
-                    className={isActive("/dashboard") && !isActive("/dashboard/") ? "active" : ""}
-                  >
-                    <i className="fas fa-tachometer-alt w-5"></i>
-                    <span>Dashboard</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/projects" className={isActive("/dashboard/projects") ? "active" : ""}>
-                    <i className="fas fa-project-diagram w-5"></i>
-                    <span>Projects</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/tasks" className={isActive("/dashboard/tasks") ? "active" : ""}>
-                    <i className="fas fa-tasks w-5"></i>
-                    <span>Tasks</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/crews" className={isActive("/dashboard/crews") ? "active" : ""}>
-                    <i className="fas fa-users w-5"></i>
-                    <span>Crews</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/equipment" className={isActive("/dashboard/equipment") ? "active" : ""}>
-                    <i className="fas fa-truck w-5"></i>
-                    <span>Equipment</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/clients" className={isActive("/dashboard/clients") ? "active" : ""}>
-                    <i className="fas fa-user-tie w-5"></i>
-                    <span>Clients</span>
-                    {isActive("/dashboard/clients") && <span className="badge badge-sm badge-primary">New</span>}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/daily-logs" className={isActive("/dashboard/daily-logs") ? "active" : ""}>
-                    <i className="fas fa-clipboard-list w-5"></i>
-                    <span>Daily Logs</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/invoices" className={isActive("/dashboard/invoices") ? "active" : ""}>
-                    <i className="fas fa-file-invoice-dollar w-5"></i>
-                    <span>Invoices</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/media" className={isActive("/dashboard/media") ? "active" : ""}>
-                    <i className="fas fa-images w-5"></i>
-                    <span>Media</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/reports" className={isActive("/dashboard/reports") ? "active" : ""}>
-                    <i className="fas fa-chart-bar w-5"></i>
-                    <span>Reports</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/organization" className={isActive("/dashboard/organization") ? "active" : ""}>
-                    <i className="fas fa-building w-5"></i>
-                    <span>Organization</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/settings" className={isActive("/dashboard/settings") ? "active" : ""}>
-                    <i className="fas fa-cog w-5"></i>
-                    <span>Settings</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/help" className={isActive("/dashboard/help") ? "active" : ""}>
-                    <i className="fas fa-question-circle w-5"></i>
-                    <span>Help</span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <Link href="/" className="btn btn-ghost text-xl md:hidden">
-              <i className="fas fa-hard-hat text-primary mr-2"></i>
-              JobSight
+          <div className="flex-1">
+            <Link href="/dashboard" className="btn btn-ghost p-0">
+              <img src="/logo-full.png" alt="JobSight" className="h-10 hidden sm:block" />
+              <img src="/logo.png" alt="JobSight" className="h-10 sm:hidden" />
             </Link>
           </div>
-          <div className="navbar-center">
-            <div className="form-control">
-              <input type="text" placeholder="Search..." className="input input-bordered w-24 md:w-auto" />
-            </div>
-          </div>
-          <div className="navbar-end">
-            <button className="btn btn-ghost btn-circle">
-              <div className="indicator">
-                <i className="fas fa-bell"></i>
-                <span className="badge badge-xs badge-primary indicator-item">3</span>
-              </div>
-            </button>
+          <div className="flex-none gap-2">
             <ThemeToggle />
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                <i className="fas fa-bell"></i>
+                <span className="badge badge-sm badge-primary indicator-item">3</span>
+              </div>
+              <div tabIndex={0} className="mt-3 z-[1] card card-compact dropdown-content w-52 bg-base-100 shadow">
+                <div className="card-body">
+                  <span className="font-bold text-lg">3 Notifications</span>
+                  <div className="text-sm">
+                    <div className="py-2 border-b">
+                      <p className="font-semibold">Equipment inspection due</p>
+                      <p className="text-xs">Excavator #103 - Today</p>
+                    </div>
+                    <div className="py-2 border-b">
+                      <p className="font-semibold">Task assigned</p>
+                      <p className="text-xs">Foundation work - Main St Project</p>
+                    </div>
+                    <div className="py-2">
+                      <p className="font-semibold">Invoice paid</p>
+                      <p className="text-xs">Johnson Residence - $3,450</p>
+                    </div>
+                  </div>
+                  <div className="card-actions">
+                    <Link href="/dashboard/notifications" className="btn btn-primary btn-block btn-sm">
+                      View all
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                 <div className="w-10 rounded-full">
-                  {user?.picture ? (
-                    <img src={user.picture || "/placeholder.svg"} alt={user.given_name || "User avatar"} />
-                  ) : (
-                    <div className="bg-primary text-primary-content flex items-center justify-center h-full text-lg font-semibold">
-                      {user?.given_name?.[0] || user?.email?.[0] || "U"}
-                    </div>
-                  )}
+                  <img alt="User avatar" src="/diverse-avatars.png" />
                 </div>
               </div>
               <ul
@@ -333,56 +69,136 @@ export default function DashboardLayout({
                 <li>
                   <Link href="/dashboard/profile" className="justify-between">
                     Profile
-                    <span className="badge badge-primary badge-sm">New</span>
                   </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/organization">Organization</Link>
                 </li>
                 <li>
                   <Link href="/dashboard/settings">Settings</Link>
                 </li>
                 <li>
-                  <button
-                    onClick={() => {
-                      document.cookie = "auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-                      router.push("/")
-                    }}
-                  >
-                    Logout
-                  </button>
+                  <Link href="/">Logout</Link>
                 </li>
               </ul>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 md:p-6 bg-base-200">{children}</main>
+        <div className="p-4 md:p-6">{children}</div>
+      </div>
 
-        {/* Mobile bottom navigation */}
-        <nav className="btm-nav bg-base-100 md:hidden">
-          <Link href="/dashboard" className={isActive("/dashboard") && !isActive("/dashboard/") ? "active" : ""}>
-            <i className="fas fa-tachometer-alt"></i>
-            <span className="btm-nav-label">Dashboard</span>
-          </Link>
-          <Link href="/dashboard/projects" className={isActive("/dashboard/projects") ? "active" : ""}>
-            <i className="fas fa-project-diagram"></i>
-            <span className="btm-nav-label">Projects</span>
-          </Link>
-          <Link href="/dashboard/tasks" className={isActive("/dashboard/tasks") ? "active" : ""}>
-            <i className="fas fa-tasks"></i>
-            <span className="btm-nav-label">Tasks</span>
-          </Link>
-          <Link href="/dashboard/crews" className={isActive("/dashboard/crews") ? "active" : ""}>
-            <i className="fas fa-users"></i>
-            <span className="btm-nav-label">Crews</span>
-          </Link>
-          <Link href="/dashboard/more" className={isActive("/dashboard/more") ? "active" : ""}>
-            <i className="fas fa-ellipsis-h"></i>
-            <span className="btm-nav-label">More</span>
-          </Link>
-        </nav>
+      {/* Sidebar */}
+      <div className="drawer-side">
+        <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
+        <div className="menu p-4 w-64 min-h-full bg-base-200 text-base-content">
+          <div className="mb-6 flex items-center justify-center">
+            <img src="/logo-full.png" alt="JobSight" className="h-10 hidden sm:block" />
+            <img src="/logo.png" alt="JobSight" className="h-10 sm:hidden" />
+          </div>
+
+          <ul className="space-y-1">
+            <li>
+              <Link href="/dashboard" className="flex items-center">
+                <i className="fas fa-tachometer-alt w-5"></i>
+                <span>Dashboard</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">
+              <span>Organization</span>
+            </li>
+            <li>
+              <Link href="/dashboard/business" className="flex items-center">
+                <i className="fas fa-building w-5"></i>
+                <span>Business</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/crews" className="flex items-center">
+                <i className="fas fa-users w-5"></i>
+                <span>Crews</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/equipment" className="flex items-center">
+                <i className="fas fa-truck w-5"></i>
+                <span>Equipment</span>
+                <span className="badge badge-sm badge-primary ml-auto">New</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/clients" className="flex items-center">
+                <i className="fas fa-user-tie w-5"></i>
+                <span>Clients</span>
+                <span className="badge badge-sm badge-primary ml-auto">New</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">
+              <span>Projects</span>
+            </li>
+            <li>
+              <Link href="/dashboard/projects" className="flex items-center">
+                <i className="fas fa-project-diagram w-5"></i>
+                <span>Projects</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/tasks" className="flex items-center">
+                <i className="fas fa-tasks w-5"></i>
+                <span>Tasks</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/daily-logs" className="flex items-center">
+                <i className="fas fa-clipboard-list w-5"></i>
+                <span>Daily Logs</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">
+              <span>Finance</span>
+            </li>
+            <li>
+              <Link href="/dashboard/invoices" className="flex items-center">
+                <i className="fas fa-file-invoice-dollar w-5"></i>
+                <span>Invoices</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">
+              <span>Media</span>
+            </li>
+            <li>
+              <Link href="/dashboard/media" className="flex items-center">
+                <i className="fas fa-images w-5"></i>
+                <span>Media Library</span>
+              </Link>
+            </li>
+
+            <li className="menu-title">
+              <span>Reports</span>
+            </li>
+            <li>
+              <Link href="/dashboard/reports" className="flex items-center">
+                <i className="fas fa-chart-bar w-5"></i>
+                <span>Reports</span>
+              </Link>
+            </li>
+          </ul>
+
+          <div className="mt-auto pt-6">
+            <div className="bg-base-100 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <i className="fas fa-crown text-warning mr-2"></i>
+                <span className="font-semibold">Pro Plan</span>
+              </div>
+              <p className="text-sm mb-2">7 days left in trial</p>
+              <Link href="/dashboard/subscription" className="btn btn-primary btn-sm btn-block">
+                Upgrade Now
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

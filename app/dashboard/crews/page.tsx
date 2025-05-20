@@ -1,210 +1,151 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 
-export default function CrewsPage() {
-  const [crews, setCrews] = useState([
-    {
-      id: 1,
-      name: "Team Alpha",
-      type: "General Construction",
-      memberCount: 6,
-      capacity: 6,
-      status: "Available",
-      currentProject: null,
-    },
-    {
-      id: 2,
-      name: "Team Bravo",
-      type: "Electrical",
-      memberCount: 4,
-      capacity: 5,
-      status: "Partial",
-      currentProject: "Riverside Apartments",
-    },
-    {
-      id: 3,
-      name: "Team Charlie",
-      type: "Plumbing",
-      memberCount: 5,
-      capacity: 5,
-      status: "Assigned",
-      currentProject: "Hillside Villas",
-    },
-    {
-      id: 4,
-      name: "Team Delta",
-      type: "Finishing",
-      memberCount: 3,
-      capacity: 4,
-      status: "Partial",
-      currentProject: "Downtown Office Tower",
-    },
-    {
-      id: 5,
-      name: "Team Echo",
-      type: "Excavation",
-      memberCount: 4,
-      capacity: 4,
-      status: "Assigned",
-      currentProject: "Community Center",
-    },
-  ])
+// Mock data for crews
+const initialCrews = [
+  {
+    id: "crew1",
+    name: "Foundation Team",
+    leader: "Mike Wilson",
+    members: 5,
+    currentProject: "Main Street Development",
+    status: "active",
+  },
+  {
+    id: "crew2",
+    name: "Framing Crew",
+    leader: "Sarah Johnson",
+    members: 7,
+    currentProject: "Riverside Apartments",
+    status: "active",
+  },
+  {
+    id: "crew3",
+    name: "Electrical Team",
+    leader: "David Martinez",
+    members: 4,
+    currentProject: "Downtown Project",
+    status: "active",
+  },
+  {
+    id: "crew4",
+    name: "Plumbing Specialists",
+    leader: "Lisa Chen",
+    members: 3,
+    currentProject: null,
+    status: "available",
+  },
+  {
+    id: "crew5",
+    name: "Finishing Crew",
+    leader: "James Taylor",
+    members: 6,
+    currentProject: "Johnson Residence",
+    status: "active",
+  },
+]
 
-  const [searchQuery, setSearchQuery] = useState("")
+export default function CrewsPage() {
+  const [crews, setCrews] = useState(initialCrews)
+  const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newCrewData, setNewCrewData] = useState({
+  const [showAddCrewModal, setShowAddCrewModal] = useState(false)
+  const [newCrew, setNewCrew] = useState({
     name: "",
-    type: "General Construction",
-    capacity: 5,
+    leader: "",
+    members: 1,
   })
 
-  // Filter crews based on search query and status filter
+  // Filter crews based on search term and status
   const filteredCrews = crews.filter((crew) => {
     const matchesSearch =
-      crew.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      crew.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (crew.currentProject && crew.currentProject.toLowerCase().includes(searchQuery.toLowerCase()))
-
-    const matchesStatus = statusFilter === "all" || crew.status.toLowerCase() === statusFilter.toLowerCase()
-
+      crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      crew.leader.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || crew.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const handleCreateCrew = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const newCrew = {
-      id: crews.length + 1,
-      name: newCrewData.name,
-      type: newCrewData.type,
-      memberCount: 0,
-      capacity: newCrewData.capacity,
-      status: "Available",
+  const handleAddCrew = () => {
+    const crew = {
+      id: `crew${crews.length + 1}`,
+      name: newCrew.name,
+      leader: newCrew.leader,
+      members: newCrew.members,
       currentProject: null,
+      status: "available",
     }
-
-    setCrews([...crews, newCrew])
-    setNewCrewData({
-      name: "",
-      type: "General Construction",
-      capacity: 5,
-    })
-    setShowCreateModal(false)
-  }
-
-  const handleDeleteCrew = (id: number) => {
-    setCrews(crews.filter((crew) => crew.id !== id))
+    setCrews([...crews, crew])
+    setNewCrew({ name: "", leader: "", members: 1 })
+    setShowAddCrewModal(false)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Crews</h1>
-          <p className="text-base-content/70">Manage your work crews and team assignments</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          <i className="fas fa-plus mr-2"></i>
-          Create Crew
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Crew Management</h1>
+        <button className="btn btn-primary" onClick={() => setShowAddCrewModal(true)}>
+          <i className="fas fa-plus mr-2"></i> Add Crew
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="form-control flex-1">
-          <div className="input-group">
-            <input
-              type="text"
-              placeholder="Search crews..."
-              className="input input-bordered w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button className="btn btn-square">
-              <i className="fas fa-search"></i>
-            </button>
+      <div className="card bg-base-100 shadow-sm mb-6">
+        <div className="card-body">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="form-control flex-1">
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="Search crews..."
+                  className="input input-bordered w-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className="btn btn-square">
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            <select
+              className="select select-bordered"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="available">Available</option>
+            </select>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <select
-            className="select select-bordered"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            <option value="available">Available</option>
-            <option value="partial">Partial</option>
-            <option value="assigned">Assigned</option>
-          </select>
         </div>
       </div>
 
-      {/* Crew Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCrews.map((crew) => (
-          <div key={crew.id} className="card bg-base-100 shadow-xl">
+          <div key={crew.id} className="card bg-base-100 shadow-sm">
             <div className="card-body">
               <div className="flex justify-between items-start">
                 <h2 className="card-title">{crew.name}</h2>
-                <div
-                  className={`badge ${
-                    crew.status === "Available"
-                      ? "badge-success"
-                      : crew.status === "Partial"
-                        ? "badge-warning"
-                        : "badge-error"
-                  }`}
-                >
-                  {crew.status}
+                <div className={`badge ${crew.status === "active" ? "badge-primary" : "badge-success"}`}>
+                  {crew.status === "active" ? "Active" : "Available"}
                 </div>
               </div>
-              <p>{crew.type}</p>
-              <div className="flex items-center mt-2">
-                <div className="flex -space-x-4 mr-4">
-                  {Array.from({ length: crew.memberCount }).map((_, index) => (
-                    <div key={index} className="avatar placeholder">
-                      <div className="bg-neutral-focus text-neutral-content rounded-full w-10">
-                        <span className="text-xs">Team</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm text-base-content/70">
-                  {crew.memberCount}/{crew.capacity} members
-                </span>
+              <div className="mt-2">
+                <p className="flex items-center">
+                  <i className="fas fa-user-tie mr-2 text-primary"></i> {crew.leader}
+                </p>
+                <p className="flex items-center mt-1">
+                  <i className="fas fa-users mr-2 text-primary"></i> {crew.members} members
+                </p>
+                {crew.currentProject && (
+                  <p className="flex items-center mt-1">
+                    <i className="fas fa-project-diagram mr-2 text-primary"></i> {crew.currentProject}
+                  </p>
+                )}
               </div>
-              {crew.currentProject && (
-                <div className="mt-2">
-                  <span className="text-sm font-medium">Current Project: </span>
-                  <span className="text-sm">{crew.currentProject}</span>
-                </div>
-              )}
               <div className="card-actions justify-end mt-4">
-                <div className="dropdown dropdown-end">
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
-                    <i className="fas fa-ellipsis-v"></i>
-                  </div>
-                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                    <li>
-                      <Link href={`/dashboard/crews/${crew.id}`}>View Details</Link>
-                    </li>
-                    <li>
-                      <Link href={`/dashboard/crews/${crew.id}/edit`}>Edit Crew</Link>
-                    </li>
-                    <li>
-                      <a onClick={() => handleDeleteCrew(crew.id)} className="text-error">
-                        Delete
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-                <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-primary btn-sm">
-                  Manage Crew
+                <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-outline">
+                  View Details
                 </Link>
               </div>
             </div>
@@ -212,74 +153,57 @@ export default function CrewsPage() {
         ))}
       </div>
 
-      {/* Create Crew Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {/* Add Crew Modal */}
+      {showAddCrewModal && (
+        <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Create New Crew</h3>
-            <form onSubmit={handleCreateCrew} className="mt-4 space-y-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Crew Name</span>
-                </label>
-                <input
-                  type="text"
-                  value={newCrewData.name}
-                  onChange={(e) => setNewCrewData({ ...newCrewData, name: e.target.value })}
-                  className="input input-bordered"
-                  placeholder="e.g. Team Foxtrot"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Crew Type</span>
-                </label>
-                <select
-                  value={newCrewData.type}
-                  onChange={(e) => setNewCrewData({ ...newCrewData, type: e.target.value })}
-                  className="select select-bordered"
-                  required
-                >
-                  <option value="General Construction">General Construction</option>
-                  <option value="Electrical">Electrical</option>
-                  <option value="Plumbing">Plumbing</option>
-                  <option value="HVAC">HVAC</option>
-                  <option value="Excavation">Excavation</option>
-                  <option value="Finishing">Finishing</option>
-                  <option value="Roofing">Roofing</option>
-                  <option value="Masonry">Masonry</option>
-                  <option value="Carpentry">Carpentry</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Capacity</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={newCrewData.capacity}
-                  onChange={(e) => setNewCrewData({ ...newCrewData, capacity: Number.parseInt(e.target.value) })}
-                  className="input input-bordered"
-                  required
-                />
-              </div>
-
-              <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowCreateModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Create Crew
-                </button>
-              </div>
-            </form>
+            <h3 className="font-bold text-lg mb-4">Add New Crew</h3>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Crew Name</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter crew name"
+                className="input input-bordered"
+                value={newCrew.name}
+                onChange={(e) => setNewCrew({ ...newCrew, name: e.target.value })}
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Crew Leader</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter crew leader name"
+                className="input input-bordered"
+                value={newCrew.leader}
+                onChange={(e) => setNewCrew({ ...newCrew, leader: e.target.value })}
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Number of Members</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                className="input input-bordered"
+                value={newCrew.members}
+                onChange={(e) => setNewCrew({ ...newCrew, members: Number.parseInt(e.target.value) || 1 })}
+              />
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setShowAddCrewModal(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleAddCrew}>
+                Add Crew
+              </button>
+            </div>
           </div>
+          <div className="modal-backdrop" onClick={() => setShowAddCrewModal(false)}></div>
         </div>
       )}
     </div>

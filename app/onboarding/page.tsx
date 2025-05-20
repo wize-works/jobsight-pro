@@ -1,160 +1,271 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
+import { useUser } from "@clerk/nextjs"
 import Link from "next/link"
 
 export default function Onboarding() {
+  const { user, isLoaded } = useUser()
   const router = useRouter()
-  const { user } = useKindeBrowserClient()
   const [step, setStep] = useState(1)
-  const [businessName, setBusinessName] = useState("")
-  const [businessType, setBusinessType] = useState("")
-  const [selectedPlan, setSelectedPlan] = useState("")
+  const [formData, setFormData] = useState({
+    businessName: "",
+    businessType: "General Contractor",
+    phoneNumber: "",
+    website: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "United States",
+  })
 
-  const handleContinue = () => {
-    if (step === 1 && businessName && businessType) {
-      setStep(2)
-    } else if (step === 2 && selectedPlan) {
-      // In a real app, you would save this data to your database
-      // and potentially redirect to Stripe for payment
-      router.push("/dashboard")
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (step < 3) {
+      setStep(step + 1)
+      return
     }
+
+    // Here you would typically save the data to your database
+    // For now, we'll just redirect to the dashboard
+    router.push("/dashboard")
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-base-200 p-4">
-      <div className="card w-full max-w-2xl bg-base-100 shadow-xl">
+    <main className="min-h-screen bg-base-200 flex items-center justify-center p-4">
+      <div className="card bg-base-100 shadow-xl w-full max-w-3xl">
         <div className="card-body">
-          <Link href="/" className="flex items-center justify-center mb-6">
-            <i className="fas fa-hard-hat text-primary text-3xl mr-2"></i>
-            <h1 className="text-2xl font-bold">JobSight</h1>
-          </Link>
-
-          <div className="flex justify-center mb-8">
-            <ul className="steps steps-horizontal w-full">
-              <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Business Info</li>
-              <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Choose Plan</li>
-              <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Complete</li>
-            </ul>
+          <div className="flex justify-center mb-6">
+            <Link href="/" className="flex items-center">
+              <img src="/logo-full.png" alt="JobSight" className="h-12" />
+            </Link>
           </div>
 
-          {step === 1 && (
-            <>
-              <h2 className="card-title text-2xl mb-6 text-center">Tell us about your business</h2>
+          <h1 className="text-2xl font-bold text-center mb-6">Complete Your Profile</h1>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Business Name</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter your business name"
-                  className="input input-bordered"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                />
+          <ul className="steps steps-horizontal w-full mb-8">
+            <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Business Info</li>
+            <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Address</li>
+            <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Preferences</li>
+          </ul>
+
+          <form onSubmit={handleSubmit}>
+            {step === 1 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-4">Business Information</h2>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Business Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="businessName"
+                    value={formData.businessName}
+                    onChange={handleChange}
+                    className="input input-bordered"
+                    required
+                  />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Business Type</span>
+                  </label>
+                  <select
+                    name="businessType"
+                    value={formData.businessType}
+                    onChange={handleChange}
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option>General Contractor</option>
+                    <option>Specialty Contractor</option>
+                    <option>Home Builder</option>
+                    <option>Remodeler</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Phone Number</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="input input-bordered"
+                    required
+                  />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Website (Optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    className="input input-bordered"
+                  />
+                </div>
               </div>
+            )}
 
-              <div className="form-control mt-4">
-                <label className="label">
-                  <span className="label-text">Business Type</span>
-                </label>
-                <select
-                  className="select select-bordered w-full"
-                  value={businessType}
-                  onChange={(e) => setBusinessType(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Select business type
-                  </option>
-                  <option value="construction">Construction</option>
-                  <option value="electrical">Electrical</option>
-                  <option value="plumbing">Plumbing</option>
-                  <option value="hvac">HVAC</option>
-                  <option value="landscaping">Landscaping</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </>
-          )}
+            {step === 2 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-4">Business Address</h2>
 
-          {step === 2 && (
-            <>
-              <h2 className="card-title text-2xl mb-6 text-center">Choose your plan</h2>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Street Address</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="input input-bordered"
+                    required
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div
-                  className={`card bg-base-200 cursor-pointer hover:shadow-md transition-shadow ${selectedPlan === "tier1" ? "border-2 border-primary" : ""}`}
-                  onClick={() => setSelectedPlan("tier1")}
-                >
-                  <div className="card-body p-4">
-                    <h3 className="card-title text-lg">Tier 1</h3>
-                    <p className="text-2xl font-bold">
-                      $49<span className="text-sm font-normal">/mo</span>
-                    </p>
-                    <p className="text-xs">Up to 5 users</p>
-                    <p className="text-xs">10 active projects</p>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">City</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="input input-bordered"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">State/Province</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      className="input input-bordered"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Zip/Postal Code</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleChange}
+                      className="input input-bordered"
+                      required
+                    />
                   </div>
                 </div>
 
-                <div
-                  className={`card bg-base-200 cursor-pointer hover:shadow-md transition-shadow ${selectedPlan === "tier2" ? "border-2 border-primary" : ""}`}
-                  onClick={() => setSelectedPlan("tier2")}
-                >
-                  <div className="card-body p-4">
-                    <div className="badge badge-primary mb-1">Popular</div>
-                    <h3 className="card-title text-lg">Tier 2</h3>
-                    <p className="text-2xl font-bold">
-                      $99<span className="text-sm font-normal">/mo</span>
-                    </p>
-                    <p className="text-xs">Up to 15 users</p>
-                    <p className="text-xs">Unlimited projects</p>
-                  </div>
-                </div>
-
-                <div
-                  className={`card bg-base-200 cursor-pointer hover:shadow-md transition-shadow ${selectedPlan === "tier3" ? "border-2 border-primary" : ""}`}
-                  onClick={() => setSelectedPlan("tier3")}
-                >
-                  <div className="card-body p-4">
-                    <h3 className="card-title text-lg">Tier 3</h3>
-                    <p className="text-2xl font-bold">
-                      $199<span className="text-sm font-normal">/mo</span>
-                    </p>
-                    <p className="text-xs">Unlimited users</p>
-                    <p className="text-xs">Unlimited projects</p>
-                  </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Country</span>
+                  </label>
+                  <select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option>United States</option>
+                    <option>Canada</option>
+                    <option>Mexico</option>
+                    <option>United Kingdom</option>
+                    <option>Australia</option>
+                  </select>
                 </div>
               </div>
+            )}
 
-              <div className="mt-4">
-                <p className="text-sm">All plans include a 14-day free trial. No credit card required.</p>
+            {step === 3 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-4">Preferences</h2>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">Enable email notifications</span>
+                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">Enable mobile push notifications</span>
+                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">Share anonymous usage data to help improve JobSight</span>
+                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">Subscribe to newsletter</span>
+                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                  </label>
+                </div>
               </div>
-            </>
-          )}
+            )}
 
-          <div className="form-control mt-6">
-            <button
-              className="btn btn-primary"
-              onClick={handleContinue}
-              disabled={(step === 1 && (!businessName || !businessType)) || (step === 2 && !selectedPlan)}
-            >
-              {step === 1 ? "Continue" : "Start Free Trial"}
-            </button>
-          </div>
-
-          {step === 1 && (
-            <p className="text-center mt-4 text-sm">
-              Already have an organization?{" "}
-              <Link href="/join-organization" className="link link-primary">
-                Join here
-              </Link>
-            </p>
-          )}
+            <div className="flex justify-between mt-8">
+              {step > 1 ? (
+                <button type="button" className="btn btn-outline" onClick={() => setStep(step - 1)}>
+                  Back
+                </button>
+              ) : (
+                <div></div>
+              )}
+              <button type="submit" className="btn btn-primary">
+                {step < 3 ? "Next" : "Complete Setup"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

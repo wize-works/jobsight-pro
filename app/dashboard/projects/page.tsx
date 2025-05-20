@@ -1,546 +1,519 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 
-// Project type definition
-type Project = {
-  id: number
-  name: string
-  client: string
-  location: string
-  startDate: string
-  endDate: string
-  budget: number
-  status: "Planning" | "In Progress" | "On Hold" | "Completed"
-  progress: number
-  description: string
-  manager: string
-  thumbnail?: string
-  tasks: {
-    total: number
-    completed: number
-  }
-}
+// Mock data for projects
+const projectsData = [
+  {
+    id: "proj1",
+    name: "Main Street Development",
+    client: "Oakridge Development",
+    clientId: "client1",
+    type: "Commercial",
+    status: "In Progress",
+    startDate: "2025-03-15",
+    endDate: "2025-09-30",
+    budget: 1250000,
+    location: "123 Main St, Anytown, USA",
+    progress: 35,
+    assignedCrews: ["crew1", "crew3"],
+  },
+  {
+    id: "proj2",
+    name: "Riverside Apartments",
+    client: "Riverside Properties",
+    clientId: "client2",
+    type: "Residential",
+    status: "In Progress",
+    startDate: "2025-02-01",
+    endDate: "2025-08-15",
+    budget: 3500000,
+    location: "456 River Rd, Anytown, USA",
+    progress: 45,
+    assignedCrews: ["crew2", "crew4"],
+  },
+  {
+    id: "proj3",
+    name: "Downtown Project",
+    client: "Metro City Government",
+    clientId: "client3",
+    type: "Government",
+    status: "In Progress",
+    startDate: "2025-01-10",
+    endDate: "2025-12-20",
+    budget: 5750000,
+    location: "789 Center Ave, Metro City, USA",
+    progress: 20,
+    assignedCrews: ["crew3"],
+  },
+  {
+    id: "proj4",
+    name: "Johnson Residence",
+    client: "Johnson Family",
+    clientId: "client7",
+    type: "Residential",
+    status: "In Progress",
+    startDate: "2025-04-01",
+    endDate: "2025-07-15",
+    budget: 450000,
+    location: "321 Oak St, Anytown, USA",
+    progress: 65,
+    assignedCrews: ["crew5"],
+  },
+  {
+    id: "proj5",
+    name: "Greenfield Housing Development",
+    client: "Greenfield Homes",
+    clientId: "client4",
+    type: "Residential",
+    status: "Planning",
+    startDate: "2025-06-01",
+    endDate: "2026-04-30",
+    budget: 7500000,
+    location: "555 Meadow Ln, Greenfield, USA",
+    progress: 5,
+    assignedCrews: [],
+  },
+  {
+    id: "proj6",
+    name: "Sunrise Senior Living Center",
+    client: "Sunrise Senior Living",
+    clientId: "client5",
+    type: "Healthcare",
+    status: "Planning",
+    startDate: "2025-07-15",
+    endDate: "2026-09-30",
+    budget: 8250000,
+    location: "777 Sunrise Blvd, Anytown, USA",
+    progress: 0,
+    assignedCrews: [],
+  },
+  {
+    id: "proj7",
+    name: "TechHub Office Renovation",
+    client: "TechHub Innovations",
+    clientId: "client6",
+    type: "Commercial",
+    status: "Completed",
+    startDate: "2024-10-01",
+    endDate: "2025-02-28",
+    budget: 1850000,
+    location: "999 Innovation Way, Tech City, USA",
+    progress: 100,
+    assignedCrews: [],
+  },
+  {
+    id: "proj8",
+    name: "Parkview Elementary School",
+    client: "Parkview School District",
+    clientId: "client8",
+    type: "Education",
+    status: "On Hold",
+    startDate: "2025-05-01",
+    endDate: "2026-06-30",
+    budget: 12500000,
+    location: "111 School Rd, Parkview, USA",
+    progress: 15,
+    assignedCrews: [],
+  },
+  {
+    id: "proj9",
+    name: "Mountainside Resort Expansion",
+    client: "Mountainside Resorts",
+    clientId: "client9",
+    type: "Hospitality",
+    status: "Planning",
+    startDate: "2025-08-01",
+    endDate: "2026-12-15",
+    budget: 15750000,
+    location: "222 Mountain View Rd, Highland, USA",
+    progress: 0,
+    assignedCrews: [],
+  },
+  {
+    id: "proj10",
+    name: "Eastside Community Center",
+    client: "Eastside Community Center",
+    clientId: "client10",
+    type: "Community",
+    status: "Bidding",
+    startDate: "2025-06-15",
+    endDate: "2026-03-30",
+    budget: 4250000,
+    location: "333 Community Way, Eastside, USA",
+    progress: 0,
+    assignedCrews: [],
+  },
+]
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: 1,
-      name: "Downtown Highrise",
-      client: "Metropolis Development Corp",
-      location: "123 Main St, Downtown",
-      startDate: "2025-01-15",
-      endDate: "2026-06-30",
-      budget: 12500000,
-      status: "In Progress",
-      progress: 35,
-      description: "A 25-story commercial building with retail space on the ground floor and office space above.",
-      manager: "John Smith",
-      thumbnail: "/construction-site-dashboard.png",
-      tasks: {
-        total: 145,
-        completed: 52,
-      },
-    },
-    {
-      id: 2,
-      name: "Riverside Apartments",
-      client: "River View Properties",
-      location: "456 River Rd, Riverside",
-      startDate: "2025-03-10",
-      endDate: "2026-02-28",
-      budget: 8750000,
-      status: "In Progress",
-      progress: 20,
-      description: "A luxury apartment complex with 120 units, pool, and fitness center.",
-      manager: "Sarah Johnson",
-      thumbnail: "/business-management-dashboard.png",
-      tasks: {
-        total: 98,
-        completed: 18,
-      },
-    },
-    {
-      id: 3,
-      name: "Community Center Renovation",
-      client: "City of Metropolis",
-      location: "789 Park Ave, Metropolis",
-      startDate: "2025-02-01",
-      endDate: "2025-08-15",
-      budget: 3200000,
-      status: "Planning",
-      progress: 5,
-      description: "Complete renovation of the city's community center including new gymnasium and meeting spaces.",
-      manager: "Michael Brown",
-      tasks: {
-        total: 72,
-        completed: 4,
-      },
-    },
-    {
-      id: 4,
-      name: "Mountain View Condos",
-      client: "Alpine Developers LLC",
-      location: "321 Mountain Rd, Highland",
-      startDate: "2025-05-01",
-      endDate: "2026-09-30",
-      budget: 15800000,
-      status: "Planning",
-      progress: 0,
-      description: "Luxury condominium development with 45 units and underground parking.",
-      manager: "Emily Davis",
-      tasks: {
-        total: 0,
-        completed: 0,
-      },
-    },
-    {
-      id: 5,
-      name: "Sunset Plaza Mall Expansion",
-      client: "Sunset Retail Group",
-      location: "555 Sunset Blvd, Westside",
-      startDate: "2024-11-15",
-      endDate: "2025-12-31",
-      budget: 9500000,
-      status: "On Hold",
-      progress: 15,
-      description: "Expansion of existing mall with additional 50,000 sq ft of retail space and food court.",
-      manager: "David Wilson",
-      tasks: {
-        total: 87,
-        completed: 12,
-      },
-    },
-    {
-      id: 6,
-      name: "Harbor Bridge Repair",
-      client: "State Transportation Department",
-      location: "Harbor Bridge, Eastport",
-      startDate: "2024-08-10",
-      endDate: "2025-03-15",
-      budget: 4200000,
-      status: "Completed",
-      progress: 100,
-      description: "Structural repairs and resurfacing of the Harbor Bridge.",
-      manager: "Robert Taylor",
-      tasks: {
-        total: 56,
-        completed: 56,
-      },
-    },
-  ])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("All")
+  const [typeFilter, setTypeFilter] = useState("All")
+  const [showAddProjectModal, setShowAddProjectModal] = useState(false)
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newProjectData, setNewProjectData] = useState({
-    name: "",
-    client: "",
-    location: "",
-    startDate: "",
-    endDate: "",
-    budget: "",
-    description: "",
-    manager: "",
-  })
-
-  // Filter projects based on search query and status filter
-  const filteredProjects = projects.filter((project) => {
+  // Filter projects based on search term and filters
+  const filteredProjects = projectsData.filter((project) => {
     const matchesSearch =
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.manager.toLowerCase().includes(searchQuery.toLowerCase())
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.location.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter
+    const matchesStatus = statusFilter === "All" || project.status === statusFilter
+    const matchesType = typeFilter === "All" || project.type === typeFilter
 
-    return matchesSearch && matchesStatus
+    return matchesSearch && matchesStatus && matchesType
   })
 
-  const handleCreateProject = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Get unique project types for filter
+  const projectTypes = ["All", ...new Set(projectsData.map((project) => project.type))]
 
-    const newProject: Project = {
-      id: projects.length + 1,
-      name: newProjectData.name,
-      client: newProjectData.client,
-      location: newProjectData.location,
-      startDate: newProjectData.startDate,
-      endDate: newProjectData.endDate,
-      budget: Number.parseFloat(newProjectData.budget) || 0,
-      status: "Planning",
-      progress: 0,
-      description: newProjectData.description,
-      manager: newProjectData.manager,
-      tasks: {
-        total: 0,
-        completed: 0,
-      },
-    }
-
-    setProjects([...projects, newProject])
-    setNewProjectData({
-      name: "",
-      client: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      budget: "",
-      description: "",
-      manager: "",
-    })
-    setShowCreateModal(false)
-  }
-
-  const handleDeleteProject = (id: number) => {
-    setProjects(projects.filter((project) => project.id !== id))
-  }
+  // Get unique project statuses for filter
+  const projectStatuses = ["All", ...new Set(projectsData.map((project) => project.status))]
 
   // Calculate project statistics
-  const projectStats = {
-    total: projects.length,
-    inProgress: projects.filter((p) => p.status === "In Progress").length,
-    planning: projects.filter((p) => p.status === "Planning").length,
-    onHold: projects.filter((p) => p.status === "On Hold").length,
-    completed: projects.filter((p) => p.status === "Completed").length,
-    totalBudget: projects.reduce((sum, project) => sum + project.budget, 0),
-  }
+  const totalProjects = projectsData.length
+  const activeProjects = projectsData.filter((project) => project.status === "In Progress").length
+  const completedProjects = projectsData.filter((project) => project.status === "Completed").length
+  const upcomingProjects = projectsData.filter(
+    (project) => project.status === "Planning" || project.status === "Bidding",
+  ).length
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-base-content/70">Manage your construction projects</p>
+          <h1 className="text-2xl font-bold">Projects</h1>
+          <p className="text-base-content/70">Manage and track all your construction projects</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          <i className="fas fa-plus mr-2"></i>
-          Create Project
+        <button className="btn btn-primary" onClick={() => setShowAddProjectModal(true)}>
+          <i className="fas fa-plus mr-2"></i> Add Project
         </button>
       </div>
 
       {/* Project Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 shadow rounded-box">
-          <div className="stat-figure text-primary">
-            <i className="fas fa-project-diagram text-3xl"></i>
-          </div>
-          <div className="stat-title">Total Projects</div>
-          <div className="stat-value">{projectStats.total}</div>
-          <div className="stat-desc">
-            <span className="text-success">{projectStats.inProgress} in progress</span>
-          </div>
-        </div>
-        <div className="stat bg-base-100 shadow rounded-box">
-          <div className="stat-figure text-secondary">
-            <i className="fas fa-tasks text-3xl"></i>
-          </div>
-          <div className="stat-title">Project Status</div>
-          <div className="stat-value text-secondary">{projectStats.completed}</div>
-          <div className="stat-desc">Completed projects</div>
-        </div>
-        <div className="stat bg-base-100 shadow rounded-box">
-          <div className="stat-figure text-accent">
-            <i className="fas fa-calendar-alt text-3xl"></i>
-          </div>
-          <div className="stat-title">Planning</div>
-          <div className="stat-value">{projectStats.planning}</div>
-          <div className="stat-desc">
-            <span className="text-warning">{projectStats.onHold} on hold</span>
-          </div>
-        </div>
-        <div className="stat bg-base-100 shadow rounded-box">
-          <div className="stat-figure text-info">
-            <i className="fas fa-dollar-sign text-3xl"></i>
-          </div>
-          <div className="stat-title">Total Budget</div>
-          <div className="stat-value text-info">${(projectStats.totalBudget / 1000000).toFixed(1)}M</div>
-          <div className="stat-desc">Across all projects</div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="form-control flex-1">
-          <div className="input-group">
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="input input-bordered w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button className="btn btn-square">
-              <i className="fas fa-search"></i>
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <select
-            className="select select-bordered"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            <option value="Planning">Planning</option>
-            <option value="In Progress">In Progress</option>
-            <option value="On Hold">On Hold</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Project Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((project) => (
-          <div key={project.id} className="card bg-base-100 shadow-xl">
-            <figure className="h-48 relative">
-              {project.thumbnail ? (
-                <Image
-                  src={project.thumbnail || "/placeholder.svg"}
-                  alt={project.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-base-200">
-                  <i className="fas fa-building text-6xl text-base-content/20"></i>
-                </div>
-              )}
-              <div
-                className={`absolute top-2 right-2 badge ${
-                  project.status === "In Progress"
-                    ? "badge-primary"
-                    : project.status === "Planning"
-                      ? "badge-secondary"
-                      : project.status === "On Hold"
-                        ? "badge-warning"
-                        : "badge-success"
-                }`}
-              >
-                {project.status}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body p-4">
+            <div className="flex items-center">
+              <div className="rounded-full bg-primary/10 p-3 mr-4">
+                <i className="fas fa-project-diagram text-primary text-xl"></i>
               </div>
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title">{project.name}</h2>
-              <p className="text-sm text-base-content/70 line-clamp-2">{project.description}</p>
-
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center text-sm">
-                  <i className="fas fa-user-tie w-5 opacity-70"></i>
-                  <span>{project.client}</span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <i className="fas fa-map-marker-alt w-5 opacity-70"></i>
-                  <span>{project.location}</span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <i className="fas fa-calendar w-5 opacity-70"></i>
-                  <span>
-                    {new Date(project.startDate).toLocaleDateString()} -{" "}
-                    {new Date(project.endDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Progress</span>
-                  <span>{project.progress}%</span>
-                </div>
-                <progress
-                  className={`progress w-full ${
-                    project.progress < 30
-                      ? "progress-primary"
-                      : project.progress < 70
-                        ? "progress-warning"
-                        : "progress-success"
-                  }`}
-                  value={project.progress}
-                  max="100"
-                ></progress>
-              </div>
-
-              <div className="card-actions justify-between items-center mt-4">
-                <div className="text-sm">
-                  <span className="font-medium">{project.tasks.completed}</span>/{project.tasks.total} tasks completed
-                </div>
-                <div className="flex gap-2">
-                  <div className="dropdown dropdown-end">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </div>
-                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li>
-                        <Link href={`/dashboard/projects/${project.id}/edit`}>
-                          <i className="fas fa-edit"></i> Edit Project
-                        </Link>
-                      </li>
-                      <li>
-                        <a>
-                          <i className="fas fa-copy"></i> Duplicate
-                        </a>
-                      </li>
-                      <li>
-                        <a>
-                          <i className="fas fa-archive"></i> Archive
-                        </a>
-                      </li>
-                      <li>
-                        <a onClick={() => handleDeleteProject(project.id)} className="text-error">
-                          <i className="fas fa-trash"></i> Delete
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <Link href={`/dashboard/projects/${project.id}`} className="btn btn-primary btn-sm">
-                    View Project
-                  </Link>
-                </div>
+              <div>
+                <div className="text-xs text-base-content/70">Total Projects</div>
+                <div className="text-2xl font-bold">{totalProjects}</div>
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body p-4">
+            <div className="flex items-center">
+              <div className="rounded-full bg-success/10 p-3 mr-4">
+                <i className="fas fa-hammer text-success text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xs text-base-content/70">Active Projects</div>
+                <div className="text-2xl font-bold">{activeProjects}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body p-4">
+            <div className="flex items-center">
+              <div className="rounded-full bg-info/10 p-3 mr-4">
+                <i className="fas fa-calendar-alt text-info text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xs text-base-content/70">Upcoming Projects</div>
+                <div className="text-2xl font-bold">{upcomingProjects}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body p-4">
+            <div className="flex items-center">
+              <div className="rounded-full bg-secondary/10 p-3 mr-4">
+                <i className="fas fa-check-circle text-secondary text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xs text-base-content/70">Completed Projects</div>
+                <div className="text-2xl font-bold">{completedProjects}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="card bg-base-100 shadow-sm mb-6">
+        <div className="card-body p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="form-control">
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  className="input input-bordered w-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className="btn btn-square">
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+
+            <div className="form-control">
+              <select
+                className="select select-bordered w-full"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                {projectStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status === "All" ? "All Statuses" : status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-control">
+              <select
+                className="select select-bordered w-full"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                {projectTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type === "All" ? "All Types" : type}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Projects List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredProjects.map((project) => (
+          <Link
+            href={`/dashboard/projects/${project.id}`}
+            key={project.id}
+            className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="card-body p-4">
+              <div className="flex justify-between items-start">
+                <h3 className="card-title text-lg">{project.name}</h3>
+                <div className={`badge ${getStatusBadgeColor(project.status)}`}>{project.status}</div>
+              </div>
+              <p className="text-sm text-base-content/70">{project.client}</p>
+              <div className="flex items-center text-sm mt-2">
+                <i className="fas fa-map-marker-alt mr-2 text-base-content/70"></i>
+                <span className="truncate">{project.location}</span>
+              </div>
+              <div className="flex items-center text-sm mt-1">
+                <i className="fas fa-calendar-alt mr-2 text-base-content/70"></i>
+                <span>
+                  {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                </span>
+              </div>
+              <div className="flex items-center text-sm mt-1">
+                <i className="fas fa-dollar-sign mr-2 text-base-content/70"></i>
+                <span>{formatCurrency(project.budget)}</span>
+              </div>
+              <div className="mt-3">
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs font-medium">Progress</span>
+                  <span className="text-xs font-medium">{project.progress}%</span>
+                </div>
+                <div className="w-full bg-base-200 rounded-full h-2">
+                  <div className="bg-primary h-2 rounded-full" style={{ width: `${project.progress}%` }}></div>
+                </div>
+              </div>
+              {project.assignedCrews.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-xs font-medium mb-1">Assigned Crews:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {project.assignedCrews.map((crewId) => (
+                      <div key={crewId} className="badge badge-outline">
+                        {getCrewName(crewId)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Link>
         ))}
       </div>
 
-      {/* Create Project Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {filteredProjects.length === 0 && (
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body p-6 text-center">
+            <i className="fas fa-search text-3xl text-base-content/30 mb-2"></i>
+            <h3 className="text-lg font-semibold">No projects found</h3>
+            <p className="text-base-content/70">Try adjusting your search or filters</p>
+          </div>
+        </div>
+      )}
+
+      {/* Add Project Modal */}
+      {showAddProjectModal && (
+        <div className="modal modal-open">
           <div className="modal-box max-w-3xl">
-            <h3 className="font-bold text-lg">Create New Project</h3>
-            <form onSubmit={handleCreateProject} className="mt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 className="font-bold text-lg mb-4">Add New Project</h3>
+            <form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Project Name</span>
                   </label>
-                  <input
-                    type="text"
-                    value={newProjectData.name}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, name: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. Downtown Highrise"
-                    required
-                  />
+                  <input type="text" placeholder="Enter project name" className="input input-bordered" />
                 </div>
-
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Client</span>
                   </label>
-                  <input
-                    type="text"
-                    value={newProjectData.client}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, client: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. Metropolis Development Corp"
-                    required
-                  />
+                  <select className="select select-bordered" defaultValue="">
+                    <option disabled value="">
+                      Select a client
+                    </option>
+                    <option>Oakridge Development</option>
+                    <option>Riverside Properties</option>
+                    <option>Metro City Government</option>
+                    <option>Greenfield Homes</option>
+                    <option>Sunrise Senior Living</option>
+                  </select>
                 </div>
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Location</span>
-                </label>
-                <input
-                  type="text"
-                  value={newProjectData.location}
-                  onChange={(e) => setNewProjectData({ ...newProjectData, location: e.target.value })}
-                  className="input input-bordered"
-                  placeholder="e.g. 123 Main St, Downtown"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Project Type</span>
+                  </label>
+                  <select className="select select-bordered" defaultValue="">
+                    <option disabled value="">
+                      Select project type
+                    </option>
+                    <option>Commercial</option>
+                    <option>Residential</option>
+                    <option>Government</option>
+                    <option>Healthcare</option>
+                    <option>Education</option>
+                    <option>Hospitality</option>
+                    <option>Community</option>
+                  </select>
+                </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Status</span>
+                  </label>
+                  <select className="select select-bordered" defaultValue="">
+                    <option disabled value="">
+                      Select status
+                    </option>
+                    <option>Planning</option>
+                    <option>Bidding</option>
+                    <option>In Progress</option>
+                    <option>On Hold</option>
+                    <option>Completed</option>
+                  </select>
+                </div>
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Start Date</span>
                   </label>
-                  <input
-                    type="date"
-                    value={newProjectData.startDate}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, startDate: e.target.value })}
-                    className="input input-bordered"
-                    required
-                  />
+                  <input type="date" className="input input-bordered" />
                 </div>
-
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">End Date</span>
                   </label>
-                  <input
-                    type="date"
-                    value={newProjectData.endDate}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, endDate: e.target.value })}
-                    className="input input-bordered"
-                    required
-                  />
+                  <input type="date" className="input input-bordered" />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Budget ($)</span>
+                    <span className="label-text">Budget</span>
                   </label>
-                  <input
-                    type="number"
-                    value={newProjectData.budget}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, budget: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. 1000000"
-                    required
-                  />
+                  <input type="number" placeholder="Enter budget amount" className="input input-bordered" />
                 </div>
-
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Project Manager</span>
+                    <span className="label-text">Location</span>
                   </label>
-                  <input
-                    type="text"
-                    value={newProjectData.manager}
-                    onChange={(e) => setNewProjectData({ ...newProjectData, manager: e.target.value })}
-                    className="input input-bordered"
-                    placeholder="e.g. John Smith"
-                    required
-                  />
+                  <input type="text" placeholder="Enter project location" className="input input-bordered" />
                 </div>
               </div>
-
-              <div className="form-control">
+              <div className="form-control mb-4">
                 <label className="label">
-                  <span className="label-text">Description</span>
+                  <span className="label-text">Project Description</span>
                 </label>
                 <textarea
-                  value={newProjectData.description}
-                  onChange={(e) => setNewProjectData({ ...newProjectData, description: e.target.value })}
                   className="textarea textarea-bordered h-24"
-                  placeholder="Describe the project..."
-                  required
-                />
+                  placeholder="Enter project description"
+                ></textarea>
               </div>
-
               <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowCreateModal(false)}>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowAddProjectModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="button" className="btn btn-primary" onClick={() => setShowAddProjectModal(false)}>
                   Create Project
                 </button>
               </div>
             </form>
           </div>
+          <div className="modal-backdrop" onClick={() => setShowAddProjectModal(false)}></div>
         </div>
       )}
     </div>
   )
+}
+
+// Helper functions
+function formatDate(dateString) {
+  const options = { year: "numeric", month: "short", day: "numeric" }
+  return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+function getStatusBadgeColor(status) {
+  switch (status) {
+    case "In Progress":
+      return "badge-primary"
+    case "Completed":
+      return "badge-success"
+    case "Planning":
+      return "badge-info"
+    case "Bidding":
+      return "badge-warning"
+    case "On Hold":
+      return "badge-error"
+    default:
+      return "badge-ghost"
+  }
+}
+
+function getCrewName(crewId) {
+  const crews = {
+    crew1: "Foundation Team",
+    crew2: "Framing Crew",
+    crew3: "Electrical Team",
+    crew4: "Plumbing Specialists",
+    crew5: "Finishing Crew",
+  }
+  return crews[crewId] || "Unknown Crew"
 }
