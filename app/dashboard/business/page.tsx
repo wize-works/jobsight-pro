@@ -79,7 +79,7 @@ export default function BusinessPage() {
                                     <label className="label">
                                         <span className="label-text">Business Type</span>
                                     </label>
-                                    <select className="select select-bordered w-full" name="industry" value={business?.business_type || ""}>
+                                    <select className="select select-bordered w-full" name="industry" defaultValue={business?.business_type || ""}>
                                         <option value="General Contractor">General Contractor</option>
                                         <option value="Specialty Contractor">Specialty Contractor</option>
                                         <option value="Home Builder">Home Builder</option>
