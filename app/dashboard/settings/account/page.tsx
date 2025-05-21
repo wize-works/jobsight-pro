@@ -14,7 +14,7 @@ export default function AccountSettingsPage() {
     jobTitle: "Project Manager",
     timezone: "America/New_York",
     language: "en-US",
-    avatar: "/diverse-avatars.png",
+    avatar: "/placeholder.svg?key=eloc4",
   })
 
   const [isEditing, setIsEditing] = useState(false)

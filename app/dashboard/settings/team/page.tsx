@@ -16,7 +16,7 @@ const initialTeamMembers = [
     department: "Management",
     status: "active",
     lastActive: "2025-05-19T15:30:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=3r07g",
   },
   {
     id: "2",
@@ -26,7 +26,7 @@ const initialTeamMembers = [
     department: "Project Management",
     status: "active",
     lastActive: "2025-05-19T14:45:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=cbzq8",
   },
   {
     id: "3",
@@ -36,7 +36,7 @@ const initialTeamMembers = [
     department: "Construction",
     status: "active",
     lastActive: "2025-05-19T13:15:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=bvdcr",
   },
   {
     id: "4",
@@ -46,7 +46,7 @@ const initialTeamMembers = [
     department: "Engineering",
     status: "active",
     lastActive: "2025-05-19T12:30:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=iudt3",
   },
   {
     id: "5",
@@ -56,7 +56,7 @@ const initialTeamMembers = [
     department: "Finance",
     status: "active",
     lastActive: "2025-05-19T11:45:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=wqp1j",
   },
   {
     id: "6",
@@ -66,7 +66,7 @@ const initialTeamMembers = [
     department: "Human Resources",
     status: "inactive",
     lastActive: "2025-05-15T09:30:00Z",
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=euef0",
   },
   {
     id: "7",
@@ -76,7 +76,7 @@ const initialTeamMembers = [
     department: "Construction",
     status: "pending",
     lastActive: null,
-    avatar: "/diverse-group-avatars.png",
+    avatar: "/placeholder.svg?key=avwzk",
   },
 ]
 
@@ -388,9 +388,7 @@ export default function TeamSettingsPage() {
                     ))}
                   </select>
                   <label className="label">
-                    <span className="label-text-alt">
-                      {roles.find((r) => r.value === newMember.role)?.description}
-                    </span>
+                    <span className="label-text-alt">{roles.find((r) => r.value === newMember.role)?.description}</span>
                   </label>
                 </div>
                 <div className="form-control">
@@ -566,4 +564,21 @@ export default function TeamSettingsPage() {
                 </tr>
                 <tr>
                   <td>Manage Billing & Subscription</td>
-                  <td className="text-\
+                  <td className="text-center">
+                    <i className="fas fa-check text-success"></i>
+                  </td>
+                  <td className="text-center">
+                    <i className="fas fa-times text-error"></i>
+                  </td>
+                  <td className="text-center">
+                    <i className="fas fa-times text-error"></i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
