@@ -4,11 +4,11 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 
 export default function Onboarding() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoaded } = useAuth()
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
