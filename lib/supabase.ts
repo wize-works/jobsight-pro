@@ -1,30 +1,31 @@
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/supabase"
 
-// Create a single supabase client for the browser
-const createBrowserClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Singleton pattern for browser client
+let supabaseBrowserClient: ReturnType<typeof createClient<Database>> | null = null
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Supabase URL or Anon Key is missing")
-    return null
+export function getSupabaseBrowserClient() {
+  if (!supabaseBrowserClient && typeof window !== "undefined") {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("Supabase URL or Anon Key is missing")
+      return null
+    }
+
+    supabaseBrowserClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+      },
+    })
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey)
+  return supabaseBrowserClient
 }
 
-// Singleton pattern to avoid multiple instances
-let browserClient: ReturnType<typeof createClient> | null = null
-
-export const getSupabaseBrowserClient = () => {
-  if (!browserClient) {
-    browserClient = createBrowserClient()
-  }
-  return browserClient
-}
-
-// Server-side client (for server components and API routes)
-export const createServerClient = () => {
+// Server-side client
+export function createServerClient() {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -33,5 +34,9 @@ export const createServerClient = () => {
     return null
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey)
+  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      persistSession: false,
+    },
+  })
 }
