@@ -6,26 +6,6 @@
 
 @import "../styles/light.theme.css";
 @import "../styles/dark.theme.css";
-/*
-@utility input {
-    @apply focus:input-primary;
-}
-
-@utility select {
-    @apply focus:select-primary;
-}
-
-@utility textarea {
-    @apply focus:textarea-primary;
-}
-
-@utility label {
-    @apply focus:textarea-primary;
-}
-*/
-.validator-hint {
-    @apply mt-0;
-}
 
 .container {
     width: 100%;
