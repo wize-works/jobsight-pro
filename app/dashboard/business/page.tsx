@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useBusiness } from "@/hooks/use-business"
-import { toast } from "react-hot-toast"
+import { toast } from "@/hooks/use-toast"
 
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile")

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { LoginLink, useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import { createBusiness } from "./actions";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export default function Onboarding() {
     const { user, isLoading } = useKindeAuth();

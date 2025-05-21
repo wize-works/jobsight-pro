@@ -23,8 +23,8 @@ type ToasterToast = ToastProps & {
     action?: ToastActionElement
 }
 
-const TOAST_LIMIT = 3
-const TOAST_REMOVE_DELAY = 5000
+const TOAST_LIMIT = 5
+const TOAST_REMOVE_DELAY = 3000
 
 const actionTypes = {
     ADD_TOAST: "ADD_TOAST",
@@ -179,17 +179,25 @@ function toast(props: Toast) {
 }
 
 // Convenience methods for common toast variants
-toast.info = (props: Omit<Toast, "variant">) =>
-    toast({ ...props, variant: "info" })
+toast.info = (message: string | Omit<Toast, "variant">) =>
+    typeof message === "string"
+        ? toast({ description: message, variant: "info" })
+        : toast({ ...message, variant: "info" })
 
-toast.success = (props: Omit<Toast, "variant">) =>
-    toast({ ...props, variant: "success" })
+toast.success = (message: string | Omit<Toast, "variant">) =>
+    typeof message === "string"
+        ? toast({ description: message, variant: "success" })
+        : toast({ ...message, variant: "success" })
 
-toast.warning = (props: Omit<Toast, "variant">) =>
-    toast({ ...props, variant: "warning" })
+toast.warning = (message: string | Omit<Toast, "variant">) =>
+    typeof message === "string"
+        ? toast({ description: message, variant: "warning" })
+        : toast({ ...message, variant: "warning" })
 
-toast.error = (props: Omit<Toast, "variant">) =>
-    toast({ ...props, variant: "error" })
+toast.error = (message: string | Omit<Toast, "variant">) =>
+    typeof message === "string"
+        ? toast({ description: message, variant: "error" })
+        : toast({ ...message, variant: "error" })
 
 // Convenience method for simple message toasts
 toast.message = (message: string) =>
