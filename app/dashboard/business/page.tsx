@@ -163,7 +163,7 @@ export default function BusinessPage() {
                                     <label className="label">
                                         <span className="label-text">State</span>
                                     </label>
-                                    <select className="select select-bordered w-full" name="state" value={business?.state || ""}>
+                                    <select className="select select-bordered w-full" name="state" defaultValue={business?.state || ""}>
                                         <option value="California">California</option>
                                         <option value="Texas">Texas</option>
                                         <option value="New York">New York</option>
@@ -183,7 +183,7 @@ export default function BusinessPage() {
                                     <label className="label">
                                         <span className="label-text">Country</span>
                                     </label>
-                                    <select className="select select-bordered w-full" name="country" value={business?.country || ""}>
+                                    <select className="select select-bordered w-full" name="country" defaultValue={business?.country || ""}>
                                         <option value="United States">United States</option>
                                         <option value="Canada">Canada</option>
                                         <option value="Mexico">Mexico</option>

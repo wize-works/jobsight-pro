@@ -109,4 +109,13 @@ body {
     body {
         @apply bg-background text-foreground;
     }
+
+}
+
+.form-control .input {
+    @apply w-full my-2;
+}
+
+.form-control .select {
+    @apply w-full my-2;
 }
