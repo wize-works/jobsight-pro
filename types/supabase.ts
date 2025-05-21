@@ -6,9 +6,11 @@ export interface Database {
       businesses: {
         Row: {
           address: string | null
+          business_type: string | null // Added this line
           city: string | null
           country: string | null
           created_at: string
+          created_by: string | null
           email: string | null
           id: string
           logo_url: string | null
@@ -17,14 +19,17 @@ export interface Database {
           state: string | null
           tax_id: string | null
           updated_at: string | null
+          updated_by: string | null
           website: string | null
           zip: string | null
         }
         Insert: {
           address?: string | null
+          business_type?: string | null // Added this line
           city?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
@@ -33,14 +38,17 @@ export interface Database {
           state?: string | null
           tax_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           website?: string | null
           zip?: string | null
         }
         Update: {
           address?: string | null
+          business_type?: string | null // Added this line
           city?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
@@ -49,6 +57,7 @@ export interface Database {
           state?: string | null
           tax_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           website?: string | null
           zip?: string | null
         }
@@ -58,6 +67,7 @@ export interface Database {
         Row: {
           client_id: string | null
           created_at: string
+          created_by: string | null
           email: string | null
           id: string
           is_primary: boolean | null
@@ -65,10 +75,12 @@ export interface Database {
           phone: string | null
           title: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           client_id?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           id?: string
           is_primary?: boolean | null
@@ -76,10 +88,12 @@ export interface Database {
           phone?: string | null
           title?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           client_id?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           id?: string
           is_primary?: boolean | null
@@ -87,6 +101,7 @@ export interface Database {
           phone?: string | null
           title?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -101,6 +116,7 @@ export interface Database {
         Row: {
           client_id: string | null
           created_at: string
+          created_by: string | null
           date: string | null
           follow_up_date: string | null
           follow_up_task: string | null
@@ -109,10 +125,12 @@ export interface Database {
           summary: string | null
           type: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           client_id?: string | null
           created_at?: string
+          created_by?: string | null
           date?: string | null
           follow_up_date?: string | null
           follow_up_task?: string | null
@@ -121,10 +139,12 @@ export interface Database {
           summary?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           client_id?: string | null
           created_at?: string
+          created_by?: string | null
           date?: string | null
           follow_up_date?: string | null
           follow_up_task?: string | null
@@ -133,6 +153,7 @@ export interface Database {
           summary?: string | null
           type?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -153,6 +174,7 @@ export interface Database {
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
+          created_by: string | null
           id: string
           image: string | null
           industry: string | null
@@ -163,6 +185,7 @@ export interface Database {
           total_projects: number | null
           total_value: number | null
           type: string | null
+          updated_by: string | null
           website: string | null
         }
         Insert: {
@@ -174,6 +197,7 @@ export interface Database {
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
+          created_by?: string | null
           id: string
           image?: string | null
           industry?: string | null
@@ -184,6 +208,7 @@ export interface Database {
           total_projects?: number | null
           total_value?: number | null
           type?: string | null
+          updated_by?: string | null
           website?: string | null
         }
         Update: {
@@ -195,6 +220,7 @@ export interface Database {
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
+          created_by?: string | null
           id?: string
           image?: string | null
           industry?: string | null
@@ -205,6 +231,7 @@ export interface Database {
           total_projects?: number | null
           total_value?: number | null
           type?: string | null
+          updated_by?: string | null
           website?: string | null
         }
         Relationships: []
@@ -213,6 +240,7 @@ export interface Database {
         Row: {
           business_id: string
           certifications: string[] | null
+          created_by: string | null
           current_project: string | null
           id: string
           leader: string | null
@@ -221,10 +249,12 @@ export interface Database {
           notes: string | null
           specialty: string | null
           status: string | null
+          updated_by: string | null
         }
         Insert: {
           business_id: string
           certifications?: string[] | null
+          created_by?: string | null
           current_project?: string | null
           id: string
           leader?: string | null
@@ -233,10 +263,12 @@ export interface Database {
           notes?: string | null
           specialty?: string | null
           status?: string | null
+          updated_by?: string | null
         }
         Update: {
           business_id?: string
           certifications?: string[] | null
+          created_by?: string | null
           current_project?: string | null
           id?: string
           leader?: string | null
@@ -245,6 +277,7 @@ export interface Database {
           notes?: string | null
           specialty?: string | null
           status?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -253,6 +286,7 @@ export interface Database {
           author_id: string
           business_id: string
           created_at: string | null
+          created_by: string | null
           crew_id: string
           date: string
           delays_description: string | null
@@ -273,6 +307,7 @@ export interface Database {
           safety_inspections: string | null
           start_time: string
           updated_at: string | null
+          updated_by: string | null
           weather_condition: string | null
           weather_notes: string | null
           weather_precipitation: string | null
@@ -285,6 +320,7 @@ export interface Database {
           author_id: string
           business_id: string
           created_at?: string | null
+          created_by?: string | null
           crew_id: string
           date: string
           delays_description?: string | null
@@ -305,6 +341,7 @@ export interface Database {
           safety_inspections?: string | null
           start_time: string
           updated_at?: string | null
+          updated_by?: string | null
           weather_condition?: string | null
           weather_notes?: string | null
           weather_precipitation?: string | null
@@ -317,6 +354,7 @@ export interface Database {
           author_id?: string
           business_id?: string
           created_at?: string | null
+          created_by?: string | null
           crew_id?: string
           date?: string
           delays_description?: string | null
@@ -337,6 +375,7 @@ export interface Database {
           safety_inspections?: string | null
           start_time?: string
           updated_at?: string | null
+          updated_by?: string | null
           weather_condition?: string | null
           weather_notes?: string | null
           weather_precipitation?: string | null
@@ -351,6 +390,7 @@ export interface Database {
         Row: {
           assigned_to: string | null
           business_id: string
+          created_by: string | null
           current_value: number | null
           description: string | null
           documents: Json[] | null
@@ -367,11 +407,13 @@ export interface Database {
           specifications: Json | null
           status: string | null
           type: string | null
+          updated_by: string | null
           year: number | null
         }
         Insert: {
           assigned_to?: string | null
           business_id: string
+          created_by?: string | null
           current_value?: number | null
           description?: string | null
           documents?: Json[] | null
@@ -388,11 +430,13 @@ export interface Database {
           specifications?: Json | null
           status?: string | null
           type?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Update: {
           assigned_to?: string | null
           business_id?: string
+          created_by?: string | null
           current_value?: number | null
           description?: string | null
           documents?: Json[] | null
@@ -409,6 +453,7 @@ export interface Database {
           specifications?: Json | null
           status?: string | null
           type?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Relationships: []
@@ -420,6 +465,7 @@ export interface Database {
           business_id: string
           client_id: string
           company_info: Json | null
+          created_by: string | null
           due_date: string | null
           id: string
           issue_date: string | null
@@ -429,6 +475,7 @@ export interface Database {
           payment_method: string | null
           project_id: string
           status: string | null
+          updated_by: string | null
         }
         Insert: {
           amount?: number | null
@@ -436,6 +483,7 @@ export interface Database {
           business_id: string
           client_id: string
           company_info?: Json | null
+          created_by?: string | null
           due_date?: string | null
           id?: string
           issue_date?: string | null
@@ -445,6 +493,7 @@ export interface Database {
           payment_method?: string | null
           project_id: string
           status?: string | null
+          updated_by?: string | null
         }
         Update: {
           amount?: number | null
@@ -452,6 +501,7 @@ export interface Database {
           business_id?: string
           client_id?: string
           company_info?: Json | null
+          created_by?: string | null
           due_date?: string | null
           id?: string
           issue_date?: string | null
@@ -461,6 +511,7 @@ export interface Database {
           payment_method?: string | null
           project_id?: string
           status?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -469,6 +520,7 @@ export interface Database {
           budget: number | null
           business_id: string
           client_id: string
+          created_by: string | null
           description: string | null
           end_date: string | null
           id: string
@@ -479,11 +531,13 @@ export interface Database {
           start_date: string | null
           status: string | null
           type: string | null
+          updated_by: string | null
         }
         Insert: {
           budget?: number | null
           business_id: string
           client_id: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -494,11 +548,13 @@ export interface Database {
           start_date?: string | null
           status?: string | null
           type?: string | null
+          updated_by?: string | null
         }
         Update: {
           budget?: number | null
           business_id?: string
           client_id?: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -509,6 +565,7 @@ export interface Database {
           start_date?: string | null
           status?: string | null
           type?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -516,6 +573,7 @@ export interface Database {
         Row: {
           assigned_to: string | null
           business_id: string
+          created_by: string | null
           description: string | null
           end_date: string | null
           id: string
@@ -525,10 +583,12 @@ export interface Database {
           progress: number | null
           start_date: string | null
           status: string | null
+          updated_by: string | null
         }
         Insert: {
           assigned_to?: string | null
           business_id: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -538,10 +598,12 @@ export interface Database {
           progress?: number | null
           start_date?: string | null
           status?: string | null
+          updated_by?: string | null
         }
         Update: {
           assigned_to?: string | null
           business_id?: string
+          created_by?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
@@ -551,6 +613,49 @@ export interface Database {
           progress?: number | null
           start_date?: string | null
           status?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          auth_id: string | null
+          avatar_url: string | null
+          business_id: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auth_id?: string | null
+          avatar_url?: string | null
+          business_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auth_id?: string | null
+          avatar_url?: string | null
+          business_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

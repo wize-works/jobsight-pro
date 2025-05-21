@@ -2,15 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
+import { createBusiness } from "./actions"
+import { toast } from "sonner"
 
 export default function Onboarding() {
-  const { user, isLoaded } = useAuth()
+  const { user, isLoaded, signIn } = useAuth()
   const router = useRouter()
   const [step, setStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     businessName: "",
     businessType: "General Contractor",
@@ -22,6 +25,13 @@ export default function Onboarding() {
     zipCode: "",
     country: "United States",
   })
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (isLoaded && !user) {
+      signIn()
+    }
+  }, [isLoaded, user, signIn])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -36,15 +46,97 @@ export default function Onboarding() {
       return
     }
 
-    // Here you would typically save the data to your database
-    // For now, we'll just redirect to the dashboard
-    router.push("/dashboard")
+    if (!user) {
+      toast.error("You must be logged in to complete onboarding")
+      signIn()
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await createBusiness({
+        userId: user.id, // This is our database UUID
+        businessName: formData.businessName,
+        businessType: formData.businessType,
+        phoneNumber: formData.phoneNumber,
+        website: formData.website,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        country: formData.country,
+      })
+
+      toast.success("Business profile created successfully!")
+      router.push("/dashboard")
+    } catch (error) {
+      console.error("Error creating business:", error)
+      toast.error("Failed to create business profile. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSkip = async () => {
+    if (!user) {
+      toast.error("You must be logged in to complete onboarding")
+      signIn()
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Create a default business using the user's first name
+      const defaultBusinessName = `${user.firstName}'s Company`
+
+      await createBusiness({
+        userId: user.id, // This is our database UUID
+        businessName: defaultBusinessName,
+        businessType: "General Contractor", // Default type
+        phoneNumber: "",
+        website: "",
+        address: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "United States",
+        email: user.email, // Use the user's email as the business email
+      })
+
+      toast.success("Quick setup completed! You can update your business details later.")
+      router.push("/dashboard")
+    } catch (error) {
+      console.error("Error creating default business:", error)
+      toast.error("Failed to complete setup. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Authentication Required</h2>
+            <p>You need to be logged in to access this page.</p>
+            <div className="card-actions justify-end">
+              <button className="btn btn-primary" onClick={signIn}>
+                Log In
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -259,9 +351,21 @@ export default function Onboarding() {
               ) : (
                 <div></div>
               )}
-              <button type="submit" className="btn btn-primary">
-                {step < 3 ? "Next" : "Complete Setup"}
-              </button>
+
+              <div className="flex gap-2">
+                <button type="button" className="btn btn-outline" onClick={handleSkip} disabled={isSubmitting}>
+                  {isSubmitting ? <span className="loading loading-spinner loading-sm"></span> : "Skip for now"}
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : step < 3 ? (
+                    "Next"
+                  ) : (
+                    "Complete Setup"
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>

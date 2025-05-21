@@ -3,14 +3,16 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "../styles/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import Script from "next/script"; 
+import { AuthProvider } from "@/lib/auth-context"
+import Script from "next/script"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "JobSight - Your Entire Jobsite, One App",
   description: "Modern field service and construction project management platform",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -20,9 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-            <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
+      <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
       <body className={inter.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+          <Toaster position="top-right" />
+        </AuthProvider>
       </body>
     </html>
   )

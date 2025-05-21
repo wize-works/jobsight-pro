@@ -1,17 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
 
-export function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get("kinde_access_token")?.value
-
-  // Check if the user is trying to access a protected route
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !accessToken) {
-    // Redirect to login if not authenticated
-    return NextResponse.redirect(new URL("/login", request.url))
+export default withAuth(
+  async function middleware(req) {
+  },
+  {
+    publicPaths: ["pricing", "register", "login"],
   }
-
-  return NextResponse.next()
-}
+);
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
-}
+  matcher: [
+    // Run on everything but Next internals and static files
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+  ]
+};

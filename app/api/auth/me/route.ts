@@ -1,28 +1,50 @@
 import type { NextRequest } from "next/server"
 import { getKindeServerClient } from "@/lib/kinde"
-import { cookies } from "next/headers"
+import { createServerClient } from "@/lib/supabase"
 
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = cookies().get("kinde_access_token")?.value
-
-    if (!accessToken) {
-      return Response.json({ authenticated: false }, { status: 401 })
-    }
-
     const kindeClient = getKindeServerClient()
-    if (!kindeClient) {
-      return Response.json({ error: "Kinde not configured" }, { status: 500 })
+    const supabase = createServerClient()
+
+    if (!kindeClient || !supabase) {
+      return Response.json({ error: "Configuration error" }, { status: 500 })
     }
 
-    // Get user info from Kinde
-    const userInfo = await kindeClient.getUserInfo(accessToken)
+    // Get the user from Kinde
+    const kindeUser = await kindeClient.getUser()
 
-    if (!userInfo.id) {
+    if (!kindeUser || !kindeUser.id) {
       return Response.json({ authenticated: false }, { status: 401 })
     }
 
-    return Response.json(userInfo)
+    // Get the user from our database
+    const { data: dbUser, error } = await supabase.from("users").select("*").eq("auth_id", kindeUser.id).single()
+
+    if (error) {
+      console.error("Error fetching user from database:", error)
+      // If the user doesn't exist in our database, return the Kinde user
+      // The client will handle creating the user in our database
+      return Response.json({
+        id: kindeUser.id,
+        given_name: kindeUser.given_name,
+        family_name: kindeUser.family_name,
+        email: kindeUser.email,
+        picture: kindeUser.picture,
+      })
+    }
+
+    // Return a combined user object with both Kinde and database information
+    return Response.json({
+      id: kindeUser.id, // Kinde ID
+      given_name: kindeUser.given_name,
+      family_name: kindeUser.family_name,
+      email: kindeUser.email,
+      picture: kindeUser.picture,
+      db_id: dbUser.id, // Our database UUID
+      business_id: dbUser.business_id,
+      role: dbUser.role,
+    })
   } catch (error) {
     console.error("Error getting user info:", error)
     return Response.json({ error: "Failed to get user info" }, { status: 500 })
