@@ -10,25 +10,24 @@ import { Toaster } from "sonner"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "JobSight - Your Entire Jobsite, One App",
-  description: "Modern field service and construction project management platform",
-  generator: "v0.dev",
+    title: "JobSight - Your Entire Jobsite, One App",
+    description: "Modern field service and construction project management platform",
 }
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode
+    children: React.ReactNode
 }>) {
-  return (
-    <html lang="en">
-      <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
-      <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-          <Toaster position="top-right" />
-        </AuthProvider>
-      </body>
-    </html>
-  )
+    return (
+        <html lang="en">
+            <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
+            <body className={inter.className}>
+                <AuthProvider>
+                    <ThemeProvider>{children}</ThemeProvider>
+                    <Toaster position="bottom-right" />
+                </AuthProvider>
+            </body>
+        </html>
+    )
 }
