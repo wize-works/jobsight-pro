@@ -1,9 +1,6 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
-import dynamic from "next/dynamic"
-import LoginButton from "@/components/auth/login-button"
-
 
 export default function Home() {
     return (
@@ -22,7 +19,7 @@ export default function Home() {
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
                     <div className="flex flex-col gap-3">
-                        <LoginButton className="btn btn-secondary">Login</LoginButton>
+                        <Link href="/api/auth/kinde/signin">Sign In</Link>
                         <Link href="/register" className="btn btn-primary w-full">
                             Get Started
                         </Link>
