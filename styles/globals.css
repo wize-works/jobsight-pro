@@ -3,108 +3,110 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+    .text-balance {
+        text-wrap: balance;
+    }
 }
 
 @layer base {
-  :root,
-  .light {
-    /* Light theme colors from light.theme.css */
-    --color-primary: #f87431;
-    --color-primary-content: #fafaf9;
 
-    --color-secondary: #02aca3;
-    --color-secondary-content: #fafaf9;
+    :root,
+    .light {
+        /* Light theme colors from light.theme.css */
+        --color-primary: #f87431;
+        --color-primary-content: #fafaf9;
 
-    --color-accent: #5c95ff;
-    --color-accent-content: #080607;
+        --color-secondary: #02aca3;
+        --color-secondary-content: #fafaf9;
 
-    --color-neutral: #080607;
-    --color-neutral-content: #fafaf9;
+        --color-accent: #5c95ff;
+        --color-accent-content: #080607;
 
-    --color-base-100: #fafaf9;
-    --color-base-200: #f0efec;
-    --color-base-300: #ccc9c0;
-    --color-base-content: #080607;
+        --color-neutral: #080607;
+        --color-neutral-content: #fafaf9;
 
-    --color-info: #983486;
-    --color-info-content: #fafaf9;
+        --color-base-100: #fafaf9;
+        --color-base-200: #f0efec;
+        --color-base-300: #ccc9c0;
+        --color-base-content: #080607;
 
-    --color-success: #34a432;
-    --color-success-content: #fafaf9;
+        --color-info: #983486;
+        --color-info-content: #fafaf9;
 
-    --color-warning: #f5b400;
-    --color-warning-content: #fafaf9;
+        --color-success: #34a432;
+        --color-success-content: #fafaf9;
 
-    --color-error: #d1152b;
-    --color-error-content: #fafaf9;
+        --color-warning: #f5b400;
+        --color-warning-content: #fafaf9;
 
-    /* DaisyUI specific variables from light.theme.css */
-    --radius-selector: 0.5rem;
-    --radius-field: 0.25rem;
-    --radius-box: 0.25rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-  }
+        --color-error: #d1152b;
+        --color-error-content: #fafaf9;
 
-  .dark {
-    /* Dark theme colors from dark.theme.css */
-    --color-primary: #f87431;
-    --color-primary-content: #fafaf9;
+        /* DaisyUI specific variables from light.theme.css */
+        --radius-selector: 0.5rem;
+        --radius-field: 0.25rem;
+        --radius-box: 0.25rem;
+        --size-selector: 0.25rem;
+        --size-field: 0.25rem;
+        --border: 1px;
+        --depth: 1;
+        --noise: 0;
+    }
 
-    --color-secondary: #02ada5;
-    --color-secondary-content: #fafaf9;
+    .dark {
+        /* Dark theme colors from dark.theme.css */
+        --color-primary: #f87431;
+        --color-primary-content: #fafaf9;
 
-    --color-accent: #5c95ff;
-    --color-accent-content: #080607;
+        --color-secondary: #02ada5;
+        --color-secondary-content: #fafaf9;
 
-    --color-neutral: #080607;
-    --color-neutral-content: #fafaf9;
+        --color-accent: #5c95ff;
+        --color-accent-content: #080607;
 
-    --color-base-100: #2d2d2a;
-    --color-base-200: #232321;
-    --color-base-300: #191917;
-    --color-base-content: #fafaf9;
+        --color-neutral: #080607;
+        --color-neutral-content: #fafaf9;
 
-    --color-info: #983486;
-    --color-info-content: #fafaf9;
+        --color-base-100: #2d2d2a;
+        --color-base-200: #232321;
+        --color-base-300: #191917;
+        --color-base-content: #fafaf9;
 
-    --color-success: #34a432;
-    --color-success-content: #fafaf9;
+        --color-info: #983486;
+        --color-info-content: #fafaf9;
 
-    --color-warning: #f5b400;
-    --color-warning-content: #fafaf9;
+        --color-success: #34a432;
+        --color-success-content: #fafaf9;
 
-    --color-error: #d1152b;
-    --color-error-content: #fafaf9;
+        --color-warning: #f5b400;
+        --color-warning-content: #fafaf9;
+
+        --color-error: #d1152b;
+        --color-error-content: #fafaf9;
 
 
-    /* DaisyUI specific variables from dark.theme.css */
-    --radius-selector: 0.5rem;
-    --radius-field: 0.25rem;
-    --radius-box: 0.25rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-  }
+        /* DaisyUI specific variables from dark.theme.css */
+        --radius-selector: 0.5rem;
+        --radius-field: 0.25rem;
+        --radius-box: 0.25rem;
+        --size-selector: 0.25rem;
+        --size-field: 0.25rem;
+        --border: 1px;
+        --depth: 1;
+        --noise: 0;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }

@@ -20,7 +20,7 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" data-theme="light2">
             <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
             <body className={inter.className}>
                 <AuthProvider>

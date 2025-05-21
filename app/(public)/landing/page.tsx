@@ -1,23 +1,21 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import Image from "next/image"
 
 export default function Home() {
     return (
-        <main className="min-h-screen flex flex-col lg:flex-row">
+        <main className="min-h-screen flex flex-col lg:flex-row relative">
             {/* Theme toggle in top right */}
             <div className="absolute top-4 right-4">
                 <ThemeToggle />
             </div>
-            <section className="bg-base-100 w-full lg:w-1/2 flex flex-col items-center justify-center min-h-screen p-6 text-center relative">
+            <section className="bg-base-100 w-full lg:w-1/2 flex flex-col items-center justify-center min-h-screen p-6 text-center">
 
 
                 <div className="max-w-md">
                     <div className="mb-3">
-                        <svg className="h-16 w-16 text-primary mx-auto" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z" />
-                        </svg>
+                        <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />
                     </div>
-                    <h1 className="text-4xl font-bold mb-2">JobSight</h1>
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
                     <div className="flex flex-col gap-3">
