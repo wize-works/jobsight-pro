@@ -1,14 +1,62 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
+@plugin "daisyui" {
+    themes: [ "light --default", "dark --prefersdark"]
+}
+
+@import "../styles/light.theme.css";
+@import "../styles/dark.theme.css";
+
+@utility input {
+    @apply focus:input-primary;
+}
+
+@utility select {
+    @apply focus:select-primary;
+}
+
+@utility textarea {
+    @apply focus:textarea-primary;
+}
+
+@utility label {
+    @apply focus:textarea-primary;
+}
+
+.validator-hint {
+    @apply mt-0;
+}
+
+.container {
+    width: 100%;
+}
+
+@container (min-width: 640px) {
+    .container {
+        max-width: 640px;
+    }
+}
+
+@container (min-width: 768px) {
+    .container {
+        max-width: 768px;
+    }
+}
+
+@container (min-width: 1024px) {
+    .container {
+        max-width: 1024px;
+    }
+}
+
+@container (min-width: 1280px) {
+    .container {
+        max-width: 1280px;
+    }
+}
+
+@container (min-width: 1536px) {
+    .container {
+        max-width: 1536px;
+    }
 }
