@@ -39,7 +39,6 @@ module.exports = {
             },
         },
     },
-    plugins: [require("tailwindcss-animate"), require("daisyui")],
     daisyui: {
         themes: [
             {
@@ -93,4 +92,5 @@ module.exports = {
         ], // This will use your custom theme files
         logs: false, // Disable console logs
     },
+    plugins: [require("tailwindcss-animate"), require("daisyui")],
 }

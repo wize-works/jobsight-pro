@@ -21,7 +21,7 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="en" data-theme="light2">
+        <html lang="en" suppressHydrationWarning>
             <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
             <body className={inter.className}>
                 <AuthProvider>
