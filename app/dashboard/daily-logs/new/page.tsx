@@ -4,14 +4,8 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import { Label } from "@/components/ui/label"
-import { Calendar } from "@/components/ui/calendar"
+import { toast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
     date: z.date({
@@ -56,65 +50,71 @@ export default function NewDailyLogPage() {
 
     return (
         <div className="container max-w-4xl mx-auto py-10">
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col space-y-3">
-                                <FormLabel>Date</FormLabel>
-                                <FormControl>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="date">Date</Label>
-                                        <Calendar
-                                            id="date"
-                                            onSelect={(date) => setDate(date || new Date())}
-                                            date={date}
-                                            aria-describedby="date-error"
-                                        />
-                                        {form.formState.errors.date && (
-                                            <p id="date-error" className="text-sm text-red-500">
-                                                {form.formState.errors.date.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Date</span>
+                    </label>
+                    <input
+                        type="date"
+                        className="input input-bordered w-full"
+                        onChange={(e) => {
+                            const newDate = e.target.value ? new Date(e.target.value) : new Date()
+                            setDate(newDate)
+                            form.setValue("date", newDate, { shouldValidate: true })
+                        }}
+                        value={date ? date.toISOString().split("T")[0] : ""}
                     />
-                    <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Title of the log" {...field} />
-                                </FormControl>
-                                <FormDescription>This is the title of your daily log.</FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                    {form.formState.errors.date && (
+                        <div className="label">
+                            <span className="label-text-alt text-error">{form.formState.errors.date.message}</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Title</span>
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Title of the log"
+                        className="input input-bordered w-full"
+                        {...form.register("title")}
                     />
-                    <FormField
-                        control={form.control}
-                        name="content"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Content</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Type your log here." className="resize-none" {...field} />
-                                </FormControl>
-                                <FormDescription>Write down what you did today.</FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button type="submit">Submit</Button>
-                </form>
-            </Form>
+                    <label className="label">
+                        <span className="label-text-alt">This is the title of your daily log.</span>
+                    </label>
+                    {form.formState.errors.title && (
+                        <div className="label">
+                            <span className="label-text-alt text-error">{form.formState.errors.title.message}</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Content</span>
+                    </label>
+                    <textarea
+                        placeholder="Type your log here."
+                        className="textarea textarea-bordered w-full h-32"
+                        {...form.register("content")}
+                    ></textarea>
+                    <label className="label">
+                        <span className="label-text-alt">Write down what you did today.</span>
+                    </label>
+                    {form.formState.errors.content && (
+                        <div className="label">
+                            <span className="label-text-alt text-error">{form.formState.errors.content.message}</span>
+                        </div>
+                    )}
+                </div>
+
+                <button type="submit" className="btn btn-primary">
+                    Submit
+                </button>
+            </form>
         </div>
     )
 }
