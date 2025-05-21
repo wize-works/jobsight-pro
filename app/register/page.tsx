@@ -1,8 +1,25 @@
+"use client"
+
 import Link from "next/link"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import { useAuth } from "@/lib/auth-context"
+import { useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function Register() {
+  const { signUp, isSignedIn } = useAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const error = searchParams.get("error")
+
+  useEffect(() => {
+    // If user is already signed in, redirect to dashboard
+    if (isSignedIn) {
+      router.push("/dashboard")
+    }
+  }, [isSignedIn, router])
+
   return (
     <main className="min-h-screen flex flex-col">
       <Navbar />
@@ -10,6 +27,12 @@ export default function Register() {
       <div className="flex-1 py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-3xl font-bold text-center mb-8">Create Your JobSight Account</h1>
+
+          {error && (
+            <div className="alert alert-error mb-4">
+              <span>Registration error: {error.replace(/_/g, " ")}</span>
+            </div>
+          )}
 
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
@@ -63,66 +86,11 @@ export default function Register() {
 
               <h2 className="card-title text-xl mb-4">2. Create your account</h2>
 
-              <form className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">First Name</span>
-                    </label>
-                    <input type="text" placeholder="John" className="input input-bordered" required />
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Last Name</span>
-                    </label>
-                    <input type="text" placeholder="Doe" className="input input-bordered" required />
-                  </div>
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Business Name</span>
-                  </label>
-                  <input type="text" placeholder="Acme Construction" className="input input-bordered" required />
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Email</span>
-                  </label>
-                  <input type="email" placeholder="email@example.com" className="input input-bordered" required />
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Password</span>
-                  </label>
-                  <input type="password" placeholder="••••••••" className="input input-bordered" required />
-                </div>
-
-                <div className="form-control">
-                  <label className="label cursor-pointer justify-start gap-2">
-                    <input type="checkbox" className="checkbox checkbox-primary" required />
-                    <span className="label-text">
-                      I agree to the{" "}
-                      <Link href="/terms" className="link link-primary">
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link href="/privacy" className="link link-primary">
-                        Privacy Policy
-                      </Link>
-                    </span>
-                  </label>
-                </div>
-
-                <div className="form-control mt-6">
-                  <Link href="/dashboard" className="btn btn-primary">
-                    Start Your 30-Day Free Trial
-                  </Link>
-                </div>
-              </form>
+              <div className="form-control mt-6">
+                <button onClick={signUp} className="btn btn-primary">
+                  Sign Up with Kinde
+                </button>
+              </div>
 
               <div className="divider">OR</div>
 

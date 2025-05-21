@@ -9,20 +9,20 @@ import { getSupabaseBrowserClient } from "./supabase"
 type User = {
   id: string
   auth_id: string
-  business_id: string
+  business_id?: string
   firstName: string
   lastName: string
   email: string
   role: string
-  avatar_url: string
+  avatar_url?: string
 }
 
 type AuthContextType = {
   user: User | null
   isLoaded: boolean
   isSignedIn: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
+  signIn: () => void
+  signUp: () => void
   signOut: () => void
 }
 
@@ -36,85 +36,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = getSupabaseBrowserClient()
 
   useEffect(() => {
-    // Check if user is stored in localStorage (for preview purposes)
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-      setIsLoaded(true)
-      return
-    }
+    const checkAuthStatus = async () => {
+      try {
+        // Check if we have a Kinde access token in cookies
+        const response = await fetch("/api/auth/me")
+        if (!response.ok) {
+          setUser(null)
+          setIsLoaded(true)
+          return
+        }
 
-    // For demo purposes, we'll use a mock user with the provided Kinde ID
-    const mockUser: User = {
-      id: "user_123456789",
-      auth_id: "kp_ecd695ce489643809b28af7094ed80ad", // Using the provided Kinde ID
-      business_id: "business_123456789",
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      role: "Admin",
-      avatar_url: "/diverse-avatars.png",
-    }
+        const userData = await response.json()
 
-    setUser(mockUser)
-    localStorage.setItem("user", JSON.stringify(mockUser))
-    setIsLoaded(true)
-  }, [])
+        if (userData && userData.id) {
+          // We have a valid user from Kinde, now get the user data from our database
+          if (supabase) {
+            const { data: dbUser } = await supabase.from("users").select("*").eq("auth_id", userData.id).single()
 
-  const signIn = async (email: string, password: string) => {
-    if (!supabase) return
-
-    try {
-      // In a real app, this would authenticate with Supabase Auth
-      // For demo purposes, we'll just use our mock user
-      const mockUser: User = {
-        id: "user_123456789",
-        auth_id: "kp_ecd695ce489643809b28af7094ed80ad", // Using the provided Kinde ID
-        business_id: "business_123456789",
-        firstName: "John",
-        lastName: "Doe",
-        email: email,
-        role: "Admin",
-        avatar_url: "/diverse-avatars.png",
+            if (dbUser) {
+              setUser({
+                id: dbUser.id,
+                auth_id: dbUser.auth_id,
+                business_id: dbUser.business_id,
+                firstName: dbUser.first_name,
+                lastName: dbUser.last_name,
+                email: dbUser.email,
+                role: dbUser.role,
+                avatar_url: dbUser.avatar_url,
+              })
+            }
+          }
+        } else {
+          setUser(null)
+        }
+      } catch (error) {
+        console.error("Error checking auth status:", error)
+        setUser(null)
+      } finally {
+        setIsLoaded(true)
       }
-
-      setUser(mockUser)
-      localStorage.setItem("user", JSON.stringify(mockUser))
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Error signing in:", error)
     }
+
+    checkAuthStatus()
+  }, [supabase])
+
+  const signIn = () => {
+    router.push("/api/auth/kinde/login")
   }
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    if (!supabase) return
-
-    try {
-      // In a real app, this would register with Supabase Auth
-      // For demo purposes, we'll just use our mock user with the provided info
-      const mockUser: User = {
-        id: "user_123456789",
-        auth_id: "kp_a48db0a030564ea29c3c070875aef0bc", // Using the second provided Kinde ID
-        business_id: "business_987654321",
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        role: "Admin",
-        avatar_url: "/diverse-avatars.png",
-      }
-
-      setUser(mockUser)
-      localStorage.setItem("user", JSON.stringify(mockUser))
-      router.push("/onboarding")
-    } catch (error) {
-      console.error("Error signing up:", error)
-    }
+  const signUp = () => {
+    router.push("/api/auth/kinde/register")
   }
 
   const signOut = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-    router.push("/")
+    router.push("/api/auth/kinde/logout")
   }
 
   return (
