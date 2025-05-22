@@ -5,7 +5,7 @@ import "../styles/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import Script from "next/script"
-import { Toaster } from "@/components/ui/toaster"
+import { toast } from "@/hooks/use-toast"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,10 +23,10 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
-            <body className={inter.className}>                <AuthProvider>
-                <ThemeProvider>{children}</ThemeProvider>
-                <Toaster position="bottom-right" />
-            </AuthProvider>
+            <body className={inter.className}>
+                <AuthProvider>
+                    <ThemeProvider>{children}</ThemeProvider>
+                </AuthProvider>
             </body>
         </html>
     )
