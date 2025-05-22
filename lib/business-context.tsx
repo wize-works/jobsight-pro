@@ -2,94 +2,120 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
-import { getSupabaseBrowserClient } from "./supabase"
+import { getUserBusiness } from "@/app/actions/business"
+import type { Business } from "./business"
 
 type BusinessContextType = {
-  businessId: string | null
-  setBusinessId: (id: string) => void
-  loading: boolean
+    businessId: string | null
+    businessData: Business | null
+    setBusinessId: (id: string) => void
+    loading: boolean
+    error: string | null
+    refreshBusiness: () => Promise<void>
 }
 
 const BusinessContext = createContext<BusinessContextType>({
-  businessId: null,
-  setBusinessId: () => {},
-  loading: true,
+    businessId: null,
+    businessData: null,
+    setBusinessId: () => { },
+    loading: true,
+    error: null,
+    refreshBusiness: async () => { },
 })
 
 export function BusinessProvider({ children }: { children: ReactNode }) {
-  const [businessId, setBusinessId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
+    const [businessId, setBusinessId] = useState<string | null>(null)
+    const [businessData, setBusinessData] = useState<Business | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
 
-  useEffect(() => {
-    // Load business ID from localStorage or fetch from API
-    const loadBusinessId = async () => {
-      if (isKindeLoading) {
-        return
-      }
+    // Function to fetch business data using server action
+    const fetchBusinessData = async (userId: string) => {
+        try {
+            const data = await getUserBusiness(userId)
 
-      try {
-        // Try to get from localStorage first
-        const storedBusinessId = localStorage.getItem("businessId")
-
-        if (storedBusinessId) {
-          setBusinessId(storedBusinessId)
-          setLoading(false)
-          return
+            if (data) {
+                setBusinessId(data.id)
+                setBusinessData(data as Business)
+                localStorage.setItem("businessId", data.id)
+            }
+        } catch (err) {
+            console.error("Error fetching business data:", err)
+            setError(err instanceof Error ? err.message : "Unknown error fetching business data")
         }
-
-        // If not in localStorage and user is logged in, try to fetch from API
-        if (!user) {
-          setLoading(false)
-          return
-        }
-
-        const supabase = getSupabaseBrowserClient()
-        if (!supabase) {
-          console.error("Supabase client not initialized")
-          setLoading(false)
-          return
-        }
-
-        // Fetch user's business
-        const { data: userBusinesses, error } = await supabase
-          .from("user_businesses")
-          .select("business_id")
-          .eq("user_id", user.id)
-          .single()
-
-        if (error) {
-          console.error("Error fetching user business:", error)
-          setLoading(false)
-          return
-        }
-
-        if (userBusinesses?.business_id) {
-          setBusinessId(userBusinesses.business_id)
-          localStorage.setItem("businessId", userBusinesses.business_id)
-        }
-      } catch (error) {
-        console.error("Error loading business ID:", error)
-      } finally {
-        setLoading(false)
-      }
     }
 
-    loadBusinessId()
-  }, [user, isKindeLoading])
+    // Function to load business data
+    const loadBusinessData = async () => {
+        if (isKindeLoading) {
+            return
+        }
 
-  const setBusinessIdWithStorage = (id: string) => {
-    setBusinessId(id)
-    localStorage.setItem("businessId", id)
-  }
+        setLoading(true)
+        setError(null)
 
-  return (
-    <BusinessContext.Provider value={{ businessId, setBusinessId: setBusinessIdWithStorage, loading }}>
-      {children}
-    </BusinessContext.Provider>
-  )
+        try {
+            // Try to get from localStorage first
+            const storedBusinessId = localStorage.getItem("businessId")
+
+            if (storedBusinessId && user) {
+                // Verify the stored business ID is still valid by fetching it
+                await fetchBusinessData(user.id)
+                setLoading(false)
+                return
+            }
+
+            // If not in localStorage and user is logged in, try to fetch from API
+            if (!user) {
+                setLoading(false)
+                return
+            }
+
+            // Fetch user's business using server action
+            await fetchBusinessData(user.id)
+        } catch (err) {
+            console.error("Error loading business data:", err)
+            setError(err instanceof Error ? err.message : "Unknown error loading business data")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Load business data when user changes or on initial load
+    useEffect(() => {
+        loadBusinessData()
+    }, [user, isKindeLoading])
+
+    // Update business ID in storage
+    const setBusinessIdWithStorage = (id: string) => {
+        setBusinessId(id)
+        localStorage.setItem("businessId", id)
+    }
+
+    // Function to manually refresh business data
+    const refreshBusiness = async () => {
+        if (user) {
+            await fetchBusinessData(user.id)
+        }
+    }
+
+    return (
+        <BusinessContext.Provider
+            value={{
+                businessId,
+                businessData,
+                setBusinessId: setBusinessIdWithStorage,
+                loading,
+                error,
+                refreshBusiness,
+            }}
+        >
+            {children}
+        </BusinessContext.Provider>
+    )
 }
 
 export function useBusiness() {
-  return useContext(BusinessContext)
+    return useContext(BusinessContext)
 }

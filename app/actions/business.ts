@@ -60,7 +60,7 @@ export async function createBusiness(params: CreateBusinessParams) {
         const { error: userError } = await supabase
             .from("users")
             .update({ business_id: businessId, updated_at: now })
-            .eq("id", userId)
+            .eq("auth_id", userId)
 
         if (userError) {
             console.error("Error updating user with business ID:", userError)
@@ -106,7 +106,7 @@ export async function getUserBusiness(userId: string) {
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
-            .eq("id", userId)
+            .eq("auth_id", userId)
             .single()
 
         if (userError) {
@@ -175,5 +175,46 @@ export async function updateBusiness(businessId: string, userId: string, data: P
     } catch (error) {
         console.error("Error in updateBusiness:", error)
         throw error
+    }
+}
+
+// New action to directly update business data from form
+export async function updateBusinessFromForm(formData: FormData) {
+    const supabase = createServerClient()
+    if (!supabase) {
+        throw new Error("Supabase client not initialized")
+    }
+
+    try {
+        // Get business ID from form data or session
+        const businessId = formData.get("id") as string
+        if (!businessId) {
+            throw new Error("Business ID is required")
+        }
+
+        // Convert form data to object
+        const data: Record<string, any> = {}
+        formData.forEach((value, key) => {
+            if (key !== "id") {
+                data[key] = value
+            }
+        })
+
+        // Add updated_at timestamp
+        const now = new Date().toISOString()
+        data.updated_at = now
+
+        const { error } = await supabase.from("businesses").update(data).eq("id", businessId)
+
+        if (error) {
+            throw new Error(`Failed to update business: ${error.message}`)
+        }
+
+        revalidatePath("/dashboard")
+        revalidatePath("/dashboard/business")
+        return { success: true }
+    } catch (error) {
+        console.error("Error in updateBusinessFromForm:", error)
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
     }
 }
