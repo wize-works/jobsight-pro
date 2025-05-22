@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useBusiness } from "@/hooks/use-business"
-import { toast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { useBusiness } from "@/hooks/use-business";
+import { toast } from "@/hooks/use-toast";
 
 export default function BusinessPage() {
-    const [activeTab, setActiveTab] = useState("profile")
-    const { business, loading, error, update } = useBusiness()
+    const [activeTab, setActiveTab] = useState("profile");
+    const { business, loading, error, update } = useBusiness();
 
     const handleSaveChanges = async () => {
         // Get form data
-        const form = document.getElementById("business-form") as HTMLFormElement
-        const formData = new FormData(form)
+        const form = document.getElementById("business-form") as HTMLFormElement;
+        const formData = new FormData(form);
 
         // Convert FormData to object
-        const data = Object.fromEntries(formData.entries())
+        const data = Object.fromEntries(formData.entries());
 
         // Update business
-        const result = await update(data)
+        const result = await update(data);
 
         if (result.success) {
-            toast.success("Business information updated successfully")
+            toast.success("Business information updated successfully");
         } else {
-            toast.error("Failed to update business information")
+            toast.error("Failed to update business information");
         }
     }
 

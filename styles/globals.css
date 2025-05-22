@@ -15,7 +15,7 @@ body {
 @layer base {
 
     :root,
-    .light {
+    [data-theme="light"] {
         /* Light theme colors from light.theme.css */
         --color-primary: #f87431;
         --color-primary-content: #fafaf9;
@@ -57,7 +57,7 @@ body {
         --noise: 0;
     }
 
-    .dark {
+    [data-theme="dark"] {
         /* Dark theme colors from dark.theme.css */
         --color-primary: #f87431;
         --color-primary-content: #fafaf9;
