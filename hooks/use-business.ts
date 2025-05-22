@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getBusiness, updateBusiness, type Business, type BusinessUpdate } from "@/lib/business"
+import { getUserBusiness, updateBusiness, type CreateBusinessParams, type BusinessUpdate } from "@/lib/business"
 import { useBusiness as useBusinessContext } from "@/lib/business-context"
 
 export function useBusiness() {
@@ -20,12 +20,10 @@ export function useBusiness() {
 
             try {
                 setLoading(true)
-                const { data, error } = await getBusiness(businessId)
-
-                if (error) {
-                    throw error
+                const data = await getUserBusiness(businessId)
+                if (!data) {
+                    throw new Error("No business found")
                 }
-
                 setBusiness(data)
             } catch (err) {
                 console.error("Error fetching business:", err)

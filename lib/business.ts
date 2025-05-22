@@ -3,8 +3,13 @@
 import { createServerClient } from "@/lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { revalidatePath } from "next/cache"
+import { Database } from "@/types/supabase"
 
-type CreateBusinessParams = {
+export type Business = Database["public"]["Tables"]["businesses"]["Row"];
+export type BusinessUpdate = Database["public"]["Tables"]["businesses"]["Update"];
+export type BusinessInsert = Database["public"]["Tables"]["businesses"]["Insert"];
+
+export type CreateBusinessParams = {
     userId: string
     businessName: string
     businessType: string
