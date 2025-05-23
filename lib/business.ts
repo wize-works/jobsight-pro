@@ -1,13 +1,10 @@
 "use server"
 
-import { createServerClient } from "@/lib/supabase"
-import { v4 as uuidv4 } from "uuid"
-import { revalidatePath } from "next/cache"
-import { Database } from "@/types/supabase"
-
-export type Business = Database["public"]["Tables"]["businesses"]["Row"];
-export type BusinessUpdate = Database["public"]["Tables"]["businesses"]["Update"];
-export type BusinessInsert = Database["public"]["Tables"]["businesses"]["Insert"];
+import { createServerClient } from "@/lib/supabase";
+import { v4 as uuidv4 } from "uuid";
+import { revalidatePath } from "next/cache";
+import type { BusinessInsert } from "@/types/business";
+import { removeUndefined } from "@/utils/remove-undefined";
 
 export type CreateBusinessParams = {
     userId: string
@@ -165,10 +162,9 @@ export async function updateBusiness(businessId: string, userId: string, data: P
             updated_by: userId,
         }
 
-        // Remove undefined values
-        Object.keys(businessData).forEach((key) => businessData[key] === undefined && delete businessData[key])
+        const cleanData = removeUndefined(businessData);
 
-        const { error } = await supabase.from("businesses").update(businessData).eq("id", businessId)
+        const { error } = await supabase.from("businesses").update(cleanData).eq("id", businessId)
 
         if (error) {
             throw new Error(`Failed to update business: ${error.message}`)

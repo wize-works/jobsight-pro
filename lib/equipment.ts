@@ -1,10 +1,6 @@
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "./db";
-import type { Database } from "@/types/supabase";
 import { createServerClient } from "../lib/supabase";
-
-export type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
-export type EquipmentInsert = Database["public"]["Tables"]["equipment"]["Insert"];
-export type EquipmentUpdate = Database["public"]["Tables"]["equipment"]["Update"];
+import type { EquipmentInsert, EquipmentUpdate } from "@/types/equipments";
 
 // Fetch all equipment for a business
 export async function getEquipment(businessId: string) {

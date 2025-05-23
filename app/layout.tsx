@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import Script from "next/script"
 import { toast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
                 <AuthProvider>
                     <ThemeProvider>{children}</ThemeProvider>
                 </AuthProvider>
+                <Toaster />
             </body>
         </html>
     )

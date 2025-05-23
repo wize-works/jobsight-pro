@@ -1,9 +1,9 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
-import { getUserBusiness } from "@/app/actions/business"
-import type { Business } from "./business"
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { getUserBusiness } from "@/app/actions/business";
+import type { Business } from "@/types/business";
 
 type BusinessContextType = {
     businessId: string | null

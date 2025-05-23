@@ -24,7 +24,7 @@ body {
         --color-secondary-content: #fafaf9;
 
         --color-accent: #5c95ff;
-        --color-accent-content: #080607;
+        --color-accent-content: #FAFAF9;
 
         --color-neutral: #080607;
         --color-neutral-content: #fafaf9;
@@ -47,6 +47,9 @@ body {
         --color-error-content: #fafaf9;
 
         /* DaisyUI specific variables from light.theme.css */
+        --radius: 0.25rem;
+        --tab-radius: 0.5rem;
+        --tab-size: 0.5rem;
         --radius-selector: 0.5rem;
         --radius-field: 0.25rem;
         --radius-box: 0.25rem;
@@ -66,7 +69,7 @@ body {
         --color-secondary-content: #fafaf9;
 
         --color-accent: #5c95ff;
-        --color-accent-content: #080607;
+        --color-accent-content: #FAFAF9;
 
         --color-neutral: #080607;
         --color-neutral-content: #fafaf9;
@@ -90,6 +93,9 @@ body {
 
 
         /* DaisyUI specific variables from dark.theme.css */
+        --radius: 0.25rem;
+        --tab-radius: 0.5rem;
+        --tab-size: 0.5rem;
         --radius-selector: 0.5rem;
         --radius-field: 0.25rem;
         --radius-box: 0.25rem;
@@ -122,4 +128,8 @@ body {
 
 .form-control .textarea {
     @apply w-full my-2;
+}
+
+.tab.tab-active {
+    @apply bg-neutral text-neutral-content rounded-lg;
 }

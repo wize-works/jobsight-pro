@@ -2,7 +2,7 @@
 
 import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-import type { ClientInsert, ClientUpdate } from "@/lib/clients";
+import type { ClientInsert, ClientUpdate, ClientInteractionInsert, ClientInteractionUpdate, ClientContactInsert, ClientContactUpdate } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 
 export async function getClients(businessId: string) {
@@ -20,7 +20,6 @@ export async function getClientById(id: string, businessId: string) {
 }
 
 export async function createClient(client: Omit<ClientInsert, "business_id">, businessId: string) {
-    console.log("Creating client", client);
     return await insertWithBusiness("clients", client, businessId);
 }
 
@@ -59,7 +58,7 @@ export async function getClientContactById(id: string, businessId: string) {
     return data && data[0] ? data[0] : null;
 };
 
-export async function updateClientContact(id: string, contact: ClientUpdate, businessId: string) {
+export async function updateClientContact(id: string, contact: ClientContactUpdate, businessId: string) {
     return await updateWithBusinessCheck("client_contacts", id, contact, businessId);
 };
 
@@ -67,7 +66,7 @@ export async function deleteClientContact(id: string, businessId: string) {
     return await deleteWithBusinessCheck("client_contacts", id, businessId);
 };
 
-export async function createClientContact(clientId: string, contact: Omit<ClientInsert, "business_id">, businessId: string) {
+export async function createClientContact(clientId: string, contact: Omit<ClientContactInsert, "business_id">, businessId: string) {
     return await insertWithBusiness("client_contacts", { ...contact, client_id: clientId }, businessId);
 };
 
@@ -85,7 +84,7 @@ export async function getClientInteractionById(id: string, businessId: string) {
     return data && data[0] ? data[0] : null;
 };
 
-export async function updateClientInteraction(id: string, interaction: ClientUpdate, businessId: string) {
+export async function updateClientInteraction(id: string, interaction: ClientInteractionUpdate, businessId: string) {
     return await updateWithBusinessCheck("client_interactions", id, interaction, businessId);
 };
 
@@ -93,9 +92,10 @@ export async function deleteClientInteraction(id: string, businessId: string) {
     return await deleteWithBusinessCheck("client_interactions", id, businessId);
 };
 
-export async function createClientInteraction(clientId: string, interaction: Omit<ClientInsert, "business_id">, businessId: string) {
-    console.log("Creating client interaction", interaction);
-    const result = await insertWithBusiness("client_interactions", { ...interaction, client_id: clientId }, businessId);
-    console.log("Client interaction created", result);
-    return result;
+export async function createClientInteraction(interaction: Omit<ClientInteractionInsert, "business_id">, businessId: string) {
+    return await insertWithBusiness("client_interactions", { ...interaction }, businessId);
 };
+
+export async function updateClientNotes(id: string, notes: string, businessId: string) {
+    return await updateWithBusinessCheck("clients", id, { notes }, businessId);
+}

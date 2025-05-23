@@ -13,7 +13,7 @@ function withBusinessId<T extends Record<string, any>>(
     businessId: string,
     userId?: string,
 ): T & { business_id: string; created_by?: string; updated_by?: string } {
-    const result = {
+    const result: T & { business_id: string; created_by?: string; updated_by?: string } = {
         ...data,
         business_id: businessId,
     }

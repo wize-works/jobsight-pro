@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/app/actions/clients"
-import type { Client, ClientInsert } from "@/lib/clients"
+import type { Client, ClientInsert, ClientWithStats } from "@/types/clients"
 
 // Status options with colors and labels
 const statusOptions: {
@@ -14,12 +14,6 @@ const statusOptions: {
     prospect: { label: "Prospect", color: "badge-warning" },
 }
 
-// Extended client type with additional properties from our actions
-type ClientWithStats = Client & {
-    totalProjects?: number;
-    activeProjects?: number;
-    totalBudget?: number;
-}
 
 interface ClientsListProps {
     initialClients: ClientWithStats[]

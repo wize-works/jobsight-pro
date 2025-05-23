@@ -2,7 +2,8 @@ import { getClientById, updateClient } from "@/app/actions/clients";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import ClientEditForm from "./client-edit-form";
+import ClientEditForm from "../../components/client-edit-form";
+import Link from "next/link";
 
 export default async function EditClientPage({ params }: { params: { id: string } }) {
     const clientId = (await params).id;
@@ -21,6 +22,7 @@ export default async function EditClientPage({ params }: { params: { id: string 
     }
 
     const client = await getClientById(clientId, businessId);
+    console.log("Client", client);
     if (!client) {
         return (
             <div className="flex flex-col items-center justify-center h-64">
@@ -32,13 +34,36 @@ export default async function EditClientPage({ params }: { params: { id: string 
 
     async function handleUpdateClient(formData: any) {
         "use server";
-        await updateClient(clientId, formData, businessId);
+        const clientData = {
+            name: formData.name,
+            type: formData.type,
+            industry: formData.industry,
+            contact_name: formData.contact,
+            contact_email: formData.email,
+            contact_phone: formData.phone,
+            website: formData.website,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zip: formData.zip,
+            country: formData.country,
+            tax_id: formData.taxId,
+            notes: formData.notes,
+            logo_url: formData.logoUrl,
+            status: formData.status,
+        };
+        await updateClient(clientId, clientData, businessId);
         redirect(`/dashboard/clients/${clientId}`);
     }
 
     return (
-        <div className="max-w-2xl mx-auto py-10">
-            <h1 className="text-2xl font-bold mb-6">Edit Client</h1>
+        <div className="">
+            <h1 className="text-2xl font-bold mb-6">
+                <Link href={`/dashboard/clients/${clientId}`} className="btn btn-ghost btn-sm mr-2">
+                    <i className="fas fa-arrow-left"></i>
+                </Link>
+                Edit Client
+            </h1>
             <ClientEditForm client={client} onSubmit={handleUpdateClient} />
         </div>
     );

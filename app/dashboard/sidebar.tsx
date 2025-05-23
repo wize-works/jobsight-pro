@@ -48,14 +48,14 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                         <Link href="/dashboard/equipment" className="flex items-center">
                             <i className="fas fa-truck w-5"></i>
                             {!sidebarCollapsed && <span>Equipment</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-primary ml-auto">New</span>}
+                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
                         </Link>
                     </li>
                     <li>
                         <Link href="/dashboard/clients" className="flex items-center">
                             <i className="fas fa-user-tie w-5"></i>
                             {!sidebarCollapsed && <span>Clients</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-primary ml-auto">New</span>}
+                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
                         </Link>
                     </li>
 

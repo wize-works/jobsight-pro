@@ -1,10 +1,6 @@
+import { TaskInsert, TaskUpdate } from "@/types/tasks";
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "./db";
-import type { Database } from "@/types/supabase";
 import { createServerClient } from "./supabase";
-
-export type Task = Database["public"]["Tables"]["tasks"]["Row"];
-export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
-export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
 // Fetch all tasks for a business
 export async function getTasks(businessId: string) {

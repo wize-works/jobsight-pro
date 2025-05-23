@@ -2,6 +2,7 @@
 
 // Adapted for DaisyUI toast and alert components
 import * as React from "react"
+import { set } from "zod"
 
 // Types for our toast component
 export type ToastVariant = "info" | "success" | "warning" | "error" | undefined
@@ -13,6 +14,7 @@ interface ToastProps {
     style?: ToastStyle
     icon?: React.ReactNode
     open?: boolean
+    autoClose?: boolean
     onOpenChange?: (open: boolean) => void
 }
 
@@ -23,8 +25,8 @@ type ToasterToast = ToastProps & {
     action?: ToastActionElement
 }
 
-const TOAST_LIMIT = 5
-const TOAST_REMOVE_DELAY = 3000
+export const TOAST_LIMIT = 5
+export const TOAST_REMOVE_DELAY = 5000
 
 const actionTypes = {
     ADD_TOAST: "ADD_TOAST",
@@ -158,18 +160,26 @@ function toast(props: Toast) {
             toast: { ...props, id },
         })
     const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+    const autoClose = props.autoClose ?? true;
 
     dispatch({
         type: "ADD_TOAST",
         toast: {
             ...props,
+            autoClose,
             id,
             open: true,
             onOpenChange: (open) => {
                 if (!open) dismiss()
             },
         },
-    })
+    });
+
+    if (autoClose) {
+        setTimeout(() => {
+            dismiss()
+        }, TOAST_REMOVE_DELAY);
+    }
 
     return {
         id: id,

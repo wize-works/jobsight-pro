@@ -1,10 +1,7 @@
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "./db"
 import type { Database } from "@/types/supabase"
 import { createServerClient } from "@/lib/supabase"
-
-export type Client = Database["public"]["Tables"]["clients"]["Row"]
-export type ClientInsert = Database["public"]["Tables"]["clients"]["Insert"]
-export type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"]
+import type { ClientInsert, ClientUpdate } from "@/types/clients"
 
 // Fetch all clients for a business
 export async function getClients(businessId: string) {
@@ -61,6 +58,22 @@ export async function getClientsByStatus(status: string, businessId: string) {
         filter: { status },
         orderBy: { column: "name", ascending: true },
     })
+}
+
+export async function updateClientNotes(id: string, notes: string, businessId: string) {
+    const supabase = createServerClient();
+    if (!supabase) {
+        return { data: null, error: new Error("Supabase client not initialized") }
+    }
+    const { data, error } = await supabase
+        .from("clients")
+        .update({ notes })
+        .eq("id", id)
+        .eq("business_id", businessId)
+    if (error) {
+        return { data: null, error }
+    }
+    return { data, error: null }
 }
 
 // Get client statistics

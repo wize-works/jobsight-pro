@@ -1,10 +1,7 @@
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "./db";
-import type { Database } from "@/types/supabase";
 import { createServerClient } from "../lib/supabase";
+import type { DailyLogInsert, DailyLogUpdate } from "@/types/daily-logs";
 
-export type DailyLog = Database["public"]["Tables"]["daily_logs"]["Row"]
-export type DailyLogInsert = Database["public"]["Tables"]["daily_logs"]["Insert"]
-export type DailyLogUpdate = Database["public"]["Tables"]["daily_logs"]["Update"]
 
 // Fetch all daily logs for a business
 export async function getDailyLogs(businessId: string) {

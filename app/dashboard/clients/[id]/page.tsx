@@ -1,10 +1,8 @@
-import ClientDetailComponent from "./client-detail";
+import ClientDetailComponent from "../components/client-detail";
 import { getClientById, getClientContacts, getClientInteractions } from "@/app/actions/clients";
 import { getProjectsByClient } from "@/lib/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
-//import { updateContact, createContact, createInteraction, updateInteraction } from "./actions";
-import { createClientContact, updateClientContact, createClientInteraction, updateClientInteraction } from "@/app/actions/clients";
 
 export default async function ClientPage({ params }: { params: { id: string } }) {
     const clientId = (await params).id
