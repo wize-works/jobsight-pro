@@ -20,10 +20,6 @@ export default async function ClientsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Client Management</h1>
-            </div>
-
             <ClientsList initialClients={clients} businessId={business?.id || ""} />
         </div>
     )

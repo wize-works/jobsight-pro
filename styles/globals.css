@@ -131,5 +131,5 @@ body {
 }
 
 .tab.tab-active {
-    @apply bg-neutral text-neutral-content rounded-lg;
+    @apply bg-secondary text-secondary-content rounded-lg;
 }

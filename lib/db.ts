@@ -54,8 +54,29 @@ export async function fetchByBusiness<T extends TableName>(
     // Apply additional filters
     if (options?.filter) {
         Object.entries(options.filter).forEach(([key, value]) => {
-            query = query.eq(key, value)
-        })
+            // Handle complex filter operations
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                // Check for 'in' operation
+                if ('in' in value && Array.isArray(value.in)) {
+                    query = query.in(key, value.in);
+                }
+                // Add more operations as needed (like, gt, lt, etc.)
+                else if ('gt' in value) {
+                    query = query.gt(key, value.gt);
+                }
+                else if ('lt' in value) {
+                    query = query.lt(key, value.lt);
+                }
+                // Default to eq for simple objects without known operators
+                else {
+                    query = query.eq(key, value);
+                }
+            }
+            // Default to eq for simple values
+            else {
+                query = query.eq(key, value);
+            }
+        });
     }
 
     // Apply ordering

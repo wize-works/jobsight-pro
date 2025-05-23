@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/app/actions/clients"
 import type { Client, ClientInsert, ClientWithStats } from "@/types/clients"
+import { toast } from "@/hooks/use-toast"
 
 // Status options with colors and labels
 const statusOptions: {
@@ -50,6 +51,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         totalBudget: 0,
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [viewType, setViewType] = useState("grid");
 
     // Filter clients based on search term, type, and status
     const filteredClients = clients.filter((client) => {
@@ -86,6 +88,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                 setShowAddClientModal(false)
             }
         } catch (error) {
+            toast.error("Error adding client. Please try again.");
             console.error("Error adding client:", error)
         } finally {
             setIsSubmitting(false)
@@ -94,31 +97,30 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
 
     return (
         <>
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between mb-4">
+                <h1 className="text-2xl font-semibold">Client Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
                     <i className="fas fa-plus mr-2"></i> Add Client
                 </button>
             </div>
 
-            <div className="card bg-base-100 shadow-sm mb-6">
-                <div className="card-body">
+            <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+                <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="form-control flex-1">
-                            <div className="input-group">
+                        <div className="flex-1">
+                            <label className="input input-bordered input-secondary flex items-center gap-2">
+                                <i className="fas fa-search"></i>
                                 <input
                                     type="text"
                                     placeholder="Search clients..."
-                                    className="input input-bordered w-full"
+                                    className="grow"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <button className="btn btn-square">
-                                    <i className="fas fa-search"></i>
-                                </button>
-                            </div>
+                            </label>
                         </div>
                         <select
-                            className="select select-bordered"
+                            className="select select-bordered select-secondary"
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
                         >
@@ -132,7 +134,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                                 ))}
                         </select>
                         <select
-                            className="select select-bordered"
+                            className="select select-bordered select-secondary"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
@@ -143,73 +145,120 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                                 </option>
                             ))}
                         </select>
+                        <div className="tabs tabs-boxed">
+                            <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => setViewType("grid")}>
+                                <i className="fas fa-grid-2"></i>
+                            </button>
+                            <button className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => setViewType("list")}>
+                                <i className="fas fa-th-list"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
-                <table className="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th>Client</th>
-                            <th>Contact</th>
-                            <th>Projects</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredClients.map((client) => (
-                            <tr key={client.id}>
-                                <td>
-                                    <div className="flex items-center gap-3">
-                                        <div className="avatar flex">
-                                            <div className="w-12 h-12 flex rounded-full bg-base-300 text-center content-center">
-                                                {client.image ? (
-                                                    <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
-                                                ) : (
-                                                    <span className="text-xl font-bold">{client.name.charAt(0)}</span>
-                                                )}
+            {viewType === "grid" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredClients.map((client) => (
+                        <div key={client.id} className="card bg-base-100 shadow-sm">
+                            <div className="card-body">
+                                <div className="flex items-center gap-3">
+                                    <div className="avatar flex">
+                                        <div className="w-12 h-12 flex rounded-full bg-base-300 text-center content-center">
+                                            {client.image ? (
+                                                <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
+                                            ) : (
+                                                <span className="text-xl font-bold">{client.name.charAt(0)}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h2 className="card-title">{client.name}</h2>
+                                        <p className="text-sm opacity-50">{client.type}</p>
+                                    </div>
+                                </div>
+                                <p>{client.contact_name}</p>
+                                <p className="text-sm opacity-50">{client.contact_email}</p>
+                                <p className="text-sm opacity-50">{client.contact_phone}</p>
+                                <div className="mt-4">
+                                    <span className={`badge ${statusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
+                                        {statusOptions[client.status || "prospect"]?.label || "Unknown"}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : null}
+
+            {/* List View */}
+            {viewType === "list" && (
+                <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                    <table className="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Contact</th>
+                                <th>Projects</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredClients.map((client) => (
+                                <tr key={client.id}>
+                                    <td>
+                                        <div className="flex items-center gap-3">
+                                            <div className="avatar flex">
+                                                <div className="w-12 h-12 flex rounded-full bg-base-300 text-center content-center">
+                                                    {client.image ? (
+                                                        <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
+                                                    ) : (
+                                                        <span className="text-xl font-bold">{client.name.charAt(0)}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{client.name}</div>
+                                                <div className="text-sm opacity-50">{client.type}</div>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <div>{client.contact_name}</div>
+                                        <div className="text-sm opacity-50">{client.contact_email}</div>
+                                        <div className="text-sm opacity-50">{client.contact_phone}</div>
+                                    </td>
+                                    <td>
                                         <div>
-                                            <div className="font-bold">{client.name}</div>
-                                            <div className="text-sm opacity-50">{client.type}</div>
+                                            <span className="font-semibold">{client.activeProjects || 0}</span> Active /{" "}
+                                            <span className="font-semibold">{client.totalProjects || 0}</span> Total
                                         </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>{client.contact_name}</div>
-                                    <div className="text-sm opacity-50">{client.contact_email}</div>
-                                    <div className="text-sm opacity-50">{client.contact_phone}</div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <span className="font-semibold">{client.activeProjects || 0}</span> Active /{" "}
-                                        <span className="font-semibold">{client.totalProjects || 0}</span> Total
-                                    </div>
-                                    <div className="text-sm opacity-50">${(client.totalBudget || 0).toLocaleString()}</div>
-                                </td>
-                                <td>
-                                    <div className={`badge ${statusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
-                                        {statusOptions[client.status || "prospect"]?.label || "Unknown"}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className="flex gap-2">
-                                        <Link href={`/dashboard/clients/${client.id}`} className="btn btn-sm btn-outline">
-                                            View
-                                        </Link>
-                                        <button className="btn btn-sm btn-ghost">
-                                            <i className="fas fa-ellipsis-v"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                        <div className="text-sm opacity-50">${(client.totalBudget || 0).toLocaleString()}</div>
+                                    </td>
+                                    <td>
+                                        <div className={`badge ${statusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
+                                            {statusOptions[client.status || "prospect"]?.label || "Unknown"}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="flex gap-2">
+                                            <Link href={`/dashboard/clients/${client.id}`} className="btn btn-sm btn-outline">
+                                                View
+                                            </Link>
+                                            <button className="btn btn-sm btn-ghost">
+                                                <i className="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* No clients found message */}
 
             {filteredClients.length === 0 && (
                 <div className="text-center py-12">

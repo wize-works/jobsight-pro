@@ -73,3 +73,53 @@ export async function searchCrews(query: string, businessId: string) {
         .or(`name.ilike.%${query}%,specialty.ilike.%${query}%`)
         .order("name")
 }
+
+export async function getCrewsWithStats(businessId: string) {
+    const supabase = createServerClient()
+    if (!supabase) {
+        return { data: null, error: new Error("Supabase client not initialized") }
+    }
+
+    const { data, error } = await supabase
+        .from("crews")
+        .select(`
+            *,
+            members:crew_members(id),
+            leader:users!crews_leader_id_fkey (
+                first_name,
+                last_name
+            ),
+            project_crews:project_crews (
+                id,
+                start_date,
+                end_date,
+                project:projects (
+                    id,
+                    name
+                )
+            )
+        `)
+        .eq("business_id", businessId)
+        .order("name");
+
+    const properData = data.map((row) => {
+        const today = new Date();
+        const currentProject = row.project_crews?.find((proj) => {
+            const start = new Date(proj.start_date);
+            const end = new Date(proj.end_date);
+            return start <= today && today <= end;
+        });
+
+        return {
+            ...row,
+            members: row.members.length,
+            leader: `${row.leader_id ? row.leader?.first_name + ' ' + row.leader?.last_name : "Unassigned"}`,
+            current_project: currentProject ? currentProject.project.name : "No current project",
+            current_project_id: currentProject ? currentProject.id : null,
+        }
+    });
+    return {
+        data: properData,
+        error,
+    }
+}
