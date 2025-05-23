@@ -119,3 +119,7 @@ body {
 .form-control .select {
     @apply w-full my-2;
 }
+
+.form-control .textarea {
+    @apply w-full my-2;
+}

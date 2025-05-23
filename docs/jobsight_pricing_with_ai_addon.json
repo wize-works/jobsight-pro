@@ -1,0 +1,73 @@
+[
+  {
+    "id": "starter",
+    "name": "Starter",
+    "trial_days": 30,
+    "monthly_price": 9.99,
+    "annual_price": 99.99,
+    "included_users": 1,
+    "extra_user_price": 0,
+    "ai_addon_available": true,
+    "ai_addon_price": 5.0,
+    "features": [
+      "1 user only",
+      "Core project and task management",
+      "Crew and equipment tracking",
+      "Mobile access",
+      "100MB storage",
+      "No AI tools (optional upgrade available)"
+    ]
+  },
+  {
+    "id": "pro",
+    "name": "Pro",
+    "monthly_price": 49,
+    "annual_price": 499,
+    "included_users": 10,
+    "extra_user_price": 5,
+    "ai_addon_available": true,
+    "ai_addon_price": 15.0,
+    "features": [
+      "Up to 10 users",
+      "All Starter features",
+      "5GB storage",
+      "Invoicing & scheduling",
+      "Custom branding",
+      "Email support",
+      "AI tools available as add-on"
+    ]
+  },
+  {
+    "id": "business",
+    "name": "Business",
+    "monthly_price": 149,
+    "annual_price": 1499,
+    "included_users": 50,
+    "extra_user_price": 3,
+    "ai_addon_available": false,
+    "features": [
+      "Up to 50 users",
+      "All Pro features",
+      "20GB storage",
+      "Priority support",
+      "Basic AI assistance",
+      "Report exports"
+    ]
+  },
+  {
+    "id": "enterprise",
+    "name": "Enterprise",
+    "monthly_price": 500,
+    "annual_price": 6000,
+    "included_users": 100,
+    "extra_user_price": 0,
+    "ai_addon_available": false,
+    "features": [
+      "Unlimited users",
+      "All Business features",
+      "100GB+ storage",
+      "Dedicated support rep",
+      "Advanced AI assistance"
+    ]
+  }
+]

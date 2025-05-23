@@ -1,0 +1,30 @@
+erDiagram
+    businesses ||--o{ users : "employs"
+    businesses ||--o{ clients : "serves"
+    businesses ||--o{ projects : "manages"
+    businesses ||--o{ crews : "employs"
+    businesses ||--o{ equipment : "owns"
+    businesses ||--o{ invoices : "issues"
+    businesses ||--o{ media : "stores"
+    businesses ||--o{ daily_logs : "records"
+    
+    clients ||--o{ projects : "commissions"
+    clients ||--o{ invoices : "receives"
+    
+    projects ||--o{ tasks : "contains"
+    projects ||--o{ invoices : "generates"
+    projects ||--o{ media : "includes"
+    projects ||--o{ daily_logs : "tracks"
+    
+    crews ||--o{ crew_members : "includes"
+    crews ||--o{ project_crews : "assigned_to"
+    crews ||--o{ tasks : "assigned_to"
+    
+    equipment ||--o{ equipment_specifications : "has"
+    equipment ||--o{ equipment_assignments : "assigned_to"
+    
+    invoices ||--o{ invoice_items : "contains"
+    
+    daily_logs ||--o{ daily_log_materials : "uses"
+    daily_logs ||--o{ daily_log_equipment : "uses"
+    daily_logs ||--o{ daily_log_images : "documents"
