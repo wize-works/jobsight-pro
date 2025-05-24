@@ -1,8 +1,8 @@
 import { ClientWithStats } from "@/types/clients";
 import { StatusOptions } from "./list";
-export const ClientCard = ({ client, onClick }: {
+import Link from "next/link";
+export const ClientCard = ({ client }: {
     client: ClientWithStats
-    onClick: () => void;
 }) => {
     return (
         <div key={client.id} className="card bg-base-100 shadow-sm">
@@ -31,9 +31,9 @@ export const ClientCard = ({ client, onClick }: {
                 <p className="text-sm opacity-50"><i className="fas fa-envelope fa-fw mr-2" />{client.contact_email}</p>
                 <p className="text-sm opacity-50"><i className="fas fa-phone fa-fw mr-2" />{client.contact_phone}</p>
                 <div className="card-actions justify-end mt-4">
-                    <button className="btn btn-sm btn-outline" onClick={onClick}>
+                    <Link href={`/dashboard/clients/${client.id}`} className="btn btn-sm btn-outline">
                         View Details
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>
