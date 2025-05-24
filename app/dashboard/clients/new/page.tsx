@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { useState } from "react";
-import ClientEditForm from "../components/client-edit-form";
+import ClientEditForm from "../components/edit";
 import { createClient } from "@/app/actions/clients";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";

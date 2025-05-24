@@ -24,7 +24,7 @@ export async function getClientById(id: string, businessId: string) {
 
 // Create a new client
 export async function createClient(client: Omit<ClientInsert, "business_id">, businessId: string, userId?: string) {
-    return await insertWithBusiness("clients", client, businessId, { userId });
+    return await insertWithBusiness("clients", { ...client, business_id: businessId }, businessId, { userId });
 }
 
 // Update an existing client
@@ -84,9 +84,9 @@ export async function getClientStatistics(businessId: string) {
     }
 
     // Get total clients
-    const { data: totalData, error: totalError } = await supabase
+    const { count: totalCount, error: totalError } = await supabase
         .from("clients")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true })
         .eq("business_id", businessId)
 
     if (totalError) {
@@ -94,9 +94,9 @@ export async function getClientStatistics(businessId: string) {
     }
 
     // Get active clients
-    const { data: activeData, error: activeError } = await supabase
+    const { count: activeCount, error: activeError } = await supabase
         .from("clients")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true })
         .eq("business_id", businessId)
         .eq("status", "active")
 
@@ -105,9 +105,9 @@ export async function getClientStatistics(businessId: string) {
     }
 
     // Get prospect clients
-    const { data: prospectData, error: prospectError } = await supabase
+    const { count: prospectCount, error: prospectError } = await supabase
         .from("clients")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true })
         .eq("business_id", businessId)
         .eq("status", "prospect")
 
@@ -116,9 +116,9 @@ export async function getClientStatistics(businessId: string) {
     }
 
     // Get inactive clients
-    const { data: inactiveData, error: inactiveError } = await supabase
+    const { count: inactiveCount, error: inactiveError } = await supabase
         .from("clients")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true })
         .eq("business_id", businessId)
         .eq("status", "inactive")
 
@@ -128,10 +128,10 @@ export async function getClientStatistics(businessId: string) {
 
     return {
         data: {
-            total: totalData.count || 0,
-            active: activeData.count || 0,
-            prospect: prospectData.count || 0,
-            inactive: inactiveData.count || 0,
+            total: totalCount || 0,
+            active: activeCount || 0,
+            prospect: prospectCount || 0,
+            inactive: inactiveCount || 0,
         },
         error: null,
     }

@@ -5,6 +5,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
+
     return (
         <div className="drawer-side bg-base-100">
             <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
@@ -20,102 +21,112 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                 </div>
 
                 <ul className="space-y-1">
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard" className="flex items-center">
-                            <i className="fas fa-tachometer-alt w-5"></i>
+                            <i className="fal fa-tachometer-alt fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Dashboard</span>}
                         </Link>
                     </li>
 
-                    {!sidebarCollapsed && (
-                        <li className="menu-title">
-                            <span>Organization</span>
+                    {!sidebarCollapsed ? (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1">Organization</span>
+                        </li>
+                    ) : (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1"></span>
                         </li>
                     )}
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/business" className="flex items-center">
-                            <i className="fas fa-building w-5"></i>
+                            <i className="fal fa-building fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Business</span>}
                         </Link>
                     </li>
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/crews" className="flex items-center">
-                            <i className="fas fa-users w-5"></i>
+                            <i className="fal fa-users fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Crews</span>}
                         </Link>
                     </li>
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/equipment" className="flex items-center">
-                            <i className="fas fa-truck w-5"></i>
+                            <i className="fal fa-truck fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Equipment</span>}
                             {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
                         </Link>
                     </li>
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/clients" className="flex items-center">
-                            <i className="fas fa-user-tie w-5"></i>
+                            <i className="fal fa-user-tie fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Clients</span>}
                             {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
                         </Link>
                     </li>
 
-                    {!sidebarCollapsed && (
-                        <li className="menu-title">
-                            <span>Projects</span>
+                    {!sidebarCollapsed ? (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1">Projects</span>
+                        </li>
+                    ) : (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1"></span>
                         </li>
                     )}
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/projects" className="flex items-center">
-                            <i className="fas fa-project-diagram w-5"></i>
+                            <i className="fal fa-project-diagram fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Projects</span>}
                         </Link>
                     </li>
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/tasks" className="flex items-center">
-                            <i className="fas fa-tasks w-5"></i>
+                            <i className="fal fa-tasks fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Tasks</span>}
                         </Link>
                     </li>
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/daily-logs" className="flex items-center">
-                            <i className="fas fa-clipboard-list w-5"></i>
+                            <i className="fal fa-clipboard-list fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Daily Logs</span>}
                         </Link>
                     </li>
 
-                    {!sidebarCollapsed && (
-                        <li className="menu-title">
-                            <span>Finance</span>
+                    {!sidebarCollapsed ? (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1">Finance</span>
+                        </li>
+                    ) : (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1"></span>
                         </li>
                     )}
-                    <li>
+                    <li className="h-8">
                         <Link href="/dashboard/invoices" className="flex items-center">
-                            <i className="fas fa-file-invoice-dollar w-5"></i>
+                            <i className="fal fa-file-invoice-dollar fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Invoices</span>}
                         </Link>
                     </li>
-
-                    {!sidebarCollapsed && (
-                        <li className="menu-title">
-                            <span>Media</span>
-                        </li>
-                    )}
-                    <li>
-                        <Link href="/dashboard/media" className="flex items-center">
-                            <i className="fas fa-images w-5"></i>
-                            {!sidebarCollapsed && <span>Media Library</span>}
+                    <li className="h-8">
+                        <Link href="/dashboard/reports" className="flex items-center">
+                            <i className="fal fa-chart-bar fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Reports</span>}
                         </Link>
                     </li>
 
-                    {!sidebarCollapsed && (
-                        <li className="menu-title">
-                            <span>Reports</span>
+                    {!sidebarCollapsed ? (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1">Media</span>
+                        </li>
+                    ) : (
+                        <li className="menu-title h-8">
+                            <span className="divider py-1 my-1"></span>
                         </li>
                     )}
-                    <li>
-                        <Link href="/dashboard/reports" className="flex items-center">
-                            <i className="fas fa-chart-bar w-5"></i>
-                            {!sidebarCollapsed && <span>Reports</span>}
+                    <li className="h-8">
+                        <Link href="/dashboard/media" className="flex items-center h-4">
+                            <i className="fal fa-images fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Media Library</span>}
                         </Link>
                     </li>
                 </ul>
@@ -124,7 +135,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     <div className="mt-auto pt-6">
                         <div className="bg-base-100 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
-                                <i className="fas fa-crown text-warning mr-2"></i>
+                                <i className="fal fa-crown text-warning mr-2"></i>
                                 <span className="font-semibold">Pro Plan</span>
                             </div>
                             <p className="text-sm mb-2">7 days left in trial</p>

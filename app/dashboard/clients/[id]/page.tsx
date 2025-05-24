@@ -1,4 +1,4 @@
-import ClientDetailComponent from "../components/client-detail";
+import ClientDetailComponent from "../components/detail";
 import { getClientById, getClientContacts, getClientInteractions } from "@/app/actions/clients";
 import { getProjectsByClient } from "@/lib/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";

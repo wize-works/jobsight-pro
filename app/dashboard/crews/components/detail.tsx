@@ -60,9 +60,9 @@ export default function CrewDetailComponent({
                     <p className="text-base-content/70 mt-1">Led by {crew.leader}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-outline btn-sm">
+                    <Link className="btn btn-outline btn-sm" href={`/dashboard/crews/${crew.id}/edit`}>
                         <i className="fas fa-edit mr-2"></i> Edit Crew
-                    </button>
+                    </Link>
                     <button className="btn btn-primary btn-sm" onClick={() => setShowAddMemberModal(true)}>
                         <i className="fas fa-user-plus mr-2"></i> Add Member
                     </button>

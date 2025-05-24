@@ -12,7 +12,9 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode
 }) {
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+    // Check local storage for sidebarCollapsed value
+    const storedSidebarCollapsed = typeof window !== "undefined" ? localStorage.getItem("sidebarCollapsed") : null
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(storedSidebarCollapsed ? JSON.parse(storedSidebarCollapsed) : false);
 
     return (
         <div className="drawer lg:drawer-open">

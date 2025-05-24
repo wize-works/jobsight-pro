@@ -239,45 +239,45 @@ export interface Database {
             crews: {
                 Row: {
                     business_id: string
-                    certifications: string[] | null
+                    //certifications: string[] | null //add back later
                     created_by: string | null
-                    current_project: string | null
                     id: string
                     leader_id: string | null
-                    members: number | null
                     name: string
                     notes: string | null
                     specialty: string | null
                     status: string | null
                     updated_by: string | null
+                    created_at: string | null
+                    updated_at: string | null
                 }
                 Insert: {
                     business_id: string
-                    certifications?: string[] | null
-                    created_by?: string | null
-                    current_project?: string | null
+                    //certifications: string[] | null //add back later
+                    created_by: string | null
                     id: string
-                    leader_id?: string | null
-                    members?: number | null
+                    leader_id: string | null
                     name: string
-                    notes?: string | null
-                    specialty?: string | null
-                    status?: string | null
-                    updated_by?: string | null
+                    notes: string | null
+                    specialty: string | null
+                    status: string | null
+                    updated_by: string | null
+                    created_at: string | null
+                    updated_at: string | null
                 }
                 Update: {
-                    business_id?: string
-                    certifications?: string[] | null
-                    created_by?: string | null
-                    current_project?: string | null
-                    id?: string
-                    leader_id?: string | null
-                    members?: number | null
-                    name?: string
-                    notes?: string | null
-                    specialty?: string | null
-                    status?: string | null
-                    updated_by?: string | null
+                    business_id: string
+                    //certifications: string[] | null //add back later
+                    created_by: string | null
+                    id: string
+                    leader_id: string | null
+                    name: string
+                    notes: string | null
+                    specialty: string | null
+                    status: string | null
+                    updated_by: string | null
+                    created_at: string | null
+                    updated_at: string | null
                 }
                 Relationships: []
             }

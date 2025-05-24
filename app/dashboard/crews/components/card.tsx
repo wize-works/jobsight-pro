@@ -37,7 +37,7 @@ export const CrewCard = ({
                 </div>
                 <div className="mt-2">
                     <p className="flex items-center">
-                        <i className="fas fa-user-tie fa-fw mr-2 text-primary"></i> {crew.leader}
+                        <i className={`fas fa-user-tie fa-fw mr-2 ${crew.leader !== "No Leader" ? "text-primary" : ""}`}></i> {crew.leader}
                     </p>
                     <p className="flex items-center mt-1">
                         <i className={`fas fa-users fa-fw mr-2 ${(crew.members ?? 0) > 0 ? "text-primary" : "text-base-content"}`}></i> {(crew.members ?? 0)} members

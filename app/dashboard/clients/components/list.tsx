@@ -5,9 +5,11 @@ import Link from "next/link"
 import { createClient } from "@/app/actions/clients"
 import type { Client, ClientInsert, ClientWithStats } from "@/types/clients"
 import { toast } from "@/hooks/use-toast"
+import { ClientCard } from "./card"
+import { v4 as uuidv4 } from "uuid"
 
 // Status options with colors and labels
-const statusOptions: {
+export const StatusOptions: {
     [key: string]: { label: string; color: string };
 } = {
     active: { label: "Active", color: "badge-success" },
@@ -22,12 +24,13 @@ interface ClientsListProps {
 }
 
 export default function ClientsList({ initialClients, businessId }: ClientsListProps) {
-    const [clients, setClients] = useState<Client[]>(initialClients)
-    const [searchTerm, setSearchTerm] = useState("")
-    const [typeFilter, setTypeFilter] = useState("all")
-    const [statusFilter, setStatusFilter] = useState("all")
-    const [showAddClientModal, setShowAddClientModal] = useState(false)
+    const [clients, setClients] = useState<ClientWithStats[]>(initialClients);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [typeFilter, setTypeFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [showAddClientModal, setShowAddClientModal] = useState(false);
     const [newClient, setNewClient] = useState<{
+        id: string;
         name: string;
         type: string;
         contact_name: string;
@@ -39,6 +42,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         activeProjects?: number;
         totalBudget?: number;
     }>({
+        id: uuidv4(),
         name: "",
         type: "Commercial",
         contact_name: "",
@@ -49,8 +53,8 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         totalProjects: 0,
         activeProjects: 0,
         totalBudget: 0,
-    })
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [viewType, setViewType] = useState("grid");
 
     // Filter clients based on search term, type, and status
@@ -58,25 +62,34 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         const matchesSearch =
             client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (client.contact_name && client.contact_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (client.contact_email && client.contact_email.toLowerCase().includes(searchTerm.toLowerCase()))
-        const matchesType = typeFilter === "all" || (client.type && client.type.includes(typeFilter))
-        const matchesStatus = statusFilter === "all" || client.status === statusFilter
-        return matchesSearch && matchesType && matchesStatus
+            (client.contact_email && client.contact_email.toLowerCase().includes(searchTerm.toLowerCase()));
+        const matchesType = typeFilter === "all" || (client.type && client.type.includes(typeFilter));
+        const matchesStatus = statusFilter === "all" || client.status === statusFilter;
+        return matchesSearch && matchesType && matchesStatus;
     })
 
     // Get unique client types for filter dropdown
-    const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))]
+    const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))];
 
     const handleAddClient = async () => {
-        if (!businessId) return
+        if (!businessId) return;
 
-        setIsSubmitting(true)
+        setIsSubmitting(true);
         try {
-            const { data, error } = await createClient(newClient, businessId)
-            if (error) throw new Error(error)
+            const { data, error } = await createClient(newClient, businessId);
+            if (error) throw new Error(error.message);
             if (data) {
-                setClients((prev) => [...prev, data])
+                setClients((prev) => [
+                    ...prev,
+                    {
+                        ...data,
+                        total_projects: data.total_projects ?? 0,
+                        active_projects: 0,
+                        total_budget: 0,
+                    }
+                ]);
                 setNewClient({
+                    id: uuidv4(),
                     name: "",
                     type: "Commercial",
                     contact_name: "",
@@ -84,14 +97,14 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                     contact_phone: "",
                     address: "",
                     status: "prospect",
-                })
-                setShowAddClientModal(false)
+                });
+                setShowAddClientModal(false);
             }
         } catch (error) {
-            toast.error("Error adding client. Please try again.");
-            console.error("Error adding client:", error)
+            toast.error("Error adding client. Please try again.");;
+            console.error("Error adding client:", error);
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
     }
 
@@ -139,7 +152,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             <option value="all">All Statuses</option>
-                            {Object.entries(statusOptions).map(([value, { label }]) => (
+                            {Object.entries(StatusOptions).map(([value, { label }]) => (
                                 <option key={value} value={value}>
                                     {label}
                                 </option>
@@ -160,33 +173,13 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
             {viewType === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredClients.map((client) => (
-                        <div key={client.id} className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <div className="flex items-center gap-3">
-                                    <div className="avatar flex">
-                                        <div className="w-12 h-12 flex rounded-full bg-base-300 text-center content-center">
-                                            {client.image ? (
-                                                <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
-                                            ) : (
-                                                <span className="text-xl font-bold">{client.name.charAt(0)}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h2 className="card-title">{client.name}</h2>
-                                        <p className="text-sm opacity-50">{client.type}</p>
-                                    </div>
-                                </div>
-                                <p>{client.contact_name}</p>
-                                <p className="text-sm opacity-50">{client.contact_email}</p>
-                                <p className="text-sm opacity-50">{client.contact_phone}</p>
-                                <div className="mt-4">
-                                    <span className={`badge ${statusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
-                                        {statusOptions[client.status || "prospect"]?.label || "Unknown"}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        <ClientCard
+                            key={client.id}
+                            client={client}
+                            onClick={() => {
+                                // Handle client card click
+                                console.log("Client clicked:", client)
+                            }} />
                     ))}
                 </div>
             ) : null}
@@ -231,14 +224,14 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                                     </td>
                                     <td>
                                         <div>
-                                            <span className="font-semibold">{client.activeProjects || 0}</span> Active /{" "}
-                                            <span className="font-semibold">{client.totalProjects || 0}</span> Total
+                                            <span className="font-semibold">{client.active_projects || 0}</span> Active /{" "}
+                                            <span className="font-semibold">{client.total_projects || 0}</span> Total
                                         </div>
-                                        <div className="text-sm opacity-50">${(client.totalBudget || 0).toLocaleString()}</div>
+                                        <div className="text-sm opacity-50">${(client.total_budget || 0).toLocaleString()}</div>
                                     </td>
                                     <td>
-                                        <div className={`badge ${statusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
-                                            {statusOptions[client.status || "prospect"]?.label || "Unknown"}
+                                        <div className={`badge ${StatusOptions[client.status || "prospect"]?.color || "badge-neutral"}`}>
+                                            {StatusOptions[client.status || "prospect"]?.label || "Unknown"}
                                         </div>
                                     </td>
                                     <td>

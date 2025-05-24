@@ -23,12 +23,12 @@ export async function getCrewById(id: string, businessId: string) {
 
 // Create a new crew
 export async function createCrew(crew: Omit<CrewInsert, "business_id">, businessId: string) {
-    return await insertWithBusiness("crews", crew, businessId)
+    return await insertWithBusiness("crews", { ...crew, business_id: businessId }, businessId)
 }
 
 // Update an existing crew
-export async function updateCrew(id: string, crew: CrewUpdate, businessId: string) {
-    return await updateWithBusinessCheck("crews", id, crew, businessId)
+export async function updateCrew(id: string, crew: Partial<CrewUpdate>, businessId: string) {
+    return await updateWithBusinessCheck("crews", id, crew as CrewUpdate, businessId)
 }
 
 // Delete a crew
@@ -85,11 +85,11 @@ export async function getCrewsWithStats(businessId: string) {
         .select(`
             *,
             members:crew_members(id),
-            leader:users!crews_leader_id_fkey (
+            leader:users!leader_id (
                 first_name,
                 last_name
             ),
-            project_crews:project_crews (
+            project_crews:project_crews!crew_id (
                 id,
                 start_date,
                 end_date,
@@ -102,22 +102,25 @@ export async function getCrewsWithStats(businessId: string) {
         .eq("business_id", businessId)
         .order("name");
 
-    const properData = data.map((row) => {
-        const today = new Date();
-        const currentProject = row.project_crews?.find((proj) => {
-            const start = new Date(proj.start_date);
-            const end = new Date(proj.end_date);
-            return start <= today && today <= end;
-        });
+    const properData = Array.isArray(data)
+        ? data.map((row: any) => {
+            const today = new Date();
+            const projectCrews = Array.isArray(row.project_crews) ? row.project_crews : [];
+            const currentProject = projectCrews.find((proj: any) => {
+                const start = new Date(proj.start_date);
+                const end = new Date(proj.end_date);
+                return start <= today && today <= end;
+            });
 
-        return {
-            ...row,
-            members: row.members.length,
-            leader: `${row.leader_id ? row.leader?.first_name + ' ' + row.leader?.last_name : "Unassigned"}`,
-            current_project: currentProject ? currentProject.project.name : "No current project",
-            current_project_id: currentProject ? currentProject.id : null,
-        }
-    });
+            return {
+                ...row,
+                members: Array.isArray(row.members) ? row.members.length : 0,
+                leader: `${row.leader_id ? row.leader?.first_name + ' ' + row.leader?.last_name : "Unassigned"}`,
+                current_project: currentProject ? currentProject.project?.name : "No current project",
+                current_project_id: currentProject ? currentProject.id : null,
+            }
+        })
+        : [];
     return {
         data: properData,
         error,

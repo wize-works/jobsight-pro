@@ -7,6 +7,11 @@ type NavbarProps = {
 };
 
 export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) => {
+
+    const handleSidebarToggle = () => {
+        localStorage.setItem("sidebarCollapsed", JSON.stringify(!sidebarCollapsed));
+        setSidebarCollapsed(!sidebarCollapsed);
+    }
     return (
         <div className="navbar bg-base-100 border-b">
             <div className="flex-none lg:hidden">
@@ -15,8 +20,8 @@ export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) =
                 </label>
             </div>
             <div className="flex-none hidden lg:block">
-                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="btn btn-square btn-ghost">
-                    <i className={`fas fa-${sidebarCollapsed ? "chevron-right" : "chevron-left"}`}></i>
+                <button onClick={() => handleSidebarToggle()} className="btn btn-square btn-ghost">
+                    <i className={`fa-kit fa-xl ${sidebarCollapsed ? "fa-light-sidebar-circle-arrow-right" : "fa-light-sidebar-circle-arrow-left"}`}></i>
                 </button>
             </div>
             <div className="flex-1">{/* Navbar spacer */}</div>

@@ -21,8 +21,8 @@ export async function createCrew(crew: Omit<CrewInsert, "business_id">, business
     return await insertWithBusiness("crews", crew, businessId);
 };
 
-export async function updateCrew(id: string, crew: CrewUpdate, businessId: string) {
-    return await updateWithBusinessCheck("crews", id, crew, businessId);
+export async function updateCrew(id: string, crew: Partial<CrewUpdate>, businessId: string) {
+    return await updateWithBusinessCheck("crews", id, crew as CrewUpdate, businessId);
 };
 
 export async function deleteCrew(id: string, businessId: string) {

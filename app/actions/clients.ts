@@ -2,13 +2,44 @@
 
 import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-import type { ClientInsert, ClientUpdate, ClientInteractionInsert, ClientInteractionUpdate, ClientContactInsert, ClientContactUpdate } from "@/types/clients";
+import type { ClientInsert, ClientUpdate, ClientInteractionInsert, ClientInteractionUpdate, ClientContactInsert, ClientContactUpdate, Client } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { Project } from "@/types/projects";
 
 export async function getClients(businessId: string) {
     return await fetchByBusiness("clients", businessId, "*", {
         orderBy: { column: "name", ascending: true },
     });
+}
+
+export async function getClientsWithStats(businessId: string) {
+    const { data: clients, error: clientErrors } = await fetchByBusiness("clients", businessId, "*", {
+        orderBy: { column: "name", ascending: true },
+    });
+
+    if (!clients) {
+        return [];
+    }
+
+    const clientIds = (clients as unknown as Client[]).map((client) => client.id);
+
+    const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
+        filter: { client_id: { in: clientIds } },
+    });
+
+    return (clients as unknown as Client[]).map((client) => {
+        const clientProjects = (projects as unknown as Project[])?.filter((project: Project) => project.client_id === client.id) || [];
+        const totalBudget = clientProjects.reduce((acc, project) => acc + (project.budget || 0), 0);
+        const activeProjects = clientProjects.filter((project) => project.status === "active").length;
+
+        return {
+            ...client,
+            total_projects: clientProjects.length,
+            active_projects: activeProjects,
+            total_budget: totalBudget,
+        };
+    });
+
 }
 
 export async function getClientById(id: string, businessId: string) {
@@ -20,7 +51,7 @@ export async function getClientById(id: string, businessId: string) {
 }
 
 export async function createClient(client: Omit<ClientInsert, "business_id">, businessId: string) {
-    return await insertWithBusiness("clients", client, businessId);
+    return await insertWithBusiness("clients", { ...client, business_id: businessId }, businessId);
 }
 
 export async function updateClient(id: string, client: ClientUpdate, businessId: string) {

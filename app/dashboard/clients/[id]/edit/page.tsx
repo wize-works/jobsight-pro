@@ -2,7 +2,7 @@ import { getClientById, updateClient } from "@/app/actions/clients";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import ClientEditForm from "../../components/client-edit-form";
+import ClientEditForm from "../../components/edit";
 import Link from "next/link";
 
 export default async function EditClientPage({ params }: { params: { id: string } }) {
