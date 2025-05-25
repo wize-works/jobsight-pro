@@ -28,6 +28,7 @@ interface CrewDetailProps {
     members?: CrewMember[];
     allMembers?: CrewMember[];
     schedule?: any[];
+    history?: any[];
     equipment?: Equipment[];
     projects?: Project[];
 }
@@ -37,6 +38,7 @@ export default function CrewDetailComponent({
     members = [],
     allMembers = [],
     schedule = [],
+    history = [],
     equipment = [],
     businessId,
     projects = [],
@@ -47,6 +49,7 @@ export default function CrewDetailComponent({
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [showLinkMemberModal, setShowLinkMemberModal] = useState(false);
     const [linkMember, setLinkMember] = useState<CrewMember | null>(null);
+    const [workHistory, setWorkHistory] = useState(history || []);
     const [notes, setNotes] = useState(crew.notes || "");
     const [newMember, setNewMember] = useState({
         name: "",
@@ -582,10 +585,24 @@ export default function CrewDetailComponent({
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Work History</h3>
                                         <div className="flex gap-2">
-                                            <select className="select select-sm select-bordered">
-                                                <option value="">All Projects</option>
-                                                <option value="project1">Project 1</option>
-                                                <option value="project2">Project 2</option>
+                                            <select className="select select-bordered select-sm" defaultValue="all" onChange={(e) => {
+                                                // Handle project filter change
+                                                const selectedProjectId = e.target.value;
+                                                if (selectedProjectId === "all") {
+                                                    // Reset filter
+                                                    setWorkHistory(history);
+                                                } else {
+                                                    // Filter history by selected project
+                                                    const filteredHistory = history.filter((item: any) => item.project_id === selectedProjectId);
+                                                    setWorkHistory(filteredHistory);
+                                                }
+                                            }}>
+                                                <option value="all">All Projects</option>
+                                                {projects.map((project: Project) => (
+                                                    <option key={project.id} value={project.id}>
+                                                        {project.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                             <button className="btn btn-sm btn-outline">
                                                 <i className="fas fa-filter mr-2"></i> Filter
@@ -593,43 +610,43 @@ export default function CrewDetailComponent({
                                         </div>
                                     </div>
 
-                                    {/* {workHistory.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Project</th>
-                                            <th>Task</th>
-                                            <th>Hours</th>
-                                            <th>Completion</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {workHistory.map((item: any, index: number) => (
-                                            <tr key={index}>
-                                                <td>{item.date}</td>
-                                                <td>{item.project}</td>
-                                                <td>{item.task}</td>
-                                                <td>{item.hours}</td>
-                                                <td>
-                                                    <progress
-                                                        className="progress progress-success w-20"
-                                                        value={item.completion}
-                                                        max="100"
-                                                    ></progress>
-                                                    <span className="ml-2">{item.completion}%</span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                        )} */}
-                                    <div className="text-center py-8">
-                                        <p>Feature will be released in future updates.</p>
-                                    </div>
+                                    {workHistory.length > 0 ? (
+                                        <div className="overflow-x-auto">
+                                            <table className="table table-zebra">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Project</th>
+                                                        <th>Task</th>
+                                                        <th>Hours</th>
+                                                        <th>Completion</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {workHistory.map((item: any, index: number) => (
+                                                        <tr key={index}>
+                                                            <td>{item.start_date} - {item.end_date}</td>
+                                                            <td>{item.project_name}</td>
+                                                            <td>{item.tasks}</td>
+                                                            <td>{item.hours_worked}</td>
+                                                            <td>
+                                                                <progress
+                                                                    className="progress progress-success w-20"
+                                                                    value={item.completion}
+                                                                    max="100"
+                                                                ></progress>
+                                                                <span className="ml-2">{item.completion}%</span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p>Feature will be released in future updates.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

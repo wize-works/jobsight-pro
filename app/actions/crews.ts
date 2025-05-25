@@ -346,6 +346,86 @@ export const getCrewSchedule = async (crewId: string): Promise<ProjectCrewWithDe
     return data;
 }
 
+export const getCrewScheduleHistory = async (crewId: string): Promise<ProjectCrewWithDetails[] | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch crew members by crew ID.");
+        return null;
+    }
+    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", businessId, "*", {
+        filter: { crew_id: crewId, end_date: { neq: null, lt: new Date().toISOString() } },
+        orderBy: { column: "start_date", ascending: false },
+    });
+    if (error) {
+        console.error("Error fetching crew schedule:", error);
+        return null;
+    }
+
+    if (!projectCrewsData) {
+        return [];
+    }
+
+    if (projectCrewsData.length === 0) {
+        return [];
+    }
+    const projectIds = (projectCrewsData as unknown as ProjectCrew[]).map((pc) => pc.project_id) || [];
+
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
+        filter: { id: { in: projectIds } },
+    });
+
+    const data = projectCrewsData as unknown as ProjectCrewWithDetails[];
+    data.map((projectCrew) => {
+        const project = (projectsData as unknown as Project[])?.find((p) => p.id === projectCrew.project_id);
+        projectCrew.project_name = project?.name || "No Project";
+    });
+    return data;
+}
+
+export const getCrewScheduleCurrent = async (crewId: string): Promise<ProjectCrewWithDetails[] | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch crew members by crew ID.");
+        return null;
+    }
+    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", businessId, "*", {
+        filter: { crew_id: crewId, end_date: { eq: null, gte: new Date().toISOString() } },
+        orderBy: { column: "start_date", ascending: false },
+    });
+    if (error) {
+        console.error("Error fetching crew schedule:", error);
+        return null;
+    }
+
+    if (!projectCrewsData) {
+        return [];
+    }
+
+    if (projectCrewsData.length === 0) {
+        return [];
+    }
+    const projectIds = (projectCrewsData as unknown as ProjectCrew[]).map((pc) => pc.project_id) || [];
+
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
+        filter: { id: { in: projectIds } },
+    });
+
+    const data = projectCrewsData as unknown as ProjectCrewWithDetails[];
+    data.map((projectCrew) => {
+        const project = (projectsData as unknown as Project[])?.find((p) => p.id === projectCrew.project_id);
+        projectCrew.project_name = project?.name || "No Project";
+    });
+    return data;
+}
+
 export const getCrewEquipment = async (crewId: string): Promise<EquipmentWithAssignment[] | null> => {
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();

@@ -1,4 +1,4 @@
-import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment } from "@/app/actions/crews";
+import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment, getCrewScheduleCurrent, getCrewScheduleHistory } from "@/app/actions/crews";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { getProjects } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
@@ -29,7 +29,8 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
     const crew = await getCrewWithDetailsById(crewId);
     const members = await getCrewMembersByCrewId(crewId);
     const allMembers = await getCrewMembers();
-    const schedule = await getCrewSchedule(crewId);
+    const schedule = await getCrewScheduleCurrent(crewId);
+    const history = await getCrewScheduleHistory(crewId);
     const equipment = await getCrewEquipment(crewId);
     const projects = await getProjects();
 
@@ -48,6 +49,7 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
             members={members as unknown as CrewMember[]}
             allMembers={allMembers as unknown as CrewMember[]}
             schedule={schedule as unknown as ProjectCrew[]}
+            history={history as unknown as ProjectCrew[]}
             equipment={equipment as unknown as Equipment[]}
             businessId={businessId}
             projects={projects as unknown as Project[]}
