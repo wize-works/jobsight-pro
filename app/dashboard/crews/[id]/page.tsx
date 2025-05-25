@@ -1,12 +1,14 @@
 import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment } from "@/app/actions/crews";
 import { getCrewMembers } from "@/app/actions/crew-members";
+import { getProjects } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import CrewDetailComponent from "../components/detail";
 import { CrewMember } from "@/types/crew-members";
 import { ProjectCrew } from "@/types/project-crews";
-import { Equipment } from "@/types/equipments";
+import { Equipment } from "@/types/equipment";
 import { CrewWithStats } from "@/types/crews";
+import { Project } from "@/types/projects";
 
 export default async function CrewPage({ params }: { params: { id: string } }) {
     const crewId = (await params).id;
@@ -30,6 +32,7 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
     const allMembers = await getCrewMembers();
     const schedule = await getCrewSchedule(crewId);
     const equipment = await getCrewEquipment(crewId);
+    const projects = await getProjects();
 
     if (!crew) {
         return (
@@ -48,6 +51,7 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
             schedule={schedule as unknown as ProjectCrew[]}
             equipment={equipment as unknown as Equipment[]}
             businessId={businessId}
+            projects={projects as unknown as Project[]}
         />
     );
 }

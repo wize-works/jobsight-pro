@@ -165,13 +165,15 @@ export default function CrewsList({ initialCrews, businessId }: CrewListProps) {
                                 <tr key={crew.id}>
                                     <td className="flex flex-col">
                                         {crew.name}
-                                        {crew.current_project && (
+                                        {crew.current_project_id ? (
                                             <Link href={`/dashboard/projects/${crew.current_project_id}`} className="text-primary">
                                                 <i className="fas fa-project-diagram ml-2"></i> {crew.current_project}
                                             </Link>
+                                        ) : (
+                                            <span className="text-base-300"><i className="fas fa-project-diagram ml-2"></i> No current project</span>
                                         )}
                                     </td>
-                                    <td>{crew.leader}</td>
+                                    <td><span className={`${crew.leader_id ? "text-primary" : "text-base-300"}`}>{crew.leader}</span></td>
                                     <td>{crew.member_count}</td>
                                     <td><span className={`badge ${crew.status === "active" ? "badge-primary" : "badge-neutral"}`}>{crew.status}</span></td>
                                     <td>

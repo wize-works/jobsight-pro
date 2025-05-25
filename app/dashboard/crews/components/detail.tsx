@@ -4,9 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CrewWithDetails, CrewWithStats } from "@/types/crews";
-import type { CrewMember } from "@/types/crew-members";
-import type { Equipment } from "@/types/equipments";
+import type { CrewMember, CrewMemberInsert } from "@/types/crew-members";
+import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
+import { createCrewMember } from "@/app/actions/crew-members";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { addCrewMemberToCrew, createCrewMemberAssignment } from "@/app/actions/crew-member-assignment";
+import { Project } from "@/types/projects";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -21,6 +25,7 @@ interface CrewDetailProps {
     allMembers?: CrewMember[];
     schedule?: any[];
     equipment?: Equipment[];
+    projects?: Project[]; // Add this to the props
 }
 
 export default function CrewDetailComponent({
@@ -30,7 +35,8 @@ export default function CrewDetailComponent({
     schedule = [],
     equipment = [],
     businessId,
-}: CrewDetailProps) {
+    projects = [], // <-- add this
+}: CrewDetailProps & { projects?: { id: string; name: string }[] }) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("members");
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -39,10 +45,106 @@ export default function CrewDetailComponent({
     const [newMember, setNewMember] = useState({
         name: "",
         role: "",
-        experience: "",
+        experience: 0,
         phone: "",
         email: "",
+        avatar_url: "",
     });
+    const [showAddAssignmentModal, setShowAddAssignmentModal] = useState(false);
+    const [newAssignment, setNewAssignment] = useState({
+        projectId: '',
+        startDate: '',
+        endDate: '',
+        notes: '',
+    });
+
+    const handleAddMember = async () => {
+        const { user } = await useKindeAuth();
+        const memberData = {
+            id: "",
+            business_id: businessId,
+            name: newMember.name,
+            role: newMember.role,
+            experience: newMember.experience,
+            phone: newMember.phone,
+            email: newMember.email,
+            status: "active",
+            notes: "",
+            avatar_url: newMember.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
+            created_by: user?.id,
+            created_at: new Date().toISOString(),
+            updated_by: user?.id,
+            updated_at: new Date().toISOString(),
+        } as CrewMemberInsert;
+
+        try {
+
+            const member = await createCrewMember(memberData);
+
+            if (!member) {
+                toast.error({
+                    title: "Error",
+                    description: "Failed to create crew member. Please try again.",
+                });
+            }
+
+            if (member) {
+                await addCrewMemberToCrew(crew.id, member.id);
+
+                toast({
+                    title: "Success",
+                    description: `Added ${member.name} to the crew.`,
+                });
+            }
+            setNewMember({
+                name: "",
+                role: "",
+                experience: 0,
+                phone: "",
+                email: "",
+                avatar_url: "",
+            });
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Error adding crew member. Please try again.",
+            });
+        }
+    };
+
+    const handleLinkMember = async () => {
+
+        try {
+
+
+            if (linkMember && linkMember.id) {
+                await addCrewMemberToCrew(crew.id, linkMember.id);
+                toast({
+                    title: "Success",
+                    description: `Linked ${linkMember.name} to the crew.`,
+                });
+            }
+            setLinkMember(null);
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Error linking crew member. Please try again.",
+            });
+        }
+    };
+
+    // Add this handler for adding an assignment (mock for now)
+    const handleAddAssignment = () => {
+        toast({
+            title: "Assignment added",
+            description: `Assignment for crew scheduled from ${newAssignment.startDate} to ${newAssignment.endDate}.`,
+        });
+        setShowAddAssignmentModal(false);
+        setNewAssignment({ projectId: '', startDate: '', endDate: '', notes: '' });
+        // Here you would add logic to update the schedule, e.g. API call
+    };
 
     // Mock data for initial UI showcase - would be replaced with real data in a full implementation
     //const workHistory = [];
@@ -171,10 +273,10 @@ export default function CrewDetailComponent({
                                                 <td>
                                                     <div className="flex gap-2">
                                                         <button className="btn btn-ghost btn-xs">
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="fas fa-edit fa-xl"></i>
                                                         </button>
                                                         <button className="btn btn-ghost btn-xs text-error">
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="fas fa-trash fa-xl"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -203,7 +305,7 @@ export default function CrewDetailComponent({
                     <div className="card-body">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold">Upcoming Schedule</h3>
-                            <button className="btn btn-sm btn-outline">
+                            <button className="btn btn-sm btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
                                 <i className="fas fa-plus mr-2"></i> Add Assignment
                             </button>
                         </div>
@@ -235,10 +337,10 @@ export default function CrewDetailComponent({
                                                 <td>
                                                     <div className="flex gap-2">
                                                         <button className="btn btn-ghost btn-xs">
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="fas fa-edit fa-xl"></i>
                                                         </button>
                                                         <button className="btn btn-ghost btn-xs text-error">
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="fas fa-trash fa-xl"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -412,10 +514,10 @@ export default function CrewDetailComponent({
                                     <span className="label-text">Experience</span>
                                 </label>
                                 <input
-                                    type="text"
+                                    type="number"
                                     className="input input-bordered"
                                     value={newMember.experience}
-                                    onChange={(e) => setNewMember({ ...newMember, experience: e.target.value })}
+                                    onChange={(e) => setNewMember({ ...newMember, experience: Number(e.target.value) })}
                                     placeholder="e.g. 5 years"
                                 />
                             </div>
@@ -443,6 +545,18 @@ export default function CrewDetailComponent({
                                     placeholder="Email address"
                                 />
                             </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Avatar Url</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={newMember.avatar_url || ""}
+                                    onChange={(e) => setNewMember({ ...newMember, avatar_url: e.target.value })}
+                                    placeholder="Avatar image URL"
+                                />
+                            </div>
                         </form>
                         <div className="modal-action">
                             <button className="btn btn-outline" onClick={() => setShowAddMemberModal(false)}>
@@ -451,11 +565,7 @@ export default function CrewDetailComponent({
                             <button
                                 className="btn btn-primary"
                                 onClick={() => {
-                                    // Here we would add the implementation to save the member
-                                    toast({
-                                        title: "Member added",
-                                        description: `${newMember.name} was added to the crew.`,
-                                    });
+                                    handleAddMember();
                                     setShowAddMemberModal(false);
                                 }}
                                 disabled={!newMember.name || !newMember.role}
@@ -470,17 +580,17 @@ export default function CrewDetailComponent({
             {showLinkMemberModal && (
                 <div className="modal modal-open">
                     <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Add New Crew Member</h3>
+                        <h3 className="font-bold text-lg mb-4">Link Crew Member</h3>
                         <form className="space-y-4">
                             <div className="form-control">
                                 <label className="label">
-                                    <span className="label-text">Name</span>
+                                    <span className="label-text">Crew Members</span>
                                 </label>
                                 <select
                                     className="select select-bordered"
-                                    value={linkMember?.id || ""}
+                                    defaultValue={linkMember?.id || ""}
                                     onChange={(e) => {
-                                        const selectedMember = members.find((m) => m.id === e.target.value);
+                                        const selectedMember = allMembers.find((m) => m.id === e.target.value);
                                         setLinkMember(selectedMember || null);
                                     }}
                                 >
@@ -492,54 +602,6 @@ export default function CrewDetailComponent({
                                     ))}
                                 </select>
                             </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Role</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={newMember.role}
-                                    onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-                                    placeholder="e.g. Foreman, Carpenter, Electrician"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Experience</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={newMember.experience}
-                                    onChange={(e) => setNewMember({ ...newMember, experience: e.target.value })}
-                                    placeholder="e.g. 5 years"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Phone</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    className="input input-bordered"
-                                    value={newMember.phone}
-                                    onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
-                                    placeholder="Phone number"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Email</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    className="input input-bordered"
-                                    value={newMember.email}
-                                    onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                                    placeholder="Email address"
-                                />
-                            </div>
                         </form>
                         <div className="modal-action">
                             <button className="btn btn-outline" onClick={() => setShowLinkMemberModal(false)}>
@@ -548,16 +610,83 @@ export default function CrewDetailComponent({
                             <button
                                 className="btn btn-primary"
                                 onClick={() => {
-                                    // Here we would add the implementation to save the member
-                                    toast({
-                                        title: "Member linked",
-                                        description: `${newMember.name} was added to the crew.`,
-                                    });
+                                    handleLinkMember();
                                     setShowLinkMemberModal(false);
                                 }}
-                                disabled={!newMember.name || !newMember.role}
+                                disabled={!linkMember}
                             >
                                 Link Member
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Assignment Modal */}
+            {showAddAssignmentModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Add Crew Assignment</h3>
+                        <form className="space-y-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Project</span>
+                                </label>
+                                <select
+                                    className="select select-bordered"
+                                    value={newAssignment.projectId}
+                                    onChange={e => setNewAssignment({ ...newAssignment, projectId: e.target.value })}
+                                >
+                                    <option value="">Select a project</option>
+                                    {projects.map((project) => (
+                                        <option key={project.id} value={project.id}>{project.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Start Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered"
+                                    value={newAssignment.startDate}
+                                    onChange={e => setNewAssignment({ ...newAssignment, startDate: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">End Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered"
+                                    value={newAssignment.endDate}
+                                    onChange={e => setNewAssignment({ ...newAssignment, endDate: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Notes</span>
+                                </label>
+                                <textarea
+                                    className="textarea textarea-bordered"
+                                    value={newAssignment.notes}
+                                    onChange={e => setNewAssignment({ ...newAssignment, notes: e.target.value })}
+                                    placeholder="Assignment notes"
+                                />
+                            </div>
+                        </form>
+                        <div className="modal-action">
+                            <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(false)}>
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleAddAssignment}
+                                disabled={!newAssignment.projectId || !newAssignment.startDate || !newAssignment.endDate}
+                            >
+                                Add Assignment
                             </button>
                         </div>
                     </div>

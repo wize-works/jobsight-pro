@@ -1271,7 +1271,7 @@ export interface Database {
                 }
             }
 
-            media_meatadata: {
+            media_metadata: {
                 Row: {
                     id: string
                     media_id: string

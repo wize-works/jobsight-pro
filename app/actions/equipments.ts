@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { Equipment, EquipmentInsert, EquipmentUpdate } from "@/types/equipments";
+import { Equipment, EquipmentInsert, EquipmentUpdate } from "@/types/equipment";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 

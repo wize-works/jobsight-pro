@@ -7,11 +7,11 @@ import { ProjectCrew, ProjectCrewWithDetails } from "@/types/project-crews";
 import { Project } from "@/types/projects";
 import { CrewMember, CrewMemberUpdate } from "@/types/crew-members";
 import { EquipmentAssignment } from "@/types/equipment-assignments";
-import { Equipment } from "@/types/equipments";
+import { Equipment } from "@/types/equipment";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/lib/business";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
-import { EquipmentWithAssignment, EquipmentWithAssignments } from "@/types/equipments";
+import { EquipmentWithAssignment, EquipmentWithAssignments } from "@/types/equipment";
 
 export const getCrews = async (): Promise<Crew[]> => {
     const kindeSession = await getKindeServerSession();
