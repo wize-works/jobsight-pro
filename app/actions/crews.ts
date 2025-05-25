@@ -12,6 +12,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/lib/business";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
 import { EquipmentWithAssignment, EquipmentWithAssignments } from "@/types/equipment";
+import { DailyLog } from "@/types/daily-logs";
 
 export const getCrews = async (): Promise<Crew[]> => {
     const kindeSession = await getKindeServerSession();
@@ -244,7 +245,7 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
 
     let projectCrewsData = projectCrews as unknown as ProjectCrew[];
     projectCrewsData = projectCrewsData?.filter((pc) => pc.start_date <= today && (pc.end_date === null || pc.end_date >= today));
-    console.log("Filtered Project Crews Data:", projectCrewsData);
+
     const projectIds = projectCrewsData?.map((pc) => pc.project_id) || [];
     const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
@@ -252,12 +253,18 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
     const projectName = (projects as unknown as Project[])?.find((project) => project.id === projectCrewsData[0]?.project_id)?.name || "No Current Project";
     const projectId = projectCrewsData?.find((pc) => pc.crew_id === crew.id)?.project_id || null;
 
+    const { data: crewLogs } = await fetchByBusiness("daily_logs", businessId, "*", {
+        filter: { crew_id: crew.id }
+    });
+    const totalHours = (crewLogs as unknown as DailyLog[] || []).reduce((acc, log) => acc + (log.hours_worked || 0), 0);
+
     const data = crew as unknown as CrewWithDetails;
     data.member_count = memberCount;
     data.leader = leaderName;
     data.current_project_id = projectId;
     data.current_project = projectName;
     data.active_projects = totalProjects;
+    data.total_hours = totalHours;
 
     return data;
 };
@@ -382,6 +389,7 @@ export const getCrewEquipment = async (crewId: string): Promise<EquipmentWithAss
             ...assignment,
             equipment_name: equipment?.name || "No Equipment",
             equipment_id: equipment?.id || null,
+            equipment_type: equipment?.type || "Unknown",
             assigned_date: assignment?.start_date + " - " + assignment?.end_date || "No Dates",
         };
     });
@@ -406,5 +414,26 @@ export const assignCrewLeader = async (crewId: string, leaderId: string): Promis
         console.error("Error assigning crew leader:", error);
         return null;
     }
+    return data as unknown as Crew;
+}
+
+export const updateCrewNotes = async (crewId: string, notes: string): Promise<Crew | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to update crew notes.");
+        return null;
+    }
+
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, { notes, updated_at: new Date().toISOString(), updated_by: user?.id || "" }, businessId);
+
+    if (error) {
+        console.error("Error updating crew notes:", error);
+        return null;
+    }
+    console.log("Crew notes updated successfully:", data);
     return data as unknown as Crew;
 }

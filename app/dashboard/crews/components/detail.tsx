@@ -7,13 +7,14 @@ import type { CrewWithDetails } from "@/types/crews";
 import type { CrewMember, CrewMemberInsert } from "@/types/crew-members";
 import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
-import { assignCrewLeader } from "@/app/actions/crews";
+import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
 import { createCrewMember } from "@/app/actions/crew-members";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew } from "@/app/actions/project-crews";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
+import { set } from "zod";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -46,6 +47,7 @@ export default function CrewDetailComponent({
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [showLinkMemberModal, setShowLinkMemberModal] = useState(false);
     const [linkMember, setLinkMember] = useState<CrewMember | null>(null);
+    const [notes, setNotes] = useState(crew.notes || "");
     const [newMember, setNewMember] = useState({
         name: "",
         role: "",
@@ -186,6 +188,30 @@ export default function CrewDetailComponent({
         router.refresh();
     }
 
+    const handleUpdateNotes = async () => {
+        if (!notes) {
+            toast.error({
+                title: "Error",
+                description: "Please enter notes before saving.",
+            });
+            return;
+        }
+
+        try {
+            await updateCrewNotes(crew.id, notes);
+            toast({
+                title: "Success",
+                description: "Crew notes updated successfully.",
+            });
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to update crew notes. Please try again.",
+            });
+        }
+    }
+
     // Mock data for initial UI showcase - would be replaced with real data in a full implementation
     //const workHistory = [];
 
@@ -252,6 +278,27 @@ export default function CrewDetailComponent({
                                     onClick={() => { handleAssignLeader() }}
                                 >
                                     Change
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card bg-base-100 shadow-sm mt-6">
+                        <div className="card-body">
+                            <h2 className="card-title">Notes</h2>
+                            <p className="text-base-content/70 mb-4">Add any important notes about the crew here.</p>
+                            <textarea
+                                className="textarea textarea-bordered w-full"
+                                placeholder="Add notes about the crew..."
+                                rows={4}
+                                defaultValue={crew.notes || ""}
+                                onChange={(e) => {
+                                    setNotes(e.target.value);
+                                }}
+                            ></textarea>
+
+                            <div className="mt-4">
+                                <button className="btn btn-primary btn-sm" onClick={() => { handleUpdateNotes(); }}>
+                                    <i className="fas fa-save mr-2"></i> Save Notes
                                 </button>
                             </div>
                         </div>
@@ -495,7 +542,7 @@ export default function CrewDetailComponent({
                                                     {equipment.map((item: any, index: number) => (
                                                         <tr key={index}>
                                                             <td>{item.equipment_name}</td>
-                                                            <td>{item.type}</td>
+                                                            <td>{item.equipment_type}</td>
                                                             <td>
                                                                 <div className={`badge ${item.status === 'functional' ? 'badge-success' : 'badge-warning'}`}>
                                                                     {item.status}
@@ -505,10 +552,10 @@ export default function CrewDetailComponent({
                                                             <td>
                                                                 <div className="flex gap-2">
                                                                     <button className="btn btn-ghost btn-xs">
-                                                                        <i className="fas fa-edit"></i>
+                                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
                                                                     </button>
                                                                     <button className="btn btn-ghost btn-xs text-error">
-                                                                        <i className="fas fa-trash"></i>
+                                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
                                                                     </button>
                                                                 </div>
                                                             </td>
