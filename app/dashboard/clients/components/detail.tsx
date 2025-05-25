@@ -68,6 +68,18 @@ export default function ClientDetailComponent({
     const [editInteraction, setEditInteraction] = useState<any | null>(null);
     const [showEditInteractionModal, setShowEditInteractionModal] = useState(false);
     const [clientNotes, setClientNotes] = useState(client.notes || "");
+    const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+    const [newProject, setNewProject] = useState({
+        name: "",
+        type: "",
+        status: "in_progress",
+        start_date: "",
+        end_date: "",
+        budget: "",
+        location: "",
+        description: "",
+    });
+    const [isSubmittingProject, setIsSubmittingProject] = useState(false);
 
     if (!client) {
         return (
@@ -83,14 +95,28 @@ export default function ClientDetailComponent({
             title: newContact.title,
             email: newContact.email,
             phone: newContact.phone,
-            is_primary: newContact.isPrimary
+            is_primary: newContact.isPrimary,
+            client_id: client.id,
+            created_by: user?.id,
+            created_at: new Date().toISOString(),
+            updated_by: user?.id,
+            updated_at: new Date().toISOString(),
         } as ClientContactInsert;
 
         try {
             await createClientContact(contactData);
+            toast.success({
+                title: "Contact created",
+                description: "Your contact has been created successfully.",
+                autoClose: true,
+            });
             router.refresh(); // Refresh the page to show the new contact
         } catch (error) {
             console.error("Error creating contact:", error);
+            toast.error({
+                title: "Error creating contact",
+                description: "There was an error creating the contact.",
+            });
         } finally {
             setShowAddContactModal(false);
         }
@@ -102,7 +128,7 @@ export default function ClientDetailComponent({
             client_id: client.id,
             business_id: businessId,
             type: newInteraction.type,
-            date: newInteraction.date,
+            date: new Date().toISOString(),
             summary: newInteraction.summary,
             staff: newInteraction.staff,
             follow_up_date: newInteraction.followUpDate || null,
@@ -114,14 +140,72 @@ export default function ClientDetailComponent({
         } as ClientInteractionInsert;
         try {
             await createClientInteraction(interactionData);
+            toast.success({
+                title: "Interaction created",
+                description: "Your interaction has been logged successfully.",
+                autoClose: true,
+            });
             router.refresh(); // Refresh the page to show the new interaction
         } catch (error) {
             console.error("Error creating interaction:", error);
+            toast.error({
+                title: "Error creating interaction",
+                description: "There was an error logging the interaction.",
+            });
         }
         finally {
             setShowAddInteractionModal(false);
         }
     }
+
+    const handleAddProject = async () => {
+        setIsSubmittingProject(true);
+        try {
+            await createProject({
+                id: "",
+                name: newProject.name,
+                type: newProject.type || null,
+                status: newProject.status,
+                start_date: newProject.start_date || null,
+                end_date: newProject.end_date || null,
+                budget: newProject.budget ? Number(newProject.budget) : null,
+                location: newProject.location || null,
+                description: newProject.description || null,
+                client_id: client.id,
+                business_id: businessId,
+                manager_id: null,
+                progress: null,
+                created_by: null,
+                created_at: null,
+                updated_by: null,
+                updated_at: null
+            });
+            setShowAddProjectModal(false);
+            setNewProject({
+                name: "",
+                type: "",
+                status: "in_progress",
+                start_date: "",
+                end_date: "",
+                budget: "",
+                location: "",
+                description: "",
+            });
+            toast.success({
+                title: "Project created",
+                description: "Your project has been created successfully.",
+                autoClose: true,
+            });
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error creating project",
+                description: "There was an error creating the project.",
+            });
+        } finally {
+            setIsSubmittingProject(false);
+        }
+    };
 
     const handleEditContactOpen = (contact: any) => {
         setEditContact({
@@ -146,9 +230,18 @@ export default function ClientDetailComponent({
         } as ClientContactUpdate;
         try {
             await updateClientContact(editContact.id, updatedContact);
+            toast.success({
+                title: "Contact updated",
+                description: "Your contact has been updated successfully.",
+                autoClose: true,
+            });
             router.refresh();
         } catch (error) {
             console.error("Error updating contact:", error);
+            toast.error({
+                title: "Error updating contact",
+                description: "There was an error updating the contact.",
+            });
         } finally {
             setShowEditContactModal(false);
             setEditContact(null);
@@ -181,9 +274,18 @@ export default function ClientDetailComponent({
         } as ClientInteractionUpdate;
         try {
             await updateClientInteraction(editInteraction.id, updatedInteraction);
+            toast.success({
+                title: "Interaction updated",
+                description: "Your interaction has been updated successfully.",
+                autoClose: true,
+            });
             router.refresh();
         } catch (error) {
             console.error("Error updating interaction:", error);
+            toast.error({
+                title: "Error updating interaction",
+                description: "There was an error updating the interaction.",
+            });
         } finally {
             setShowEditInteractionModal(false);
             setEditInteraction(null);
@@ -234,10 +336,10 @@ export default function ClientDetailComponent({
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
-                                <Link href={`/dashboard/projects/create?client=${client.id}`}>
+                                <button onClick={() => setShowAddProjectModal(true)}>
                                     <i className="fas fa-plus mr-2"></i>
                                     New Project
-                                </Link>
+                                </button>
                             </li>
                             <li><a><i className="fas fa-file-pdf mr-2"></i> Export as PDF</a></li>
                             <li><a><i className="fas fa-trash mr-2"></i> Delete Client</a></li>
@@ -335,9 +437,12 @@ export default function ClientDetailComponent({
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-lg font-semibold">Recent Projects</h3>
-                                    <Link href={`/dashboard/projects/create?client=${client.id}`} className="btn btn-primary btn-sm">
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => setShowAddProjectModal(true)}
+                                    >
                                         <i className="fas fa-plus mr-2"></i> New Project
-                                    </Link>
+                                    </button>
                                 </div>
                                 {projects.length > 0 ? (
                                     <div className="overflow-x-auto">
@@ -374,9 +479,9 @@ export default function ClientDetailComponent({
                                     <div className="text-center py-8">
                                         <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
                                         <p className="text-base-content/70 mb-4">Create your first project with this client</p>
-                                        <Link href={`/dashboard/projects/create?client=${client.id}`} className="btn btn-primary">
+                                        <button onClick={() => setShowAddProjectModal(true)} className="btn btn-primary">
                                             <i className="fas fa-plus mr-2"></i> Create Project
-                                        </Link>
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -480,9 +585,12 @@ export default function ClientDetailComponent({
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Projects</h3>
-                                <Link href={`/dashboard/projects/create?client=${client.id}`} className="btn btn-primary btn-sm">
+                                <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => setShowAddProjectModal(true)}
+                                >
                                     <i className="fas fa-plus mr-2"></i> New Project
-                                </Link>
+                                </button>
                             </div>
                             {projects.length > 0 ? (
                                 <div className="overflow-x-auto">
@@ -1024,6 +1132,133 @@ export default function ClientDetailComponent({
                     </div>
                 )
             }
+
+            {/* Add Project Modal */}
+            {showAddProjectModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Add New Project</h3>
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault();
+                                handleAddProject();
+                            }}
+                        >
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Project Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newProject.name}
+                                    onChange={e => setNewProject({ ...newProject, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Type</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newProject.type}
+                                    onChange={e => setNewProject({ ...newProject, type: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Status</span>
+                                </label>
+                                <select
+                                    className="select select-bordered"
+                                    value={newProject.status}
+                                    onChange={e => setNewProject({ ...newProject, status: e.target.value })}
+                                    required
+                                >
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Budget</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    value={newProject.budget}
+                                    onChange={e => setNewProject({ ...newProject, budget: e.target.value })}
+                                    min="0"
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Start Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered"
+                                    value={newProject.start_date}
+                                    onChange={e => setNewProject({ ...newProject, start_date: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">End Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered"
+                                    value={newProject.end_date}
+                                    onChange={e => setNewProject({ ...newProject, end_date: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Location</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newProject.location}
+                                    onChange={e => setNewProject({ ...newProject, location: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-6">
+                                <label className="label">
+                                    <span className="label-text">Description</span>
+                                </label>
+                                <textarea
+                                    className="textarea textarea-bordered"
+                                    value={newProject.description}
+                                    onChange={e => setNewProject({ ...newProject, description: e.target.value })}
+                                ></textarea>
+                            </div>
+                            <div className="modal-action">
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    onClick={() => setShowAddProjectModal(false)}
+                                    disabled={isSubmittingProject}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={isSubmittingProject}
+                                >
+                                    {isSubmittingProject ? "Adding..." : "Add Project"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div >
     )
 }
