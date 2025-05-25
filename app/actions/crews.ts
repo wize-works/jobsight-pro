@@ -237,10 +237,14 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
 
     const today = new Date().toISOString().slice(0, 10); // Get today's date in YYYY-MM-DD format
     const { data: projectCrews } = await fetchByBusiness("project_crews", businessId, "*", {
-        filter: { crew_id: crew.id, start_date: { lte: today }, end_date: { gte: today } },
+        filter: { crew_id: crew.id },
     });
 
-    const projectCrewsData = projectCrews as unknown as ProjectCrew[];
+    const totalProjects = projectCrews?.length || 0;
+
+    let projectCrewsData = projectCrews as unknown as ProjectCrew[];
+    projectCrewsData = projectCrewsData?.filter((pc) => pc.start_date <= today && (pc.end_date === null || pc.end_date >= today));
+    console.log("Filtered Project Crews Data:", projectCrewsData);
     const projectIds = projectCrewsData?.map((pc) => pc.project_id) || [];
     const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
@@ -253,6 +257,7 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
     data.leader = leaderName;
     data.current_project_id = projectId;
     data.current_project = projectName;
+    data.active_projects = totalProjects;
 
     return data;
 };
@@ -320,10 +325,10 @@ export const getCrewSchedule = async (crewId: string): Promise<ProjectCrewWithDe
     if (projectCrewsData.length === 0) {
         return [];
     }
-    const projectId = (projectCrewsData[0] as unknown as ProjectCrew)?.project_id;
+    const projectIds = (projectCrewsData as unknown as ProjectCrew[]).map((pc) => pc.project_id) || [];
 
     const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
-        filter: { id: projectId },
+        filter: { id: { in: projectIds } },
     });
 
     const data = projectCrewsData as unknown as ProjectCrewWithDetails[];
@@ -382,4 +387,24 @@ export const getCrewEquipment = async (crewId: string): Promise<EquipmentWithAss
     });
 
     return equipmentAssignments as unknown as EquipmentWithAssignment[];
+};
+
+export const assignCrewLeader = async (crewId: string, leaderId: string): Promise<Crew | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to assign a crew leader.");
+        return null;
+    }
+
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, { leader_id: leaderId, updated_at: new Date().toISOString(), updated_by: user?.id || "" }, businessId);
+
+    if (error) {
+        console.error("Error assigning crew leader:", error);
+        return null;
+    }
+    return data as unknown as Crew;
 }

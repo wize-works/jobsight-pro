@@ -9,6 +9,8 @@ export type CrewWithDetails = Crew & {
     member_count: number;
     current_project?: string | null;
     current_project_id?: string | null;
+    active_projects: number;
+    total_hours: number;
 };
 
 export type CrewWithStats = Crew & {

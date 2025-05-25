@@ -4,11 +4,10 @@ import { getProjects } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import CrewDetailComponent from "../components/detail";
-import { CrewMember } from "@/types/crew-members";
-import { ProjectCrew } from "@/types/project-crews";
-import { Equipment } from "@/types/equipment";
-import { CrewWithStats } from "@/types/crews";
-import { Project } from "@/types/projects";
+import type { CrewMember } from "@/types/crew-members";
+import type { ProjectCrew } from "@/types/project-crews";
+import type { Equipment } from "@/types/equipment";
+import type { Project } from "@/types/projects";
 
 export default async function CrewPage({ params }: { params: { id: string } }) {
     const crewId = (await params).id;

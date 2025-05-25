@@ -66,6 +66,15 @@ export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<Projec
         return null;
     }
 
+    crew = {
+        ...crew,
+        created_by: user?.id || "",
+        created_at: new Date().toISOString(),
+        updated_by: user?.id || "",
+        updated_at: new Date().toISOString(),
+        business_id: businessId,
+    };
+
     const { data, error } = await insertWithBusiness("project_crews", crew, businessId);
 
     if (error) {

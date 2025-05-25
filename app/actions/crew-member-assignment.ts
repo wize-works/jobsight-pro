@@ -78,6 +78,7 @@ export const addCrewMemberToCrew = async (crewId: string, memberId: string): Pro
         created_at: new Date().toISOString(),
         updated_by: user?.id || "",
         updated_at: new Date().toISOString(),
+        id: ""
     };
     const { data, error } = await insertWithBusiness("crew_member_assignments", assignment, businessId);
     if (error) {

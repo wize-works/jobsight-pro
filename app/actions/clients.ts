@@ -210,7 +210,7 @@ export const updateClientNotes = async (id: string, notes: string): Promise<Clie
         return null;
     }
 
-    const { data, error } = await updateWithBusinessCheck("clients", id, { notes } as ClientUpdate, businessId);
+    const { data, error } = await updateWithBusinessCheck("clients", id, { notes, updated_at: new Date().toISOString(), updated_by: user?.id } as ClientUpdate, businessId);
 
     if (error) {
         console.error("Error updating client notes:", error);
