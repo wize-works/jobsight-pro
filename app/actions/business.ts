@@ -161,7 +161,7 @@ export async function updateBusiness(businessId: string, userId: string, data: P
         }
 
         // Remove undefined values
-        Object.keys(businessData).forEach((key) => businessData[key] === undefined && delete businessData[key])
+        //Object.keys(businessData).forEach((key) => businessData[key] === undefined && delete businessData[key])
 
         const { error } = await supabase.from("businesses").update(businessData).eq("id", businessId)
 
