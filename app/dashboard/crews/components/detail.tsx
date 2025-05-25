@@ -494,7 +494,7 @@ export default function CrewDetailComponent({
                                                 <tbody>
                                                     {equipment.map((item: any, index: number) => (
                                                         <tr key={index}>
-                                                            <td>{item.name}</td>
+                                                            <td>{item.equipment_name}</td>
                                                             <td>{item.type}</td>
                                                             <td>
                                                                 <div className={`badge ${item.status === 'functional' ? 'badge-success' : 'badge-warning'}`}>
