@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Crew, CrewInsert, CrewWithStats } from "@/types/crews";
+import { Crew, CrewInsert, CrewWithDetails, CrewWithStats } from "@/types/crews";
 import { createCrew } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./card";
@@ -16,11 +16,12 @@ const statusOptions: {
 };
 
 interface CrewListProps {
-    crews: CrewWithStats[];
+    initialCrews: CrewWithDetails[];
     businessId: string;
 };
 
-export default function CrewsList({ crews, businessId }: CrewListProps) {
+export default function CrewsList({ initialCrews, businessId }: CrewListProps) {
+    const [crews, setCrews] = useState<CrewWithDetails[]>(initialCrews || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [showAddCrewModal, setShowAddCrewModal] = useState(false);
@@ -30,44 +31,38 @@ export default function CrewsList({ crews, businessId }: CrewListProps) {
     );
     const [newCrew, setNewCrew] = useState<{
         name: string;
-        leader_id: string;
-        certifications?: string[];
-        current_project?: string;
-        members?: number;
         notes?: string;
         specialty?: string;
         status?: string;
     }>({
         name: "",
-        leader_id: "",
-        certifications: [],
-        current_project: "",
-        members: 1,
         notes: "",
         specialty: "",
         status: "active",
     });
 
     const filteredCrews = crews.filter((crew) => {
-        return crews;
         const matchesSearchTerm = crew.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === "all" || crew.status === statusFilter;
         return matchesSearchTerm && matchesStatus;
     });
 
     const handleAddCrew = async () => {
-        if (!businessId) return;
+        if (!businessId) {
+            toast.error("Business ID is required to create a crew.");
+            return;
+        }
 
         setIsSubmitting(true);
 
         try {
-            await createCrew(newCrew, businessId);
+            const created = await createCrew(newCrew as CrewInsert);
+            if (created) {
+                setCrews(prev => [...prev, created as CrewWithDetails]);
+            }
+
             setNewCrew({
                 name: "",
-                leader_id: "",
-                certifications: [],
-                current_project: "",
-                members: 1,
                 notes: "",
                 specialty: "",
                 status: "active",
@@ -126,7 +121,7 @@ export default function CrewsList({ crews, businessId }: CrewListProps) {
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed">
+                        <div className="tabs tabs-boxed tabs-sm">
                             <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => updateViewType("grid")}>
                                 <i className="fas fa-grid-2"></i>
                             </button>
@@ -154,39 +149,41 @@ export default function CrewsList({ crews, businessId }: CrewListProps) {
                     ))}
                 </div>
             ) : (
-                <table className="table w-full">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Leader</th>
-                            <th>Members</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredCrews.map((crew) => (
-                            <tr key={crew.id}>
-                                <td className="flex flex-col">
-                                    {crew.name}
-                                    {crew.current_project && (
-                                        <Link href={`/dashboard/projects/${crew.current_project_id}`} className="text-primary">
-                                            <i className="fas fa-project-diagram ml-2"></i> {crew.current_project}
-                                        </Link>
-                                    )}
-                                </td>
-                                <td>{crew.leader}</td>
-                                <td>{crew.members}</td>
-                                <td>{crew.status}</td>
-                                <td>
-                                    <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-outline">
-                                        View Details
-                                    </Link>
-                                </td>
+                <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                    <table className="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Leader</th>
+                                <th>Members</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredCrews.map((crew) => (
+                                <tr key={crew.id}>
+                                    <td className="flex flex-col">
+                                        {crew.name}
+                                        {crew.current_project && (
+                                            <Link href={`/dashboard/projects/${crew.current_project_id}`} className="text-primary">
+                                                <i className="fas fa-project-diagram ml-2"></i> {crew.current_project}
+                                            </Link>
+                                        )}
+                                    </td>
+                                    <td>{crew.leader}</td>
+                                    <td>{crew.member_count}</td>
+                                    <td><span className={`badge ${crew.status === "active" ? "badge-primary" : "badge-neutral"}`}>{crew.status}</span></td>
+                                    <td>
+                                        <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-outline">
+                                            View Details
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
 
@@ -208,20 +205,6 @@ export default function CrewsList({ crews, businessId }: CrewListProps) {
                                     onChange={(e) => setNewCrew({ ...newCrew, name: e.target.value })}
                                     required
                                 />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Crew Leader</span>
-                                </label>
-                                <select
-                                    className="select select-bordered w-full"
-                                    value={newCrew.leader_id}
-                                    onChange={(e) => setNewCrew({ ...newCrew, leader_id: e.target.value })}
-                                >
-                                    <option value="">Select Leader</option>
-                                    {/* Add options here when you have leaders data */}
-                                </select>
                             </div>
                             <div className="form-control w-full">
                                 <label className="label">

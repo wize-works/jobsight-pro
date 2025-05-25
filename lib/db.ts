@@ -60,15 +60,30 @@ export async function fetchByBusiness<T extends TableName>(
                 if ('in' in value && Array.isArray(value.in)) {
                     query = query.in(key, value.in);
                 }
-                // Add more operations as needed (like, gt, lt, etc.)
-                else if ('gt' in value) {
+                // Greater than
+                if ('gt' in value) {
                     query = query.gt(key, value.gt);
                 }
-                else if ('lt' in value) {
+                // Greater than or equal
+                if ('gte' in value) {
+                    query = query.gte(key, value.gte);
+                }
+                // Less than
+                if ('lt' in value) {
                     query = query.lt(key, value.lt);
                 }
+                // Less than or equal
+                if ('lte' in value) {
+                    query = query.lte(key, value.lte);
+                }
                 // Default to eq for simple objects without known operators
-                else {
+                if (
+                    !('in' in value) &&
+                    !('gt' in value) &&
+                    !('gte' in value) &&
+                    !('lt' in value) &&
+                    !('lte' in value)
+                ) {
                     query = query.eq(key, value);
                 }
             }

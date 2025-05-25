@@ -108,7 +108,7 @@ export async function getUserBusiness(userId: string) {
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
-            .eq("id", userId)
+            .eq("auth_id", userId)
             .single()
 
         if (userError) {

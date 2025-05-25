@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Crew, CrewWithLeader } from "@/types/crews";
+import { CrewWithDetails, CrewWithStats } from "@/types/crews";
 import type { CrewMember } from "@/types/crew-members";
 import type { Equipment } from "@/types/equipments";
 import { toast } from "@/hooks/use-toast";
@@ -15,9 +15,10 @@ const statusOptions = {
 };
 
 interface CrewDetailProps {
-    crew: Crew;
+    crew: CrewWithDetails;
     businessId: string;
     members?: CrewMember[];
+    allMembers?: CrewMember[];
     schedule?: any[];
     equipment?: Equipment[];
 }
@@ -25,6 +26,7 @@ interface CrewDetailProps {
 export default function CrewDetailComponent({
     crew,
     members = [],
+    allMembers = [],
     schedule = [],
     equipment = [],
     businessId,
@@ -32,6 +34,8 @@ export default function CrewDetailComponent({
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("members");
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+    const [showLinkMemberModal, setShowLinkMemberModal] = useState(false);
+    const [linkMember, setLinkMember] = useState<CrewMember | null>(null);
     const [newMember, setNewMember] = useState({
         name: "",
         role: "",
@@ -41,8 +45,7 @@ export default function CrewDetailComponent({
     });
 
     // Mock data for initial UI showcase - would be replaced with real data in a full implementation
-    const workHistory = [];
-    console.log("equipment", equipment);
+    //const workHistory = [];
 
     return (
         <div>
@@ -89,19 +92,7 @@ export default function CrewDetailComponent({
                         </div>
                         <div>
                             <h3 className="font-semibold mb-2">Team Size</h3>
-                            <p>{crew.members || 0} members</p>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2">Certifications</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {Array.isArray(crew.certifications) && crew.certifications.length > 0 ? (
-                                crew.certifications.map((cert, index) => (
-                                    <div key={index} className="badge badge-outline">{cert}</div>
-                                ))
-                            ) : (
-                                <p>No certifications listed</p>
-                            )}
+                            <p>{crew.member_count || 0} members</p>
                         </div>
                     </div>
                     <div className="mt-4">
@@ -131,12 +122,14 @@ export default function CrewDetailComponent({
                     <div className="card-body">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold">Crew Members</h3>
-                            <button
-                                className="btn btn-sm btn-primary"
-                                onClick={() => setShowAddMemberModal(true)}
-                            >
-                                <i className="fas fa-user-plus mr-2"></i> Add Member
-                            </button>
+                            <div className="flex gap-2">
+                                <button className="btn btn-sm btn-primary" onClick={() => setShowAddMemberModal(true)}>
+                                    <i className="fas fa-user-plus mr-2"></i> Add New Member
+                                </button>
+                                <button className="btn btn-sm btn-secondary" onClick={() => setShowLinkMemberModal(true)}>
+                                    <i className="fas fa-edit mr-2"></i> Link Crew Member
+                                </button>
+                            </div>
                         </div>
 
                         {members.length > 0 ? (
@@ -343,7 +336,7 @@ export default function CrewDetailComponent({
                             </div>
                         </div>
 
-                        {workHistory.length > 0 ? (
+                        {/* {workHistory.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="table table-zebra">
                                     <thead>
@@ -376,10 +369,10 @@ export default function CrewDetailComponent({
                                 </table>
                             </div>
                         ) : (
-                            <div className="text-center py-8">
-                                <p>No work history available for this crew</p>
-                            </div>
-                        )}
+                        )} */}
+                        <div className="text-center py-8">
+                            <p>Feature will be released in future updates.</p>
+                        </div>
                     </div>
                 </div>
             )}
@@ -468,6 +461,103 @@ export default function CrewDetailComponent({
                                 disabled={!newMember.name || !newMember.role}
                             >
                                 Add Member
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showLinkMemberModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Add New Crew Member</h3>
+                        <form className="space-y-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Name</span>
+                                </label>
+                                <select
+                                    className="select select-bordered"
+                                    value={linkMember?.id || ""}
+                                    onChange={(e) => {
+                                        const selectedMember = members.find((m) => m.id === e.target.value);
+                                        setLinkMember(selectedMember || null);
+                                    }}
+                                >
+                                    <option value="">Select a member</option>
+                                    {allMembers.map((member) => (
+                                        <option key={member.id} value={member.id}>
+                                            {member.name} - {member.role}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Role</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newMember.role}
+                                    onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
+                                    placeholder="e.g. Foreman, Carpenter, Electrician"
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Experience</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newMember.experience}
+                                    onChange={(e) => setNewMember({ ...newMember, experience: e.target.value })}
+                                    placeholder="e.g. 5 years"
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Phone</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    className="input input-bordered"
+                                    value={newMember.phone}
+                                    onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
+                                    placeholder="Phone number"
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Email</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={newMember.email}
+                                    onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                                    placeholder="Email address"
+                                />
+                            </div>
+                        </form>
+                        <div className="modal-action">
+                            <button className="btn btn-outline" onClick={() => setShowLinkMemberModal(false)}>
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    // Here we would add the implementation to save the member
+                                    toast({
+                                        title: "Member linked",
+                                        description: `${newMember.name} was added to the crew.`,
+                                    });
+                                    setShowLinkMemberModal(false);
+                                }}
+                                disabled={!newMember.name || !newMember.role}
+                            >
+                                Link Member
                             </button>
                         </div>
                     </div>

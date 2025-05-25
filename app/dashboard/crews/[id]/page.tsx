@@ -1,10 +1,12 @@
-import { getCrewWithStatsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment } from "@/app/actions/crews";
+import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment } from "@/app/actions/crews";
+import { getCrewMembers } from "@/app/actions/crew-members";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import CrewDetailComponent from "../components/detail";
 import { CrewMember } from "@/types/crew-members";
 import { ProjectCrew } from "@/types/project-crews";
 import { Equipment } from "@/types/equipments";
+import { CrewWithStats } from "@/types/crews";
 
 export default async function CrewPage({ params }: { params: { id: string } }) {
     const crewId = (await params).id;
@@ -23,10 +25,11 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
     }
 
     // Fetch the crew data
-    const crew = await getCrewWithStatsById(crewId, businessId);
-    const members = await getCrewMembersByCrewId(crewId, businessId);
-    const schedule = await getCrewSchedule(crewId, businessId);
-    const equipment = await getCrewEquipment(crewId, businessId);
+    const crew = await getCrewWithDetailsById(crewId);
+    const members = await getCrewMembersByCrewId(crewId);
+    const allMembers = await getCrewMembers();
+    const schedule = await getCrewSchedule(crewId);
+    const equipment = await getCrewEquipment(crewId);
 
     if (!crew) {
         return (
@@ -41,6 +44,7 @@ export default async function CrewPage({ params }: { params: { id: string } }) {
         <CrewDetailComponent
             crew={crew}
             members={members as unknown as CrewMember[]}
+            allMembers={allMembers as unknown as CrewMember[]}
             schedule={schedule as unknown as ProjectCrew[]}
             equipment={equipment as unknown as Equipment[]}
             businessId={businessId}

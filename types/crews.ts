@@ -4,10 +4,11 @@ export type Crew = Database["public"]["Tables"]["crews"]["Row"];
 export type CrewInsert = Database["public"]["Tables"]["crews"]["Insert"];
 export type CrewUpdate = Database["public"]["Tables"]["crews"]["Update"];
 
-export type CrewWithLeader = Crew & {
+export type CrewWithDetails = Crew & {
     leader: string;
-    current_project: string;
-    current_project_id: string;
+    member_count: number;
+    current_project?: string | null;
+    current_project_id?: string | null;
 };
 
 export type CrewWithStats = Crew & {

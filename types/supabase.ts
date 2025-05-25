@@ -5,103 +5,319 @@ export interface Database {
         Tables: {
             businesses: {
                 Row: {
+                    id: string
                     address: string | null
                     business_type: string | null // Added this line
                     city: string | null
-                    country: string | null
-                    created_at: string
-                    created_by: string | null
-                    email: string | null
-                    id: string
-                    logo_url: string | null
-                    name: string | null
-                    phone: string | null
                     state: string | null
+                    zip: string | null
+                    country: string | null
+                    email: string | null
+                    name: string | null
+                    website: string | null
+                    logo_url: string | null
+                    phone: string | null
                     tax_id: string | null
                     updated_at: string | null
                     updated_by: string | null
-                    website: string | null
-                    zip: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Insert: {
-                    address?: string | null
-                    business_type?: string | null // Added this line
-                    city?: string | null
-                    country?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    email?: string | null
-                    id?: string
-                    logo_url?: string | null
-                    name?: string
-                    phone?: string | null
-                    state?: string | null
-                    tax_id?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
-                    website?: string | null
-                    zip?: string | null
+                    id: string
+                    address: string | null
+                    business_type: string | null // Added this line
+                    city: string | null
+                    state: string | null
+                    zip: string | null
+                    country: string | null
+                    email: string | null
+                    name: string | null
+                    website: string | null
+                    logo_url: string | null
+                    phone: string | null
+                    tax_id: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Update: {
-                    address?: string | null
-                    business_type?: string | null // Added this line
-                    city?: string | null
-                    country?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    email?: string | null
-                    id?: string
-                    logo_url?: string | null
-                    name?: string
-                    phone?: string | null
-                    state?: string | null
-                    tax_id?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
-                    website?: string | null
-                    zip?: string | null
+                    id: string
+                    address: string | null
+                    business_type: string | null // Added this line
+                    city: string | null
+                    state: string | null
+                    zip: string | null
+                    country: string | null
+                    email: string | null
+                    name: string | null
+                    website: string | null
+                    logo_url: string | null
+                    phone: string | null
+                    tax_id: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Relationships: []
             }
+
+            business_subscriptions: {
+                Row: {
+                    id: string
+                    business_id: string
+                    plan_id: string
+                    start_date: string | null
+                    end_date: string | null
+                    status: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    stripe_subscription_id: string | null // <-- Add this
+                    stripe_invoice_id: string | null // <-- Optional
+                    stripe_customer_id: string | null // <-- Optional
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    plan_id: string
+                    start_date: string | null
+                    end_date: string | null
+                    status: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    stripe_subscription_id?: string | null // <-- Add this
+                    stripe_invoice_id?: string | null // <-- Optional
+                    stripe_customer_id?: string | null // <-- Optional
+                }
+                Update: {
+                    id: string
+                    business_id: string
+                    plan_id: string
+                    start_date: string | null
+                    end_date: string | null
+                    status: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    stripe_subscription_id?: string | null // <-- Add this
+                    stripe_invoice_id?: string | null // <-- Optional
+                    stripe_customer_id?: string | null // <-- Optional
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "business_subscriptions_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            stripe_customers: {
+                Row: {
+                    id: string
+                    business_id: string
+                    stripe_customer_id: string
+                    created_at: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    stripe_customer_id: string
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    stripe_customer_id?: string
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "stripe_customers_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+
+            stripe_subscriptions: {
+                Row: {
+                    id: string
+                    business_id: string
+                    stripe_subscription_id: string
+                    plan_id: string | null
+                    status: string | null
+                    current_period_start: string | null
+                    current_period_end: string | null
+                    cancel_at_period_end: boolean | null
+                    canceled_at: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    stripe_subscription_id: string
+                    plan_id?: string | null
+                    status?: string | null
+                    current_period_start?: string | null
+                    current_period_end?: string | null
+                    cancel_at_period_end?: boolean | null
+                    canceled_at?: string | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    stripe_subscription_id?: string
+                    plan_id?: string | null
+                    status?: string | null
+                    current_period_start?: string | null
+                    current_period_end?: string | null
+                    cancel_at_period_end?: boolean | null
+                    canceled_at?: string | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "stripe_subscriptions_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+
+            stripe_invoices: {
+                Row: {
+                    id: string
+                    business_id: string
+                    stripe_invoice_id: string
+                    amount_due: number | null
+                    amount_paid: number | null
+                    status: string | null
+                    due_date: string | null
+                    paid_at: string | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    stripe_invoice_id: string
+                    amount_due?: number | null
+                    amount_paid?: number | null
+                    status?: string | null
+                    due_date?: string | null
+                    paid_at?: string | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    stripe_invoice_id?: string
+                    amount_due?: number | null
+                    amount_paid?: number | null
+                    status?: string | null
+                    due_date?: string | null
+                    paid_at?: string | null
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "stripe_invoices_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+
+            stripe_payment_events: {
+                Row: {
+                    id: string
+                    business_id: string
+                    event_id: string
+                    event_type: string
+                    data: Json | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    event_id: string
+                    event_type: string
+                    data?: Json | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    event_id?: string
+                    event_type?: string
+                    data?: Json | null
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "stripe_payment_events_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
             client_contacts: {
                 Row: {
+                    id: string
                     client_id: string | null
+                    business_id: string
+                    name: string | null
+                    title: string | null
+                    phone: string | null
+                    email: string | null
+                    is_primary: boolean | null
                     created_at: string
                     created_by: string | null
-                    email: string | null
-                    id: string
-                    is_primary: boolean | null
-                    name: string | null
-                    phone: string | null
-                    title: string | null
                     updated_at: string | null
                     updated_by: string | null
                 }
                 Insert: {
-                    client_id?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    email?: string | null
-                    id?: string
-                    is_primary?: boolean | null
-                    name?: string | null
-                    phone?: string | null
-                    title?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    id: string
+                    client_id: string | null
+                    business_id: string
+                    name: string | null
+                    title: string | null
+                    phone: string | null
+                    email: string | null
+                    is_primary: boolean | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Update: {
-                    client_id?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    email?: string | null
-                    id?: string
-                    is_primary?: boolean | null
-                    name?: string | null
-                    phone?: string | null
-                    title?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    id: string
+                    client_id: string | null
+                    business_id: string
+                    name: string | null
+                    title: string | null
+                    phone: string | null
+                    email: string | null
+                    is_primary: boolean | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Relationships: [
                     {
@@ -114,46 +330,49 @@ export interface Database {
             }
             client_interactions: {
                 Row: {
-                    client_id: string | null
-                    created_at: string
-                    created_by: string | null
-                    date: string | null
-                    follow_up_date: string | null
-                    follow_up_task: string | null
                     id: string
+                    client_id: string | null
+                    business_id: string
+                    date: string | null
+                    type: string | null
                     staff: string | null
                     summary: string | null
-                    type: string | null
+                    follow_up_date: string | null
+                    follow_up_task: string | null
                     updated_at: string | null
                     updated_by: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Insert: {
-                    client_id?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    date?: string | null
-                    follow_up_date?: string | null
-                    follow_up_task?: string | null
-                    id?: string
-                    staff?: string | null
-                    summary?: string | null
-                    type?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    id: string
+                    client_id: string | null
+                    business_id: string
+                    date: string | null
+                    type: string | null
+                    staff: string | null
+                    summary: string | null
+                    follow_up_date: string | null
+                    follow_up_task: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Update: {
-                    client_id?: string | null
-                    created_at?: string
-                    created_by?: string | null
-                    date?: string | null
-                    follow_up_date?: string | null
-                    follow_up_task?: string | null
-                    id?: string
-                    staff?: string | null
-                    summary?: string | null
-                    type?: string | null
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    id: string
+                    client_id: string | null
+                    business_id: string
+                    date: string | null
+                    type: string | null
+                    staff: string | null
+                    summary: string | null
+                    follow_up_date: string | null
+                    follow_up_task: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                    created_at: string
+                    created_by: string | null
                 }
                 Relationships: [
                     {
@@ -166,117 +385,120 @@ export interface Database {
             }
             clients: {
                 Row: {
-                    address: string | null
-                    billing_contact_email: string | null
-                    billing_contact_name: string | null
-                    billing_contact_phone: string | null
+                    id: string
                     business_id: string
+                    name: string
+                    type: string | null
+                    address: string | null
+                    city: string | null
+                    state: string | null
+                    zip: string | null
+                    country: string | null
                     contact_email: string | null
                     contact_name: string | null
                     contact_phone: string | null
-                    created_by: string | null
-                    id: string
-                    image: string | null
-                    industry: string | null
-                    name: string
-                    notes: string | null
+                    logo_url: string | null
                     status: string | null
-                    tax_id: string | null
-                    total_projects: number | null
-                    total_value: number | null
-                    type: string | null
-                    updated_by: string | null
                     website: string | null
+                    industry: string | null
+                    tax_id: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Insert: {
-                    address?: string | null
-                    billing_contact_email?: string | null
-                    billing_contact_name?: string | null
-                    billing_contact_phone?: string | null
-                    business_id: string
-                    contact_email?: string | null
-                    contact_name?: string | null
-                    contact_phone?: string | null
-                    created_by?: string | null
                     id: string
-                    image?: string | null
-                    industry?: string | null
+                    business_id: string
                     name: string
-                    notes?: string | null
-                    status?: string | null
-                    tax_id?: string | null
-                    total_projects?: number | null
-                    total_value?: number | null
-                    type?: string | null
-                    updated_by?: string | null
-                    website?: string | null
+                    type: string | null
+                    address: string | null
+                    city: string | null
+                    state: string | null
+                    zip: string | null
+                    country: string | null
+                    contact_email: string | null
+                    contact_name: string | null
+                    contact_phone: string | null
+                    logo_url: string | null
+                    status: string | null
+                    website: string | null
+                    industry: string | null
+                    tax_id: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Update: {
-                    address?: string | null
-                    billing_contact_email?: string | null
-                    billing_contact_name?: string | null
-                    billing_contact_phone?: string | null
-                    business_id?: string
-                    contact_email?: string | null
-                    contact_name?: string | null
-                    contact_phone?: string | null
-                    created_by?: string | null
-                    id?: string
-                    image?: string | null
-                    industry?: string | null
-                    name?: string
-                    notes?: string | null
-                    status?: string | null
-                    tax_id?: string | null
-                    total_projects?: number | null
-                    total_value?: number | null
-                    type?: string | null
-                    updated_by?: string | null
-                    website?: string | null
+                    id: string
+                    business_id: string
+                    name: string
+                    type: string | null
+                    address: string | null
+                    city: string | null
+                    state: string | null
+                    zip: string | null
+                    country: string | null
+                    contact_email: string | null
+                    contact_name: string | null
+                    contact_phone: string | null
+                    logo_url: string | null
+                    status: string | null
+                    website: string | null
+                    industry: string | null
+                    tax_id: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Relationships: []
             }
             crews: {
                 Row: {
-                    business_id: string
-                    //certifications: string[] | null //add back later
-                    created_by: string | null
                     id: string
+                    business_id: string
                     leader_id: string | null
+                    //certifications: string[] | null //add back later
                     name: string
-                    notes: string | null
                     specialty: string | null
                     status: string | null
-                    updated_by: string | null
+                    notes: string | null
+                    created_by: string | null
                     created_at: string | null
+                    updated_by: string | null
                     updated_at: string | null
                 }
                 Insert: {
-                    business_id: string
-                    //certifications: string[] | null //add back later
-                    created_by: string | null
                     id: string
+                    business_id: string
                     leader_id: string | null
+                    //certifications: string[] | null //add back later
                     name: string
-                    notes: string | null
                     specialty: string | null
                     status: string | null
-                    updated_by: string | null
+                    notes: string | null
+                    created_by: string | null
                     created_at: string | null
+                    updated_by: string | null
                     updated_at: string | null
                 }
                 Update: {
-                    business_id: string
-                    //certifications: string[] | null //add back later
-                    created_by: string | null
                     id: string
+                    business_id: string
                     leader_id: string | null
+                    //certifications: string[] | null //add back later
                     name: string
-                    notes: string | null
                     specialty: string | null
                     status: string | null
-                    updated_by: string | null
+                    notes: string | null
+                    created_by: string | null
                     created_at: string | null
+                    updated_by: string | null
                     updated_at: string | null
                 }
                 Relationships: []
@@ -286,8 +508,11 @@ export interface Database {
                     id: string
                     business_id: string
                     name: string
-                    leader_id: string | null
-                    specialty: string | null
+                    phone: string | null
+                    email: string | null
+                    avatar_url: string | null
+                    role: string | null
+                    experience: number | null
                     status: string | null
                     notes: string | null
                     created_at: string | null
@@ -299,8 +524,11 @@ export interface Database {
                     id: string
                     business_id: string
                     name: string
-                    leader_id: string | null
-                    specialty: string | null
+                    phone: string | null
+                    email: string | null
+                    avatar_url: string | null
+                    role: string | null
+                    experience: number | null
                     status: string | null
                     notes: string | null
                     created_at: string | null
@@ -312,8 +540,11 @@ export interface Database {
                     id: string
                     business_id: string
                     name: string
-                    leader_id: string | null
-                    specialty: string | null
+                    phone: string | null
+                    email: string | null
+                    avatar_url: string | null
+                    role: string | null
+                    experience: number | null
                     status: string | null
                     notes: string | null
                     created_at: string | null
@@ -348,184 +579,355 @@ export interface Database {
                     },
                 ]
             }
-            daily_logs: {
+
+            crew_member_assignments: {
                 Row: {
-                    author_id: string
-                    business_id: string
-                    created_at: string | null
-                    created_by: string | null
-                    crew_id: string
-                    date: string
-                    delays_description: string | null
-                    delays_impact: string | null
-                    delays_resolution: string | null
-                    end_time: string
-                    hours_worked: number
                     id: string
-                    notes: string | null
-                    overtime: number
-                    project_id: string
-                    quality_corrective: string | null
-                    quality_inspections: string | null
-                    quality_issues: string | null
-                    safety_corrective: string | null
-                    safety_hazards: string | null
-                    safety_incidents: string | null
-                    safety_inspections: string | null
-                    start_time: string
+                    business_id: string
+                    crew_id: string
+                    crew_member_id: string
+                    created_at: string
+                    created_by: string | null
                     updated_at: string | null
                     updated_by: string | null
-                    weather_condition: string | null
-                    weather_notes: string | null
-                    weather_precipitation: string | null
-                    weather_temperature: string | null
-                    weather_wind_speed: string | null
-                    work_completed: string
-                    work_planned: string
                 }
                 Insert: {
-                    author_id: string
-                    business_id: string
-                    created_at?: string | null
-                    created_by?: string | null
-                    crew_id: string
-                    date: string
-                    delays_description?: string | null
-                    delays_impact?: string | null
-                    delays_resolution?: string | null
-                    end_time: string
-                    hours_worked: number
                     id: string
-                    notes?: string | null
-                    overtime: number
-                    project_id: string
-                    quality_corrective?: string | null
-                    quality_inspections?: string | null
-                    quality_issues?: string | null
-                    safety_corrective?: string | null
-                    safety_hazards?: string | null
-                    safety_incidents?: string | null
-                    safety_inspections?: string | null
-                    start_time: string
+                    business_id: string
+                    crew_id: string
+                    crew_member_id: string
+                    created_at: string
+                    created_by?: string | null
                     updated_at?: string | null
                     updated_by?: string | null
-                    weather_condition?: string | null
-                    weather_notes?: string | null
-                    weather_precipitation?: string | null
-                    weather_temperature?: string | null
-                    weather_wind_speed?: string | null
-                    work_completed: string
-                    work_planned: string
                 }
                 Update: {
-                    author_id?: string
-                    business_id?: string
-                    created_at?: string | null
-                    created_by?: string | null
-                    crew_id?: string
-                    date?: string
-                    delays_description?: string | null
-                    delays_impact?: string | null
-                    delays_resolution?: string | null
-                    end_time?: string
-                    hours_worked?: number
                     id?: string
-                    notes?: string | null
-                    overtime?: number
-                    project_id?: string
-                    quality_corrective?: string | null
-                    quality_inspections?: string | null
-                    quality_issues?: string | null
-                    safety_corrective?: string | null
-                    safety_hazards?: string | null
-                    safety_incidents?: string | null
-                    safety_inspections?: string | null
-                    start_time?: string
+                    business_id?: string
+                    crew_id?: string
+                    crew_member_id?: string
+                    created_at?: string
+                    created_by?: string | null
                     updated_at?: string | null
                     updated_by?: string | null
-                    weather_condition?: string | null
-                    weather_notes?: string | null
-                    weather_precipitation?: string | null
-                    weather_temperature?: string | null
-                    weather_wind_speed?: string | null
-                    work_completed?: string
-                    work_planned?: string
+                }
+            }
+
+            daily_logs: {
+                Row: {
+                    id: string
+                    author_id: string
+                    business_id: string
+                    project_id: string
+                    crew_id: string
+                    date: string
+                    start_time: string
+                    end_time: string
+                    work_planned: string
+                    work_completed: string
+                    hours_worked: number
+                    overtime: number
+                    notes: string | null
+                    safety: string | null
+                    quality: string | null
+                    delays: string | null
+                    weather: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    author_id: string
+                    business_id: string
+                    project_id: string
+                    crew_id: string
+                    date: string
+                    start_time: string
+                    end_time: string
+                    work_planned: string
+                    work_completed: string
+                    hours_worked: number
+                    overtime: number
+                    notes: string | null
+                    safety: string | null
+                    quality: string | null
+                    delays: string | null
+                    weather: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    author_id: string
+                    business_id: string
+                    project_id: string
+                    crew_id: string
+                    date: string
+                    start_time: string
+                    end_time: string
+                    work_planned: string
+                    work_completed: string
+                    hours_worked: number
+                    overtime: number
+                    notes: string | null
+                    safety: string | null
+                    quality: string | null
+                    delays: string | null
+                    weather: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Relationships: []
+            }
+            daily_log_equipment: {
+                Row: {
+                    id: string
+                    daily_log_id: string
+                    equipment_id: string
+                    business_id: string
+                    operator: string | null
+                    crew_member_id: string | null
+                    hours: number | null
+                    condition: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    daily_log_id: string
+                    equipment_id: string
+                    business_id: string
+                    operator: string | null
+                    crew_member_id: string | null
+                    hours: number | null
+                    condition: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    daily_log_id: string
+                    equipment_id: string
+                    business_id: string
+                    operator: string | null
+                    crew_member_id: string | null
+                    hours: number | null
+                    condition: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                relationships: []
+            }
+            daily_log_images: {
+                Row: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    media_id: string | null
+                    url: string | null
+                    caption: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    media_id: string | null
+                    url: string | null
+                    caption: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    media_id: string | null
+                    url: string | null
+                    caption: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Relationships: []
+            }
+            daily_log_materials: {
+                Row: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    name: string
+                    quantity: number | null
+                    cost: number | null
+                    supplier: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    name: string
+                    quantity: number | null
+                    cost: number | null
+                    supplier: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    daily_log_id: string
+                    business_id: string
+                    name: string
+                    quantity: number | null
+                    cost: number | null
+                    supplier: string | null
+                    notes: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Relationships: []
+            }
+            documents: {
+                Row: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    name: string
+                    type: string | null
+                    url: string | null
+                    media_id: string | null
+                    size: number | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    name: string
+                    type: string | null
+                    url: string | null
+                    media_id: string | null
+                    size: number | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    name: string
+                    type: string | null
+                    url: string | null
+                    media_id: string | null
+                    size: number | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Relationships: []
             }
             equipment: {
                 Row: {
-                    assigned_to: string | null
-                    business_id: string
-                    created_by: string | null
-                    current_value: number | null
-                    description: string | null
-                    documents: Json[] | null
                     id: string
-                    image: string | null
-                    location: string | null
+                    business_id: string
+                    name: string
+                    type: string | null
                     make: string | null
                     model: string | null
-                    name: string
-                    next_maintenance: string | null
+                    year: number | null
+                    serial_number: string | null
+                    status: string | null
                     purchase_date: string | null
                     purchase_price: number | null
-                    serial_number: string | null
-                    specifications: Json | null
-                    status: string | null
-                    type: string | null
-                    updated_by: string | null
-                    year: number | null
+                    current_value: number | null
+                    location: string | null
+                    next_maintenance: string | null
+                    description: string | null
+                    image_url: string | null
+                    created_at: string
+                    created_by: string
+                    updated_at: string
+                    updated_by: string
                 }
                 Insert: {
-                    assigned_to?: string | null
-                    business_id: string
-                    created_by?: string | null
-                    current_value?: number | null
-                    description?: string | null
-                    documents?: Json[] | null
                     id: string
-                    image?: string | null
-                    location?: string | null
-                    make?: string | null
-                    model?: string | null
+                    business_id: string
                     name: string
-                    next_maintenance?: string | null
-                    purchase_date?: string | null
-                    purchase_price?: number | null
-                    serial_number?: string | null
-                    specifications?: Json | null
-                    status?: string | null
-                    type?: string | null
-                    updated_by?: string | null
-                    year?: number | null
+                    type: string | null
+                    make: string | null
+                    model: string | null
+                    year: number | null
+                    serial_number: string | null
+                    status: string | null
+                    purchase_date: string | null
+                    purchase_price: number | null
+                    current_value: number | null
+                    location: string | null
+                    next_maintenance: string | null
+                    description: string | null
+                    image_url: string | null
+                    created_at: string
+                    created_by: string
+                    updated_at: string
+                    updated_by: string
                 }
                 Update: {
-                    assigned_to?: string | null
-                    business_id?: string
-                    created_by?: string | null
-                    current_value?: number | null
-                    description?: string | null
-                    documents?: Json[] | null
-                    id?: string
-                    image?: string | null
-                    location?: string | null
-                    make?: string | null
-                    model?: string | null
-                    name?: string
-                    next_maintenance?: string | null
-                    purchase_date?: string | null
-                    purchase_price?: number | null
-                    serial_number?: string | null
-                    specifications?: Json | null
-                    status?: string | null
-                    type?: string | null
-                    updated_by?: string | null
-                    year?: number | null
+                    id: string
+                    business_id: string
+                    name: string
+                    type: string | null
+                    make: string | null
+                    model: string | null
+                    year: number | null
+                    serial_number: string | null
+                    status: string | null
+                    purchase_date: string | null
+                    purchase_price: number | null
+                    current_value: number | null
+                    location: string | null
+                    next_maintenance: string | null
+                    description: string | null
+                    image_url: string | null
+                    created_at: string
+                    created_by: string
+                    updated_at: string
+                    updated_by: string
                 }
                 Relationships: []
             }
-
             equipment_assignments: {
                 Row: {
                     id: string
@@ -533,11 +935,11 @@ export interface Database {
                     business_id: string
                     crew_id: string
                     project_id: string
-                    notes: string | null
                     assigned_by: string | null
                     start_date: string
                     end_date: string | null
                     status: string | null
+                    notes: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -549,11 +951,11 @@ export interface Database {
                     business_id: string
                     crew_id: string
                     project_id: string
-                    notes: string | null
                     assigned_by: string | null
                     start_date: string
                     end_date: string | null
                     status: string | null
+                    notes: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -565,11 +967,203 @@ export interface Database {
                     business_id: string
                     crew_id: string
                     project_id: string
-                    notes: string | null
                     assigned_by: string | null
                     start_date: string
                     end_date: string | null
                     status: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Relationships: []
+            }
+            equipment_maintenance: {
+                Row: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    maintenance_date: string | null
+                    maintenance_type: string | null
+                    description: string | null
+                    technician: string | null
+                    cost: number | null
+                    date: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    maintenance_date: string | null
+                    maintenance_type: string | null
+                    description: string | null
+                    technician: string | null
+                    cost: number | null
+                    date: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    maintenance_date: string | null
+                    maintenance_type: string | null
+                    description: string | null
+                    technician: string | null
+                    cost: number | null
+                    date: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
+            equipment_specifications: {
+                Row: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    name: string
+                    value: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    name: string
+                    value: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    name: string
+                    value: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
+            equipment_usage: {
+                Row: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    project_id: string | null
+                    crew_id: string | null
+                    start_time: string | null
+                    end_time: string | null
+                    hours_used: number | null
+                    fuel_consumed: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    project_id: string | null
+                    crew_id: string | null
+                    start_time: string | null
+                    end_time: string | null
+                    hours_used: number | null
+                    fuel_consumed: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    equipment_id: string
+                    business_id: string
+                    project_id: string | null
+                    crew_id: string | null
+                    start_time: string | null
+                    end_time: string | null
+                    hours_used: number | null
+                    fuel_consumed: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
+            invoices: {
+                Row: {
+                    id: string
+                    business_id: string
+                    invoice_number: string
+                    client_id: string
+                    project_id: string
+                    amount: number | null
+                    status: string | null
+                    issue_date: string | null
+                    due_date: string | null
+                    paid_date: string | null
+                    payment_method: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    invoice_number: string
+                    client_id: string
+                    project_id: string
+                    amount: number | null
+                    status: string | null
+                    issue_date: string | null
+                    due_date: string | null
+                    paid_date: string | null
+                    payment_method: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    business_id: string
+                    invoice_number: string
+                    client_id: string
+                    project_id: string
+                    amount: number | null
+                    status: string | null
+                    issue_date: string | null
+                    due_date: string | null
+                    paid_date: string | null
+                    payment_method: string | null
+                    notes: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -578,210 +1172,560 @@ export interface Database {
                 Relationships: []
             }
 
-            invoices: {
+            invoice_items: {
                 Row: {
-                    amount: number | null
-                    billing_address: Json | null
-                    business_id: string
-                    client_id: string
-                    company_info: Json | null
-                    created_by: string | null
-                    due_date: string | null
                     id: string
-                    issue_date: string | null
-                    notes: string | null
-                    paid_date: string | null
-                    payment_instructions: Json | null
-                    payment_method: string | null
-                    project_id: string
-                    status: string | null
+                    invoice_id: string
+                    business_id: string
+                    description: string | null
+                    quantity: number | null
+                    unit_price: number | null
+                    total_price: number | null
+                    tax_rate: number | null
+                    tax_amount: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
                     updated_by: string | null
                 }
                 Insert: {
-                    amount?: number | null
-                    billing_address?: Json | null
+                    id: string
+                    invoice_id: string
                     business_id: string
-                    client_id: string
-                    company_info?: Json | null
+                    description: string | null
+                    quantity: number | null
+                    unit_price: number | null
+                    total_price: number | null
+                    tax_rate: number | null
+                    tax_amount: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    invoice_id: string
+                    business_id: string
+                    description: string | null
+                    quantity: number | null
+                    unit_price: number | null
+                    total_price: number | null
+                    tax_rate: number | null
+                    tax_amount: number | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
+            media: {
+                Row: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    url: string
+                    name: string | null
+                    description: string | null
+                    type: string | null
+                    size: number | null
+                    uploaded_by: string | null
+                    uploaded_at: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    url: string
+                    name: string | null
+                    description: string | null
+                    type: string | null
+                    size: number | null
+                    uploaded_by: string | null
+                    uploaded_at: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id: string
+                    business_id: string
+                    project_id: string | null
+                    url: string
+                    name: string | null
+                    description: string | null
+                    type: string | null
+                    size: number | null
+                    uploaded_by: string | null
+                    uploaded_at: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
+            media_meatadata: {
+                Row: {
+                    id: string
+                    media_id: string
+                    business_id: string
+                    key: string
+                    value: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    media_id: string
+                    business_id: string
+                    key: string
+                    value?: string | null
+                    created_at?: string | null
                     created_by?: string | null
-                    due_date?: string | null
-                    id?: string
-                    issue_date?: string | null
-                    notes?: string | null
-                    paid_date?: string | null
-                    payment_instructions?: Json | null
-                    payment_method?: string | null
-                    project_id: string
-                    status?: string | null
+                    updated_at?: string | null
                     updated_by?: string | null
                 }
                 Update: {
-                    amount?: number | null
-                    billing_address?: Json | null
-                    business_id?: string
-                    client_id?: string
-                    company_info?: Json | null
-                    created_by?: string | null
-                    due_date?: string | null
                     id?: string
-                    issue_date?: string | null
-                    notes?: string | null
-                    paid_date?: string | null
-                    payment_instructions?: Json | null
-                    payment_method?: string | null
-                    project_id?: string
-                    status?: string | null
+                    media_id?: string
+                    business_id?: string
+                    key?: string
+                    value?: string | null
+                    created_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string | null
                     updated_by?: string | null
                 }
-                Relationships: []
             }
+
+            media_tags: {
+                Row: {
+                    id: string
+                    media_id: string
+                    business_id: string
+                    tag: string
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id: string
+                    media_id: string
+                    business_id: string
+                    tag: string
+                    created_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string | null
+                    updated_by?: string | null
+                }
+                Update: {
+                    id?: string
+                    media_id?: string
+                    business_id?: string
+                    tag?: string
+                    created_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string | null
+                    updated_by?: string | null
+                }
+            }
+
             projects: {
                 Row: {
-                    budget: number | null
+                    id: string
                     business_id: string
                     client_id: string
-                    created_by: string | null
-                    description: string | null
-                    end_date: string | null
-                    id: string
-                    location: string | null
-                    manager: string | null
                     name: string
-                    progress: number | null
-                    start_date: string | null
-                    status: string | null
                     type: string | null
+                    status: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    budget: number | null
+                    location: string | null
+                    description: string | null
+                    manager_id: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
                     updated_by: string | null
+                    updated_at: string | null
                 }
                 Insert: {
-                    budget?: number | null
+                    id: string
                     business_id: string
                     client_id: string
-                    created_by?: string | null
-                    description?: string | null
-                    end_date?: string | null
-                    id?: string
-                    location?: string | null
-                    manager?: string | null
                     name: string
-                    progress?: number | null
-                    start_date?: string | null
-                    status?: string | null
-                    type?: string | null
-                    updated_by?: string | null
+                    type: string | null
+                    status: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    budget: number | null
+                    location: string | null
+                    description: string | null
+                    manager_id: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
                 }
                 Update: {
-                    budget?: number | null
-                    business_id?: string
-                    client_id?: string
-                    created_by?: string | null
-                    description?: string | null
-                    end_date?: string | null
-                    id?: string
-                    location?: string | null
-                    manager?: string | null
-                    name?: string
-                    progress?: number | null
-                    start_date?: string | null
-                    status?: string | null
-                    type?: string | null
-                    updated_by?: string | null
+                    id: string
+                    business_id: string
+                    client_id: string
+                    name: string
+                    type: string | null
+                    status: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    budget: number | null
+                    location: string | null
+                    description: string | null
+                    manager_id: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
                 }
                 Relationships: []
             }
             project_crews: {
                 Row: {
+                    id: string
                     crew_id: string
+                    project_id: string
+                    business_id: string
+                    start_date: string
+                    end_date: string | null
+                    notes: string | null
                     created_at: string
                     created_by: string | null
-                    id: string
-                    notes: string | null
-                    project_id: string
                     updated_at: string | null
                     updated_by: string | null
                 }
                 Insert: {
+                    id: string
                     crew_id: string
-                    created_at?: string
-                    created_by?: string | null
-                    id?: string
-                    notes?: string | null
                     project_id: string
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    business_id: string
+                    start_date: string
+                    end_date: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Update: {
-                    crew_id?: string
-                    created_at?: string
-                    created_by?: string | null
-                    id?: string
-                    notes?: string | null
-                    project_id?: string
-                    updated_at?: string | null
-                    updated_by?: string | null
+                    id: string
+                    crew_id: string
+                    project_id: string
+                    business_id: string
+                    start_date: string
+                    end_date: string | null
+                    notes: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Relationships: []
             }
+
+            project_issues: {
+                Row: {
+                    id: string
+                    project_id: string
+                    business_id: string
+                    title: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    reported_date: string | null
+                    reported_by: string | null
+                    assigned_to: string | null
+                    resolution: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    project_id: string
+                    business_id: string
+                    title: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    reported_date: string | null
+                    reported_by: string | null
+                    assigned_to: string | null
+                    resolution: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Update: {
+                    id: string
+                    project_id: string
+                    business_id: string
+                    title: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    reported_date: string | null
+                    reported_by: string | null
+                    assigned_to: string | null
+                    resolution: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+            }
+
+            project_milestones: {
+                Row: {
+                    id: string
+                    project_id: string
+                    business_id: string
+                    name: string
+                    description: string | null
+                    due_date: string | null
+                    status: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    project_id: string
+                    business_id: string
+                    name: string
+                    description?: string | null
+                    due_date?: string | null
+                    status?: string | null
+                    created_by?: string | null
+                    created_at?: string | null
+                    updated_by?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    project_id?: string
+                    business_id?: string
+                    name?: string
+                    description?: string | null
+                    due_date?: string | null
+                    status?: string | null
+                    created_by?: string | null
+                    created_at?: string | null
+                    updated_by?: string | null
+                    updated_at?: string | null
+                }
+            }
+
             tasks: {
                 Row: {
-                    assigned_to: string | null
-                    business_id: string
-                    created_by: string | null
-                    description: string | null
-                    end_date: string | null
                     id: string
-                    name: string
-                    priority: string | null
+                    business_id: string
                     project_id: string
-                    progress: number | null
-                    start_date: string | null
+                    name: string
+                    description: string | null
                     status: string | null
+                    priority: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    assigned_to: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    business_id: string
+                    project_id: string
+                    name: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    assigned_to: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Update: {
+                    id: string
+                    business_id: string
+                    project_id: string
+                    name: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    start_date: string | null
+                    end_date: string | null
+                    assigned_to: string | null
+                    progress: number | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Relationships: []
+            }
+            subtasks: {
+                Row: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    name: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    assigned_to: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    name: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    assigned_to: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Update: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    name: string
+                    description: string | null
+                    status: string | null
+                    priority: string | null
+                    assigned_to: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+            }
+
+            task_dependencies: {
+                Row: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    dependency_on_task_id: string
+                    dependency_type: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
                     updated_by: string | null
                 }
                 Insert: {
-                    assigned_to?: string | null
+                    id: string
+                    task_id: string
                     business_id: string
-                    created_by?: string | null
-                    description?: string | null
-                    end_date?: string | null
-                    id?: string
-                    name: string
-                    priority?: string | null
-                    project_id: string
-                    progress?: number | null
-                    start_date?: string | null
-                    status?: string | null
-                    updated_by?: string | null
+                    dependency_on_task_id: string
+                    dependency_type: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Update: {
-                    assigned_to?: string | null
-                    business_id?: string
-                    created_by?: string | null
-                    description?: string | null
-                    end_date?: string | null
-                    id?: string
-                    name?: string
-                    priority?: string | null
-                    project_id?: string
-                    progress?: number | null
-                    start_date?: string | null
-                    status?: string | null
-                    updated_by?: string | null
+                    id: string
+                    task_id: string
+                    business_id: string
+                    dependency_on_task_id: string
+                    dependency_type: string | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
                 }
                 Relationships: []
             }
+
+            task_notes: {
+                Row: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    content: string | null
+                    author_id: string | null
+                    date: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    content: string | null
+                    author_id: string | null
+                    date: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+                Update: {
+                    id: string
+                    task_id: string
+                    business_id: string
+                    content: string | null
+                    author_id: string | null
+                    date: string | null
+                    created_by: string | null
+                    created_at: string | null
+                    updated_by: string | null
+                    updated_at: string | null
+                }
+            }
+
             users: {
                 Row: {
-                    auth_id: string | null
-                    avatar_url: string | null
-                    business_id: string | null
-                    created_at: string | null
-                    email: string | null
-                    first_name: string | null
                     id: string
+                    business_id: string | null
+                    auth_id: string | null
+                    first_name: string | null
                     last_name: string | null
+                    email: string | null
                     phone: string | null
                     role: string | null
+                    avatar_url: string | null
+                    created_at: string | null
                     updated_at: string | null
                 }
                 Insert: {

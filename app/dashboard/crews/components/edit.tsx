@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Crew } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
+import { useRouter } from "next/navigation";
 
 export default function CrewEditForm({
     crew,
@@ -13,6 +14,7 @@ export default function CrewEditForm({
     members: CrewMember[];
     onSubmit: (formData: any) => void
 }) {
+    const router = useRouter();
     const [form, setForm] = useState({
         name: crew.name || "",
         status: crew.status || "active",
@@ -36,6 +38,7 @@ export default function CrewEditForm({
         setError("");
         try {
             await onSubmit(form);
+            router.push(`/dashboard/crews/${crew.id}`);
         } catch (err: any) {
             setError(err.message || "Failed to update crew");
         } finally {

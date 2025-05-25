@@ -1,6 +1,8 @@
 import ClientDetailComponent from "../components/detail";
-import { getClientById, getClientContacts, getClientInteractions } from "@/app/actions/clients";
-import { getProjectsByClient } from "@/lib/projects";
+import { getClientById } from "@/app/actions/clients";
+import { getClientContactsByClientId } from "@/app/actions/client-contacts";
+import { getClientInteractionsByClientId } from "@/app/actions/client-interactions";
+import { getProjectsByClientId } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 
@@ -20,10 +22,10 @@ export default async function ClientPage({ params }: { params: { id: string } })
         )
     }    // Fetch all client data in parallel
     const [client, projects, contacts, interactions] = await Promise.all([
-        getClientById(clientId, businessId),
-        getProjectsByClient(clientId, businessId),
-        getClientContacts(clientId, businessId),
-        getClientInteractions(clientId, businessId)
+        getClientById(clientId),
+        getProjectsByClientId(clientId),
+        getClientContactsByClientId(clientId),
+        getClientInteractionsByClientId(clientId)
     ]);
 
     if (!client) {
@@ -36,9 +38,9 @@ export default async function ClientPage({ params }: { params: { id: string } })
     } return (
         <ClientDetailComponent
             client={client}
-            projects={projects?.data || []}
-            contacts={contacts?.data || []}
-            interactions={interactions?.data || []}
+            projects={projects || []}
+            contacts={contacts || []}
+            interactions={interactions || []}
             businessId={businessId}
         />
     )

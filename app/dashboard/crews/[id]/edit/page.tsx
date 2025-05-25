@@ -11,20 +11,9 @@ export default async function EditCrewPage({ params }: { params: { id: string } 
     const crewId = (await params).id;
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
 
-    if (!businessId) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64">
-                <h2 className="text-xl mb-4">Business not found</h2>
-                <p>Please set up your business to access crew details.</p>
-            </div>
-        );
-    }
-
-    const crew = await getCrewById(crewId, businessId);
-    const members = await getCrewMembersByCrewId(crewId, businessId) || [];
+    const crew = await getCrewById(crewId) as Crew;
+    const members = await getCrewMembersByCrewId(crewId) || [];
 
     if (!crew) {
         return (
@@ -34,20 +23,24 @@ export default async function EditCrewPage({ params }: { params: { id: string } 
         );
     } async function handleUpdateCrew(formData: any) {
         "use server";
-        const crewData: Partial<CrewUpdate> = {
+        const crewData: CrewUpdate = {
+            id: crewId,
+            business_id: crew.business_id,
             name: formData.name,
             status: formData.status,
             leader_id: formData.leader_id || null,
             specialty: formData.specialty,
             notes: formData.notes,
             updated_at: new Date().toISOString(),
-            updated_by: user?.id || ""
+            updated_by: user?.id || "",
+            created_at: crew.created_at,
+            created_by: crew.created_by,
         };
 
         try {
-            const result = await updateCrew(crewId, crewData, businessId);
-            console.log(result);
-            redirect(`/dashboard/crews/${crewId}`);
+            const result = await updateCrew(crewId, crewData);
+
+            return { success: true };
         } catch (error) {
             console.error("Error updating crew:", error);
             throw new Error("Failed to update crew");

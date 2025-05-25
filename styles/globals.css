@@ -112,10 +112,6 @@ body {
         @apply border-border;
     }
 
-    body {
-        @apply bg-background text-foreground;
-    }
-
 }
 
 .form-control .input {
@@ -128,6 +124,10 @@ body {
 
 .form-control .textarea {
     @apply w-full my-2;
+}
+
+.tabs.tabs-boxed {
+    @apply border border-base-300 rounded-lg p-1;
 }
 
 .tab.tab-active {

@@ -2,17 +2,76 @@
 
 import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-import type { ClientInsert, ClientUpdate, ClientInteractionInsert, ClientInteractionUpdate, ClientContactInsert, ClientContactUpdate, Client } from "@/types/clients";
+import type { ClientInsert, ClientUpdate, Client } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Project } from "@/types/projects";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getUserBusiness } from "./business";
 
-export async function getClients(businessId: string) {
-    return await fetchByBusiness("clients", businessId, "*", {
-        orderBy: { column: "name", ascending: true },
+export const getClientById = async (id: string): Promise<Client | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch client by ID.");
+        return null;
+    }
+
+    const { data, error } = await fetchByBusiness("clients", businessId, "*", {
+        filter: { id },
     });
+
+    if (error) {
+        console.error("Error fetching client by ID:", error);
+        return null;
+    }
+
+    if (data && data.length > 0) {
+        return data[0] as unknown as Client;
+    }
+    return null;
 }
 
-export async function getClientsWithStats(businessId: string) {
+export const getClients = async (): Promise<Client[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch clients.");
+        return [];
+    }
+
+    const { data, error } = await fetchByBusiness("clients", businessId, "*", {
+        orderBy: { column: "name", ascending: true },
+    });
+
+    if (error) {
+        console.error("Error fetching clients:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as Client[];
+    }
+
+    return data as unknown as Client[];
+}
+
+export const getClientsWithStats = async (): Promise<Client[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch clients with stats.");
+        return [];
+    }
+
     const { data: clients, error: clientErrors } = await fetchByBusiness("clients", businessId, "*", {
         orderBy: { column: "name", ascending: true },
     });
@@ -42,28 +101,82 @@ export async function getClientsWithStats(businessId: string) {
 
 }
 
-export async function getClientById(id: string, businessId: string) {
+export const createClient = async (client: ClientInsert): Promise<Client | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to create a client.");
+        return null;
+    }
+
+    const { data, error } = await insertWithBusiness("clients", { ...client }, businessId);
+
+    if (error) {
+        console.error("Error creating client:", error);
+        return null;
+    }
+
+    return data as Client;
+}
+
+export const updateClient = async (id: string, client: ClientUpdate): Promise<Client | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to create a client.");
+        return null;
+    }
+
+    const { data, error } = await updateWithBusinessCheck("clients", id, client, businessId);
+
+    if (error) {
+        console.error("Error updating client:", error);
+        return null;
+    }
+
+    return data as Client;
+}
+
+export const deleteClient = async (id: string): Promise<boolean> => {
+
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to create a client.");
+        return false;
+    }
+
+    const { data, error } = await deleteWithBusinessCheck("clients", id, businessId);
+
+    if (error) {
+        console.error("Error deleting client:", error);
+        return false;
+    }
+
+    return true;
+}
+
+export const searchClients = async (query: string): Promise<Client[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to create a client.");
+        return [];
+    }
+
     const { data, error } = await fetchByBusiness("clients", businessId, "*", {
-        filter: { id },
-    });
-
-    return data && data[0] ? data[0] : null;
-}
-
-export async function createClient(client: Omit<ClientInsert, "business_id">, businessId: string) {
-    return await insertWithBusiness("clients", { ...client, business_id: businessId }, businessId);
-}
-
-export async function updateClient(id: string, client: ClientUpdate, businessId: string) {
-    return await updateWithBusinessCheck("clients", id, client, businessId);
-}
-
-export async function deleteClient(id: string, businessId: string) {
-    return await deleteWithBusinessCheck("clients", id, businessId);
-}
-
-export async function searchClients(query: string, businessId: string) {
-    return await fetchByBusiness("clients", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -73,60 +186,36 @@ export async function searchClients(query: string, businessId: string) {
         },
         orderBy: { column: "name", ascending: true },
     });
+
+    if (error) {
+        console.error("Error searching clients:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as Client[];
+    }
+
+    return data as unknown as Client[];
 };
 
-export async function getClientContacts(clientId: string, businessId: string) {
-    return await fetchByBusiness("client_contacts", businessId, "*", {
-        filter: { client_id: clientId },
-        orderBy: { column: "is_primary", ascending: false },
-    });
+export const updateClientNotes = async (id: string, notes: string): Promise<Client | null> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to update client notes.");
+        return null;
+    }
+
+    const { data, error } = await updateWithBusinessCheck("clients", id, { notes } as ClientUpdate, businessId);
+
+    if (error) {
+        console.error("Error updating client notes:", error);
+        return null;
+    }
+
+    return data as Client;
 };
-
-export async function getClientContactById(id: string, businessId: string) {
-    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
-        filter: { id },
-    });
-    return data && data[0] ? data[0] : null;
-};
-
-export async function updateClientContact(id: string, contact: ClientContactUpdate, businessId: string) {
-    return await updateWithBusinessCheck("client_contacts", id, contact, businessId);
-};
-
-export async function deleteClientContact(id: string, businessId: string) {
-    return await deleteWithBusinessCheck("client_contacts", id, businessId);
-};
-
-export async function createClientContact(clientId: string, contact: Omit<ClientContactInsert, "business_id">, businessId: string) {
-    return await insertWithBusiness("client_contacts", { ...contact, client_id: clientId }, businessId);
-};
-
-export async function getClientInteractions(clientId: string, businessId: string) {
-    return await fetchByBusiness("client_interactions", businessId, "*", {
-        filter: { client_id: clientId },
-        orderBy: { column: "date", ascending: false },
-    });
-}
-
-export async function getClientInteractionById(id: string, businessId: string) {
-    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
-        filter: { id },
-    });
-    return data && data[0] ? data[0] : null;
-};
-
-export async function updateClientInteraction(id: string, interaction: ClientInteractionUpdate, businessId: string) {
-    return await updateWithBusinessCheck("client_interactions", id, interaction, businessId);
-};
-
-export async function deleteClientInteraction(id: string, businessId: string) {
-    return await deleteWithBusinessCheck("client_interactions", id, businessId);
-};
-
-export async function createClientInteraction(interaction: Omit<ClientInteractionInsert, "business_id">, businessId: string) {
-    return await insertWithBusiness("client_interactions", { ...interaction }, businessId);
-};
-
-export async function updateClientNotes(id: string, notes: string, businessId: string) {
-    return await updateWithBusinessCheck("clients", id, { notes }, businessId);
-}

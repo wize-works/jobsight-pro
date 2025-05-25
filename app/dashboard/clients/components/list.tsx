@@ -38,9 +38,6 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         contact_phone: string;
         address: string;
         status: "prospect" | "active" | "inactive";
-        totalProjects?: number;
-        activeProjects?: number;
-        totalBudget?: number;
     }>({
         id: uuidv4(),
         name: "",
@@ -50,9 +47,6 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
         contact_phone: "",
         address: "",
         status: "prospect",
-        totalProjects: 0,
-        activeProjects: 0,
-        totalBudget: 0,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [viewType, setViewType] = useState("grid");
@@ -76,14 +70,13 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
 
         setIsSubmitting(true);
         try {
-            const { data, error } = await createClient(newClient, businessId);
-            if (error) throw new Error(error.message);
+            const data = await createClient(newClient as ClientInsert);
             if (data) {
                 setClients((prev) => [
                     ...prev,
                     {
                         ...data,
-                        total_projects: data.total_projects ?? 0,
+                        total_projects: 0,
                         active_projects: 0,
                         total_budget: 0,
                     }
@@ -158,7 +151,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed">
+                        <div className="tabs tabs-boxed tabs-sm">
                             <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => setViewType("grid")}>
                                 <i className="fas fa-grid-2"></i>
                             </button>
@@ -176,10 +169,7 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                         <ClientCard
                             key={client.id}
                             client={client}
-                            onClick={() => {
-                                // Handle client card click
-                                console.log("Client clicked:", client)
-                            }} />
+                        />
                     ))}
                 </div>
             ) : null}
@@ -204,8 +194,8 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
                                         <div className="flex items-center gap-3">
                                             <div className="avatar flex">
                                                 <div className="w-12 h-12 flex rounded-full bg-base-300 text-center content-center">
-                                                    {client.image ? (
-                                                        <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
+                                                    {client.logo_url && client.logo_url !== "" ? (
+                                                        <img src={client.logo_url || "/placeholder.svg"} alt={`${client.name} logo`} className="cover" />
                                                     ) : (
                                                         <span className="text-xl font-bold">{client.name.charAt(0)}</span>
                                                     )}

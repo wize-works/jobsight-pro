@@ -3,11 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { create } from "domain";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { createClientInteraction, createClientContact, updateClientInteraction, updateClientContact, updateClientNotes } from "@/app/actions/clients";
+import { createClientContact, updateClientContact } from "@/app/actions/client-contacts";
+import { createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
+import { createProject } from "@/app/actions/projects";
 import { date } from "zod";
 import { toast } from "@/hooks/use-toast";
+import { ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
+import { ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
+import { updateClientNotes } from "@/app/actions/clients";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -80,10 +84,10 @@ export default function ClientDetailComponent({
             email: newContact.email,
             phone: newContact.phone,
             is_primary: newContact.isPrimary
-        };
+        } as ClientContactInsert;
 
         try {
-            await createClientContact(client.id, contactData, businessId);
+            await createClientContact(contactData);
             router.refresh(); // Refresh the page to show the new contact
         } catch (error) {
             console.error("Error creating contact:", error);
@@ -93,6 +97,7 @@ export default function ClientDetailComponent({
     }
 
     const handleAddInteraction = async () => {
+
         const interactionData = {
             client_id: client.id,
             business_id: businessId,
@@ -106,9 +111,9 @@ export default function ClientDetailComponent({
             created_at: new Date().toISOString(),
             updated_by: user?.id,
             updated_at: new Date().toISOString(),
-        };
+        } as ClientInteractionInsert;
         try {
-            await createClientInteraction(interactionData, businessId);
+            await createClientInteraction(interactionData);
             router.refresh(); // Refresh the page to show the new interaction
         } catch (error) {
             console.error("Error creating interaction:", error);
@@ -138,9 +143,9 @@ export default function ClientDetailComponent({
             email: editContact.email,
             phone: editContact.phone,
             is_primary: editContact.isPrimary
-        };
+        } as ClientContactUpdate;
         try {
-            await updateClientContact(editContact.id, updatedContact, businessId);
+            await updateClientContact(editContact.id, updatedContact);
             router.refresh();
         } catch (error) {
             console.error("Error updating contact:", error);
@@ -173,9 +178,9 @@ export default function ClientDetailComponent({
             follow_up_task: editInteraction.followUpTask || null,
             updated_by: user?.id,
             updated_at: new Date().toISOString(),
-        };
+        } as ClientInteractionUpdate;
         try {
-            await updateClientInteraction(editInteraction.id, updatedInteraction, businessId);
+            await updateClientInteraction(editInteraction.id, updatedInteraction);
             router.refresh();
         } catch (error) {
             console.error("Error updating interaction:", error);
@@ -187,7 +192,7 @@ export default function ClientDetailComponent({
 
     const handleUpdateClientNotes = async (notes: string) => {
         try {
-            await updateClientNotes(client.id, notes, businessId);
+            await updateClientNotes(client.id, notes);
             toast.success({
                 title: "Notes updated",
                 description: "Client notes have been updated successfully.",

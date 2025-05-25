@@ -1,4 +1,4 @@
-import { Crew, CrewWithLeader } from "@/types/crews";
+import { Crew, CrewWithDetails } from "@/types/crews";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ export const CrewCard = ({
     onRemove,
     onStatusChange,
 }: {
-    crew: CrewWithLeader;
+    crew: CrewWithDetails;
     onEdit: (crew: Crew) => void;
     onDelete: (crewId: string) => void;
     onView: (crewId: string) => void;
@@ -40,7 +40,7 @@ export const CrewCard = ({
                         <i className={`fas fa-user-tie fa-fw mr-2 ${crew.leader !== "No Leader" ? "text-primary" : ""}`}></i> {crew.leader}
                     </p>
                     <p className="flex items-center mt-1">
-                        <i className={`fas fa-users fa-fw mr-2 ${(crew.members ?? 0) > 0 ? "text-primary" : "text-base-content"}`}></i> {(crew.members ?? 0)} members
+                        <i className={`fas fa-users fa-fw mr-2 ${(crew.member_count ?? 0) > 0 ? "text-primary" : "text-base-content"}`}></i> {(crew.member_count ?? 0)} members
                     </p>
                     {crew.current_project && (
                         <p className="flex items-center mt-1">

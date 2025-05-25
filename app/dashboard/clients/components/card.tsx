@@ -11,8 +11,8 @@ export const ClientCard = ({ client }: {
                     <div className="flex justify-between">
                         <div className="avatar">
                             <div className="w-12 h-12 rounded-full bg-base-300 text-center content-center">
-                                {client.image ? (
-                                    <img src={client.image || "/placeholder.svg"} alt={`${client.name} logo`} />
+                                {client.logo_url ? (
+                                    <img src={client.logo_url || "/placeholder.svg"} alt={`${client.name} logo`} />
                                 ) : (
                                     <span className="text-xl font-bold">{client.name.charAt(0)}</span>
                                 )}
