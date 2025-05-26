@@ -4,6 +4,7 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Media, MediaInsert, MediaUpdate } from "@/types/media";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { MediaLink } from "@/types/media_links";
 
 export const getMedias = async (): Promise<Media[]> => {
     const kindeSession = await getKindeServerSession();
@@ -146,3 +147,39 @@ export const searchMedias = async (query: string): Promise<Media[]> => {
 
     return data as unknown as Media[];
 };
+
+export const getMediaByEquipmentId = async (equipmentId: string, type: string): Promise<Media[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch medias by equipment ID.");
+        return [];
+    }
+
+    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+        filter: { linked_id: equipmentId, linked_type: "equipment" },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (linkError) {
+        console.error("Error fetching media links by equipment ID:", linkError);
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id);
+
+    const { data, error } = await fetchByBusiness("media", businessId, "*", {
+        filter: { id: { in: mediaIds }, type: type },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching medias by equipment ID:", error);
+        return [];
+    }
+
+    return data as unknown as Media[];
+}

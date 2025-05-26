@@ -87,7 +87,7 @@ export default function CrewsList({ initialCrews, businessId }: CrewListProps) {
 
     return (
         <>
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-between mb-6">
                 <h1 className="text-2xl font-bold">Crew Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddCrewModal(true)}>
                     <i className="fas fa-plus mr-2"></i> Add Crew

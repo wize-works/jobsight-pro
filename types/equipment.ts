@@ -5,5 +5,12 @@ export type Equipment = Database["public"]["Tables"]["equipment"]["Row"];
 export type EquipmentInsert = Database["public"]["Tables"]["equipment"]["Insert"];
 export type EquipmentUpdate = Database["public"]["Tables"]["equipment"]["Update"];
 
+export type EquipmentStatus = "in_use" | "available" | "maintenance" | "repair" | "retired";
+export type EquipmentType = "computer" | "furniture" | "vehicle" | "tool" | "other";
+
 export type EquipmentWithAssignment = Equipment & EquipmentAssignment;
 export type EquipmentWithAssignments = EquipmentWithAssignment[];
+
+export type EquipmentWithDetails = Equipment & {
+    assigned_to?: string | null
+}

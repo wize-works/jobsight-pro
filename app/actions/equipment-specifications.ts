@@ -146,3 +146,30 @@ export const searchEquipmentSpecifications = async (query: string): Promise<Equi
 
     return data as unknown as EquipmentSpecification[];
 };
+
+export const getEquipmentSpecificationsByEquipmentId = async (id: string): Promise<EquipmentSpecification[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch equipment specifications.");
+        return [];
+    }
+
+    const { data, error } = await fetchByBusiness("equipment_specifications", businessId, "*", {
+        filter: { equipment_id: id },
+        orderBy: { column: "id", ascending: true },
+    });
+
+    if (error) {
+        console.error("Error fetching equipment specification by ID:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as EquipmentSpecification[];
+    }
+    return data as unknown as EquipmentSpecification[];
+};

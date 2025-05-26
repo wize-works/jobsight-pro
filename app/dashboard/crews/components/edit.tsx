@@ -93,7 +93,9 @@ export default function CrewEditForm({
                                     required
                                 >
                                     <option value="active">Active</option>
-                                    <option value="available">Available</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="archived">Archived</option>
                                 </select>
                             </div>                            <div className="form-control">
                                 <label className="label">Leader ID</label>

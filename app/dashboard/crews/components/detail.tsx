@@ -67,7 +67,7 @@ export default function CrewDetailComponent({
         notes: '',
     });
     const leaderData = useMemo(() => {
-        return allMembers.find((m: CrewMember) => m.id === crewLeader) || { name: "", role: "", phone: "", email: "", avatar_url: "" };
+        return allMembers.find((m: CrewMember) => m.id === crewLeader) || { id: "", name: "", role: "", phone: "", email: "", avatar_url: "" };
     }, [allMembers, crewLeader]);
 
     const handleAddMember = async () => {
@@ -214,9 +214,6 @@ export default function CrewDetailComponent({
             });
         }
     }
-
-    // Mock data for initial UI showcase - would be replaced with real data in a full implementation
-    //const workHistory = [];
 
     return (
         <div>

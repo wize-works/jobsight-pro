@@ -146,3 +146,31 @@ export const searchEquipmentUsages = async (query: string): Promise<EquipmentUsa
 
     return data as unknown as EquipmentUsage[];
 };
+
+export const getEquipmentUsagesByEquipmentId = async (id: string): Promise<EquipmentUsage[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch equipment usages.");
+        return [];
+    }
+
+    const { data, error } = await fetchByBusiness("equipment_usage", businessId, "*", {
+        filter: { equipment_id: id },
+        orderBy: { column: "id", ascending: true }
+    });
+
+
+    if (error) {
+        console.error("Error fetching equipment usage by ID:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as EquipmentUsage[];
+    }
+    return data as unknown as EquipmentUsage[];
+};

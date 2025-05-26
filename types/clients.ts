@@ -10,3 +10,6 @@ export type ClientWithStats = Client & {
     active_projects?: number;
     total_budget?: number;
 }
+
+export type ClientStatus = "active" | "inactive" | "prospect" | "archived";
+export type ClientType = "individual" | "business" | "nonprofit" | "government" | "other";

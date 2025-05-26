@@ -1271,11 +1271,50 @@ export interface Database {
                 }
             }
 
+            media_links: {
+                Row: {
+
+                    id: string
+                    business_id: string
+                    media_id: string
+                    linked_id: string
+                    linked_type: string
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+
+                    id: string
+                    business_id: string
+                    media_id: string
+                    linked_id: string
+                    linked_type: string
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Update: {
+
+                    id: string
+                    business_id: string
+                    media_id: string
+                    linked_id: string
+                    linked_type: string
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+            }
+
             media_metadata: {
                 Row: {
                     id: string
-                    media_id: string
                     business_id: string
+                    media_id: string
                     key: string
                     value: string | null
                     created_at: string | null

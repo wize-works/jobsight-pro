@@ -4,6 +4,9 @@ export type Crew = Database["public"]["Tables"]["crews"]["Row"];
 export type CrewInsert = Database["public"]["Tables"]["crews"]["Insert"];
 export type CrewUpdate = Database["public"]["Tables"]["crews"]["Update"];
 
+export type CrewStatus = "active" | "inactive" | "on_hold" | "archived";
+export type CrewType = "construction" | "maintenance" | "cleaning" | "security" | "other";
+
 export type CrewWithDetails = Crew & {
     leader: string;
     member_count: number;

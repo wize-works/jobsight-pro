@@ -41,7 +41,9 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
         return null;
     }
 
-    const { data, error } = await fetchByBusiness("equipment", businessId, id);
+    const { data, error } = await fetchByBusiness("equipment", businessId, "*", {
+        filter: { id: id },
+    });
 
     if (error) {
         console.error("Error fetching equipment by ID:", error);

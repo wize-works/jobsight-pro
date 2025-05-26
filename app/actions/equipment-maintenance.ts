@@ -41,7 +41,10 @@ export const getEquipmentMaintenanceById = async (id: string): Promise<Equipment
         return null;
     }
 
-    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, id);
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, "*", {
+        filter: { id: id },
+        orderBy: { column: "created_at", ascending: false },
+    });
 
     if (error) {
         console.error("Error fetching equipment maintenance by ID:", error);
@@ -66,6 +69,10 @@ export const createEquipmentMaintenance = async (maintenance: EquipmentMaintenan
         return null;
     }
 
+    maintenance.created_at = new Date().toISOString();
+    maintenance.created_by = user?.id || "";
+    maintenance.updated_at = new Date().toISOString();
+    maintenance.updated_by = user?.id || "";
     const { data, error } = await insertWithBusiness("equipment_maintenance", maintenance, businessId);
 
     if (error) {
@@ -87,6 +94,8 @@ export const updateEquipmentMaintenance = async (id: string, maintenance: Equipm
         return null;
     }
 
+    maintenance.updated_at = new Date().toISOString();
+    maintenance.updated_by = user?.id || "";
     const { data, error } = await updateWithBusinessCheck("equipment_maintenance", id, maintenance, businessId);
 
     if (error) {
@@ -144,5 +153,32 @@ export const searchEquipmentMaintenances = async (query: string): Promise<Equipm
         return [];
     }
 
+    return data as unknown as EquipmentMaintenance[];
+};
+
+export const getEquipmentMaintenancesByEquipmentId = async (id: string): Promise<EquipmentMaintenance[]> => {
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
+    const business = await getUserBusiness(user?.id || "");
+    const businessId = business?.id || "";
+
+    if (!businessId) {
+        console.error("Business ID is required to fetch equipment maintenances.");
+        return [];
+    }
+
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, "*", {
+        filter: { equipment_id: id },
+        orderBy: { column: "created_at", ascending: false },
+    });
+    console.log("Fetched equipment maintenances:", data);
+    if (error) {
+        console.error("Error fetching equipment maintenance by ID:", error);
+        return [];
+    }
+    if (!data || data.length === 0) {
+        return [] as EquipmentMaintenance[];
+    }
+    console.log("Equipment maintenances data:", data);
     return data as unknown as EquipmentMaintenance[];
 };
