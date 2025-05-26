@@ -1,30 +1,63 @@
 # JobSight Pro
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+JobSight Pro is a modern, full-featured platform for construction business management. It streamlines daily operations, project tracking, crew management, equipment monitoring, and client communications—all in one place.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/wizeworks/v0-job-sight-pro)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/gqBQrlVofKl)
+## Features
 
-## Overview
+- **Business Dashboard:** Real-time overview of projects, crews, and business metrics
+- **Project Management:** Track project progress, assign tasks, and manage documentation
+- **Daily Logs:** Record daily activities, equipment usage, and site photos
+- **Crew & Equipment Management:** Assign crews, track equipment, and monitor utilization
+- **Client Management:** Manage client information, interactions, and contacts
+- **Media & Document Handling:** Upload and organize site images and documents
+- **Customizable Workflows:** Adaptable to various construction business needs
+- **Modern UI:** Built with Next.js, Tailwind CSS, and React for a fast, responsive experience
+- **Authentication & Security:** Secure user authentication and role-based access
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Tech Stack
+
+- [Next.js](https://nextjs.org/) (App Router)
+- [React](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Supabase](https://supabase.com/) (Database & Auth)
+- [Vercel](https://vercel.com/) (Deployment)
+
+## Getting Started
+
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/wizeworks/v0-job-sight-pro.git
+   cd v0-job-sight-pro
+   ```
+2. **Install dependencies:**
+   ```sh
+   pnpm install
+   ```
+3. **Configure environment variables:**
+   - Copy `.env.example` to `.env.local` and fill in your Supabase and other required keys.
+4. **Run the development server:**
+   ```sh
+   pnpm dev
+   ```
+   The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Deployment
 
-Your project is live at:
+JobSight Pro is deployed on Vercel:
 
-**[https://vercel.com/wizeworks/v0-job-sight-pro](https://vercel.com/wizeworks/v0-job-sight-pro)**
+[https://vercel.com/wizeworks/v0-job-sight-pro](https://vercel.com/wizeworks/v0-job-sight-pro)
 
-## Build your app
+## Documentation
 
-Continue building your app on:
+- [Product Requirements](./docs/product-requirements.md)
+- [Database Schema](./docs/jobsight-pro-database-schema.mermaid)
+- [UX Flow](./docs/ux-flow.md)
+- [Brand Kit](./docs/brand-kit.md)
 
-**[https://v0.dev/chat/projects/gqBQrlVofKl](https://v0.dev/chat/projects/gqBQrlVofKl)**
+## Contributing
 
-## How It Works
+Contributions are welcome! Please open issues or submit pull requests for improvements and bug fixes.
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## License
+
+[MIT](LICENSE)
