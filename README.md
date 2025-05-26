@@ -19,15 +19,17 @@ JobSight Pro is a modern, full-featured platform for construction business manag
 - [Next.js](https://nextjs.org/) (App Router)
 - [React](https://react.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [DaisyUI](https://daisyui.com/)
+- [FontaAwesome](https://fontawesome.com/)
+- [TypeScript](https://www.typescriptlang.org/)
 - [Supabase](https://supabase.com/) (Database & Auth)
-- [Vercel](https://vercel.com/) (Deployment)
 
 ## Getting Started
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/wizeworks/v0-job-sight-pro.git
-   cd v0-job-sight-pro
+   git clone https://github.com/wize-works/jobsight-pro.git
+   cd jobsight-pro
    ```
 2. **Install dependencies:**
    ```sh
@@ -41,11 +43,6 @@ JobSight Pro is a modern, full-featured platform for construction business manag
    ```
    The app will be available at [http://localhost:3000](http://localhost:3000).
 
-## Deployment
-
-JobSight Pro is deployed on Vercel:
-
-[https://vercel.com/wizeworks/v0-job-sight-pro](https://vercel.com/wizeworks/v0-job-sight-pro)
 
 ## Documentation
 
