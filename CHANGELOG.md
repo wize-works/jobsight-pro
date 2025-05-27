@@ -1,3 +1,10 @@
+## [1.10.3](https://github.com/wize-works/jobsight-pro/compare/v1.10.2...v1.10.3) (2025-05-27)
+
+
+### Bug Fixes
+
+* update Dockerfile to copy static files and change start command ([65fea70](https://github.com/wize-works/jobsight-pro/commit/65fea704997ed0c243e66595c812eec13a617022))
+
 ## [1.10.2](https://github.com/wize-works/jobsight-pro/compare/v1.10.1...v1.10.2) (2025-05-27)
 
 
