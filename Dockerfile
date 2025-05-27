@@ -17,14 +17,14 @@ COPY next.config.mjs ./
 COPY public ./public
 COPY src ./src
 
+
+ARG KINDE_ISSUER_URL=https://placeholder
+ENV KINDE_ISSUER_URL=$KINDE_ISSUER_URL
 # Build the app (generates .next folder)
 RUN npm run build
 
 # Stage 2: Runtime
 FROM node:22-alpine
-
-ARG KINDE_ISSUER_URL=https://placeholder
-ENV KINDE_ISSUER_URL=$KINDE_ISSUER_URL
 
 # Create a non-root user
 RUN addgroup -S app && adduser -S appuser -G app
