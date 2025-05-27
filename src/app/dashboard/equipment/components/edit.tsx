@@ -275,7 +275,6 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                 {specifications.map((spec, idx) => (
                                     <div key={idx} className="flex gap-2 items-center">
                                         <form className="flex flex-row gap-2 items-center w-full">
-                                            {spec.id}
                                             <input
                                                 className="input input-bordered"
                                                 placeholder="Name"

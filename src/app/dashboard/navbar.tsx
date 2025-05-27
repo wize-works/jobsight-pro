@@ -1,12 +1,15 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Notifications } from "./notifications";
+import { useIsMobile } from "@/hooks/use-mobile"
+
 type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) => {
+    const isMobile = useIsMobile();
 
     const handleSidebarToggle = () => {
         localStorage.setItem("sidebarCollapsed", JSON.stringify(!sidebarCollapsed));
@@ -14,16 +17,13 @@ export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) =
     }
     return (
         <div className="navbar bg-base-100 border-b">
-            <div className="flex-none lg:hidden">
-                <label htmlFor="my-drawer-2" className="btn btn-square btn-ghost">
-                    <i className="fas fa-bars"></i>
-                </label>
-            </div>
-            <div className="flex-none hidden lg:block">
-                <button onClick={() => handleSidebarToggle()} className="btn btn-square btn-ghost">
-                    <i className={`fa-kit fa-xl ${sidebarCollapsed ? "fa-light-sidebar-circle-arrow-right" : "fa-light-sidebar-circle-arrow-left"}`}></i>
-                </button>
-            </div>
+            {!isMobile && (
+                <div className="flex-none hidden lg:block">
+                    <button onClick={() => handleSidebarToggle()} className="btn btn-square btn-ghost">
+                        <i className={`fa-kit fa-xl ${sidebarCollapsed ? "fa-light-sidebar-circle-arrow-right" : "fa-light-sidebar-circle-arrow-left"}`}></i>
+                    </button>
+                </div>
+            )}
             <div className="flex-1">{/* Navbar spacer */}</div>
             <div className="flex space-x-4">
                 <ThemeToggle />

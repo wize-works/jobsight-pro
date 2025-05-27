@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import type React from "react"
-import Link from "next/link"
 import { Navbar } from "./navbar"
 import { Sidebar } from "./sidebar"
+import { BottomNav } from "./bottom-nav"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { BusinessProvider } from "@/lib/business-context"
 
 export default function DashboardLayout({
@@ -15,6 +16,7 @@ export default function DashboardLayout({
     // Check local storage for sidebarCollapsed value
     const storedSidebarCollapsed = typeof window !== "undefined" ? localStorage.getItem("sidebarCollapsed") : null
     const [sidebarCollapsed, setSidebarCollapsed] = useState(storedSidebarCollapsed ? JSON.parse(storedSidebarCollapsed) : false);
+    const isMobile = useIsMobile();
 
     return (
         <div className="drawer lg:drawer-open">
@@ -22,13 +24,14 @@ export default function DashboardLayout({
             <div className="drawer-content flex flex-col bg-base-200">
                 <Navbar setSidebarCollapsed={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} />
                 {/* Page content */}
-                <div className="p-4 md:p-6 container mx-auto">
+                <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
                     <BusinessProvider>
                         {children}
                     </BusinessProvider>
                 </div>
+                {isMobile && <BottomNav />}
             </div>
-            <Sidebar sidebarCollapsed={sidebarCollapsed} />
+            {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
         </div>
     )
 }

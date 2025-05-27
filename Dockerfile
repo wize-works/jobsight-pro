@@ -40,13 +40,7 @@ RUN npm ci
 # Copy source and config files
 COPY tsconfig.json ./
 COPY next.config.mjs ./
-COPY app/ ./app/
-COPY components/ ./components/
-COPY hooks/ ./hooks/
-COPY lib/ ./lib/
-COPY styles/ ./styles/
-COPY types/ ./types/
-COPY utils/ ./utils/
+COPY src/ ./src/
 
 # Build the app
 RUN npm run build
