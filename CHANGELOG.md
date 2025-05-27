@@ -1,3 +1,10 @@
+## [1.10.12](https://github.com/wize-works/jobsight-pro/compare/v1.10.11...v1.10.12) (2025-05-27)
+
+
+### Bug Fixes
+
+* update user creation command in Dockerfile for clarity ([8b8f8a2](https://github.com/wize-works/jobsight-pro/commit/8b8f8a2290bec056cbd60a19e5811401700de193))
+
 ## [1.10.11](https://github.com/wize-works/jobsight-pro/compare/v1.10.10...v1.10.11) (2025-05-27)
 
 
