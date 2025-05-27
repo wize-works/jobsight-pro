@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/wize-works/jobsight-pro/compare/v1.6.0...v1.7.0) (2025-05-27)
+
+
+### Features
+
+* restructure Dockerfile and reintroduce deployment configuration files ([1d406d1](https://github.com/wize-works/jobsight-pro/commit/1d406d1d2244f45663fbb25332526d394f90059c))
+
 # [1.6.0](https://github.com/wize-works/jobsight-pro/compare/v1.5.3...v1.6.0) (2025-05-27)
 
 
