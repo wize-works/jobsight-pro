@@ -35,6 +35,7 @@
         "sonner": "latest",
         "tailwind-merge": "^3.3.0",
         "tailwindcss-animate": "^1.0.7",
+        "@tailwindcss/postcss": "^4.0.14",
         "uuid": "latest",
         "zod": "latest"
     },
@@ -50,7 +51,6 @@
         "semantic-release": "^24.2.3",
         "storybook": "^8.6.14",
         "tailwindcss": "^4.0.14",
-        "@tailwindcss/postcss": "^4.0.14",
         "typescript": "^5",
         "webpack": "^5.99.9"
     }
