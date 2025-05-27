@@ -12,15 +12,13 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy source and config
-COPY tsconfig.json ./
-COPY next.config.js ./
-COPY public ./public
-COPY src ./src
+COPY . .
 
-
+# Optional env vars just for build (placeholders)
 ENV KINDE_ISSUER_URL=https://placeholder
 ENV KINDE_CLIENT_ID=1234567890abcdef
 ENV KINDE_CLIENT_SECRET=placeholder
+
 # Build the app (generates .next folder)
 RUN npm run build
 
@@ -33,22 +31,16 @@ USER appuser
 
 WORKDIR /app
 
-# Label metadata (optional but useful)
+# Label metadata
 ARG GITHUB_SHA
 LABEL org.opencontainers.image.source="https://github.com/wize-works/jobsight-pro"
 LABEL org.opencontainers.image.documentation="https://github.com/wize-works/jobsight-pro"
 LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 
-# Copy production artifacts from builder
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/next.config.js ./next.config.js
+# Copy full contents from builder
+COPY --from=builder /app .
 
-# Runtime environment variables will be injected by Kubernetes, not baked into the image
-
+# Runtime envs come from Kubernetes
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:3000/health || exit 1
