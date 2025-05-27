@@ -1,8 +1,24 @@
 "use client"
 
+import { useRouter } from "next/router"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import type { EquipmentStatus } from "@/types/equipment"
+
+// Status options with colors and labels
+const statusOptions: { [K in EquipmentStatus]: { label: string; color: string } } = {
+    in_use: { label: "In Use", color: "badge-primary" },
+    available: { label: "Available", color: "badge-success" },
+    maintenance: { label: "Maintenance", color: "badge-warning" },
+    repair: { label: "Under Repair", color: "badge-error" },
+    retired: { label: "Retired", color: "badge-neutral" },
+}
+
+// Helper function to safely get status options
+const getStatusOption = (status: string | null | undefined) => {
+    if (!status) return undefined;
+    return statusOptions[status as EquipmentStatus];
+}
 
 // Mock data for equipment (same as in the equipment page)
 const equipmentData = {
@@ -14,7 +30,7 @@ const equipmentData = {
         model: "336",
         year: 2020,
         serialNumber: "CAT336-2020-103",
-        status: "in-use",
+        status: "in_use" as const,
         assignedTo: "Foundation Team",
         location: "Main Street Development",
         nextMaintenance: "2025-06-15",
@@ -76,7 +92,7 @@ const equipmentData = {
         model: "SY204C-8",
         year: 2021,
         serialNumber: "SANY204C-2021-42",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Foundation Team",
         location: "Main Street Development",
         nextMaintenance: "2025-07-10",
@@ -137,7 +153,7 @@ const equipmentData = {
         model: "EU7000is",
         year: 2023,
         serialNumber: "HONDA-EU7000-2023-56",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Electrical Team",
         location: "Downtown Project",
         nextMaintenance: "2025-08-05",
@@ -197,7 +213,7 @@ const equipmentData = {
         model: "3CX",
         year: 2021,
         serialNumber: "JCB3CX-2021-64",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Framing Crew",
         location: "Riverside Apartments",
         nextMaintenance: "2025-07-15",
@@ -258,7 +274,7 @@ const equipmentData = {
         model: "S650",
         year: 2022,
         serialNumber: "BOB-S650-2022-51",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Finishing Crew",
         location: "Johnson Residence",
         nextMaintenance: "2025-08-20",
@@ -350,7 +366,7 @@ const equipmentData = {
         model: "600AJ",
         year: 2020,
         serialNumber: "JLG-600AJ-2020-45",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Electrical Team",
         location: "Downtown Project",
         nextMaintenance: "2025-07-30",
@@ -800,15 +816,6 @@ const usageHistory = {
     ],
 }
 
-// Status options with colors and labels
-const statusOptions = {
-    "in-use": { label: "In Use", color: "badge-primary" },
-    available: { label: "Available", color: "badge-success" },
-    maintenance: { label: "Maintenance", color: "badge-warning" },
-    repair: { label: "Under Repair", color: "badge-error" },
-    retired: { label: "Retired", color: "badge-neutral" },
-}
-
 // Mock data for crews
 const crewsData = [
     {
@@ -913,8 +920,8 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
                             <i className="fas fa-arrow-left"></i>
                         </Link>
                         <h1 className="text-2xl font-bold">{equipment.name}</h1>
-                        <div className={`badge ${statusOptions[equipment.status].color}`}>
-                            {statusOptions[equipment.status].label}
+                        <div className={`badge ${getStatusOption(equipment.status)?.color}`}>
+                            {getStatusOption(equipment.status)?.label}
                         </div>
                     </div>
                     <p className="text-base-content/70 mt-1">
@@ -929,7 +936,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
                         <button className="btn btn-primary btn-sm" onClick={() => setShowAssignModal(true)}>
                             <i className="fas fa-truck-loading mr-2"></i> Assign
                         </button>
-                    ) : equipment.status === "in-use" ? (
+                    ) : equipment.status === "in_use" ? (
                         <button className="btn btn-secondary btn-sm">
                             <i className="fas fa-undo mr-2"></i> Return
                         </button>
@@ -959,8 +966,8 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-base-content/70">Status:</span>
-                                    <span className={`badge ${statusOptions[equipment.status].color}`}>
-                                        {statusOptions[equipment.status].label}
+                                    <span className={`badge ${getStatusOption(equipment.status)?.color}`}>
+                                        {getStatusOption(equipment.status)?.label}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">

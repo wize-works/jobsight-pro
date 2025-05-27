@@ -2,9 +2,28 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import type { EquipmentStatus } from "@/types/equipment"
+
+type Equipment = {
+    id: string
+    name: string
+    type: string
+    make: string
+    model: string
+    year: number
+    serialNumber: string
+    status: EquipmentStatus
+    assignedTo: string | null
+    location: string
+    nextMaintenance: string
+    purchaseDate: string
+    purchasePrice: number
+    currentValue: number
+    image?: string
+}
 
 // Mock data for equipment
-const initialEquipment = [
+const initialEquipment: Equipment[] = [
     {
         id: "eq1",
         name: "Excavator #103",
@@ -13,7 +32,7 @@ const initialEquipment = [
         model: "336",
         year: 2020,
         serialNumber: "CAT336-2020-103",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Foundation Team",
         location: "Main Street Development",
         nextMaintenance: "2025-06-15",
@@ -47,7 +66,7 @@ const initialEquipment = [
         model: "SY204C-8",
         year: 2021,
         serialNumber: "SANY204C-2021-42",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Foundation Team",
         location: "Main Street Development",
         nextMaintenance: "2025-07-10",
@@ -81,7 +100,7 @@ const initialEquipment = [
         model: "EU7000is",
         year: 2023,
         serialNumber: "HONDA-EU7000-2023-56",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Electrical Team",
         location: "Downtown Project",
         nextMaintenance: "2025-08-05",
@@ -115,7 +134,7 @@ const initialEquipment = [
         model: "3CX",
         year: 2021,
         serialNumber: "JCB3CX-2021-64",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Framing Crew",
         location: "Riverside Apartments",
         nextMaintenance: "2025-07-15",
@@ -149,7 +168,7 @@ const initialEquipment = [
         model: "S650",
         year: 2022,
         serialNumber: "BOB-S650-2022-51",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Finishing Crew",
         location: "Johnson Residence",
         nextMaintenance: "2025-08-20",
@@ -200,7 +219,7 @@ const initialEquipment = [
         model: "600AJ",
         year: 2020,
         serialNumber: "JLG-600AJ-2020-45",
-        status: "in-use",
+        status: "in_use",
         assignedTo: "Electrical Team",
         location: "Downtown Project",
         nextMaintenance: "2025-07-30",
@@ -212,8 +231,8 @@ const initialEquipment = [
 ]
 
 // Status options with colors and labels
-const statusOptions = {
-    "in-use": { label: "In Use", color: "badge-primary" },
+const statusOptions: { [K in EquipmentStatus]: { label: string; color: string } } = {
+    in_use: { label: "In Use", color: "badge-primary" },
     available: { label: "Available", color: "badge-success" },
     maintenance: { label: "Maintenance", color: "badge-warning" },
     repair: { label: "Under Repair", color: "badge-error" },
@@ -221,12 +240,21 @@ const statusOptions = {
 }
 
 export default function EquipmentPage() {
-    const [equipment, setEquipment] = useState(initialEquipment)
+    const [equipment, setEquipment] = useState<typeof initialEquipment>(initialEquipment)
     const [searchTerm, setSearchTerm] = useState("")
     const [typeFilter, setTypeFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState("all")
     const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false)
-    const [newEquipment, setNewEquipment] = useState({
+    const [newEquipment, setNewEquipment] = useState<{
+        name: string
+        type: string
+        make: string
+        model: string
+        year: number
+        serialNumber: string
+        status: EquipmentStatus
+        purchasePrice: number
+    }>({
         name: "",
         type: "Heavy Equipment",
         make: "",
@@ -256,13 +284,13 @@ export default function EquipmentPage() {
         const item = {
             id: `eq${equipment.length + 1}`,
             ...newEquipment,
-            assignedTo: null,
+            assignedTo: null as string | null,
             location: "Equipment Yard",
             nextMaintenance: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0],
             purchaseDate: new Date().toISOString().split("T")[0],
             currentValue: newEquipment.purchasePrice,
             image: `/placeholder.svg?height=200&width=200&query=${encodeURIComponent(newEquipment.name)}`,
-        }
+        } satisfies typeof initialEquipment[0]
         setEquipment([...equipment, item])
         setNewEquipment({
             name: "",
@@ -479,10 +507,9 @@ export default function EquipmentPage() {
                                 <label className="label">
                                     <span className="label-text">Status</span>
                                 </label>
-                                <select
-                                    className="select select-bordered"
+                                <select className="select select-bordered"
                                     value={newEquipment.status}
-                                    onChange={(e) => setNewEquipment({ ...newEquipment, status: e.target.value })}
+                                    onChange={(e) => setNewEquipment({ ...newEquipment, status: e.target.value as EquipmentStatus })}
                                 >
                                     {Object.entries(statusOptions).map(([value, { label }]) => (
                                         <option key={value} value={value}>
