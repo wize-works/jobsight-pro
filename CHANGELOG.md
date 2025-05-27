@@ -1,3 +1,10 @@
+## [1.7.12](https://github.com/wize-works/jobsight-pro/compare/v1.7.11...v1.7.12) (2025-05-27)
+
+
+### Bug Fixes
+
+* remove unused generator metadata from layout.tsx for cleaner code ([103fd2b](https://github.com/wize-works/jobsight-pro/commit/103fd2bd4d7b0e33aec26bb6320cc7017c75ade4))
+
 ## [1.7.11](https://github.com/wize-works/jobsight-pro/compare/v1.7.10...v1.7.11) (2025-05-27)
 
 
