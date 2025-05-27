@@ -1,3 +1,10 @@
+## [1.10.9](https://github.com/wize-works/jobsight-pro/compare/v1.10.8...v1.10.9) (2025-05-27)
+
+
+### Bug Fixes
+
+* simplify Dockerfile by consolidating COPY commands and removing unnecessary lines ([c4050dc](https://github.com/wize-works/jobsight-pro/commit/c4050dc83ebd2df4757f78e496f196f0ab2cb904))
+
 ## [1.10.8](https://github.com/wize-works/jobsight-pro/compare/v1.10.7...v1.10.8) (2025-05-27)
 
 
