@@ -1,3 +1,10 @@
+## [1.10.14](https://github.com/wize-works/jobsight-pro/compare/v1.10.13...v1.10.14) (2025-05-27)
+
+
+### Bug Fixes
+
+* add button styles to login link and comment out unused links ([50290ce](https://github.com/wize-works/jobsight-pro/commit/50290cedd97735988ab343a35e792bb20a75ee02))
+
 ## [1.10.13](https://github.com/wize-works/jobsight-pro/compare/v1.10.12...v1.10.13) (2025-05-27)
 
 
