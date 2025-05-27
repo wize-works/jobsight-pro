@@ -1,3 +1,10 @@
+## [1.10.5](https://github.com/wize-works/jobsight-pro/compare/v1.10.4...v1.10.5) (2025-05-27)
+
+
+### Bug Fixes
+
+* correct path for copying static files in Dockerfile ([76221e4](https://github.com/wize-works/jobsight-pro/commit/76221e45354e917fb4a3c9a338aa6488a3d923ba))
+
 ## [1.10.4](https://github.com/wize-works/jobsight-pro/compare/v1.10.3...v1.10.4) (2025-05-27)
 
 
