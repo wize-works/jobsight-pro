@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/wize-works/jobsight-pro/compare/v1.5.0...v1.5.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* Correct formatting and structure of tsconfig.json for improved readability ([da178c9](https://github.com/wize-works/jobsight-pro/commit/da178c9e2a366ff48f2a4015b9b061a101df5002))
+
 # [1.5.0](https://github.com/wize-works/jobsight-pro/compare/v1.4.0...v1.5.0) (2025-05-27)
 
 
