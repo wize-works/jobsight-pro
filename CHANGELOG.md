@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/wize-works/jobsight-pro/compare/v1.4.0...v1.5.0) (2025-05-27)
+
+
+### Features
+
+* Add tsconfig.json to Dockerfile for TypeScript configuration during build ([73fe76b](https://github.com/wize-works/jobsight-pro/commit/73fe76bf4a379268ddabf982b2ba9f2d3282c042))
+
 # [1.4.0](https://github.com/wize-works/jobsight-pro/compare/v1.3.0...v1.4.0) (2025-05-27)
 
 
