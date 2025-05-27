@@ -2,39 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "../styles/light.theme.css";
-@import "../styles/dark.theme.css";
+@import "./styles/light.theme.css";
+@import "./styles/dark.theme.css";
 
 .container {
-  width: 100%;
+    width: 100%;
 }
 
 @container (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
+    .container {
+        max-width: 640px;
+    }
 }
 
 @container (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
+    .container {
+        max-width: 768px;
+    }
 }
 
 @container (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
+    .container {
+        max-width: 1024px;
+    }
 }
 
 @container (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
+    .container {
+        max-width: 1280px;
+    }
 }
 
 @container (min-width: 1536px) {
-  .container {
-    max-width: 1536px;
-  }
+    .container {
+        max-width: 1536px;
+    }
 }
