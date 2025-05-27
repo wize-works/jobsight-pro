@@ -3,6 +3,8 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
+RUN npm install -g pnpm
+
 # Accept non-sensitive build-time args
 ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
