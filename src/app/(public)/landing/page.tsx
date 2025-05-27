@@ -20,16 +20,16 @@ export default function Home() {
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
                     <div className="flex flex-col gap-3">
-                        <LoginLink>Sign In</LoginLink>
+                        <LoginLink className="btn btn-secondary btn-outline">Sign In</LoginLink>
                         <Link href="/register" className="btn btn-primary w-full">
                             Get Started
                         </Link>
-                        <Link href="/dashboard" className="btn btn-outline w-full">
+                        {/* <Link href="/dashboard" className="btn btn-outline w-full">
                             Go to Dashboard
-                        </Link>
-                        <Link href="/onboarding" className="btn btn-ghost w-full">
+                        </Link> */}
+                        {/* <Link href="/onboarding" className="btn btn-ghost w-full">
                             Register with Onboarding
-                        </Link>
+                        </Link> */}
                     </div>
                 </div>
             </section>
