@@ -25,8 +25,8 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:22-slim
 
-# Create a non-root user
-RUN addgroup -S app && adduser -S appuser -G app
+# Create a non-root user (Debian style)
+RUN addgroup app && adduser --disabled-password --gecos "" --ingroup app appuser
 USER appuser
 
 WORKDIR /app
