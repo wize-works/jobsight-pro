@@ -1,3 +1,10 @@
+## [1.10.4](https://github.com/wize-works/jobsight-pro/compare/v1.10.3...v1.10.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* correct typo in Dockerfile for static files path ([a5f178b](https://github.com/wize-works/jobsight-pro/commit/a5f178b91919773da5b035161b141a1fb41e0396))
+
 ## [1.10.3](https://github.com/wize-works/jobsight-pro/compare/v1.10.2...v1.10.3) (2025-05-27)
 
 
