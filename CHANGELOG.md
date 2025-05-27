@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/wize-works/jobsight-pro/compare/v1.10.1...v1.10.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* update PostCSS configuration to use object syntax for plugins ([3d790e0](https://github.com/wize-works/jobsight-pro/commit/3d790e0da5c4e12dfe611f6c3fc17363a560aaa3))
+
 ## [1.10.1](https://github.com/wize-works/jobsight-pro/compare/v1.10.0...v1.10.1) (2025-05-27)
 
 
