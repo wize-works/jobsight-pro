@@ -2,6 +2,7 @@ import { EquipmentWithDetails } from "@/types/equipment";
 import EditEquipment from "../../components/edit";
 import { getEquipmentById } from "@/app/actions/equipments";
 import Link from "next/link";
+import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 
 export default async function EditEquipmentPage({ params }: { params: { id: string } }) {
     const equipmentId = (await params).id;
@@ -14,7 +15,7 @@ export default async function EditEquipmentPage({ params }: { params: { id: stri
             </div>
         );
     }
-    console.log("Editing equipment:", equipment);
+    const equipmentSpecifications = await getEquipmentSpecificationsByEquipmentId(equipmentId);
 
     return (
         <div className="">
@@ -24,7 +25,7 @@ export default async function EditEquipmentPage({ params }: { params: { id: stri
                 </Link>
                 <h1 className="text-2xl font-bold mb-4">Edit Equipment</h1>
             </div>
-            <EditEquipment initialEquipment={equipment} />
+            <EditEquipment initialEquipment={equipment} initialSpecifications={equipmentSpecifications} />
         </div>
     );
 }

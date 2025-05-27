@@ -1,0 +1,180 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: jobsight-pro
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run semantic-release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Get released version from git tag
+        id: get_version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  docker-build-and-push:
+    name: Build and Push Docker Image
+    needs: release
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Load secrets from Doppler
+        uses: dopplerhq/cli-action@v2
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          project: jobsight
+          config: production
+          inject-env-vars: true
+
+      - name: Set VERSION from previous job
+        id: set_version
+        run: echo "version=${{ needs.release.outputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up Docker to use ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Docker Build and Tag
+        run: |
+          docker build --no-cache \
+            --build-arg NODE_ENV=${{ github.ref_name == 'main' && 'production' || 'development' }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --label org.opencontainers.image.version=${{ needs.release.outputs.version }} \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} .
+          docker tag ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Docker Push
+        run: |
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }}
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Save metadata artifact
+        run: echo "Version=${{ needs.release.outputs.version }}" > metadata.txt
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metadata
+          path: metadata.txt
+
+  aks-deploy:
+    name: Deploy to AKS
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+    permissions:
+        contents: write
+        deployments: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Load secrets from Doppler
+        uses: dopplerhq/cli-action@v2
+        with:
+            doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+            project: jobsight
+            config: production
+            inject-env-vars: true
+
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install kubelogin
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: v0.0.25
+        
+
+      - name: Set AKS Context with admin access
+        uses: azure/aks-set-context@v4
+        with:
+          cluster-name: ${{ secrets.AKS_CLUSTER }}
+          resource-group: ${{ secrets.AZURE_RG }}
+          admin: true
+
+      - name: Convert kubeconfig to use Azure CLI token
+        run: kubelogin convert-kubeconfig -l azurecli
+
+      - name: Create GitHub deployment
+        id: deployment
+        uses: bobheadxi/deployments@v1
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+
+      - name: Debug environment variables
+        run: |
+          echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.version }}"
+          echo "ACR_NAME=${{ secrets.ACR_NAME }}"
+
+      - name: Render deployment.yaml with secrets
+        run: |
+          echo "VERSION=${{ needs.docker-build-and-push.outputs.version }}" >> $GITHUB_ENV
+          envsubst < deployment/deployment.yaml > deployment/deployment.final.yaml
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-and-push.outputs.version }}
+          ACR_NAME: ${{ secrets.ACR_NAME }}
+
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f deployment/deployment.final.yaml
+          kubectl apply -f deployment/service.yaml
+          kubectl apply -f deployment/ingress.yaml
+          kubectl rollout status deployment/${{ env.IMAGE_NAME }} -n jobsight
+
+      - name: Mark deployment as successful
+        if: success()
+        uses: bobheadxi/deployments@v1
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: success
+          env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}

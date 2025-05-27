@@ -1,29 +1,16 @@
 import { redirect } from "next/navigation";
-import { useState } from "react";
 import ClientEditForm from "../components/edit";
 import { createClient } from "@/app/actions/clients";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import { v4 as uuidv4 } from "uuid";
+import { ClientInsert } from "@/types/clients";
 
 export default async function NewClientPage() {
-    const [error, setError] = useState<string | null>(null);
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
-    if (!businessId) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64">
-                <h2 className="text-xl mb-4">Business not found</h2>
-                <p>Please set up your business to access client details.</p>
-            </div>
-        );
-    }
+
 
     const handleCreate = async (formData: any) => {
         "use server";
-        setError(null);
         const clientData = {
             id: uuidv4(),
             name: formData.get("name"),
@@ -42,13 +29,14 @@ export default async function NewClientPage() {
             notes: formData.get("notes"),
             logo_url: formData.get("logoUrl"),
             status: formData.get("status"),
-        };
+        } as ClientInsert;
         try {
             // Assuming you have a function to create a new client
-            await createClient(clientData, businessId);
+            await createClient(clientData);
             redirect("/dashboard/clients");
         } catch (err: any) {
-            setError(err.message || "Failed to create client");
+            console.error("Error creating client:", err);
+            return { error: "Failed to create client. Please try again." };
         }
     };
 
@@ -75,7 +63,6 @@ export default async function NewClientPage() {
         <div className="container mx-auto py-8">
             <h1 className="text-2xl font-bold mb-6">Create New Client</h1>
             <ClientEditForm client={initialClient} onSubmit={handleCreate} />
-            {error && <div className="text-error mt-4">{error}</div>}
         </div>
     );
 }
