@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/wize-works/jobsight-pro/compare/v1.0.0...v1.1.0) (2025-05-27)
+
+
+### Features
+
+* Add Dockerfile for multi-stage build and runtime configuration ([9592357](https://github.com/wize-works/jobsight-pro/commit/959235744a96937b2d4c080095cc40f7416a17c2))
+
 # 1.0.0 (2025-05-27)
 
 
