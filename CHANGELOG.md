@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/wize-works/jobsight-pro/compare/v1.7.3...v1.7.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* update deployment configuration to enhance environment variable management and secure sensitive values ([23a7d42](https://github.com/wize-works/jobsight-pro/commit/23a7d423903d157e32b0e8dac341bb3912a10cde))
+
 ## [1.7.3](https://github.com/wize-works/jobsight-pro/compare/v1.7.2...v1.7.3) (2025-05-27)
 
 
