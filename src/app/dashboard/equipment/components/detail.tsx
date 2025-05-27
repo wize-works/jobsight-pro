@@ -198,18 +198,24 @@ export default function EquipmentDetail({
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="flex justify-start items-center">
+                                <div className="flex justify-start items-center mt-6">
                                     <div className="bg-base-200 p-4 rounded-lg mt-4 mr-4">
                                         <Suspense fallback={<div>Loading QR Code...</div>}>
                                             <QRCode width={150}
-                                                text={`${window.location.origin}/dashboard/equipment/${equipment.id}`}
+                                                text={`https://pro.jobsight.co/dashboard/equipment/${equipment.id}`}
                                             />
                                         </Suspense>
                                     </div>
                                     <div className="flex flex-col justify-center items-start">
                                         <span>Scan the QR code to view equipment details on your mobile device.</span>
-                                        <Link href={`/printables/equipment/${equipment.id}`} className="btn btn-outline mt-2">
+                                        <span className="text-sm text-gray-500 mt-1">You can print the equipment details for your records.</span>
+                                        <Link href={`/printables/equipment/${equipment.id}`} className="btn btn-outline btn-primary mt-2">
                                             <i className="fas fa-print"></i> Print Details
+                                        </Link>
+                                        <span className="divider my-2">Or</span>
+                                        <span className="text-sm text-gray-500 mt-1">You can also print the QR code to attach to the equipment.</span>
+                                        <Link href={`/printables/equipment/${equipment.id}/qr`} className="btn btn-outline btn-sm btn-primary mt-2">
+                                            <i className="fas fa-qrcode"></i> Print QR Code
                                         </Link>
                                     </div>
                                 </div>
@@ -292,7 +298,7 @@ export default function EquipmentDetail({
                                     <h3 className="font-bold mb-2">Cost Breakdown</h3>
                                     <ul>
                                         <li>Maintenance Costs: {maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) ? `$${maintenances.reduce((acc, m) => acc + (m.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
-                                        <li>Usage Costs: {usages.reduce((acc, u) => acc + (u.cost || 0), 0) ? `$${usages.reduce((acc, u) => acc + (u.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
+                                        <li>Usage Costs: {usages.reduce((acc, u: EquipmentUsage) => acc + (u.cost || 0), 0) ? `$${usages.reduce((acc, u) => acc + (u.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
                                         <li>Total Cost: {equipment.purchase_price && equipment.current_value
                                             ? `$${(equipment.purchase_price - equipment.current_value + maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) + usages.reduce((acc, u) => acc + (u.cost || 0), 0)).toLocaleString()}`
                                             : "Not set"}</li>

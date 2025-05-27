@@ -44,7 +44,7 @@ export default async function EquipmentPrintPage({ params }: { params: { id: str
                 <div className="flex flex-row justify-between mb-4 w-full">
                     <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-48 h-48 object-cover mb-4" />
                     <div>
-                        <QRCode text={`https://jobsight.co/dashboard/equipment/${equipment.id}`} width={200} />
+                        <QRCode text={`https://pro.jobsight.co/dashboard/equipment/${equipment.id}`} width={200} />
                         <div className="text-sm text-center mt-2">Scan for details</div>
                         <div className="text-sm text-center text-primary">jobsight.co</div>
                     </div>
