@@ -1,3 +1,10 @@
+## [1.7.11](https://github.com/wize-works/jobsight-pro/compare/v1.7.10...v1.7.11) (2025-05-27)
+
+
+### Bug Fixes
+
+* update project name in package.json and package-lock.json for consistency; add KINDE_CLIENT_SECRET to Dockerfile for improved configuration ([47b6769](https://github.com/wize-works/jobsight-pro/commit/47b6769aa4c927782b4ca862b40a00463a25b579))
+
 ## [1.7.10](https://github.com/wize-works/jobsight-pro/compare/v1.7.9...v1.7.10) (2025-05-27)
 
 
