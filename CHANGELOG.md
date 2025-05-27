@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/wize-works/jobsight-pro/compare/v1.8.1...v1.9.0) (2025-05-27)
+
+
+### Features
+
+* refactor business context and remove deprecated files ([14271f7](https://github.com/wize-works/jobsight-pro/commit/14271f7d4d9b90d987b2e95aeb949a286dd974a2))
+
 ## [1.8.1](https://github.com/wize-works/jobsight-pro/compare/v1.8.0...v1.8.1) (2025-05-27)
 
 
