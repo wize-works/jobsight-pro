@@ -79,6 +79,18 @@ jobs:
         run: |
           docker build --no-cache \
             --build-arg NODE_ENV=${{ github.ref_name == 'main' && 'production' || 'development' }} \
+            --build-arg KINDE_CLIENT_ID=${{ secrets.KINDE_CLIENT_ID }} \
+            --build-arg KINDE_CLIENT_SECRET=${{ secrets.KINDE_CLIENT_SECRET }} \
+            --build-arg KINDE_ISSUER_URL=${{ secrets.KINDE_ISSUER_URL }} \
+            --build-arg KINDE_DOMAIN=${{ secrets.KINDE_DOMAIN }} \
+            --build-arg KINDE_SITE_URL=${{ secrets.KINDE_SITE_URL }} \
+            --build-arg KINDE_LOGOUT_REDIRECT_URI=${{ secrets.KINDE_LOGOUT_REDIRECT_URI }} \
+            --build-arg KINDE_POST_LOGOUT_REDIRECT_URL=${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }} \
+            --build-arg KIDNE_REDIRECT_URI=${{ secrets.KIDNE_REDIRECT_URI }} \
+            --build-arg KINDE_POST_LOGIN_REDIRECT_URL=${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }} \
+            --build-arg OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} \
+            --build-arg SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --build-arg SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.version=${{ needs.release.outputs.version }} \
             -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} .
