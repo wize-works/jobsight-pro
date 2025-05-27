@@ -1,3 +1,10 @@
+## [1.7.8](https://github.com/wize-works/jobsight-pro/compare/v1.7.7...v1.7.8) (2025-05-27)
+
+
+### Bug Fixes
+
+* add KINDE_ISSUER_URL argument and environment variable to Dockerfile for improved configuration ([1156e74](https://github.com/wize-works/jobsight-pro/commit/1156e741a6ed4b2ccf81085cd6121d55fb75d94f))
+
 ## [1.7.7](https://github.com/wize-works/jobsight-pro/compare/v1.7.6...v1.7.7) (2025-05-27)
 
 
