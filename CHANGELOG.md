@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/wize-works/jobsight-pro/compare/v1.5.3...v1.6.0) (2025-05-27)
+
+
+### Features
+
+* add TypeScript types for task notes, dependencies, and tasks ([d72e18b](https://github.com/wize-works/jobsight-pro/commit/d72e18b6744a9ab3a89a955e43e405c0c77b32f5))
+
 ## [1.5.3](https://github.com/wize-works/jobsight-pro/compare/v1.5.2...v1.5.3) (2025-05-27)
 
 
