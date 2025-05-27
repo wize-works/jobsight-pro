@@ -1,3 +1,10 @@
+## [1.10.7](https://github.com/wize-works/jobsight-pro/compare/v1.10.6...v1.10.7) (2025-05-27)
+
+
+### Bug Fixes
+
+* update PostCSS configuration and include next.config.js in TypeScript compilation ([bd7c358](https://github.com/wize-works/jobsight-pro/commit/bd7c3581e7330acd05de8f1fff8e056e91102a15))
+
 ## [1.10.6](https://github.com/wize-works/jobsight-pro/compare/v1.10.5...v1.10.6) (2025-05-27)
 
 
