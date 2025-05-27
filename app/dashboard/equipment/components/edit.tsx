@@ -4,8 +4,7 @@ import type { EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
 import { updateEquipment } from "@/app/actions/equipments";
-import { createEquipment } from "@/lib/equipment";
-import { createEquipmentSpecification } from "@/app/actions/equipment-specifications";
+import { createEquipmentSpecification, updateEquipmentSpecification } from "@/app/actions/equipment-specifications";
 
 // Use only the fields needed for the form UI
 interface SpecFormState {
@@ -13,12 +12,11 @@ interface SpecFormState {
     value: string;
 }
 
-export default function EditEquipment({ initialEquipment }: { initialEquipment: EquipmentWithDetails }) {
-    console.log("Editing equipment:", initialEquipment);
+export default function EditEquipment({ initialEquipment, initialSpecifications }: { initialEquipment: EquipmentWithDetails, initialSpecifications: EquipmentSpecification[] }) {
     const [equipment, setEquipment] = useState<Partial<EquipmentWithDetails>>(initialEquipment);
-
-    const [specifications, setSpecifications] = useState<SpecFormState[]>([]);
+    const [specifications, setSpecifications] = useState<EquipmentSpecification[]>(initialSpecifications);
     const router = useRouter();
+    console.log('specifications', initialSpecifications);
 
     const handleEquipmentChange = (e: { target: { name: any; value: any; }; }) => {
         const { name, value } = e.target;
@@ -53,182 +51,205 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card bg-base-100 shadow-lg col-span-2">
+            <div className="card bg-base-100 shadow-lg md:col-span-2">
                 <div className="card-body">
-                    <h2 className="text-xl font-bold mb-4">Edit Equipment</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="form-control">
-                            <label className="label">Name</label>
-                            <input
-                                className="input input-bordered"
-                                name="name"
-                                value={equipment.name || ""}
-                                onChange={handleEquipmentChange}
-                                required
-                            />
+                    <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
+                        <div className="flex justify-end gap-4">
+                            <button type="submit" className="btn btn-primary">
+                                Save Changes
+                            </button>
                         </div>
-                        <div className="form-control">
-                            <label className="label">Serial Number</label>
-                            <input
-                                className="input input-bordered"
-                                name="serial_number"
-                                value={equipment.serial_number || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Purchase Date</label>
-                            <input
-                                className="input input-bordered w-full"
-                                type="date"
-                                name="purchase_date"
-                                value={equipment.purchase_date || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Purchase Price</label>
-                            <input
-                                className="input input-bordered w-full"
-                                type="number"
-                                name="purchase_price"
-                                value={equipment.purchase_price ?? ""}
-                                onChange={handleEquipmentChange}
-                                min={0}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Current Value</label>
-                            <input
-                                className="input input-bordered w-full"
-                                type="number"
-                                name="current_value"
-                                value={equipment.current_value ?? ""}
-                                onChange={handleEquipmentChange}
-                                min={0}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Status</label>
-                            <select
-                                className="select select-bordered w-full"
-                                name="status"
-                                value={equipment.status || "available"}
-                                onChange={handleEquipmentChange}
-                            >
-                                <option value="available">Available</option>
-                                <option value="in_use">In Use</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="repair">Repair</option>
-                                <option value="retired">Retired</option>
-                            </select>
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Type</label>
-                            <select
-                                className="select select-bordered w-full"
-                                name="type"
-                                value={equipment.type || "other"}
-                                onChange={handleEquipmentChange}
-                            >
-                                <option value="small-equipment">Small Equipment</option>
-                                <option value="medium-equipment">Medium Equipment</option>
-                                <option value="heavy-equipment">Heavy Equipment</option>
-                                <option value="power-tool">Power Tool</option>
-                                <option value="tool">Tool</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Make</label>
-                            <input
-                                className="input input-bordered w-full"
-                                name="make"
-                                value={equipment.make || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Model</label>
-                            <input
-                                className="input input-bordered w-full"
-                                name="model"
-                                value={equipment.model || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Year</label>
-                            <input
-                                className="input input-bordered w-full"
-                                type="number"
-                                name="year"
-                                value={equipment.year || ""}
-                                onChange={handleEquipmentChange}
-                                min={1900}
-                                max={new Date().getFullYear()}
-                            />
-                        </div>
-                        <div className="form-control col-span-2">
-                            <label className="label">Description</label>
-                            <textarea
-                                className="textarea textarea-bordered w-full"
-                                name="description"
-                                value={equipment.description || ""}
-                                onChange={handleEquipmentChange}
-                                rows={3}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Next Maintenance</label>
-                            <input
-                                className="input input-bordered w-full"
-                                type="date"
-                                name="next_maintenance"
-                                value={equipment.next_maintenance || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">Image URL</label>
-                            <input
-                                className="input input-bordered w-full"
-                                name="image_url"
-                                value={equipment.image_url || ""}
-                                onChange={handleEquipmentChange}
-                            />
-                        </div>
-                        <div className="form-control">
-                            <label className="label mb-2">Location</label>
-                            <div className="join w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control">
+                                        <label className="label">Name</label>
+                                        <input
+                                            className="input input-bordered"
+                                            name="name"
+                                            value={equipment.name || ""}
+                                            onChange={handleEquipmentChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Type</label>
+                                        <select
+                                            className="select select-bordered w-full"
+                                            name="type"
+                                            value={equipment.type || "other"}
+                                            onChange={handleEquipmentChange}
+                                        >
+                                            <option value="small-equipment">Small Equipment</option>
+                                            <option value="medium-equipment">Medium Equipment</option>
+                                            <option value="heavy-equipment">Heavy Equipment</option>
+                                            <option value="power-tool">Power Tool</option>
+                                            <option value="tool">Tool</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="divider my-6">
+                                    <h2 className="font-bold text-lg">
+                                        Equipment Details
+                                    </h2>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control">
+                                        <label className="label">Serial Number</label>
+                                        <input
+                                            className="input input-bordered"
+                                            name="serial_number"
+                                            value={equipment.serial_number || ""}
+                                            onChange={handleEquipmentChange}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Make</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            name="make"
+                                            value={equipment.make || ""}
+                                            onChange={handleEquipmentChange}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Model</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            name="model"
+                                            value={equipment.model || ""}
+                                            onChange={handleEquipmentChange}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Year</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            type="number"
+                                            name="year"
+                                            value={equipment.year || ""}
+                                            onChange={handleEquipmentChange}
+                                            min={1900}
+                                            max={new Date().getFullYear()}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-span-2">
+                                <div className="divider my-6">
+                                    <h3 className="font-bold text-lg">
+                                        Financial Details
+                                    </h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control">
+                                        <label className="label">Purchase Date</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            type="date"
+                                            name="purchase_date"
+                                            value={equipment.purchase_date || ""}
+                                            onChange={handleEquipmentChange}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Purchase Price</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            type="number"
+                                            name="purchase_price"
+                                            value={equipment.purchase_price ?? ""}
+                                            onChange={handleEquipmentChange}
+                                            min={0}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Current Value</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            type="number"
+                                            name="current_value"
+                                            value={equipment.current_value ?? ""}
+                                            onChange={handleEquipmentChange}
+                                            min={0}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label mb-2">Location</label>
+                                        <div className="join w-full">
+                                            <input
+                                                className="input input-bordered w-full join-item mt-0"
+                                                name="location"
+                                                value={equipment.location || ""}
+                                                onChange={handleEquipmentChange}
+                                            />
+                                            <button className="btn btn-secondary join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
+                                                const { latitude, longitude } = position.coords;
+                                                setEquipment((prev) => ({
+                                                    ...prev,
+                                                    location: `Lat: ${latitude}, Lon: ${longitude}`,
+                                                }));
+                                            })}>
+                                                <i className="fas fa-map-marker-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-span-2">
+                                <div className="divider my-6">
+                                    <h3 className="font-bold text-lg">
+                                        Status Details
+                                    </h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control">
+                                        <label className="label">Status</label>
+                                        <select
+                                            className="select select-bordered w-full"
+                                            name="status"
+                                            value={equipment.status || "available"}
+                                            onChange={handleEquipmentChange}
+                                        >
+                                            <option value="available">Available</option>
+                                            <option value="in_use">In Use</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="repair">Repair</option>
+                                            <option value="retired">Retired</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">Next Maintenance</label>
+                                        <input
+                                            className="input input-bordered w-full"
+                                            type="date"
+                                            name="next_maintenance"
+                                            value={equipment.next_maintenance || ""}
+                                            onChange={handleEquipmentChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-control">
+                                <label className="label">Image URL</label>
                                 <input
-                                    className="input input-bordered w-full join-item mt-0"
-                                    name="location"
-                                    value={equipment.location || ""}
+                                    className="input input-bordered w-full"
+                                    name="image_url"
+                                    value={equipment.image_url || ""}
                                     onChange={handleEquipmentChange}
                                 />
-                                <button className="btn btn-primary join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
-                                    const { latitude, longitude } = position.coords;
-                                    setEquipment((prev) => ({
-                                        ...prev,
-                                        location: `Lat: ${latitude}, Lon: ${longitude}`,
-                                    }));
-                                })}>
-                                    <i className="fas fa-map-marker-alt"></i>
-                                </button>
                             </div>
-                        </div>
-                        <div className="mt-8 flex justify-end gap-4">
-                            <button type="submit" className="btn btn-primary">
-                                Save
-                            </button>
-                            <button
-                                type="button"
-                                className="btn"
-                                onClick={() => router.back()}
-                            >
-                                Cancel
-                            </button>
+                            <div className="form-control col-span-2">
+                                <label className="label">Description</label>
+                                <textarea
+                                    className="textarea textarea-bordered w-full"
+                                    name="description"
+                                    value={equipment.description || ""}
+                                    onChange={handleEquipmentChange}
+                                    rows={3}
+                                />
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -253,7 +274,8 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
                             <div className="flex flex-col gap-2">
                                 {specifications.map((spec, idx) => (
                                     <div key={idx} className="flex gap-2 items-center">
-                                        <form className="flex flex-row gap-2 items-center w-full" onSubmit={(e) => e.preventDefault()}>
+                                        <form className="flex flex-row gap-2 items-center w-full">
+                                            {spec.id}
                                             <input
                                                 className="input input-bordered"
                                                 placeholder="Name"
@@ -263,19 +285,22 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
                                             <input
                                                 className="input input-bordered"
                                                 placeholder="Value"
-                                                value={spec.value}
+                                                value={spec.value || ""}
                                                 onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
                                             />
                                             <button
                                                 type="button"
-                                                className="btn btn-sm btn-secondary"
-                                                onClick={() => {
-                                                    handleSpecChange(idx, "value", spec.value);
-                                                    createEquipmentSpecification({
-                                                        equipment_id: equipment.id,
-                                                        name: spec.name,
-                                                        value: spec.value,
-                                                    })
+                                                className="btn btn-sm btn-outline btn-secondary"
+                                                onClick={async () => {
+                                                    if (!spec.id) {
+                                                        await createEquipmentSpecification({
+                                                            equipment_id: equipment.id,
+                                                            name: spec.name,
+                                                            value: spec.value,
+                                                        });
+                                                    } else {
+                                                        await updateEquipmentSpecification(spec.id, { ...spec, name: spec.name, value: spec.value });
+                                                    }
                                                 }}
                                                 title="Update"
                                             >
@@ -284,7 +309,7 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
                                         </form>
                                         <button
                                             type="button"
-                                            className="btn btn-sm btn-error"
+                                            className="btn btn-sm btn-outline btn-error"
                                             onClick={() => removeSpecification(idx)}
                                             title="Remove"
                                         >

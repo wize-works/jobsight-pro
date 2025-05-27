@@ -66,6 +66,11 @@ export const createEquipmentSpecification = async (spec: EquipmentSpecificationI
         return null;
     }
 
+    spec.created_at = new Date().toISOString();
+    spec.created_by = user?.id || "";
+    spec.updated_at = new Date().toISOString();
+    spec.updated_by = user?.id || "";
+
     const { data, error } = await insertWithBusiness("equipment_specifications", spec, businessId);
 
     if (error) {
@@ -87,6 +92,9 @@ export const updateEquipmentSpecification = async (id: string, spec: EquipmentSp
         return null;
     }
 
+    spec.updated_at = new Date().toISOString();
+    spec.updated_by = user?.id || "";
+    console.log("updated spec", spec);
     const { data, error } = await updateWithBusinessCheck("equipment_specifications", id, spec, businessId);
 
     if (error) {

@@ -8,8 +8,9 @@ import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useState } from "react";
 import Link from "next/link";
 import { Media } from "@/types/media";
-import { EquipmentMaintenanceModal } from "@/components/EquipmentMaintenanceModal";
 import { MaintenanceModal } from "./maintenance-modal";
+import QRCode from "@/components/qrcode";
+import { Suspense } from "react";
 
 const statusOptions = {
     in_use: { label: "In Use", color: "badge-primary" },
@@ -186,11 +187,31 @@ export default function EquipmentDetail({
                                 <div className="mb-2">Description: {equipment.description}</div>
                                 <div>
                                     <h3 className="font-bold mb-2">Specifications</h3>
-                                    <ul>
-                                        {specifications.map((s) => (
-                                            <li key={s.id}>{s.name}: {s.value}</li>
-                                        ))}
-                                    </ul>
+                                    <table className="table table-zebra w-full">
+                                        <tbody>
+                                            {specifications.map((spec) => (
+                                                <tr key={spec.id}>
+                                                    <td>{spec.name}</td>
+                                                    <td>{spec.value}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="flex justify-start items-center">
+                                    <div className="bg-base-200 p-4 rounded-lg mt-4 mr-4">
+                                        <Suspense fallback={<div>Loading QR Code...</div>}>
+                                            <QRCode width={150}
+                                                text={`${window.location.origin}/dashboard/equipment/${equipment.id}`}
+                                            />
+                                        </Suspense>
+                                    </div>
+                                    <div className="flex flex-col justify-center items-start">
+                                        <span>Scan the QR code to view equipment details on your mobile device.</span>
+                                        <Link href={`/printables/equipment/${equipment.id}`} className="btn btn-outline mt-2">
+                                            <i className="fas fa-print"></i> Print Details
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -282,6 +303,6 @@ export default function EquipmentDetail({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
