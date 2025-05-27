@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/wize-works/jobsight-pro/compare/v1.7.1...v1.7.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* update Dockerfile for improved build process and streamline environment variable handling ([e9a003f](https://github.com/wize-works/jobsight-pro/commit/e9a003f139ddfaa11750cf7ed80ffe1d869e7c9e))
+
 ## [1.7.1](https://github.com/wize-works/jobsight-pro/compare/v1.7.0...v1.7.1) (2025-05-27)
 
 
