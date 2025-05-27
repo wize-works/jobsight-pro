@@ -37,11 +37,18 @@ ENV NODE_ENV=$NODE_ENV
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copy source and config files
+# Copy source files
 COPY . .
 
-# Build the app
-RUN npm run build
+# Set environment variables with defaults for build time
+ENV NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+ENV NEXT_PUBLIC_KINDE_CLIENT_ID=${KINDE_CLIENT_ID}
+ENV NEXT_PUBLIC_KINDE_DOMAIN=${KINDE_DOMAIN}
+ENV NEXT_PUBLIC_KINDE_SITE_URL=${KINDE_SITE_URL}
+
+# Build the app with production environment
+RUN NODE_ENV=production npm run build
 
 # Stage 2: Runtime
 FROM node:22-alpine
@@ -55,7 +62,8 @@ WORKDIR /app
 # OpenContainers-compliant labels
 LABEL org.opencontainers.image.source="https://github.com/wize-works/jobsight-pro"
 LABEL org.opencontainers.image.documentation="https://github.com/wize-works/jobsight-pro"
-LABEL org.opencontainers.image.revision=$GITHUB_SHA
+ARG GITHUB_SHA
+LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 
 # Copy production files from builder
 COPY --from=builder /app/package.json ./
@@ -63,7 +71,22 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-# Runtime environment variables will be passed by Kubernetes at runtime — no need to hardcode here.
+# Runtime environment variables
+ENV NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+ENV NEXT_PUBLIC_KINDE_CLIENT_ID=${KINDE_CLIENT_ID}
+ENV NEXT_PUBLIC_KINDE_DOMAIN=${KINDE_DOMAIN}
+ENV NEXT_PUBLIC_KINDE_SITE_URL=${KINDE_SITE_URL}
+ENV KINDE_CLIENT_SECRET=${KINDE_CLIENT_SECRET}
+ENV KINDE_ISSUER_URL=${KINDE_ISSUER_URL}
+ENV KINDE_REDIRECT_URI=${KINDE_REDIRECT_URI}
+ENV KINDE_POST_LOGIN_REDIRECT_URL=${KINDE_POST_LOGIN_REDIRECT_URL}
+ENV KINDE_POST_LOGOUT_REDIRECT_URL=${KINDE_POST_LOGOUT_REDIRECT_URL}
+ENV KINDE_LOGOUT_REDIRECT_URI=${KINDE_LOGOUT_REDIRECT_URI}
+ENV OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+ENV SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+ENV NODE_ENV=production
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:3000/health || exit 1
