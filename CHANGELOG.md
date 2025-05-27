@@ -1,3 +1,10 @@
+## [1.7.5](https://github.com/wize-works/jobsight-pro/compare/v1.7.4...v1.7.5) (2025-05-27)
+
+
+### Bug Fixes
+
+* format next.config.mjs for improved readability and consistency ([837d2e0](https://github.com/wize-works/jobsight-pro/commit/837d2e004a438e234e834c75df6497a0be84f6fc))
+
 ## [1.7.4](https://github.com/wize-works/jobsight-pro/compare/v1.7.3...v1.7.4) (2025-05-27)
 
 
