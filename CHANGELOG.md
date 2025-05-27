@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/wize-works/jobsight-pro/compare/v1.9.1...v1.10.0) (2025-05-27)
+
+
+### Features
+
+* add initial Tailwind CSS configuration file ([989ae9e](https://github.com/wize-works/jobsight-pro/commit/989ae9e072ce0953189d1e9179b5240080f9f1ac))
+
 ## [1.9.1](https://github.com/wize-works/jobsight-pro/compare/v1.9.0...v1.9.1) (2025-05-27)
 
 
