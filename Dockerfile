@@ -37,8 +37,9 @@ ENV NODE_ENV=$NODE_ENV
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copy source and build
-COPY tsconfig.json ./ 
+# Copy source and config files
+COPY tsconfig.json ./
+COPY next.config.js ./
 COPY app/ ./app/
 COPY components/ ./components/
 COPY hooks/ ./hooks/
@@ -46,6 +47,8 @@ COPY lib/ ./lib/
 COPY styles/ ./styles/
 COPY types/ ./types/
 COPY utils/ ./utils/
+
+# Build the app
 RUN npm run build
 
 # Stage 2: Runtime
