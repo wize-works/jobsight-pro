@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/wize-works/jobsight-pro/compare/v1.10.0...v1.10.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* update import path for globals.css in layout.tsx ([3b22c97](https://github.com/wize-works/jobsight-pro/commit/3b22c97b6667f0571e801f733c8d7a6d62199651))
+
 # [1.10.0](https://github.com/wize-works/jobsight-pro/compare/v1.9.1...v1.10.0) (2025-05-27)
 
 
