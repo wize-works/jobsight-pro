@@ -1,3 +1,10 @@
+## [1.10.6](https://github.com/wize-works/jobsight-pro/compare/v1.10.5...v1.10.6) (2025-05-27)
+
+
+### Bug Fixes
+
+* update CMD in Dockerfile to use npx for starting the application ([dcf9f7b](https://github.com/wize-works/jobsight-pro/commit/dcf9f7bfd8d0b1d6012ecbea6f6eab93b5e53726))
+
 ## [1.10.5](https://github.com/wize-works/jobsight-pro/compare/v1.10.4...v1.10.5) (2025-05-27)
 
 
