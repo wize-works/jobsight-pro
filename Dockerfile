@@ -38,6 +38,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy source and build
+COPY tsconfig.json ./ 
 COPY app/ ./app/
 COPY components/ ./components/
 COPY hooks/ ./hooks/
