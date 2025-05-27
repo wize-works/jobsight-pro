@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/wize-works/jobsight-pro/compare/v1.7.12...v1.8.0) (2025-05-27)
+
+
+### Features
+
+* update dependencies and configuration for Tailwind CSS and DaisyUI ([3fef5ca](https://github.com/wize-works/jobsight-pro/commit/3fef5ca34a847a2ab325d99d2dba02011568b36a))
+
 ## [1.7.12](https://github.com/wize-works/jobsight-pro/compare/v1.7.11...v1.7.12) (2025-05-27)
 
 
