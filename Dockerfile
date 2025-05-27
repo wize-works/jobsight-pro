@@ -38,7 +38,13 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy source and build
-COPY . .
+COPY app/ ./app/
+COPY components/ ./components/
+COPY hooks/ ./hooks/
+COPY lib/ ./lib/
+COPY styles/ ./styles/
+COPY types/ ./types/
+COPY utils/ ./utils/
 RUN npm run build
 
 # Stage 2: Runtime
