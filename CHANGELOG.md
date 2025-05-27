@@ -1,3 +1,10 @@
+## [1.7.10](https://github.com/wize-works/jobsight-pro/compare/v1.7.9...v1.7.10) (2025-05-27)
+
+
+### Bug Fixes
+
+* add KINDE_CLIENT_ID argument and environment variable to Dockerfile for improved configuration ([4597619](https://github.com/wize-works/jobsight-pro/commit/4597619391db33e2e42ee3e3a3f77d72d92b4965))
+
 ## [1.7.9](https://github.com/wize-works/jobsight-pro/compare/v1.7.8...v1.7.9) (2025-05-27)
 
 
