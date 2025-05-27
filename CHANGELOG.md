@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/wize-works/jobsight-pro/compare/v1.8.0...v1.8.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* update next.config file extension from mjs to ts for consistency ([66c5182](https://github.com/wize-works/jobsight-pro/commit/66c5182e8b8a3930c3a9e4dc6b5c5076907f1b40))
+
 # [1.8.0](https://github.com/wize-works/jobsight-pro/compare/v1.7.12...v1.8.0) (2025-05-27)
 
 
