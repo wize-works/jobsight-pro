@@ -38,17 +38,12 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy source files
+FROM node:22-alpine AS source
+WORKDIR /app
+COPY --from=deps /app ./
+COPY src ./src
 COPY . .
-
-# Set environment variables with defaults for build time
-ENV NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-ENV NEXT_PUBLIC_KINDE_CLIENT_ID=${KINDE_CLIENT_ID}
-ENV NEXT_PUBLIC_KINDE_DOMAIN=${KINDE_DOMAIN}
-ENV NEXT_PUBLIC_KINDE_SITE_URL=${KINDE_SITE_URL}
-
-# Build the app with production environment
-RUN NODE_ENV=production npm run build
+RUN npm run build
 
 # Stage 2: Runtime
 FROM node:22-alpine
@@ -66,17 +61,14 @@ ARG GITHUB_SHA
 LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 
 # Copy production files from builder
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+COPY --from=builder /app ./
 
 # Runtime environment variables
-ENV NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-ENV NEXT_PUBLIC_KINDE_CLIENT_ID=${KINDE_CLIENT_ID}
-ENV NEXT_PUBLIC_KINDE_DOMAIN=${KINDE_DOMAIN}
-ENV NEXT_PUBLIC_KINDE_SITE_URL=${KINDE_SITE_URL}
+ENV SUPABASE_URL=${SUPABASE_URL}
+ENV SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+ENV KINDE_CLIENT_ID=${KINDE_CLIENT_ID}
+ENV KINDE_DOMAIN=${KINDE_DOMAIN}
+ENV KINDE_SITE_URL=${KINDE_SITE_URL}
 ENV KINDE_CLIENT_SECRET=${KINDE_CLIENT_SECRET}
 ENV KINDE_ISSUER_URL=${KINDE_ISSUER_URL}
 ENV KINDE_REDIRECT_URI=${KINDE_REDIRECT_URI}
