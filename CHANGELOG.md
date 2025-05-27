@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/wize-works/jobsight-pro/compare/v1.9.0...v1.9.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* update Dockerfile to copy next.config.js instead of next.config.ts ([16bcd82](https://github.com/wize-works/jobsight-pro/commit/16bcd8206ad396cd04f85ff98f777e75f29b6550))
+
 # [1.9.0](https://github.com/wize-works/jobsight-pro/compare/v1.8.1...v1.9.0) (2025-05-27)
 
 
