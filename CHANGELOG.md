@@ -1,3 +1,10 @@
+## [1.7.7](https://github.com/wize-works/jobsight-pro/compare/v1.7.6...v1.7.7) (2025-05-27)
+
+
+### Bug Fixes
+
+* add dynamic export to route.ts for improved handling of dynamic routes ([24cb2a2](https://github.com/wize-works/jobsight-pro/commit/24cb2a2c1f80dda0c40b32e2439fdfe9786bf59f))
+
 ## [1.7.6](https://github.com/wize-works/jobsight-pro/compare/v1.7.5...v1.7.6) (2025-05-27)
 
 
