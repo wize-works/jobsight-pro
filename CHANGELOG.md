@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/wize-works/jobsight-pro/compare/v1.3.0...v1.4.0) (2025-05-27)
+
+
+### Features
+
+* Add .dockerignore file to exclude unnecessary files from Docker context ([8ad08ad](https://github.com/wize-works/jobsight-pro/commit/8ad08ada56126a325685e52febe3c36fd2a2db13))
+
 # [1.3.0](https://github.com/wize-works/jobsight-pro/compare/v1.2.0...v1.3.0) (2025-05-27)
 
 
