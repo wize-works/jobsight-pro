@@ -10,7 +10,7 @@ import type { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import Link from "next/link";
 
-export default async function CrewPage({ params }: { params: { id: string } }) {
+export default async function CrewPage({ params }: { params: Promise<{ id: string }> }) {
     const crewId = (await params).id;
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();

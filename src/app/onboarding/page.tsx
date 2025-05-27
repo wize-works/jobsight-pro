@@ -4,7 +4,8 @@ import type React from "react"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LoginLink, useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import { createBusiness } from "./actions";
 import { toast } from "@/hooks/use-toast";

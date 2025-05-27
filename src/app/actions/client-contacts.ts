@@ -3,7 +3,7 @@
 import type { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { getUserBusiness } from "@/lib/business";
+import { getUserBusiness } from "@/app/actions/business";
 
 // Get all client contacts for the current business
 export const getClientContacts = async (): Promise<ClientContact[]> => {

@@ -106,10 +106,9 @@ const mockProjects = [
     { id: "proj4", name: "Johnson Residence", clientId: "client7" },
 ]
 
-export default function EditInvoicePage() {
-    const params = useParams()
+export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
-    const invoiceId = params.id as string
+    const { id: invoiceId } = await params;
 
     // State for form fields
     const [client, setClient] = useState(mockInvoice.clientId)

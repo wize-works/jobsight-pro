@@ -1,13 +1,24 @@
 import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
-import type { NextRequest, NextFetchEvent, NextMiddleware } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 
 export default withAuth(
-    async function middleware(req: NextRequest, ev: NextFetchEvent) {
+    async function middleware(req: NextRequest) {
+        // Kinde Auth attaches the user to req.auth if authenticated
+        const isLoggedIn = (req as any).auth?.userId;
 
+        if (!isLoggedIn) {
+            const url = req.nextUrl.clone();
+            url.pathname = "/";
+            return NextResponse.redirect(url);
+        }
+
+        // Proceed normally if authenticated
+        return NextResponse.next();
     },
     {
-        publicPaths: ["/landing", "/pricing", "/register", "/api"],
+        publicPaths: ["/public", "/landing", "/pricing", "/register", "/api"],
     }
 );
 

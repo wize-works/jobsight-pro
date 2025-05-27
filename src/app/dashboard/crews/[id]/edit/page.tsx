@@ -7,8 +7,8 @@ import CrewEditForm from "../../components/edit";
 import { Crew, CrewUpdate } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
 
-export default async function EditCrewPage({ params }: { params: { id: string } }) {
-    const crewId = (await params).id;
+export default async function EditCrewPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: crewId } = await params;
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();
 

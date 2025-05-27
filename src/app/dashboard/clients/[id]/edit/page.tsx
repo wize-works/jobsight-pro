@@ -1,12 +1,13 @@
 import { getClientById, updateClient } from "@/app/actions/clients";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import type { ClientUpdate, Client } from "@/types/clients";
 import { redirect } from "next/navigation";
 import ClientEditForm from "../../components/edit";
 import Link from "next/link";
 
-export default async function EditClientPage({ params }: { params: { id: string } }) {
-    const clientId = (await params).id;
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: clientId } = await params;
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();
     const business = await getUserBusiness(user?.id || "");
@@ -21,8 +22,8 @@ export default async function EditClientPage({ params }: { params: { id: string 
         );
     }
 
-    const client = await getClientById(clientId, businessId);
-    console.log("Client", client);
+    const client = await getClientById(clientId);
+
     if (!client) {
         return (
             <div className="flex flex-col items-center justify-center h-64">
@@ -32,27 +33,37 @@ export default async function EditClientPage({ params }: { params: { id: string 
         );
     }
 
+    const currentClient = client; // Make a non-null reference
+
     async function handleUpdateClient(formData: any) {
         "use server";
-        const clientData = {
-            name: formData.name,
-            type: formData.type,
-            industry: formData.industry,
-            contact_name: formData.contact,
-            contact_email: formData.email,
-            contact_phone: formData.phone,
-            website: formData.website,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            zip: formData.zip,
-            country: formData.country,
-            tax_id: formData.taxId,
-            notes: formData.notes,
-            logo_url: formData.logoUrl,
-            status: formData.status,
+
+        const clientData: ClientUpdate = {
+            id: currentClient.id,
+            business_id: currentClient.business_id,
+            name: formData.name ?? currentClient.name,
+            type: formData.type ?? currentClient.type,
+            industry: formData.industry ?? currentClient.industry,
+            contact_name: formData.contact ?? currentClient.contact_name,
+            contact_email: formData.email ?? currentClient.contact_email,
+            contact_phone: formData.phone ?? currentClient.contact_phone,
+            website: formData.website ?? currentClient.website,
+            address: formData.address ?? currentClient.address,
+            city: formData.city ?? currentClient.city,
+            state: formData.state ?? currentClient.state,
+            zip: formData.zip ?? currentClient.zip,
+            country: formData.country ?? currentClient.country,
+            tax_id: formData.taxId ?? currentClient.tax_id,
+            notes: formData.notes ?? currentClient.notes,
+            logo_url: formData.logoUrl ?? currentClient.logo_url,
+            status: formData.status ?? currentClient.status,
+            created_at: currentClient.created_at,
+            created_by: currentClient.created_by,
+            updated_at: new Date().toISOString(),
+            updated_by: user?.id || null
         };
-        await updateClient(clientId, clientData, businessId);
+
+        await updateClient(clientId, clientData);
         redirect(`/dashboard/clients/${clientId}`);
     }
 
@@ -64,7 +75,7 @@ export default async function EditClientPage({ params }: { params: { id: string 
                 </Link>
                 Edit Client
             </h1>
-            <ClientEditForm client={client} onSubmit={handleUpdateClient} />
+            <ClientEditForm client={currentClient} onSubmit={handleUpdateClient} />
         </div>
     );
 }

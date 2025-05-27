@@ -21,15 +21,15 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
-            <meta name="viewport" content="viewport-fit=cover" />
-            <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
-            <body className={inter.className}>
-                <AuthProvider>
+        <AuthProvider>
+            <html lang="en" suppressHydrationWarning>
+                <meta name="viewport" content="viewport-fit=cover" />
+                <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
+                <body className={inter.className}>
                     <ThemeProvider>{children}</ThemeProvider>
-                </AuthProvider>
-                <Toaster />
-            </body>
-        </html>
+                    <Toaster />
+                </body>
+            </html>
+        </AuthProvider >
     )
 }

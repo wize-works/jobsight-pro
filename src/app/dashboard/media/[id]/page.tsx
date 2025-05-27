@@ -47,7 +47,7 @@ const mockRelatedMedia = [
     },
 ]
 
-export default function MediaDetail({ params }: { params: { id: string } }) {
+export default function MediaDetail({ params }: { params: Promise<{ id: string }> }) {
     const [showShareModal, setShowShareModal] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [isEditing, setIsEditing] = useState(false)

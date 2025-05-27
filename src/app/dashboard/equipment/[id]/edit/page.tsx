@@ -4,7 +4,7 @@ import { getEquipmentById } from "@/app/actions/equipments";
 import Link from "next/link";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 
-export default async function EditEquipmentPage({ params }: { params: { id: string } }) {
+export default async function EditEquipmentPage({ params }: { params: Promise<{ id: string }> }) {
     const equipmentId = (await params).id;
     const equipment = await getEquipmentById(equipmentId);
     if (!equipment) {

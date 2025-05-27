@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default function DailyLogDetailPage({ params }: { params: { id: string } }) {
+export default function DailyLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
     // Mock data for a single daily log
     const log = {
         id: params.id,

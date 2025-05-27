@@ -11,7 +11,7 @@ import { EquipmentAssignment } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 
-export default async function EquipmentDetailPage({ params }: { params: { id: string } }) {
+export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const id = (await params).id;
     const equipment = await getEquipmentById(id);
     if (!equipment) {
