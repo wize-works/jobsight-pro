@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/wize-works/jobsight-pro/compare/v1.2.0...v1.3.0) (2025-05-27)
+
+
+### Features
+
+* Enhance Dockerfile and deployment configuration with additional environment variables for Kinde and Supabase integration ([1565f26](https://github.com/wize-works/jobsight-pro/commit/1565f26990515b794062d732ec40caec6f60bf29))
+
 # [1.2.0](https://github.com/wize-works/jobsight-pro/compare/v1.1.0...v1.2.0) (2025-05-27)
 
 
