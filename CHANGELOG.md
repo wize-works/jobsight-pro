@@ -1,3 +1,10 @@
+## [1.10.10](https://github.com/wize-works/jobsight-pro/compare/v1.10.9...v1.10.10) (2025-05-27)
+
+
+### Bug Fixes
+
+* remove duplicate @tailwindcss/postcss dependency from package.json ([f393b92](https://github.com/wize-works/jobsight-pro/commit/f393b92cea9f0cd906d0ec17f1ffdcfa60e9fc0d))
+
 ## [1.10.9](https://github.com/wize-works/jobsight-pro/compare/v1.10.8...v1.10.9) (2025-05-27)
 
 
