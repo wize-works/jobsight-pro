@@ -1,69 +1,53 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { getUserBusiness, updateBusiness, type CreateBusinessParams, type BusinessUpdate } from "@/lib/business"
-import { useBusiness as useBusinessContext } from "@/lib/business-context"
+import { useState } from "react"
+import type { Business, BusinessUpdate } from "@/types/business"
+import { useWithBusiness } from "@/lib/auth/with-business"
+import { toast } from "@/hooks/use-toast"
+import { updateBusiness } from "@/app/actions/business"
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
+import { CreateBusinessParams } from "@/types/business"
 
 export function useBusiness() {
-    const { businessId } = useBusinessContext()
-    const [business, setBusiness] = useState<Business | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<Error | null>(null)
+    const { businessId, businessData, loading: authLoading, error: authError, refreshBusiness } = useWithBusiness()
+    const [loading, setLoading] = useState(false)
+    const { user } = useKindeBrowserClient()
 
-    useEffect(() => {
-        async function fetchBusiness() {
-            console.log("Fetching business with ID:", businessId);
-            if (!businessId) {
-                setLoading(false)
-                return
-            }
-
-            try {
-                setLoading(true)
-                const data = await getUserBusiness(businessId)
-                if (!data) {
-                    throw new Error("No business found")
-                }
-                setBusiness(data)
-            } catch (err) {
-                console.error("Error fetching business:", err)
-                setError(err instanceof Error ? err : new Error("Failed to fetch business"))
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchBusiness()
-    }, [businessId])
-
-    const update = async (data: BusinessUpdate) => {
-        if (!businessId) {
-            return { success: false, error: new Error("No business ID available") }
+    const update = async (data: Partial<CreateBusinessParams>) => {
+        if (!businessId || !user?.id) {
+            toast({
+                description: "Authentication required",
+                variant: "error"
+            })
+            return { success: false, error: new Error("Authentication required") }
         }
 
         try {
             setLoading(true)
-            const { data: updatedBusiness, error } = await updateBusiness(businessId, data)
-
-            if (error) {
-                throw error
-            }
-
-            setBusiness(updatedBusiness)
-            return { success: true, data: updatedBusiness }
+            await updateBusiness(businessId, user.id, data)
+            await refreshBusiness()
+            toast({
+                description: "Business updated successfully",
+                variant: "success"
+            })
+            return { success: true, data: businessData }
         } catch (err) {
             console.error("Error updating business:", err)
-            setError(err instanceof Error ? err : new Error("Failed to update business"))
-            return { success: false, error: err instanceof Error ? err : new Error("Failed to update business") }
+            const errorMessage = err instanceof Error ? err.message : "Failed to update business"
+            toast({
+                description: errorMessage,
+                variant: "error"
+            })
+            return { success: false, error: err instanceof Error ? err : new Error(errorMessage) }
         } finally {
             setLoading(false)
         }
     }
 
     return {
-        business,
-        loading,
-        error,
+        business: businessData,
+        loading: loading || authLoading,
+        error: authError ? new Error(authError) : null,
         update,
     }
 }

@@ -1,8 +1,10 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { getUserBusiness } from "@/app/actions/business";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
+import { useRouter } from "next/navigation"
+import { getUserBusiness } from "@/app/actions/business"
+import { useToast } from "@/hooks/use-toast"
 import type { Business } from "@/types/business";
 
 type BusinessContextType = {
@@ -29,20 +31,46 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
+    const router = useRouter()
+    const { toast } = useToast()
 
     // Function to fetch business data using server action
     const fetchBusinessData = async (userId: string) => {
         try {
-            const data = await getUserBusiness(userId)
+            const response = await getUserBusiness(userId)
 
-            if (data) {
-                setBusinessId(data.id)
-                setBusinessData(data as Business)
-                localStorage.setItem("businessId", data.id)
+            if (!response) {
+                // User is valid but has no business
+                router.push('/dashboard/business')
+                toast({
+                    description: "Please set up your business profile",
+                    variant: "warning"
+                })
+                return
+            }
+
+            if ('success' in response && !response.success) {
+                // If there's an error with authentication
+                toast({
+                    description: response.error,
+                    variant: "error"
+                })
+                router.push(response.redirect)
+                return
+            }
+
+            if ('id' in response) {
+                setBusinessId(response.id)
+                setBusinessData(response as Business)
+                localStorage.setItem("businessId", response.id)
             }
         } catch (err) {
             console.error("Error fetching business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
+            toast({
+                description: "Failed to load business data",
+                variant: "error"
+            })
         }
     }
 

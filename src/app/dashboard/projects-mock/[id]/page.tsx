@@ -770,10 +770,9 @@ const crewsData = {
     },
 }
 
-export default function ProjectDetailPage() {
-    const params = useParams()
+export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: projectId } = await params;
     const router = useRouter()
-    const projectId = params.id as string
     const [activeTab, setActiveTab] = useState("overview")
     const [showAssignCrewModal, setShowAssignCrewModal] = useState(false)
     const [showAddTaskModal, setShowAddTaskModal] = useState(false)

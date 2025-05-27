@@ -7,8 +7,9 @@ import { Sidebar } from "./sidebar"
 import { BottomNav } from "./bottom-nav"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { BusinessProvider } from "@/lib/business-context"
+import { withBusiness } from "@/lib/auth/with-business"
 
-export default function DashboardLayout({
+function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
@@ -32,6 +33,7 @@ export default function DashboardLayout({
                 {isMobile && <BottomNav />}
             </div>
             {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
-        </div>
-    )
+        </div>)
 }
+
+export default withBusiness(DashboardLayout);

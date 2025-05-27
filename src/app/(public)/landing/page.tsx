@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
+import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
 
 export default function Home() {
     return (
@@ -19,7 +20,7 @@ export default function Home() {
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
                     <div className="flex flex-col gap-3">
-                        <Link href="/api/auth/kinde/signin">Sign In</Link>
+                        <LoginLink>Sign In</LoginLink>
                         <Link href="/register" className="btn btn-primary w-full">
                             Get Started
                         </Link>

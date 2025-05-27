@@ -6,8 +6,8 @@ import { getProjectsByClientId } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 
-export default async function ClientPage({ params }: { params: { id: string } }) {
-    const clientId = (await params).id
+export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: clientId } = await params;
     const kindeSession = await getKindeServerSession()
     const user = await kindeSession.getUser()
     const business = await getUserBusiness(user?.id || "")

@@ -11,8 +11,8 @@ import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 import QRCode from "@/components/qrcode";
 
-export default async function EquipmentPrintPage({ params }: { params: { id: string } }) {
-    const id = params.id;
+export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const equipment = await getEquipmentById(id);
     if (!equipment) {
         return <div className="p-8 text-center">Equipment not found.</div>;

@@ -853,10 +853,9 @@ const projectsData = [
     },
 ]
 
-export default function EquipmentDetailPage() {
-    const params = useParams()
+export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
-    const equipmentId = params.id as string
+    const { id: equipmentId } = await params;
     const [activeTab, setActiveTab] = useState("details")
     const [showAssignModal, setShowAssignModal] = useState(false)
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false)

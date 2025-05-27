@@ -2,6 +2,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Notifications } from "./notifications";
 import { useIsMobile } from "@/hooks/use-mobile"
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
@@ -47,7 +48,9 @@ export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) =
                             <Link href="/dashboard/settings">Settings</Link>
                         </li>
                         <li>
-                            <Link href="/">Logout</Link>
+                            <LogoutLink className="justify-between">
+                                Logout
+                            </LogoutLink>
                         </li>
                     </ul>
                 </div>

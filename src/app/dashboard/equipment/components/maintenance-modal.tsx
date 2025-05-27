@@ -1,7 +1,6 @@
 import { EquipmentMaintenance } from '@/types/equipment-maintenance';
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createEquipment } from '@/lib/equipment';
 import { createEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
 import { toast } from '@/hooks/use-toast';
 

@@ -3,20 +3,8 @@
 import { createServerClient } from "@/lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { revalidatePath } from "next/cache"
+import { CreateBusinessParams } from "@/types/business"
 
-type CreateBusinessParams = {
-    userId: string
-    businessName: string
-    businessType: string
-    phoneNumber?: string
-    website?: string
-    address?: string
-    city?: string
-    state?: string
-    zipCode?: string
-    country?: string
-    email?: string
-}
 
 export async function createBusiness(params: CreateBusinessParams) {
     const supabase = createServerClient()
@@ -64,7 +52,11 @@ export async function createBusiness(params: CreateBusinessParams) {
 
         if (userError) {
             console.error("Error updating user with business ID:", userError)
-            throw new Error(`Failed to update user: ${userError.message}`)
+            return {
+                success: false,
+                redirect: "/",
+                error: "Invalid user credentials. Please log in again."
+            }
         }
 
         revalidatePath("/dashboard")
@@ -101,8 +93,7 @@ export async function getUserBusiness(userId: string) {
         throw new Error("Supabase client not initialized")
     }
 
-    try {
-        // First get the user to find their business_id
+    try {        // First get the user to find their business_id
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
@@ -110,7 +101,12 @@ export async function getUserBusiness(userId: string) {
             .single()
 
         if (userError) {
-            throw new Error(`Failed to fetch user: ${userError.message}`)
+            console.error("Error fetching user:", userError)
+            return {
+                success: false,
+                redirect: "/",
+                error: "Invalid user credentials. Please log in again."
+            }
         }
 
         if (!userData?.business_id) {

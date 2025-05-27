@@ -4,16 +4,6 @@ const nextConfig: NextConfig = {
     /* config options here */
     images: {
         dangerouslyAllowSVG: true,
-        localPatterns: [
-            {
-                pathname: "/public/**",
-                search: '',
-            },
-            {
-                pathname: "/images/**",
-                search: '',
-            },
-        ],
         remotePatterns: [
             {
                 protocol: "https",
