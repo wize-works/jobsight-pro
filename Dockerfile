@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ ENV KINDE_CLIENT_SECRET=placeholder
 RUN npm run build
 
 # Stage 2: Runtime
-FROM node:22-alpine
+FROM node:22-slim
 
 # Create a non-root user
 RUN addgroup -S app && adduser -S appuser -G app
