@@ -12,6 +12,7 @@
         "@hookform/resolvers": "latest",
         "@kinde-oss/kinde-auth-nextjs": "latest",
         "@supabase/supabase-js": "latest",
+        "@tailwindcss/postcss": "^4.0.14",
         "autoprefixer": "^10.4.20",
         "chart.js": "latest",
         "class-variance-authority": "^0.7.1",
@@ -35,7 +36,6 @@
         "sonner": "latest",
         "tailwind-merge": "^3.3.0",
         "tailwindcss-animate": "^1.0.7",
-        "@tailwindcss/postcss": "^4.0.14",
         "uuid": "latest",
         "zod": "latest"
     },
@@ -51,7 +51,7 @@
         "semantic-release": "^24.2.3",
         "storybook": "^8.6.14",
         "tailwindcss": "^4.0.14",
-        "typescript": "^5",
+        "typescript": "^5.8.3",
         "webpack": "^5.99.9"
     }
 }
