@@ -1,3 +1,10 @@
+## [1.10.8](https://github.com/wize-works/jobsight-pro/compare/v1.10.7...v1.10.8) (2025-05-27)
+
+
+### Bug Fixes
+
+* update dependencies for daisyui and tailwindcss in package.json ([ce6c7f7](https://github.com/wize-works/jobsight-pro/commit/ce6c7f76ec875352b2a2af9a29e80dac5bee4a0e))
+
 ## [1.10.7](https://github.com/wize-works/jobsight-pro/compare/v1.10.6...v1.10.7) (2025-05-27)
 
 
