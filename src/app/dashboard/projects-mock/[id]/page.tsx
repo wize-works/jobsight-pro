@@ -111,17 +111,6 @@ const projectsData = {
                 progress: 0,
             },
         ],
-        budget: {
-            total: 1250000,
-            spent: 437500,
-            remaining: 812500,
-            categories: [
-                { name: "Materials", allocated: 625000, spent: 218750 },
-                { name: "Labor", allocated: 437500, spent: 153125 },
-                { name: "Equipment", allocated: 125000, spent: 43750 },
-                { name: "Permits & Fees", allocated: 62500, spent: 21875 },
-            ],
-        },
         documents: [
             {
                 id: "doc1",
@@ -311,17 +300,6 @@ const projectsData = {
                 progress: 50,
             },
         ],
-        budget: {
-            total: 3500000,
-            spent: 1575000,
-            remaining: 1925000,
-            categories: [
-                { name: "Materials", allocated: 1750000, spent: 787500 },
-                { name: "Labor", allocated: 1225000, spent: 551250 },
-                { name: "Equipment", allocated: 350000, spent: 157500 },
-                { name: "Permits & Fees", allocated: 175000, spent: 78750 },
-            ],
-        },
         documents: [
             {
                 id: "doc1",
@@ -466,17 +444,6 @@ const projectsData = {
                 progress: 40,
             },
         ],
-        budget: {
-            total: 5750000,
-            spent: 1150000,
-            remaining: 4600000,
-            categories: [
-                { name: "Materials", allocated: 2300000, spent: 460000 },
-                { name: "Labor", allocated: 2012500, spent: 402500 },
-                { name: "Equipment", allocated: 1150000, spent: 230000 },
-                { name: "Permits & Fees", allocated: 287500, spent: 57500 },
-            ],
-        },
         documents: [
             {
                 id: "doc1",
@@ -675,17 +642,6 @@ const projectsData = {
                 progress: 50,
             },
         ],
-        budget: {
-            total: 450000,
-            spent: 292500,
-            remaining: 157500,
-            categories: [
-                { name: "Materials", allocated: 225000, spent: 146250 },
-                { name: "Labor", allocated: 157500, spent: 102375 },
-                { name: "Equipment", allocated: 45000, spent: 29250 },
-                { name: "Permits & Fees", allocated: 22500, spent: 14625 },
-            ],
-        },
         documents: [
             {
                 id: "doc1",
@@ -1040,10 +996,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                     <div className="stat">
                                         <div className="stat-title">Budget Used</div>
                                         <div className="stat-value text-lg">
-                                            {Math.round((project.budget.spent / project.budget.total) * 100)}%
                                         </div>
                                         <div className="stat-desc">
-                                            {formatCurrency(project.budget.spent)} of {formatCurrency(project.budget.total)}
                                         </div>
                                     </div>
 
@@ -1260,20 +1214,16 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <div className="stats shadow mb-6 w-full">
                             <div className="stat">
                                 <div className="stat-title">Total Budget</div>
-                                <div className="stat-value text-lg">{formatCurrency(project.budget.total)}</div>
                             </div>
 
                             <div className="stat">
                                 <div className="stat-title">Spent</div>
-                                <div className="stat-value text-lg">{formatCurrency(project.budget.spent)}</div>
                                 <div className="stat-desc">
-                                    {Math.round((project.budget.spent / project.budget.total) * 100)}% of total
                                 </div>
                             </div>
 
                             <div className="stat">
                                 <div className="stat-title">Remaining</div>
-                                <div className="stat-value text-lg">{formatCurrency(project.budget.remaining)}</div>
                             </div>
                         </div>
 
@@ -1290,7 +1240,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {project.budget.categories.map((category, index) => (
+                                    {/* {project.budget.categories.map((category, index) => ( TODO: Uncomment when budget categories are available
                                         <tr key={index}>
                                             <td>{category.name}</td>
                                             <td>{formatCurrency(category.allocated)}</td>
@@ -1307,7 +1257,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ))} */}
                                 </tbody>
                             </table>
                         </div>
@@ -1716,20 +1666,21 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 }
 
 // Helper functions
-function formatDate(dateString) {
-    const options = { year: "numeric", month: "short", day: "numeric" }
+function formatDate(dateString: string | number | Date) {
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }
     return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-function formatCurrency(amount) {
+function formatCurrency(amount: string | number | bigint) {
+    const numericAmount = typeof amount === "string" ? Number(amount) : amount;
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
         maximumFractionDigits: 0,
-    }).format(amount)
+    }).format(numericAmount)
 }
 
-function getStatusBadgeColor(status) {
+function getStatusBadgeColor(status: string) {
     switch (status) {
         case "In Progress":
             return "badge-primary"
@@ -1746,7 +1697,7 @@ function getStatusBadgeColor(status) {
     }
 }
 
-function getMilestoneBadgeColor(status) {
+function getMilestoneBadgeColor(status: string) {
     switch (status) {
         case "Completed":
             return "badge-success"
@@ -1759,7 +1710,7 @@ function getMilestoneBadgeColor(status) {
     }
 }
 
-function getTaskStatusBadgeColor(status) {
+function getTaskStatusBadgeColor(status: string) {
     switch (status) {
         case "Completed":
             return "badge-success"
@@ -1772,7 +1723,7 @@ function getTaskStatusBadgeColor(status) {
     }
 }
 
-function getIssueBadgeColor(status) {
+function getIssueBadgeColor(status: string) {
     switch (status) {
         case "Open":
             return "badge-error"
@@ -1783,7 +1734,7 @@ function getIssueBadgeColor(status) {
     }
 }
 
-function getIssuePriorityColor(priority) {
+function getIssuePriorityColor(priority: string) {
     switch (priority) {
         case "High":
             return "badge-error"
@@ -1796,8 +1747,8 @@ function getIssuePriorityColor(priority) {
     }
 }
 
-function getCrewName(crewId) {
-    const crews = {
+function getCrewName(crewId: string) {
+    const crews: Record<string, string> = {
         crew1: "Foundation Team",
         crew2: "Framing Crew",
         crew3: "Electrical Team",
@@ -1807,10 +1758,10 @@ function getCrewName(crewId) {
     return crews[crewId] || crewId
 }
 
-function getDaysElapsed(startDate, endDate) {
+function getDaysElapsed(startDate: string | number | Date, endDate: string | number | Date) {
     const start = new Date(startDate)
     const end = new Date(endDate)
-    const diffTime = Math.abs(end - start)
+    const diffTime = Math.abs(end.getTime() - start.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
 }

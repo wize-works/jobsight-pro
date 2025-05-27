@@ -1,13 +1,12 @@
-"use client"
-
+"use client";
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default function DailyLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    // Mock data for a single daily log
+export default async function DailyLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const log = {
-        id: params.id,
+        id: id,
         date: "2023-05-20",
         project: {
             id: "proj-001",

@@ -488,12 +488,29 @@ export const assignCrewLeader = async (crewId: string, leaderId: string): Promis
         return null;
     }
 
-    const { data, error } = await updateWithBusinessCheck("crews", crewId, { leader_id: leaderId, updated_at: new Date().toISOString(), updated_by: user?.id || "" }, businessId);
+    // First get the current crew data
+    const crew = await getCrewById(crewId);
+    if (!crew) {
+        console.error("Crew not found");
+        return null;
+    }
+
+    // Update the crew with new leader_id
+    const updateData: CrewUpdate = {
+        ...crew,
+        leader_id: leaderId,
+        updated_at: new Date().toISOString(),
+        updated_by: user?.id || ""
+    };
+
+    // Perform the update
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, businessId);
 
     if (error) {
         console.error("Error assigning crew leader:", error);
         return null;
     }
+
     return data as unknown as Crew;
 }
 
@@ -508,12 +525,28 @@ export const updateCrewNotes = async (crewId: string, notes: string): Promise<Cr
         return null;
     }
 
-    const { data, error } = await updateWithBusinessCheck("crews", crewId, { notes, updated_at: new Date().toISOString(), updated_by: user?.id || "" }, businessId);
+    // First get the current crew data
+    const crew = await getCrewById(crewId);
+    if (!crew) {
+        console.error("Crew not found");
+        return null;
+    }
+
+    // Update the crew with new notes
+    const updateData: CrewUpdate = {
+        ...crew,
+        notes: notes,
+        updated_at: new Date().toISOString(),
+        updated_by: user?.id || ""
+    };
+
+    // Perform the update
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, businessId);
 
     if (error) {
         console.error("Error updating crew notes:", error);
         return null;
     }
-    console.log("Crew notes updated successfully:", data);
+
     return data as unknown as Crew;
 }

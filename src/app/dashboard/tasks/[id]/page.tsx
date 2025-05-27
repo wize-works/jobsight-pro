@@ -414,7 +414,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     }
 
     // Get status badge color
-    const getStatusBadgeColor = (status) => {
+    const getStatusBadgeColor = (status: string) => {
         switch (status) {
             case "Completed":
                 return "badge-success"
@@ -428,7 +428,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     }
 
     // Get priority badge color
-    const getPriorityBadgeColor = (priority) => {
+    const getPriorityBadgeColor = (priority: string) => {
         switch (priority) {
             case "High":
                 return "badge-error"
@@ -741,10 +741,10 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                                                 <div className="flex items-center gap-2">
                                                     <i
                                                         className={`fas ${attachment.type === "PDF"
-                                                                ? "fa-file-pdf text-error"
-                                                                : attachment.type === "Image"
-                                                                    ? "fa-file-image text-primary"
-                                                                    : "fa-file text-base-content/70"
+                                                            ? "fa-file-pdf text-error"
+                                                            : attachment.type === "Image"
+                                                                ? "fa-file-image text-primary"
+                                                                : "fa-file text-base-content/70"
                                                             }`}
                                                     ></i>
                                                     <div>
@@ -892,10 +892,10 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                                                     <div className="flex items-center gap-2">
                                                         <i
                                                             className={`fas ${attachment.type === "PDF"
-                                                                    ? "fa-file-pdf text-error"
-                                                                    : attachment.type === "Image"
-                                                                        ? "fa-file-image text-primary"
-                                                                        : "fa-file text-base-content/70"
+                                                                ? "fa-file-pdf text-error"
+                                                                : attachment.type === "Image"
+                                                                    ? "fa-file-image text-primary"
+                                                                    : "fa-file text-base-content/70"
                                                                 }`}
                                                         ></i>
                                                         <span className="font-medium">{attachment.name}</span>
@@ -1260,15 +1260,15 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 }
 
 // Helper functions
-function formatDate(dateString) {
-    const options = { year: "numeric", month: "short", day: "numeric" }
+function formatDate(dateString: string | number | Date) {
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }
     return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-function getDaysElapsed(startDate, endDate) {
+function getDaysElapsed(startDate: string | number | Date, endDate: string | number | Date) {
     const start = new Date(startDate)
     const end = new Date(endDate)
-    const diffTime = Math.abs(end - start)
+    const diffTime = Math.abs(end.getTime() - start.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import type { EquipmentWithDetails } from "@/types/equipment";
+import type { EquipmentUpdate, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
 import { updateEquipment } from "@/app/actions/equipments";
@@ -35,7 +35,20 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
     };
 
     const addSpecification = () => {
-        setSpecifications((prev) => [...prev, { name: "", value: "" }]);
+        setSpecifications((prev) => [
+            ...prev,
+            {
+                id: "", // placeholder, will be set by backend
+                equipment_id: equipment.id ?? "",
+                business_id: "", // placeholder, set as needed
+                name: "",
+                value: "",
+                created_at: "", // placeholder, set as needed
+                created_by: null,
+                updated_at: null,
+                updated_by: null,
+            },
+        ]);
     };
 
     const removeSpecification = (idx: number) => {
@@ -45,7 +58,11 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // TODO: Submit logic here
-        await updateEquipment(equipment.id, { ...equipment });
+        if (!equipment.id) {
+            throw new Error("Equipment ID is required to update equipment.");
+        }
+        const equipmentModel = equipment as EquipmentUpdate;
+        await updateEquipment(equipment.id, equipmentModel);
         router.push("/dashboard/equipment");
     };
 
@@ -293,9 +310,15 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                 onClick={async () => {
                                                     if (!spec.id) {
                                                         await createEquipmentSpecification({
-                                                            equipment_id: equipment.id,
+                                                            equipment_id: equipment.id ?? "",
                                                             name: spec.name,
                                                             value: spec.value,
+                                                            id: "",
+                                                            business_id: "",
+                                                            created_at: "",
+                                                            created_by: null,
+                                                            updated_at: null,
+                                                            updated_by: null
                                                         });
                                                     } else {
                                                         await updateEquipmentSpecification(spec.id, { ...spec, name: spec.name, value: spec.value });

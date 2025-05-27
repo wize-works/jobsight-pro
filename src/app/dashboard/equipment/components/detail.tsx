@@ -296,13 +296,13 @@ export default function EquipmentDetail({
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-2">Cost Breakdown</h3>
-                                    <ul>
+                                    {/* <ul> TODO: Implement cost breakdown
                                         <li>Maintenance Costs: {maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) ? `$${maintenances.reduce((acc, m) => acc + (m.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
                                         <li>Usage Costs: {usages.reduce((acc, u: EquipmentUsage) => acc + (u.cost || 0), 0) ? `$${usages.reduce((acc, u) => acc + (u.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
                                         <li>Total Cost: {equipment.purchase_price && equipment.current_value
                                             ? `$${(equipment.purchase_price - equipment.current_value + maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) + usages.reduce((acc, u) => acc + (u.cost || 0), 0)).toLocaleString()}`
                                             : "Not set"}</li>
-                                    </ul>
+                                    </ul> */}
                                 </div>
                             </div>
                         )}

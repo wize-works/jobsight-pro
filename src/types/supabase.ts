@@ -1812,14 +1812,18 @@ export interface Database {
 }
 
 export type Tables<
-    PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] & { row: any }) | { schema: keyof Database },
+    PublicTableNameOrOptions extends keyof Database["public"]["Tables"] | { schema: keyof Database },
     TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? TableName extends keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName]["Row"]
-    : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] & { row: any })
-    ? (Database["public"]["Tables"] & { row: any })[PublicTableNameOrOptions]["Row"]
+    : never
+    : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+    ? "Row" extends keyof Database["public"]["Tables"][PublicTableNameOrOptions]
+    ? Database["public"]["Tables"][PublicTableNameOrOptions]["Row"]
+    : never
     : never
 
 export type TablesInsert<
