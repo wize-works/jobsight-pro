@@ -1,3 +1,10 @@
+## [1.7.6](https://github.com/wize-works/jobsight-pro/compare/v1.7.5...v1.7.6) (2025-05-27)
+
+
+### Bug Fixes
+
+* refactor next.config.mjs to improve path handling and maintainability ([6caf5f1](https://github.com/wize-works/jobsight-pro/commit/6caf5f1b17d98ada8a6b9db463427b9983320fcf))
+
 ## [1.7.5](https://github.com/wize-works/jobsight-pro/compare/v1.7.4...v1.7.5) (2025-05-27)
 
 
