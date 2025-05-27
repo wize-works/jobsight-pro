@@ -9,6 +9,7 @@ const config: Config = {
     ],
     plugins: [require("tailwindcss-animate"), require("daisyui")],
     daisyui: {
+        utils: true,
         themes: [
             {
                 light: {

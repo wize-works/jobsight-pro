@@ -114,16 +114,20 @@ body {
 
 }
 
+.form-control .label {
+    @apply mb-2;
+}
+
 .form-control .input {
-    @apply w-full my-2;
+    @apply w-full;
 }
 
 .form-control .select {
-    @apply w-full my-2;
+    @apply w-full;
 }
 
 .form-control .textarea {
-    @apply w-full my-2;
+    @apply w-full;
 }
 
 .tabs.tabs-boxed {

@@ -3,6 +3,9 @@ import { useState } from "react";
 import type { EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
+import { updateEquipment } from "@/app/actions/equipments";
+import { createEquipment } from "@/lib/equipment";
+import { createEquipmentSpecification } from "@/app/actions/equipment-specifications";
 
 // Use only the fields needed for the form UI
 interface SpecFormState {
@@ -17,7 +20,7 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
     const [specifications, setSpecifications] = useState<SpecFormState[]>([]);
     const router = useRouter();
 
-    const handleEquipmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleEquipmentChange = (e: { target: { name: any; value: any; }; }) => {
         const { name, value } = e.target;
         setEquipment((prev) => ({
             ...prev,
@@ -41,10 +44,10 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
         setSpecifications((prev) => prev.filter((_, i) => i !== idx));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // TODO: Submit logic here
-        // await updateEquipment({ ...equipment, specifications });
+        await updateEquipment(equipment.id, { ...equipment });
         router.push("/dashboard/equipment");
     };
 
@@ -53,66 +56,166 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
             <div className="card bg-base-100 shadow-lg col-span-2">
                 <div className="card-body">
                     <h2 className="text-xl font-bold mb-4">Edit Equipment</h2>
-                    <form onSubmit={handleSubmit} className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* General Details - Column 1 */}
-                            <div className="flex flex-col gap-4 col-span-1">
-                                <div>
-                                    <label className="label">Name</label>
-                                    <input
-                                        className="input input-bordered w-full"
-                                        name="name"
-                                        defaultValue={initialEquipment.name || ""}
-                                        onChange={handleEquipmentChange}
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="label">Serial Number</label>
-                                    <input
-                                        className="input input-bordered w-full"
-                                        name="serial_number"
-                                        defaultValue={initialEquipment.serial_number || ""}
-                                        onChange={handleEquipmentChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="label">Purchase Date</label>
-                                    <input
-                                        className="input input-bordered w-full"
-                                        type="date"
-                                        name="purchase_date"
-                                        defaultValue={initialEquipment.purchase_date || ""}
-                                        onChange={handleEquipmentChange}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* General Details - Column 2 */}
-                            <div className="flex flex-col gap-4 col-span-1">
-                                <div>
-                                    <label className="label">Purchase Price</label>
-                                    <input
-                                        className="input input-bordered w-full"
-                                        type="number"
-                                        name="purchase_price"
-                                        defaultValue={initialEquipment.purchase_price ?? ""}
-                                        onChange={handleEquipmentChange}
-                                        min={0}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="label">Current Value</label>
-                                    <input
-                                        className="input input-bordered w-full"
-                                        type="number"
-                                        name="current_value"
-                                        defaultValue={initialEquipment.current_value ?? ""}
-                                        onChange={handleEquipmentChange}
-                                        min={0}
-                                    />
-                                </div>
-                                {/* Add more general fields as needed */}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="form-control">
+                            <label className="label">Name</label>
+                            <input
+                                className="input input-bordered"
+                                name="name"
+                                value={equipment.name || ""}
+                                onChange={handleEquipmentChange}
+                                required
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Serial Number</label>
+                            <input
+                                className="input input-bordered"
+                                name="serial_number"
+                                value={equipment.serial_number || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Purchase Date</label>
+                            <input
+                                className="input input-bordered w-full"
+                                type="date"
+                                name="purchase_date"
+                                value={equipment.purchase_date || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Purchase Price</label>
+                            <input
+                                className="input input-bordered w-full"
+                                type="number"
+                                name="purchase_price"
+                                value={equipment.purchase_price ?? ""}
+                                onChange={handleEquipmentChange}
+                                min={0}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Current Value</label>
+                            <input
+                                className="input input-bordered w-full"
+                                type="number"
+                                name="current_value"
+                                value={equipment.current_value ?? ""}
+                                onChange={handleEquipmentChange}
+                                min={0}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Status</label>
+                            <select
+                                className="select select-bordered w-full"
+                                name="status"
+                                value={equipment.status || "available"}
+                                onChange={handleEquipmentChange}
+                            >
+                                <option value="available">Available</option>
+                                <option value="in_use">In Use</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="repair">Repair</option>
+                                <option value="retired">Retired</option>
+                            </select>
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Type</label>
+                            <select
+                                className="select select-bordered w-full"
+                                name="type"
+                                value={equipment.type || "other"}
+                                onChange={handleEquipmentChange}
+                            >
+                                <option value="small-equipment">Small Equipment</option>
+                                <option value="medium-equipment">Medium Equipment</option>
+                                <option value="heavy-equipment">Heavy Equipment</option>
+                                <option value="power-tool">Power Tool</option>
+                                <option value="tool">Tool</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Make</label>
+                            <input
+                                className="input input-bordered w-full"
+                                name="make"
+                                value={equipment.make || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Model</label>
+                            <input
+                                className="input input-bordered w-full"
+                                name="model"
+                                value={equipment.model || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Year</label>
+                            <input
+                                className="input input-bordered w-full"
+                                type="number"
+                                name="year"
+                                value={equipment.year || ""}
+                                onChange={handleEquipmentChange}
+                                min={1900}
+                                max={new Date().getFullYear()}
+                            />
+                        </div>
+                        <div className="form-control col-span-2">
+                            <label className="label">Description</label>
+                            <textarea
+                                className="textarea textarea-bordered w-full"
+                                name="description"
+                                value={equipment.description || ""}
+                                onChange={handleEquipmentChange}
+                                rows={3}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Next Maintenance</label>
+                            <input
+                                className="input input-bordered w-full"
+                                type="date"
+                                name="next_maintenance"
+                                value={equipment.next_maintenance || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">Image URL</label>
+                            <input
+                                className="input input-bordered w-full"
+                                name="image_url"
+                                value={equipment.image_url || ""}
+                                onChange={handleEquipmentChange}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label mb-2">Location</label>
+                            <div className="join w-full">
+                                <input
+                                    className="input input-bordered w-full join-item mt-0"
+                                    name="location"
+                                    value={equipment.location || ""}
+                                    onChange={handleEquipmentChange}
+                                />
+                                <button className="btn btn-primary join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
+                                    const { latitude, longitude } = position.coords;
+                                    setEquipment((prev) => ({
+                                        ...prev,
+                                        location: `Lat: ${latitude}, Lon: ${longitude}`,
+                                    }));
+                                })}>
+                                    <i className="fas fa-map-marker-alt"></i>
+                                </button>
                             </div>
                         </div>
                         <div className="mt-8 flex justify-end gap-4">
@@ -133,44 +236,63 @@ export default function EditEquipment({ initialEquipment }: { initialEquipment: 
 
 
             {/* Specifications - Column 3 */}
-            <div className="card bg-base-100 shadow-lg col-span-1">
-                <div className="card-body">
-                    <div className="flex flex-col gap-4 col-span-1">
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-bold text-lg">Specifications</h2>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-primary"
-                                onClick={addSpecification}
-                            >
-                                Add
-                            </button>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            {specifications.map((spec, idx) => (
-                                <div key={idx} className="flex gap-2 items-center">
-                                    <input
-                                        className="input input-bordered w-1/2"
-                                        placeholder="Name"
-                                        value={spec.name}
-                                        onChange={(e) => handleSpecChange(idx, "name", e.target.value)}
-                                    />
-                                    <input
-                                        className="input input-bordered w-1/2"
-                                        placeholder="Value"
-                                        value={spec.value}
-                                        onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-error"
-                                        onClick={() => removeSpecification(idx)}
-                                        title="Remove"
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                            ))}
+            <div className="flex flex-col gap-4">
+                <div className="card bg-base-100 shadow-lg col-span-1">
+                    <div className="card-body">
+                        <div className="flex flex-col gap-4 col-span-1">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-bold text-lg">Specifications</h2>
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"
+                                    onClick={addSpecification}
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                {specifications.map((spec, idx) => (
+                                    <div key={idx} className="flex gap-2 items-center">
+                                        <form className="flex flex-row gap-2 items-center w-full" onSubmit={(e) => e.preventDefault()}>
+                                            <input
+                                                className="input input-bordered"
+                                                placeholder="Name"
+                                                value={spec.name}
+                                                onChange={(e) => handleSpecChange(idx, "name", e.target.value)}
+                                            />
+                                            <input
+                                                className="input input-bordered"
+                                                placeholder="Value"
+                                                value={spec.value}
+                                                onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-secondary"
+                                                onClick={() => {
+                                                    handleSpecChange(idx, "value", spec.value);
+                                                    createEquipmentSpecification({
+                                                        equipment_id: equipment.id,
+                                                        name: spec.name,
+                                                        value: spec.value,
+                                                    })
+                                                }}
+                                                title="Update"
+                                            >
+                                                <i className="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-error"
+                                            onClick={() => removeSpecification(idx)}
+                                            title="Remove"
+                                        >
+                                            <i className="fas fa-x"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

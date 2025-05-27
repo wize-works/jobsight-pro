@@ -47,12 +47,12 @@ export default async function EditCrewPage({ params }: { params: { id: string } 
         }
     } return (
         <div className="">
-            <h1 className="text-2xl font-bold mb-6">
-                <Link href={`/dashboard/crews/${crewId}`} className="btn btn-ghost btn-sm mr-2">
-                    <i className="fas fa-arrow-left"></i>
+            <div className="flex justify-start items-center mb-4">
+                <Link href={`/dashboard/crews/${crewId}`} className="btn btn-ghost btn-sm mb-4 mr-2">
+                    <i className="fas fa-arrow-left fa-xl"></i>
                 </Link>
-                Edit Crew
-            </h1>
+                <h1 className="text-2xl font-bold mb-4">Edit Crew</h1>
+            </div>
             <CrewEditForm crew={crew as unknown as Crew} members={members as unknown as CrewMember[]} onSubmit={handleUpdateCrew} />
         </div>
     );

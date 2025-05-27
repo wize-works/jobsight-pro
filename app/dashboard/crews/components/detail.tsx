@@ -220,9 +220,6 @@ export default function CrewDetailComponent({
             <div className="flex flex-col md:flex-row justify-between mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Link href="/dashboard/crews" className="btn btn-ghost btn-sm">
-                            <i className="fas fa-arrow-left"></i>
-                        </Link>
                         <h1 className="text-2xl font-bold">{crew.name}</h1>
                         <div className={`badge ${statusOptions[crew.status as keyof typeof statusOptions]?.color || "badge-neutral"}`}>
                             {statusOptions[crew.status as keyof typeof statusOptions]?.label || crew.status}
