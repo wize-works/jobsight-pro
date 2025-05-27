@@ -5,6 +5,9 @@ metadata:
   namespace: jobsight
   labels:
     app: jobsight-pro
+  annotations:
+    doppler.com/project: jobsight       # 👈 Doppler project name
+    doppler.com/config: production      # 👈 Doppler config name
 spec:
   replicas: 2
   selector:
@@ -14,48 +17,27 @@ spec:
     metadata:
       labels:
         app: jobsight-pro
+      annotations:
+        doppler.com/enable: "true"      # 👈 Enable Doppler secret injection
     spec:
       containers:
-      - name: jobsight-pro
-        image: "${ACR_NAME}.azurecr.io/jobsight-pro:${IMAGE_TAG}"
-        ports:
-        - containerPort: 3000
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-        env:
-        - name: ENVIRONMENT
-          value: "production"
-        - name: KINDE_CLIENT_ID
-          value: "${KINDE_CLIENT_ID}"
-        - name: KINDE_CLIENT_SECRET
-          value: "${KINDE_CLIENT_SECRET}"
-        - name: KINDE_ISSUER_URL
-          value: "${KINDE_ISSUER_URL}"
-        - name: KINDE_DOMAIN
-          value: "${KINDE_DOMAIN}"
-        - name: KINDE_SITE_URL
-          value: "${KINDE_SITE_URL}"
-        - name: KINDE_LOGOUT_REDIRECT_URI
-          value: "${KINDE_LOGOUT_REDIRECT_URI}"
-        - name: KINDE_POST_LOGOUT_REDIRECT_URL
-          value: "${KINDE_POST_LOGOUT_REDIRECT_URL}"
-        - name: KIDNE_REDIRECT_URI
-          value: "${KIDNE_REDIRECT_URI}"
-        - name: KINDE_POST_LOGIN_REDIRECT_URL
-          value: "${KINDE_POST_LOGIN_REDIRECT_URL}"
-        - name: OPENWEATHER_API_KEY
-          value: "${OPENWEATHER_API_KEY}"
-        - name: SUPABASE_URL
-          value: "${SUPABASE_URL}"
-        - name: SUPABASE_SERVICE_ROLE_KEY
-          value: "${SUPABASE_SERVICE_ROLE_KEY}"
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "250m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
+        - name: jobsight-pro
+          image: "${ACR_NAME}.azurecr.io/jobsight-pro:${IMAGE_TAG}"
+          ports:
+            - containerPort: 3000
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+            # No need to manually add secrets here — Doppler will inject them
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
