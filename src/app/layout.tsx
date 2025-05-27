@@ -13,7 +13,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
     title: "JobSight - Your Entire Jobsite, One App",
     description: "Modern field service and construction project management platform",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
