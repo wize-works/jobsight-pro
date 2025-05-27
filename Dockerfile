@@ -38,9 +38,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy source and config files
-COPY tsconfig.json ./
-COPY next.config.mjs ./
-COPY src/ ./src/
+COPY . .
 
 # Build the app
 RUN npm run build
@@ -62,11 +60,12 @@ LABEL org.opencontainers.image.revision=$GITHUB_SHA
 # Copy production files from builder
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
 # Runtime environment variables will be passed by Kubernetes at runtime — no need to hardcode here.
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:3000/health || exit 1
 
-CMD ["node", "dist/server.js"]
+CMD ["npm", "start"]
