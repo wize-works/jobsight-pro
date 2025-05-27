@@ -20,6 +20,8 @@ COPY src ./src
 
 ARG KINDE_ISSUER_URL=https://placeholder
 ENV KINDE_ISSUER_URL=$KINDE_ISSUER_URL
+ARG KINDE_CLIENT_ID=1234567890abcdef
+ENV KINDE_ISSUER_URL=$KINDE_ISSUER_URL
 # Build the app (generates .next folder)
 RUN npm run build
 
