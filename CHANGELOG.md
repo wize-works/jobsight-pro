@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/wize-works/jobsight-pro/compare/v1.1.0...v1.2.0) (2025-05-27)
+
+
+### Features
+
+* Update deployment.yaml to enhance Doppler integration and streamline environment variable management ([d6a1891](https://github.com/wize-works/jobsight-pro/commit/d6a18912adf193c2e88e2c7da8a134bd0a7d4ca2))
+
 # [1.1.0](https://github.com/wize-works/jobsight-pro/compare/v1.0.0...v1.1.0) (2025-05-27)
 
 
