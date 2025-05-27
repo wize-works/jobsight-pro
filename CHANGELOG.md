@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/wize-works/jobsight-pro/compare/v1.5.1...v1.5.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* Update Dockerfile to clarify source and config file copying ([95dab4d](https://github.com/wize-works/jobsight-pro/commit/95dab4da52a5082ab8db081694d42cde2d0f7681))
+
 ## [1.5.1](https://github.com/wize-works/jobsight-pro/compare/v1.5.0...v1.5.1) (2025-05-27)
 
 
