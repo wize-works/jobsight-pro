@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/wize-works/jobsight-pro/compare/v1.7.2...v1.7.3) (2025-05-27)
+
+
+### Bug Fixes
+
+* simplify Dockerfile by removing unnecessary environment variables and restructuring build stages ([9db0e8a](https://github.com/wize-works/jobsight-pro/commit/9db0e8a47e86043d57737f90d708149867fd4dde))
+
 ## [1.7.2](https://github.com/wize-works/jobsight-pro/compare/v1.7.1...v1.7.2) (2025-05-27)
 
 
