@@ -20,10 +20,9 @@ export const StatusOptions: {
 
 interface ClientsListProps {
     initialClients: ClientWithStats[]
-    businessId: string
 }
 
-export default function ClientsList({ initialClients, businessId }: ClientsListProps) {
+export default function ClientsList({ initialClients }: ClientsListProps) {
     const [clients, setClients] = useState<ClientWithStats[]>(initialClients);
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("all");
@@ -66,8 +65,6 @@ export default function ClientsList({ initialClients, businessId }: ClientsListP
     const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))];
 
     const handleAddClient = async () => {
-        if (!businessId) return;
-
         setIsSubmitting(true);
         try {
             const data = await createClient(newClient as ClientInsert);

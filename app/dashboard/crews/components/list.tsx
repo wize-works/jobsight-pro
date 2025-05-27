@@ -17,10 +17,9 @@ const statusOptions: {
 
 interface CrewListProps {
     initialCrews: CrewWithDetails[];
-    businessId: string;
 };
 
-export default function CrewsList({ initialCrews, businessId }: CrewListProps) {
+export default function CrewsList({ initialCrews }: CrewListProps) {
     const [crews, setCrews] = useState<CrewWithDetails[]>(initialCrews || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -48,10 +47,6 @@ export default function CrewsList({ initialCrews, businessId }: CrewListProps) {
     });
 
     const handleAddCrew = async () => {
-        if (!businessId) {
-            toast.error("Business ID is required to create a crew.");
-            return;
-        }
 
         setIsSubmitting(true);
 
