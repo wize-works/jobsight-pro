@@ -1,3 +1,10 @@
+## [1.10.11](https://github.com/wize-works/jobsight-pro/compare/v1.10.10...v1.10.11) (2025-05-27)
+
+
+### Bug Fixes
+
+* switch from alpine to slim variant for Node.js in Dockerfile ([a63cc85](https://github.com/wize-works/jobsight-pro/commit/a63cc850e7ad2e45164ffde0f046eb98c3889bda))
+
 ## [1.10.10](https://github.com/wize-works/jobsight-pro/compare/v1.10.9...v1.10.10) (2025-05-27)
 
 
