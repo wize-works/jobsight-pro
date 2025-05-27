@@ -40,6 +40,7 @@ LABEL org.opencontainers.image.documentation="https://github.com/wize-works/jobs
 LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 
 # Copy production artifacts from builder
+COPY --from=builder /app/.next/stsatic ././static
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
@@ -52,4 +53,4 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- http://localhost:3000/health || exit 1
 
-CMD ["npx", "next", "start"]
+CMD ["node", "start"]
