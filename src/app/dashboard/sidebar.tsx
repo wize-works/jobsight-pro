@@ -26,7 +26,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     )}
                 </div>
 
-                <ul className="menu">
+                <ul className="menu menu-md space-y-2">
                     <li className="">
                         <Link href="/dashboard" className="flex items-center">
                             <i className="fal fa-tachometer-alt fa-fw fa-lg"></i>
