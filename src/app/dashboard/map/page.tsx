@@ -7,7 +7,7 @@ import { getEquipments } from '@/app/actions/equipments';
 
 // Dynamically import the map component with no SSR
 const MapComponent = dynamic(
-    () => import('./components/map.tsx').then(mod => mod.default),
+    () => import('./components/map').then(mod => mod.default),
     {
         ssr: false,
         loading: () => <div>Loading map...</div>
