@@ -172,7 +172,7 @@ export default function EquipmentDetail({
                 </div>
                 <div className="flex flex-col gap-6 col-span-2">
                     {/* Tabs UI */}
-                    <div className="tabs tabs-boxed my-6">
+                    <div role="tablist" className="tabs tabs-boxed my-6">
                         <button className={`tab ${activeTab === "details" ? "tab-active" : ""}`} onClick={() => setActiveTab("details")}>Details</button>
                         <button className={`tab ${activeTab === "maintenance" ? "tab-active" : ""}`} onClick={() => setActiveTab("maintenance")}>Maintenance History</button>
                         <button className={`tab ${activeTab === "usage" ? "tab-active" : ""}`} onClick={() => setActiveTab("usage")}>Usage History</button>

@@ -107,9 +107,9 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed tabs-sm">
-                            <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button className={`tab ${viewType === "table" ? "tab-active" : ""}`} onClick={() => updateViewType("table")}> <i className="fas fa-th-list"></i> </button>
+                        <div role="tablist" className="tabs tabs-box tabs-sm">
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "table" ? "tab-active" : ""}`} onClick={() => updateViewType("table")}> <i className="fas fa-th-list"></i> </button>
                         </div>
                     </div>
                 </div>

@@ -110,8 +110,8 @@ export default function ClientsList({ initialClients }: ClientsListProps) {
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                            <label className="input input-bordered input-secondary flex items-center gap-2">
+                        <div className="w-full">
+                            <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
                                 <input
                                     type="text"
@@ -123,7 +123,7 @@ export default function ClientsList({ initialClients }: ClientsListProps) {
                             </label>
                         </div>
                         <select
-                            className="select select-bordered select-secondary"
+                            className="select select-bordered select-secondary w-full"
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
                         >
@@ -137,7 +137,7 @@ export default function ClientsList({ initialClients }: ClientsListProps) {
                                 ))}
                         </select>
                         <select
-                            className="select select-bordered select-secondary"
+                            className="select select-bordered select-secondary w-full"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
@@ -148,7 +148,7 @@ export default function ClientsList({ initialClients }: ClientsListProps) {
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed tabs-sm">
+                        <div className="tabs tabs-box tabs-sm flex-nowrap">
                             <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => setViewType("grid")}>
                                 <i className="fas fa-grid-2"></i>
                             </button>
@@ -161,7 +161,7 @@ export default function ClientsList({ initialClients }: ClientsListProps) {
             </div>
 
             {viewType === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredClients.map((client) => (
                         <ClientCard
                             key={client.id}
