@@ -11,6 +11,7 @@ export default withAuth(
         if (!isLoggedIn) {
             const url = req.nextUrl.clone();
             url.pathname = "/";
+            console.warn("User not authenticated, redirecting to home");
             return NextResponse.redirect(url);
         }
 

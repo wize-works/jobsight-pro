@@ -19,7 +19,7 @@ export type BusinessState = {
 // Hook for direct use in components
 export function useWithBusiness(): BusinessState {
     const router = useRouter()
-    const { user } = useKindeBrowserClient()
+    const { user, isLoading: isAuthLoading } = useKindeBrowserClient()
     const [state, setState] = useState<Omit<BusinessState, "refreshBusiness">>({
         businessId: null,
         businessData: null,
@@ -28,10 +28,19 @@ export function useWithBusiness(): BusinessState {
     })
 
     const checkBusiness = useCallback(async () => {
+        // Don't redirect if auth is still loading
+        if (isAuthLoading) {
+            return;
+        }
+
         if (!user?.id) {
-            console.warn('User ID is not available, redirecting to home');
+            console.warn('User ID is not available after auth load, redirecting to home');
             setState(prev => ({ ...prev, loading: false }))
-            redirect('/');
+            toast.error({
+                description: "Authentication required",
+            });
+            router.push('/');
+            return;
         }
 
         try {
@@ -48,6 +57,7 @@ export function useWithBusiness(): BusinessState {
                     description: (response && 'error' in response) ? response.error : "Authentication required",
                     variant: "error"
                 })
+                console.error('No business found or error:', response)
                 router.push('/')
                 return
             }
@@ -70,9 +80,10 @@ export function useWithBusiness(): BusinessState {
                 description: "Failed to verify business access",
                 variant: "error"
             })
+            console.error('Redirecting to home due to error:', error)
             router.push('/')
         }
-    }, [user?.id, router])
+    }, [user?.id, router, isAuthLoading])
 
     useEffect(() => {
         checkBusiness()
