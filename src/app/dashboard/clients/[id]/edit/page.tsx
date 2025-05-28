@@ -1,5 +1,4 @@
 import { getClientById, updateClient } from "@/app/actions/clients";
-import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import type { ClientUpdate, Client } from "@/types/clients";
 import { redirect } from "next/navigation";
@@ -10,17 +9,6 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
     const { id: clientId } = await params;
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
-
-    if (!businessId) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64">
-                <h2 className="text-xl mb-4">Business not found</h2>
-                <p>Please set up your business to access client details.</p>
-            </div>
-        );
-    }
 
     const client = await getClientById(clientId);
 

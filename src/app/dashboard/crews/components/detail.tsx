@@ -9,7 +9,6 @@ import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
 import { createCrewMember } from "@/app/actions/crew-members";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew } from "@/app/actions/project-crews";
 import { Project } from "@/types/projects";
@@ -24,7 +23,6 @@ const statusOptions = {
 
 interface CrewDetailProps {
     crew: CrewWithDetails;
-    businessId: string;
     members?: CrewMember[];
     allMembers?: CrewMember[];
     schedule?: any[];
@@ -40,7 +38,6 @@ export default function CrewDetailComponent({
     schedule = [],
     history = [],
     equipment = [],
-    businessId,
     projects = [],
 }: CrewDetailProps & { projects?: { id: string; name: string }[] }) {
     const router = useRouter();
@@ -71,10 +68,7 @@ export default function CrewDetailComponent({
     }, [allMembers, crewLeader]);
 
     const handleAddMember = async () => {
-        const { user } = await useKindeAuth();
         const memberData = {
-            id: "",
-            business_id: businessId,
             name: newMember.name,
             role: newMember.role,
             experience: newMember.experience,
@@ -83,10 +77,6 @@ export default function CrewDetailComponent({
             status: "active",
             notes: "",
             avatar_url: newMember.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
-            created_by: user?.id,
-            created_at: new Date().toISOString(),
-            updated_by: user?.id,
-            updated_at: new Date().toISOString(),
         } as CrewMemberInsert;
 
         try {

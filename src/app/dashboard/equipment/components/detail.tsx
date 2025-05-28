@@ -1,24 +1,19 @@
 "use client";
 
-import type { Equipment, EquipmentWithDetails } from "@/types/equipment";
-import type { EquipmentMaintenance } from "@/types/equipment-maintenance";
-import type { EquipmentUsage } from "@/types/equipment_usage";
+import type { Equipment, EquipmentStatus, EquipmentWithDetails } from "@/types/equipment";
+import { equipmentStatusOptions } from "@/types/equipment";
+import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMaintenanceType } from "@/types/equipment-maintenance";
+import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useState } from "react";
 import Link from "next/link";
 import { Media } from "@/types/media";
 import { MaintenanceModal } from "./maintenance-modal";
+import { AssignmentModal } from "./assignment-modal";
+import { UsageModal } from "./usage-modal";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-
-const statusOptions = {
-    in_use: { label: "In Use", color: "badge-primary" },
-    available: { label: "Available", color: "badge-success" },
-    maintenance: { label: "Maintenance", color: "badge-warning" },
-    repair: { label: "Under Repair", color: "badge-error" },
-    retired: { label: "Retired", color: "badge-neutral" },
-};
 
 export default function EquipmentDetail({
     equipment,
@@ -30,40 +25,91 @@ export default function EquipmentDetail({
 }: {
     equipment: EquipmentWithDetails;
     maintenances: EquipmentMaintenance[];
-    usages: EquipmentUsage[];
+    usages: EquipmentUsageWithDetails[];
     assignments: EquipmentAssignmentWithDetails[];
     specifications: EquipmentSpecification[];
     documents: Media[];
 }) {
     const [activeTab, setActiveTab] = useState("details");
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+    const [showUsageModal, setShowUsageModal] = useState(false);
     const [showSpecificationModal, setShowSpecificationModal] = useState(false);
+    const [showAssignmentModal, setShowAssignmentModal] = useState(false);
     const [maintenanceList, setMaintenanceList] = useState<EquipmentMaintenance[]>(maintenances) || [];
-    console.log("Maintenance List:", maintenanceList);
-    const getStatusOption = (status: string | null | undefined) => {
-        if (!status) return undefined;
-        if (Object.prototype.hasOwnProperty.call(statusOptions, status)) {
-            return statusOptions[status as keyof typeof statusOptions];
+    const [usageList, setUsageList] = useState<EquipmentUsageWithDetails[]>(usages) || [];
+    const [assignmentList, setAssignmentList] = useState<EquipmentAssignmentWithDetails[]>(assignments) || [];
+    const [selectedMaintenance, setSelectedMaintenance] = useState<EquipmentMaintenance | undefined>();
+    const [selectedUsage, setSelectedUsage] = useState<EquipmentUsage | undefined>();
+    const [selectedAssignment, setSelectedAssignment] = useState<EquipmentAssignment | undefined>();
+
+    const handleAddMaintenance = async (maintenance: EquipmentMaintenance) => {
+        // If we're editing, update the existing record
+        if (selectedMaintenance) {
+            setMaintenanceList(maintenanceList.map((m) =>
+                m.id === selectedMaintenance.id ? maintenance : m
+            ));
+        } else {
+            // For new records
+            setMaintenanceList([maintenance, ...maintenanceList]);
         }
-        return undefined;
     };
 
-    const handleAddMaintenance = async (data: {
-        maintenance_type: string;
-        maintenance_date: string;
-        description: string;
-        cost?: number;
-    }) => {
-        // TODO: Replace with API call to add maintenance record
-        // For now, just update local state
-        setMaintenanceList([
-            {
-                id: Math.random().toString(36).substring(2), // temp id
-                equipment_id: equipment.id,
-                ...data,
-            } as EquipmentMaintenance,
-            ...maintenanceList,
-        ]);
+    const handleAddUsage = async (usage: EquipmentUsage) => {
+        // If we're editing, update the existing record
+        if (selectedUsage) {
+            setUsageList(usageList.map((u) =>
+                u.id === selectedUsage.id ? usage : u
+            ));
+        } else {
+            // For new records
+            setUsageList([usage, ...usageList]);
+        }
+    };
+
+    const handleAddAssignment = async (assignment: EquipmentAssignment) => {
+        // If we're editing, update the existing record
+        if (selectedAssignment) {
+            setAssignmentList(assignmentList.map((a) =>
+                a.id === selectedAssignment.id ? assignment : a
+            ));
+        } else {
+            // For new records
+            setAssignmentList([assignment, ...assignmentList]);
+        }
+    };
+
+    const handleDeleteAssignment = (id: string) => {
+        setAssignmentList(assignmentList.filter((a) => a.id !== id));
+    };
+
+    const closeMaintenanceModal = () => {
+        setShowMaintenanceModal(false);
+        setSelectedMaintenance(undefined);
+    };
+
+    const closeUsageModal = () => {
+        setShowUsageModal(false);
+        setSelectedUsage(undefined);
+    };
+
+    const closeAssignmentModal = () => {
+        setShowAssignmentModal(false);
+        setSelectedAssignment(undefined);
+    };
+
+    const handleEditMaintenance = (maintenance: EquipmentMaintenance) => {
+        setSelectedMaintenance(maintenance);
+        setShowMaintenanceModal(true);
+    };
+
+    const handleEditUsage = (usage: EquipmentUsage) => {
+        setSelectedUsage(usage);
+        setShowUsageModal(true);
+    };
+
+    const handleEditAssignment = (assignment: EquipmentAssignment) => {
+        setSelectedAssignment(assignment);
+        setShowAssignmentModal(true);
     };
 
     return (
@@ -101,9 +147,7 @@ export default function EquipmentDetail({
                             <h2 className="card-title">Current Status</h2>
                             <div className="mb-1 flex justify-between">
                                 <span>Status:</span>
-                                <span className={`badge ${getStatusOption(equipment.status)?.color || "badge-neutral"}`}>
-                                    {getStatusOption(equipment.status)?.label || equipment.status || "-"}
-                                </span>
+                                {equipmentStatusOptions.badge(equipment.status as EquipmentStatus)}
                             </div>
                             <div className="mb-1 flex justify-between">
                                 <span>Location:</span>
@@ -172,23 +216,28 @@ export default function EquipmentDetail({
                 </div>
                 <div className="flex flex-col gap-6 col-span-2">
                     {/* Tabs UI */}
-                    <div role="tablist" className="tabs tabs-boxed my-6">
+                    <div role="tablist" className="tabs tabs-box">
                         <button className={`tab ${activeTab === "details" ? "tab-active" : ""}`} onClick={() => setActiveTab("details")}>Details</button>
                         <button className={`tab ${activeTab === "maintenance" ? "tab-active" : ""}`} onClick={() => setActiveTab("maintenance")}>Maintenance History</button>
                         <button className={`tab ${activeTab === "usage" ? "tab-active" : ""}`} onClick={() => setActiveTab("usage")}>Usage History</button>
                         <button className={`tab ${activeTab === "assignments" ? "tab-active" : ""}`} onClick={() => setActiveTab("assignments")}>Assignments</button>
                         <button className={`tab ${activeTab === "cost" ? "tab-active" : ""}`} onClick={() => setActiveTab("cost")}>Cost Analysis</button>
                     </div>
-                    <div className="card bg-base-100 shadow-lg p-4">
+                    <div className="card bg-base-100 shadow-lg">
                         {/* Tab content */}
                         {activeTab === "details" && (
-                            <div>
+                            <div className="card-body">
                                 <h2 className="font-bold mb-2">Details</h2>
-                                <div className="mb-2">Description: {equipment.description}</div>
+                                <div className="mb-6">Description: {equipment.description}</div>
                                 <div>
                                     <h3 className="font-bold mb-2">Specifications</h3>
                                     <table className="table table-zebra w-full">
                                         <tbody>
+                                            {specifications.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={2} className="text-center bg-warning/20">No specification details have been added.</td>
+                                                </tr>
+                                            )}
                                             {specifications.map((spec) => (
                                                 <tr key={spec.id}>
                                                     <td>{spec.name}</td>
@@ -222,7 +271,7 @@ export default function EquipmentDetail({
                             </div>
                         )}
                         {activeTab === "maintenance" && (
-                            <div>
+                            <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="font-bold mb-2">Maintenance Records</h2>
                                     <button
@@ -232,29 +281,144 @@ export default function EquipmentDetail({
                                         <i className="fas fa-plus"></i> Add Maintenance
                                     </button>
                                 </div>
-                                <ul>
-                                    {maintenanceList.map((m) => (
-                                        <li key={m.id}>{m.maintenance_type} - {m.description} ({m.maintenance_date})</li>
-                                    ))}
-                                </ul>
+                                <table className="table table-zebra table-sm w-full">
+                                    <thead>
+                                        <tr className="font-bold">
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Cost</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {maintenanceList.length === 0 && (
+                                            <tr>
+                                                <td colSpan={4} className="text-center bg-warning/20">No maintenance records available.</td>
+                                            </tr>
+                                        )}
+                                        {maintenanceList.map((m) => (
+                                            <tr key={m.id}>
+                                                <td>{new Date(m.maintenance_date!).toLocaleDateString()}</td>
+                                                <td>
+                                                    {maintenanceTypeOptions.badge(m.maintenance_type as EquipmentMaintenanceType)}
+                                                </td>
+                                                <td>{m.description || "No description"}</td>
+                                                <td>{m.cost ? `$${m.cost.toLocaleString()}` : "Not set"}</td>
+                                                <td>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            className="btn btn-sm btn-secondary"
+                                                            onClick={() => handleEditMaintenance(m)}
+                                                        >
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm btn-error"
+                                                            onClick={() => {
+                                                                if (confirm("Are you sure you want to delete this maintenance record?")) {
+                                                                    setMaintenanceList(maintenanceList.filter((item) => item.id !== m.id));
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                                 {showMaintenanceModal && (
-                                    <MaintenanceModal />
+                                    <MaintenanceModal
+                                        onClose={closeMaintenanceModal}
+                                        onSave={handleAddMaintenance}
+                                        maintenance={selectedMaintenance}
+                                    />
                                 )}
                             </div>
                         )}
                         {activeTab === "usage" && (
-                            <div>
-                                <h2 className="font-bold mb-2">Usage Records</h2>
-                                <ul>
-                                    {usages.map((u) => (
-                                        <li key={u.id}>Project: {u.project_id}, Crew: {u.crew_id}, Hours: {u.hours_used}, Fuel: {u.fuel_consumed}</li>
-                                    ))}
-                                </ul>
+                            <div className="card-body">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="font-bold">Usage Records</h2>
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => setShowUsageModal(true)}
+                                    >
+                                        <i className="fas fa-plus"></i> Add Usage
+                                    </button>
+                                </div>
+                                <table className="table table-zebra table-sm w-full">
+                                    <thead>
+                                        <tr className="font-bold">
+                                            <th>Project</th>
+                                            <th>Crew</th>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                            <th>Hours</th>
+                                            <th>Fuel</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {usageList.length === 0 && (
+                                            <tr>
+                                                <td colSpan={7} className="text-center bg-warning/20">No usage records available.</td>
+                                            </tr>
+                                        )}
+                                        {usageList.map((u) => (
+                                            <tr key={u.id}>
+                                                <td>{u.project_name}</td>
+                                                <td>{u.crew_name}</td>
+                                                <td>{u.start_date ? new Date(u.start_date).toLocaleDateString() : "Not set"}</td>
+                                                <td>{u.end_date ? new Date(u.end_date).toLocaleDateString() : "In progress"}</td>
+                                                <td>{u.hours_used || "Not set"}</td>
+                                                <td>{u.fuel_consumed || "Not set"}</td>
+                                                <td>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            className="btn btn-sm btn-secondary"
+                                                            onClick={() => handleEditUsage(u)}
+                                                        >
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm btn-error"
+                                                            onClick={() => {
+                                                                if (confirm("Are you sure you want to delete this usage record?")) {
+                                                                    setUsageList(usageList.filter((item) => item.id !== u.id));
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {showUsageModal && (
+                                    <UsageModal
+                                        onClose={closeUsageModal}
+                                        onSave={handleAddUsage}
+                                        usage={selectedUsage}
+                                    />
+                                )}
                             </div>
                         )}
                         {activeTab === "assignments" && (
-                            <div>
-                                <h2 className="font-bold mb-2">Assignments</h2>
+                            <div className="card-body">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="font-bold">Assignments</h2>
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => setShowAssignmentModal(true)}
+                                    >
+                                        <i className="fas fa-plus"></i> Add Assignment
+                                    </button>
+                                </div>
                                 <table className="table table-zebra table-sm w-full">
                                     <thead>
                                         <tr>
@@ -262,19 +426,53 @@ export default function EquipmentDetail({
                                             <th>Start Date</th>
                                             <th>End Date</th>
                                             <th>Crew</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {assignments.map((a) => (
+                                        {assignmentList.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="text-center bg-warning/20">No assignment records available.</td>
+                                            </tr>
+                                        )}
+                                        {assignmentList.map((a) => (
                                             <tr key={a.id}>
                                                 <td>{a.project_name}</td>
                                                 <td>{a.start_date}</td>
                                                 <td>{a.end_date}</td>
                                                 <td>{a.crew_name}</td>
+                                                <td>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            className="btn btn-sm btn-secondary"
+                                                            onClick={() => handleEditAssignment(a)}
+                                                        >
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm btn-error"
+                                                            onClick={() => {
+                                                                if (confirm("Are you sure you want to delete this assignment record?")) {
+                                                                    setAssignmentList(assignmentList.filter((item) => item.id !== a.id));
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
+                                {showAssignmentModal && (
+                                    <AssignmentModal
+                                        assignment={selectedAssignment}
+                                        onClose={closeAssignmentModal}
+                                        onSave={handleAddAssignment}
+                                        onDelete={handleDeleteAssignment}
+                                    />
+                                )}
                             </div>
                         )}
                         {activeTab === "cost" && (

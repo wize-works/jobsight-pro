@@ -1,11 +1,20 @@
-import { EquipmentMaintenance } from '@/types/equipment-maintenance';
-import React, { useState } from 'react';
+import {
+    EquipmentMaintenance,
+    maintenanceTypeOptions,
+    maintenanceStatusOptions
+} from '@/types/equipment-maintenance';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
+import { createEquipmentMaintenance, updateEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
 import { toast } from '@/hooks/use-toast';
 
+type MaintenanceModalProps = {
+    maintenance?: EquipmentMaintenance;
+    onClose: () => void;
+    onSave: (maintenance: EquipmentMaintenance) => void;
+}
 
-export const MaintenanceModal = () => {
+export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceModalProps) => {
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
@@ -15,6 +24,18 @@ export const MaintenanceModal = () => {
     const [technician, setTechnician] = useState('');
     const [cost, setCost] = useState('');
     const [notes, setNotes] = useState('');
+
+    // If we have a maintenance record, populate the form
+    useEffect(() => {
+        if (maintenance) {
+            setMaintenanceDate(maintenance.maintenance_date ? new Date(maintenance.maintenance_date).toISOString().split('T')[0] : '');
+            setMaintenanceType(maintenance.maintenance_type || '');
+            setDescription(maintenance.description || '');
+            setTechnician(maintenance.technician || '');
+            setCost(maintenance.cost ? maintenance.cost.toString() : '');
+            setNotes(maintenance.notes || '');
+        }
+    }, [maintenance]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,34 +47,36 @@ export const MaintenanceModal = () => {
             technician,
             cost: cost ? parseFloat(cost) : 0,
             notes,
-
+            ...(maintenance?.id && { id: maintenance.id }) // Include ID if editing
         } as EquipmentMaintenance;
 
-        await createEquipmentMaintenance(maintenanceData);
-        setMaintenanceType('');
-        setMaintenanceDate('');
-        setDescription('');
-        setTechnician('');
-        setCost('');
-        setNotes('');
-        toast.success('Maintenance record added successfully');
-        router.refresh();
+        try {
+            if (maintenance?.id) {
+                // Update existing maintenance record
+                await updateEquipmentMaintenance(maintenance.id, maintenanceData);
+                toast.success('Maintenance record updated successfully');
+            } else {
+                // Create new maintenance record
+                await createEquipmentMaintenance(maintenanceData);
+                toast.success('Maintenance record added successfully');
+            }
+            onSave(maintenanceData);
+            onClose();
+            router.refresh();
+        } catch (error) {
+            toast.error(maintenance?.id ? 'Failed to update maintenance record' : 'Failed to add maintenance record');
+        }
     };
 
     return (
         <dialog id="maintenance-modal" className="modal modal-open">
             <form method="dialog" className="modal-box space-y-4" onSubmit={handleSubmit}>
-                <h3 className="font-bold text-lg">Add Maintenance</h3>
+                <h3 className="font-bold text-lg">{maintenance ? 'Edit' : 'Add'} Maintenance</h3>
                 <div className="form-control">
-                    <label className="label">
+                    <label className="label w-full">
                         <span className="label-text">Maintenance Type</span>
                     </label>
-                    <select className="select select-bordered" onChange={(e) => setMaintenanceType(e.target.value)} required>
-                        <option disabled>Select maintenance type</option>
-                        <option>Inspection</option>
-                        <option>Repair</option>
-                        <option>Replacement</option>
-                    </select>
+                    {maintenanceTypeOptions.select(maintenanceType, setMaintenanceType)}
                 </div>
                 <div className="form-control">
                     <label className="label">
@@ -62,6 +85,7 @@ export const MaintenanceModal = () => {
                     <input
                         type="date"
                         className="input input-bordered w-full"
+                        value={maintenanceDate}
                         onChange={(e) => setMaintenanceDate(e.target.value)}
                         required
                     />
@@ -70,7 +94,13 @@ export const MaintenanceModal = () => {
                     <label className="label">
                         <span className="label-text">Description</span>
                     </label>
-                    <textarea className="textarea textarea-bordered w-full" placeholder="Enter maintenance description" onChange={(e) => setDescription(e.target.value)}></textarea>
+                    <textarea
+                        className="textarea textarea-bordered w-full"
+                        value={description}
+                        placeholder="Enter maintenance description"
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                    ></textarea>
                 </div>
                 <div className="form-control">
                     <label className="label">
@@ -79,6 +109,7 @@ export const MaintenanceModal = () => {
                     <input
                         type="text"
                         className="input input-bordered w-full"
+                        value={technician}
                         placeholder="Enter technician name"
                         onChange={(e) => setTechnician(e.target.value)}
                     />
@@ -90,13 +121,38 @@ export const MaintenanceModal = () => {
                     <input
                         type="number"
                         className="input input-bordered w-full"
-                        onChange={(e) => setCost(e.target.value)}
+                        value={cost}
                         placeholder="Enter cost"
+                        onChange={(e) => setCost(e.target.value)}
                     />
                 </div>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Notes</span>
+                    </label>
+                    <textarea
+                        className="textarea textarea-bordered w-full"
+                        value={notes}
+                        placeholder="Enter additional notes"
+                        onChange={(e) => setNotes(e.target.value)}
+                    ></textarea>
+                </div>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Status</span>
+                    </label>
+                    {maintenanceStatusOptions.select(
+                        maintenance?.maintenance_status,
+                        (value) => {
+                            if (maintenance) {
+                                maintenance.maintenance_status = value;
+                            }
+                        }
+                    )}
+                </div>
                 <div className="modal-action">
-                    <button type="submit" className="btn btn-primary">Save</button>
-                    <button type="button" className="btn" onClick={() => close()}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">{maintenance ? 'Update' : 'Save'}</button>
+                    <button type="button" className="btn" onClick={onClose}>Cancel</button>
                 </div>
             </form>
         </dialog>

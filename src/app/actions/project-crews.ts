@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { ProjectCrew, ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch project crews.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("project_crews", businessId);
+    const { data, error } = await fetchByBusiness("project_crews", business.id);
 
     if (error) {
         console.error("Error fetching project crews:", error);
@@ -31,17 +26,9 @@ export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
 }
 
 export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch project crews.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("project_crews", businessId, id);
+    const { data, error } = await fetchByBusiness("project_crews", business.id, id);
 
     if (error) {
         console.error("Error fetching project crew by ID:", error);
@@ -56,26 +43,11 @@ export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null
 };
 
 export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<ProjectCrew | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a project crew.");
-        return null;
-    }
+    crew = await applyCreated<ProjectCrewInsert>(crew);
 
-    crew = {
-        ...crew,
-        created_by: user?.id || "",
-        created_at: new Date().toISOString(),
-        updated_by: user?.id || "",
-        updated_at: new Date().toISOString(),
-        business_id: businessId,
-    };
-
-    const { data, error } = await insertWithBusiness("project_crews", crew, businessId);
+    const { data, error } = await insertWithBusiness("project_crews", crew, business.id);
 
     if (error) {
         console.error("Error creating project crew:", error);
@@ -86,17 +58,11 @@ export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<Projec
 }
 
 export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Promise<ProjectCrew | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a project crew.");
-        return null;
-    }
+    crew = await applyUpdated<ProjectCrewUpdate>(crew);
 
-    const { data, error } = await updateWithBusinessCheck("project_crews", id, crew, businessId);
+    const { data, error } = await updateWithBusinessCheck("project_crews", id, crew, business.id);
 
     if (error) {
         console.error("Error updating project crew:", error);
@@ -107,17 +73,9 @@ export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Pr
 }
 
 export const deleteProjectCrew = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a project crew.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("project_crews", id, businessId);
+    const { error } = await deleteWithBusinessCheck("project_crews", id, business.id);
 
     if (error) {
         console.error("Error deleting project crew:", error);
@@ -128,17 +86,9 @@ export const deleteProjectCrew = async (id: string): Promise<boolean> => {
 }
 
 export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search project crews.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("project_crews", businessId, "*", {
+    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
         filter: {
             or: [
                 { project_id: { ilike: `%${query}%` } },

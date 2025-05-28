@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { MediaTag, MediaTagInsert, MediaTagUpdate } from "@/types/media-tags";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getMediaTags = async (): Promise<MediaTag[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch media tags.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("media_tags", businessId);
+    const { data, error } = await fetchByBusiness("media_tags", business.id);
 
     if (error) {
         console.error("Error fetching media tags:", error);
@@ -31,17 +26,9 @@ export const getMediaTags = async (): Promise<MediaTag[]> => {
 }
 
 export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch media tags.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("media_tags", businessId, id);
+    const { data, error } = await fetchByBusiness("media_tags", business.id, id);
 
     if (error) {
         console.error("Error fetching media tag by ID:", error);
@@ -56,17 +43,11 @@ export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
 };
 
 export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a media tag.");
-        return null;
-    }
+    tag = await applyCreated<MediaTagInsert>(tag);
 
-    const { data, error } = await insertWithBusiness("media_tags", tag, businessId);
+    const { data, error } = await insertWithBusiness("media_tags", tag, business.id);
 
     if (error) {
         console.error("Error creating media tag:", error);
@@ -77,17 +58,11 @@ export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | nu
 }
 
 export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<MediaTag | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a media tag.");
-        return null;
-    }
+    tag = await applyUpdated<MediaTagUpdate>(tag);
 
-    const { data, error } = await updateWithBusinessCheck("media_tags", id, tag, businessId);
+    const { data, error } = await updateWithBusinessCheck("media_tags", id, tag, business.id);
 
     if (error) {
         console.error("Error updating media tag:", error);
@@ -98,17 +73,9 @@ export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<M
 }
 
 export const deleteMediaTag = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a media tag.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("media_tags", id, businessId);
+    const { error } = await deleteWithBusinessCheck("media_tags", id, business.id);
 
     if (error) {
         console.error("Error deleting media tag:", error);
@@ -119,17 +86,9 @@ export const deleteMediaTag = async (id: string): Promise<boolean> => {
 }
 
 export const searchMediaTags = async (query: string): Promise<MediaTag[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search media tags.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("media_tags", businessId, "*", {
+    const { data, error } = await fetchByBusiness("media_tags", business.id, "*", {
         filter: {
             or: [
                 { tag: { ilike: `%${query}%` } },

@@ -4,23 +4,12 @@ import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId } from "@/app/actions/client-interactions";
 import { getProjectsByClientId } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { getUserBusiness } from "@/app/actions/business";
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: clientId } = await params;
     const kindeSession = await getKindeServerSession()
     const user = await kindeSession.getUser()
-    const business = await getUserBusiness(user?.id || "")
-    const businessId = business?.id || ""
 
-    if (!businessId) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64">
-                <h2 className="text-xl mb-4">Business not found</h2>
-                <p>Please set up your business to access client details.</p>
-            </div>
-        )
-    }    // Fetch all client data in parallel
     const [client, projects, contacts, interactions] = await Promise.all([
         getClientById(clientId),
         getProjectsByClientId(clientId),
@@ -41,7 +30,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             projects={projects || []}
             contacts={contacts || []}
             interactions={interactions || []}
-            businessId={businessId}
         />
     )
 }

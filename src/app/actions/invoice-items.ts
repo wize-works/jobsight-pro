@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { InvoiceItem, InvoiceItemInsert, InvoiceItemUpdate } from "@/types/invoice-items";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch invoice items.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("invoice_items", businessId);
+    const { data, error } = await fetchByBusiness("invoice_items", business.id);
 
     if (error) {
         console.error("Error fetching invoice items:", error);
@@ -31,17 +26,9 @@ export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
 }
 
 export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch invoice items.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("invoice_items", businessId, id);
+    const { data, error } = await fetchByBusiness("invoice_items", business.id, id);
 
     if (error) {
         console.error("Error fetching invoice item by ID:", error);
@@ -56,17 +43,11 @@ export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null
 };
 
 export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<InvoiceItem | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create an invoice item.");
-        return null;
-    }
+    item = await applyCreated<InvoiceItemInsert>(item);
 
-    const { data, error } = await insertWithBusiness("invoice_items", item, businessId);
+    const { data, error } = await insertWithBusiness("invoice_items", item, business.id);
 
     if (error) {
         console.error("Error creating invoice item:", error);
@@ -77,17 +58,11 @@ export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<Invoic
 }
 
 export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Promise<InvoiceItem | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update an invoice item.");
-        return null;
-    }
+    item = await applyUpdated<InvoiceItemUpdate>(item);
 
-    const { data, error } = await updateWithBusinessCheck("invoice_items", id, item, businessId);
+    const { data, error } = await updateWithBusinessCheck("invoice_items", id, item, business.id);
 
     if (error) {
         console.error("Error updating invoice item:", error);
@@ -98,17 +73,9 @@ export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Pr
 }
 
 export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete an invoice item.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("invoice_items", id, businessId);
+    const { error } = await deleteWithBusinessCheck("invoice_items", id, business.id);
 
     if (error) {
         console.error("Error deleting invoice item:", error);
@@ -119,17 +86,9 @@ export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
 }
 
 export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search invoice items.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("invoice_items", businessId, "*", {
+    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
         filter: {
             or: [
                 { description: { ilike: `%${query}%` } },

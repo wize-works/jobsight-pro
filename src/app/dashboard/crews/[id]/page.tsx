@@ -1,8 +1,6 @@
 import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment, getCrewScheduleCurrent, getCrewScheduleHistory } from "@/app/actions/crews";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { getProjects } from "@/app/actions/projects";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { getUserBusiness } from "@/app/actions/business";
 import CrewDetailComponent from "../components/detail";
 import type { CrewMember } from "@/types/crew-members";
 import type { ProjectCrew } from "@/types/project-crews";
@@ -12,19 +10,6 @@ import Link from "next/link";
 
 export default async function CrewPage({ params }: { params: Promise<{ id: string }> }) {
     const crewId = (await params).id;
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
-
-    if (!businessId) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64">
-                <h2 className="text-xl mb-4">Business not found</h2>
-                <p>Please set up your business to access crew details.</p>
-            </div>
-        );
-    }
 
     // Fetch the crew data
     const crew = await getCrewWithDetailsById(crewId);
@@ -59,7 +44,6 @@ export default async function CrewPage({ params }: { params: Promise<{ id: strin
                 schedule={schedule as unknown as ProjectCrew[]}
                 history={history as unknown as ProjectCrew[]}
                 equipment={equipment as unknown as Equipment[]}
-                businessId={businessId}
                 projects={projects as unknown as Project[]}
             />
         </div>

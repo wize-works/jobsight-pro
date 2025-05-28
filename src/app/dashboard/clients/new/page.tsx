@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import ClientEditForm from "../components/edit";
 import { createClient } from "@/app/actions/clients";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { getUserBusiness } from "@/app/actions/business";
 import { v4 as uuidv4 } from "uuid";
 import { ClientInsert } from "@/types/clients";
 

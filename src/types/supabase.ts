@@ -986,6 +986,7 @@ export interface Database {
                     business_id: string
                     maintenance_date: string | null
                     maintenance_type: string | null
+                    maintenance_status: string | null
                     description: string | null
                     technician: string | null
                     cost: number | null
@@ -1002,6 +1003,7 @@ export interface Database {
                     business_id: string
                     maintenance_date: string | null
                     maintenance_type: string | null
+                    maintenance_status: string | null
                     description: string | null
                     technician: string | null
                     cost: number | null
@@ -1018,6 +1020,7 @@ export interface Database {
                     business_id: string
                     maintenance_date: string | null
                     maintenance_type: string | null
+                    maintenance_status: string | null
                     description: string | null
                     technician: string | null
                     cost: number | null
@@ -1073,10 +1076,10 @@ export interface Database {
                     business_id: string
                     project_id: string | null
                     crew_id: string | null
-                    start_time: string | null
-                    end_time: string | null
-                    hours_used: number | null
-                    fuel_consumed: number | null
+                    start_date: string | null
+                    end_date: string | null
+                    hours_used: number | 0.0
+                    fuel_consumed: number | 0.0
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1088,10 +1091,10 @@ export interface Database {
                     business_id: string
                     project_id: string | null
                     crew_id: string | null
-                    start_time: string | null
-                    end_time: string | null
-                    hours_used: number | null
-                    fuel_consumed: number | null
+                    start_date: string | null
+                    end_date: string | null
+                    hours_used: number | 0.0
+                    fuel_consumed: number | 0.0
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1103,10 +1106,10 @@ export interface Database {
                     business_id: string
                     project_id: string | null
                     crew_id: string | null
-                    start_time: string | null
-                    end_time: string | null
-                    hours_used: number | null
-                    fuel_consumed: number | null
+                    start_date: string | null
+                    end_date: string | null
+                    hours_used: number | 0.0
+                    fuel_consumed: number | 0.0
                     created_at: string
                     created_by: string | null
                     updated_at: string | null

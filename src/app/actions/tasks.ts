@@ -3,6 +3,8 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Task, TaskInsert, TaskUpdate } from "@/types/tasks";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getTasks = async (): Promise<Task[]> => {
     try {
@@ -52,6 +54,8 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
     try {
         const { business } = await withBusinessServer();
 
+        task = await applyCreated<TaskInsert>(task);
+
         const { data, error } = await insertWithBusiness("tasks", task, business.id);
 
         if (error) {
@@ -69,6 +73,8 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
 export const updateTask = async (id: string, task: TaskUpdate): Promise<Task | null> => {
     try {
         const { business } = await withBusinessServer();
+
+        task = await applyUpdated<TaskUpdate>(task);
 
         const { data, error } = await updateWithBusinessCheck("tasks", id, task, business.id);
 

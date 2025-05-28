@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { DailyLogImage, DailyLogImageInsert, DailyLogImageUpdate } from "@/types/daily-log-image";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getDailyLogImages = async (): Promise<DailyLogImage[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily log images.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_images", businessId);
+    const { data, error } = await fetchByBusiness("daily_log_images", business.id);
 
     if (error) {
         console.error("Error fetching daily log images:", error);
@@ -31,17 +26,9 @@ export const getDailyLogImages = async (): Promise<DailyLogImage[]> => {
 }
 
 export const getDailyLogImageById = async (id: string): Promise<DailyLogImage | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily log images.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_images", businessId, id);
+    const { data, error } = await fetchByBusiness("daily_log_images", business.id, id);
 
     if (error) {
         console.error("Error fetching daily log image by ID:", error);
@@ -56,17 +43,11 @@ export const getDailyLogImageById = async (id: string): Promise<DailyLogImage | 
 };
 
 export const createDailyLogImage = async (image: DailyLogImageInsert): Promise<DailyLogImage | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a daily log image.");
-        return null;
-    }
+    image = await applyCreated<DailyLogImageInsert>(image);
 
-    const { data, error } = await insertWithBusiness("daily_log_images", image, businessId);
+    const { data, error } = await insertWithBusiness("daily_log_images", image, business.id);
 
     if (error) {
         console.error("Error creating daily log image:", error);
@@ -77,17 +58,11 @@ export const createDailyLogImage = async (image: DailyLogImageInsert): Promise<D
 }
 
 export const updateDailyLogImage = async (id: string, image: DailyLogImageUpdate): Promise<DailyLogImage | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a daily log image.");
-        return null;
-    }
+    image = await applyUpdated<DailyLogImageUpdate>(image);
 
-    const { data, error } = await updateWithBusinessCheck("daily_log_images", id, image, businessId);
+    const { data, error } = await updateWithBusinessCheck("daily_log_images", id, image, business.id);
 
     if (error) {
         console.error("Error updating daily log image:", error);
@@ -98,17 +73,9 @@ export const updateDailyLogImage = async (id: string, image: DailyLogImageUpdate
 }
 
 export const deleteDailyLogImage = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a daily log image.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("daily_log_images", id, businessId);
+    const { error } = await deleteWithBusinessCheck("daily_log_images", id, business.id);
 
     if (error) {
         console.error("Error deleting daily log image:", error);
@@ -119,17 +86,9 @@ export const deleteDailyLogImage = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogImages = async (query: string): Promise<DailyLogImage[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search daily log images.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_images", businessId, "*", {
+    const { data, error } = await fetchByBusiness("daily_log_images", business.id, "*", {
         filter: {
             or: [
                 { image_url: { ilike: `%${query}%` } },

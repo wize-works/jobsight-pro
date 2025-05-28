@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Equipment, EquipmentInsert, EquipmentUpdate } from "@/types/equipment";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getEquipments = async (): Promise<Equipment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch equipments.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("equipment", businessId);
+    const { data, error } = await fetchByBusiness("equipment", business.id);
 
     if (error) {
         console.error("Error fetching equipments:", error);
@@ -31,17 +26,9 @@ export const getEquipments = async (): Promise<Equipment[]> => {
 }
 
 export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch equipments.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("equipment", businessId, "*", {
+    const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
         filter: { id: id },
     });
 
@@ -58,17 +45,11 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
 };
 
 export const createEquipment = async (equipment: EquipmentInsert): Promise<Equipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create an equipment.");
-        return null;
-    }
+    equipment = await applyCreated<EquipmentInsert>(equipment);
 
-    const { data, error } = await insertWithBusiness("equipment", equipment, businessId);
+    const { data, error } = await insertWithBusiness("equipment", equipment, business.id);
 
     if (error) {
         console.error("Error creating equipment:", error);
@@ -79,17 +60,11 @@ export const createEquipment = async (equipment: EquipmentInsert): Promise<Equip
 }
 
 export const updateEquipment = async (id: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update an equipment.");
-        return null;
-    }
+    equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
-    const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, businessId);
+    const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, business.id);
 
     if (error) {
         console.error("Error updating equipment:", error);
@@ -100,17 +75,9 @@ export const updateEquipment = async (id: string, equipment: EquipmentUpdate): P
 }
 
 export const deleteEquipment = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete an equipment.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("equipment", id, businessId);
+    const { error } = await deleteWithBusinessCheck("equipment", id, business.id);
 
     if (error) {
         console.error("Error deleting equipment:", error);
@@ -121,17 +88,9 @@ export const deleteEquipment = async (id: string): Promise<boolean> => {
 }
 
 export const searchEquipments = async (query: string): Promise<Equipment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search equipments.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("equipment", businessId, "*", {
+    const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

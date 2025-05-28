@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { DailyLog, DailyLogInsert, DailyLogUpdate } from "@/types/daily-logs";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getDailyLogs = async (): Promise<DailyLog[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily logs.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_logs", businessId);
+    const { data, error } = await fetchByBusiness("daily_logs", business.id);
 
     if (error) {
         console.error("Error fetching daily logs:", error);
@@ -31,17 +26,9 @@ export const getDailyLogs = async (): Promise<DailyLog[]> => {
 }
 
 export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily logs.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("daily_logs", businessId, id);
+    const { data, error } = await fetchByBusiness("daily_logs", business.id, id);
 
     if (error) {
         console.error("Error fetching daily log by ID:", error);
@@ -56,17 +43,11 @@ export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
 };
 
 export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a daily log.");
-        return null;
-    }
+    log = await applyCreated<DailyLogInsert>(log);
 
-    const { data, error } = await insertWithBusiness("daily_logs", log, businessId);
+    const { data, error } = await insertWithBusiness("daily_logs", log, business.id);
 
     if (error) {
         console.error("Error creating daily log:", error);
@@ -77,17 +58,11 @@ export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | nu
 }
 
 export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<DailyLog | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a daily log.");
-        return null;
-    }
+    log = await applyUpdated<DailyLogUpdate>(log);
 
-    const { data, error } = await updateWithBusinessCheck("daily_logs", id, log, businessId);
+    const { data, error } = await updateWithBusinessCheck("daily_logs", id, log, business.id);
 
     if (error) {
         console.error("Error updating daily log:", error);
@@ -98,17 +73,9 @@ export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<D
 }
 
 export const deleteDailyLog = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a daily log.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("daily_logs", id, businessId);
+    const { error } = await deleteWithBusinessCheck("daily_logs", id, business.id);
 
     if (error) {
         console.error("Error deleting daily log:", error);
@@ -119,17 +86,9 @@ export const deleteDailyLog = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search daily logs.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
+    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
         filter: {
             or: [
                 { notes: { ilike: `%${query}%` } },
