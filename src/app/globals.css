@@ -8,6 +8,12 @@
     width: 100%;
 }
 
+@layer base {
+    .label {
+        @apply w-full pb-2;
+    }
+}
+
 @container (min-width: 640px) {
     .container {
         max-width: 640px;

@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { Equipment, EquipmentInsert, EquipmentUpdate } from "@/types/equipment";
+import { Equipment, EquipmentInsert, EquipmentStatus, EquipmentUpdate } from "@/types/equipment";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
@@ -108,3 +108,28 @@ export const searchEquipments = async (query: string): Promise<Equipment[]> => {
     return data as unknown as Equipment[];
 };
 
+export const setEquipmentStatus = async (id: string, status: EquipmentStatus): Promise<Equipment | null> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await updateWithBusinessCheck("equipment", id, { status } as EquipmentUpdate, business.id);
+
+    if (error) {
+        console.error("Error setting equipment status:", error);
+        return null;
+    }
+
+    return data as unknown as Equipment;
+}
+
+export const setEquipmentLocation = async (id: string, location: string): Promise<Equipment | null> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await updateWithBusinessCheck("equipment", id, { location } as EquipmentUpdate, business.id);
+
+    if (error) {
+        console.error("Error setting equipment location:", error);
+        return null;
+    }
+
+    return data as unknown as Equipment;
+}
