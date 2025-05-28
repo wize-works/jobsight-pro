@@ -9,36 +9,35 @@ export type WithBusinessResult = {
 }
 
 export async function withBusinessServer(): Promise<WithBusinessResult> {
-    console.log("Starting withBusinessServer check...")
-    const kindeSession = await getKindeServerSession()
-    const user = await kindeSession.getUser()
+    const kindeSession = await getKindeServerSession();
+    const user = await kindeSession.getUser();
 
     if (!user?.id) {
-        console.error("[withBusinessServer] No user ID found")
-        redirect('/')
+        console.error("[withBusinessServer] No user ID found");
+        redirect('/');
     }
 
     try {
-        const businessResponse = await getUserBusiness(user.id)
+        const businessResponse = await getUserBusiness(user.id);
 
         // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
-            console.error("[withBusinessServer] Business auth error:", businessResponse)
-            redirect("/")
+            console.error("[withBusinessServer] Business auth error:", businessResponse);
+            redirect("/");
         }
 
         // If user has no business, redirect to business setup
         if (!businessResponse || !('id' in businessResponse)) {
-            console.error("[withBusinessServer] No business data found for user:", user.id)
-            redirect("/dashboard/business")
+            console.error("[withBusinessServer] No business data found for user:", user.id);
+            redirect("/dashboard/business");
         }
 
         return {
             business: businessResponse,
             userId: user.id
-        }
+        };
     } catch (error) {
-        console.error("[withBusinessServer] Error in business check:", error)
-        redirect('/')
+        console.error("[withBusinessServer] Error in business check:", error);
+        redirect('/');
     }
 }
