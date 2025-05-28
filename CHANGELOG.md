@@ -1,3 +1,15 @@
+# [1.13.0](https://github.com/wize-works/jobsight-pro/compare/v1.12.0...v1.13.0) (2025-05-28)
+
+
+### Bug Fixes
+
+* Add 'use client' directive to landing page for client-side rendering ([8bbc3e0](https://github.com/wize-works/jobsight-pro/commit/8bbc3e036671f301e5f38841cf27e187417bb005))
+
+
+### Features
+
+* Add map functionality with equipment markers and location tracking ([66ecaa1](https://github.com/wize-works/jobsight-pro/commit/66ecaa175834c3109e1073b590a6892ef053244b))
+
 # [1.12.0](https://github.com/wize-works/jobsight-pro/compare/v1.11.0...v1.12.0) (2025-05-28)
 
 
