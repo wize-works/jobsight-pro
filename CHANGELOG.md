@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/wize-works/jobsight-pro/compare/v1.11.0...v1.12.0) (2025-05-28)
+
+
+### Features
+
+* Implement theme-based logo display on landing page ([7ed3782](https://github.com/wize-works/jobsight-pro/commit/7ed37821bf8ebf78aaf9b77fe43aee9520494a42))
+
 # [1.11.0](https://github.com/wize-works/jobsight-pro/compare/v1.10.15...v1.11.0) (2025-05-28)
 
 
