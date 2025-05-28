@@ -1,3 +1,16 @@
+# [1.11.0](https://github.com/wize-works/jobsight-pro/compare/v1.10.15...v1.11.0) (2025-05-28)
+
+
+### Bug Fixes
+
+* Refactor code structure for improved navigation ([76103e1](https://github.com/wize-works/jobsight-pro/commit/76103e1a6e3de8efbd9124caff286382d8b5ac2a))
+* update sidebar menu styles for improved layout ([3a295aa](https://github.com/wize-works/jobsight-pro/commit/3a295aafd8bedf50340e6c40ce2b3b7598f442aa))
+
+
+### Features
+
+* Enhance type definitions and add options for documents, equipment, invoices, media, projects, and users ([d98e6d6](https://github.com/wize-works/jobsight-pro/commit/d98e6d61e30defb6c359b03b322a8182cc449eb9))
+
 ## [1.10.15](https://github.com/wize-works/jobsight-pro/compare/v1.10.14...v1.10.15) (2025-05-28)
 
 
