@@ -1,12 +1,15 @@
 import {
     EquipmentMaintenance,
+    type EquipmentMaintenanceType,
     maintenanceTypeOptions,
-    maintenanceStatusOptions
+    maintenanceStatusOptions,
+    EquipmentMaintenanceStatus
 } from '@/types/equipment-maintenance';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createEquipmentMaintenance, updateEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
 import { toast } from '@/hooks/use-toast';
+import { on } from 'events';
 
 type MaintenanceModalProps = {
     maintenance?: EquipmentMaintenance;
@@ -24,6 +27,7 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
     const [technician, setTechnician] = useState('');
     const [cost, setCost] = useState('');
     const [notes, setNotes] = useState('');
+    const [status, setStatus] = useState(maintenance?.maintenance_status || 'scheduled');
 
     // If we have a maintenance record, populate the form
     useEffect(() => {
@@ -76,7 +80,7 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
                     <label className="label w-full">
                         <span className="label-text">Maintenance Type</span>
                     </label>
-                    {maintenanceTypeOptions.select(maintenanceType, setMaintenanceType)}
+                    {maintenanceTypeOptions.select(maintenanceType as EquipmentMaintenanceType, setMaintenanceType)}
                 </div>
                 <div className="form-control">
                     <label className="label">
@@ -142,11 +146,12 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
                         <span className="label-text">Status</span>
                     </label>
                     {maintenanceStatusOptions.select(
-                        maintenance?.maintenance_status,
+                        status as EquipmentMaintenanceStatus,
                         (value) => {
                             if (maintenance) {
                                 maintenance.maintenance_status = value;
                             }
+                            setStatus(value);
                         }
                     )}
                 </div>
