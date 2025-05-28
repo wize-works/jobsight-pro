@@ -6,6 +6,7 @@ import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMainte
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
+import { setEquipmentLocation } from "@/app/actions/equipments";
 import { useState } from "react";
 import Link from "next/link";
 import { Media } from "@/types/media";
@@ -41,6 +42,7 @@ export default function EquipmentDetail({
     const [selectedMaintenance, setSelectedMaintenance] = useState<EquipmentMaintenance | undefined>();
     const [selectedUsage, setSelectedUsage] = useState<EquipmentUsage | undefined>();
     const [selectedAssignment, setSelectedAssignment] = useState<EquipmentAssignment | undefined>();
+    const [location, setLocation] = useState<string>(equipment.location || "");
 
     const handleAddMaintenance = async (maintenance: EquipmentMaintenance) => {
         // If we're editing, update the existing record
@@ -150,10 +152,6 @@ export default function EquipmentDetail({
                                 {equipmentStatusOptions.badge(equipment.status as EquipmentStatus)}
                             </div>
                             <div className="mb-1 flex justify-between">
-                                <span>Location:</span>
-                                <span>{equipment.location}</span>
-                            </div>
-                            <div className="mb-1 flex justify-between">
                                 <span>Type:</span>
                                 <span>{equipment.type}</span>
                             </div>
@@ -164,6 +162,46 @@ export default function EquipmentDetail({
                             <div className="mb-1 flex justify-between">
                                 <span>Next Maintenance:</span>
                                 <span>{equipment.next_maintenance || "Not set"}</span>
+                            </div>
+
+                            <div className="mb-1 flex justify-between">
+                                <span>Location:</span>
+                                <div>
+                                    <span className="badge badge-primary mr-2">{location || "No location assigned"}</span>
+
+                                    <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
+                                        const { latitude, longitude } = position.coords;
+                                        setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
+                                        setEquipmentLocation(equipment.id, `Lat: ${latitude}, Lon: ${longitude}`);
+                                    })}>
+                                        <i className="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="mb-1 flex justify-end gap-2">
+                                {location && location !== "No location assigned" && (
+                                    <>
+                                        <Link href={`https://maps.apple.com/?q=${location}`} className="btn btn-accent btn-xs">
+                                            <i className="fab fa-apple fa-lg"></i> View on Map
+                                        </Link>
+                                        <Link href={`https://google.com/maps/place/${location}`} className="btn btn-accent btn-xs">
+                                            <i className="fab fa-google fa-lg"></i> View on Map
+                                        </Link>
+                                        <Link
+                                            href={(() => {
+                                                const match = location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
+                                                if (match) {
+                                                    const [_, lat, lon] = match;
+                                                    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15&layers=M&marker=color:red|${lat},${lon}`;
+                                                }
+                                                return '#';
+                                            })()}
+                                            className="btn btn-accent btn-xs"
+                                        >
+                                            <i className="fas fa-map fa-lg"></i> View on Map
+                                        </Link>
+                                    </>
+                                )}
                             </div>
 
                             <div className="divider"></div>
@@ -476,7 +514,7 @@ export default function EquipmentDetail({
                             </div>
                         )}
                         {activeTab === "cost" && (
-                            <div>
+                            <div className="card-body">
                                 <h2 className="font-bold mb-2">Cost Analysis</h2>
                                 <div className="mb-2">
                                     <p>Purchase Price: {equipment.purchase_price ? `$${equipment.purchase_price.toLocaleString()}` : "Not set"}</p>

@@ -60,7 +60,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                         <Link href="/dashboard/equipment" className="flex items-center">
                             <i className="fal fa-truck fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Equipment</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">Next</span>}
+                            {!sidebarCollapsed && <span className="badge badge-sm badge-success ml-auto">New</span>}
                         </Link>
                     </li>
                     <li className="">
@@ -84,6 +84,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                         <Link href="/dashboard/projects" className="flex items-center">
                             <i className="fal fa-project-diagram fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Projects</span>}
+                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
                         </Link>
                     </li>
                     <li className="">
@@ -131,9 +132,15 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                         </li>
                     )}
                     <li className="">
-                        <Link href="/dashboard/media" className="flex items-center h-4">
+                        <Link href="/dashboard/media" className="flex items-center">
                             <i className="fal fa-images fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Media Library</span>}
+                        </Link>
+                    </li>
+                    <li className="">
+                        <Link href="/dashboard/map" className="flex items-center">
+                            <i className="fal fa-location-dot fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Map</span>}
                         </Link>
                     </li>
                 </ul>
