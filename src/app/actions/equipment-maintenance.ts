@@ -116,7 +116,7 @@ export const getEquipmentMaintenancesByEquipmentId = async (id: string): Promise
         filter: { equipment_id: id },
         orderBy: { column: "created_at", ascending: false },
     });
-    console.log("Fetched equipment maintenances:", data);
+
     if (error) {
         console.error("Error fetching equipment maintenance by ID:", error);
         return [];
@@ -124,6 +124,6 @@ export const getEquipmentMaintenancesByEquipmentId = async (id: string): Promise
     if (!data || data.length === 0) {
         return [] as EquipmentMaintenance[];
     }
-    console.log("Equipment maintenances data:", data);
+
     return data as unknown as EquipmentMaintenance[];
 };

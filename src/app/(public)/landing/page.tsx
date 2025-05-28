@@ -2,8 +2,11 @@ import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
 import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { useTheme } from "next-themes"
 
 export default function Home() {
+    const { theme } = useTheme();
+
     return (
         <main className="min-h-screen flex flex-col lg:flex-row relative">
             {/* Theme toggle in top right */}
@@ -15,7 +18,11 @@ export default function Home() {
 
                 <div className="max-w-md">
                     <div className="mb-3">
-                        <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />
+                        {theme === "dark" ?
+                            <Image src="/logo-full-white.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />
+                            :
+                            <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />
+                        }
                     </div>
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
