@@ -1,3 +1,10 @@
+## [1.10.15](https://github.com/wize-works/jobsight-pro/compare/v1.10.14...v1.10.15) (2025-05-28)
+
+
+### Bug Fixes
+
+* add logging for user authentication and business data retrieval processes ([02ffb4d](https://github.com/wize-works/jobsight-pro/commit/02ffb4d9d8ec90b14e150e7b61a6f3100b06868c))
+
 ## [1.10.14](https://github.com/wize-works/jobsight-pro/compare/v1.10.13...v1.10.14) (2025-05-27)
 
 
