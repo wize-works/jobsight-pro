@@ -55,6 +55,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     description: response.error,
                     variant: "error"
                 })
+                console.error("Business auth error:", response.error)
                 router.push(response.redirect)
                 return
             }

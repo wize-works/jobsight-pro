@@ -88,12 +88,15 @@ export async function getBusinessById(businessId: string) {
 }
 
 export async function getUserBusiness(userId: string) {
+    console.log("[getUserBusiness] Starting business lookup for user:", userId)
     const supabase = createServerClient()
     if (!supabase) {
         throw new Error("Supabase client not initialized")
     }
 
-    try {        // First get the user to find their business_id
+    try {
+        // First get the user to find their business_id
+        console.log("[getUserBusiness] Looking up user record...")
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
@@ -101,7 +104,7 @@ export async function getUserBusiness(userId: string) {
             .single()
 
         if (userError) {
-            console.error("Error fetching user:", userError)
+            console.error("[getUserBusiness] Error fetching user:", userError)
             return {
                 success: false,
                 redirect: "/",
@@ -109,11 +112,15 @@ export async function getUserBusiness(userId: string) {
             }
         }
 
+        console.log("[getUserBusiness] User data:", userData)
+
         if (!userData?.business_id) {
+            console.log("[getUserBusiness] No business ID found for user")
             return null // User doesn't have a business yet
         }
 
         // Now get the business details
+        console.log("[getUserBusiness] Looking up business:", userData.business_id)
         const { data: businessData, error: businessError } = await supabase
             .from("businesses")
             .select("*")
@@ -121,12 +128,14 @@ export async function getUserBusiness(userId: string) {
             .single()
 
         if (businessError) {
+            console.error("[getUserBusiness] Error fetching business:", businessError)
             throw new Error(`Failed to fetch business: ${businessError.message}`)
         }
 
+        console.log("[getUserBusiness] Successfully found business data")
         return businessData
     } catch (error) {
-        console.error("Error in getUserBusiness:", error)
+        console.error("[getUserBusiness] Error in getUserBusiness:", error)
         throw error
     }
 }
