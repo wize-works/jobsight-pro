@@ -1,3 +1,122 @@
+## [1.10.15](https://github.com/wize-works/jobsight-pro/compare/v1.10.14...v1.10.15) (2025-05-28)
+
+
+### Bug Fixes
+
+* add logging for user authentication and business data retrieval processes ([02ffb4d](https://github.com/wize-works/jobsight-pro/commit/02ffb4d9d8ec90b14e150e7b61a6f3100b06868c))
+
+## [1.10.14](https://github.com/wize-works/jobsight-pro/compare/v1.10.13...v1.10.14) (2025-05-27)
+
+
+### Bug Fixes
+
+* add button styles to login link and comment out unused links ([50290ce](https://github.com/wize-works/jobsight-pro/commit/50290cedd97735988ab343a35e792bb20a75ee02))
+
+## [1.10.13](https://github.com/wize-works/jobsight-pro/compare/v1.10.12...v1.10.13) (2025-05-27)
+
+
+### Bug Fixes
+
+* update tailwindcss and daisyui dependencies to specific versions ([cdbd7b4](https://github.com/wize-works/jobsight-pro/commit/cdbd7b4fd255edd7f0e6eb55cee93681aca7746a))
+
+## [1.10.12](https://github.com/wize-works/jobsight-pro/compare/v1.10.11...v1.10.12) (2025-05-27)
+
+
+### Bug Fixes
+
+* update user creation command in Dockerfile for clarity ([8b8f8a2](https://github.com/wize-works/jobsight-pro/commit/8b8f8a2290bec056cbd60a19e5811401700de193))
+
+## [1.10.11](https://github.com/wize-works/jobsight-pro/compare/v1.10.10...v1.10.11) (2025-05-27)
+
+
+### Bug Fixes
+
+* switch from alpine to slim variant for Node.js in Dockerfile ([a63cc85](https://github.com/wize-works/jobsight-pro/commit/a63cc850e7ad2e45164ffde0f046eb98c3889bda))
+
+## [1.10.10](https://github.com/wize-works/jobsight-pro/compare/v1.10.9...v1.10.10) (2025-05-27)
+
+
+### Bug Fixes
+
+* remove duplicate @tailwindcss/postcss dependency from package.json ([f393b92](https://github.com/wize-works/jobsight-pro/commit/f393b92cea9f0cd906d0ec17f1ffdcfa60e9fc0d))
+
+## [1.10.9](https://github.com/wize-works/jobsight-pro/compare/v1.10.8...v1.10.9) (2025-05-27)
+
+
+### Bug Fixes
+
+* simplify Dockerfile by consolidating COPY commands and removing unnecessary lines ([c4050dc](https://github.com/wize-works/jobsight-pro/commit/c4050dc83ebd2df4757f78e496f196f0ab2cb904))
+
+## [1.10.8](https://github.com/wize-works/jobsight-pro/compare/v1.10.7...v1.10.8) (2025-05-27)
+
+
+### Bug Fixes
+
+* update dependencies for daisyui and tailwindcss in package.json ([ce6c7f7](https://github.com/wize-works/jobsight-pro/commit/ce6c7f76ec875352b2a2af9a29e80dac5bee4a0e))
+
+## [1.10.7](https://github.com/wize-works/jobsight-pro/compare/v1.10.6...v1.10.7) (2025-05-27)
+
+
+### Bug Fixes
+
+* update PostCSS configuration and include next.config.js in TypeScript compilation ([bd7c358](https://github.com/wize-works/jobsight-pro/commit/bd7c3581e7330acd05de8f1fff8e056e91102a15))
+
+## [1.10.6](https://github.com/wize-works/jobsight-pro/compare/v1.10.5...v1.10.6) (2025-05-27)
+
+
+### Bug Fixes
+
+* update CMD in Dockerfile to use npx for starting the application ([dcf9f7b](https://github.com/wize-works/jobsight-pro/commit/dcf9f7bfd8d0b1d6012ecbea6f6eab93b5e53726))
+
+## [1.10.5](https://github.com/wize-works/jobsight-pro/compare/v1.10.4...v1.10.5) (2025-05-27)
+
+
+### Bug Fixes
+
+* correct path for copying static files in Dockerfile ([76221e4](https://github.com/wize-works/jobsight-pro/commit/76221e45354e917fb4a3c9a338aa6488a3d923ba))
+
+## [1.10.4](https://github.com/wize-works/jobsight-pro/compare/v1.10.3...v1.10.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* correct typo in Dockerfile for static files path ([a5f178b](https://github.com/wize-works/jobsight-pro/commit/a5f178b91919773da5b035161b141a1fb41e0396))
+
+## [1.10.3](https://github.com/wize-works/jobsight-pro/compare/v1.10.2...v1.10.3) (2025-05-27)
+
+
+### Bug Fixes
+
+* update Dockerfile to copy static files and change start command ([65fea70](https://github.com/wize-works/jobsight-pro/commit/65fea704997ed0c243e66595c812eec13a617022))
+
+## [1.10.2](https://github.com/wize-works/jobsight-pro/compare/v1.10.1...v1.10.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* update PostCSS configuration to use object syntax for plugins ([3d790e0](https://github.com/wize-works/jobsight-pro/commit/3d790e0da5c4e12dfe611f6c3fc17363a560aaa3))
+
+## [1.10.1](https://github.com/wize-works/jobsight-pro/compare/v1.10.0...v1.10.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* update import path for globals.css in layout.tsx ([3b22c97](https://github.com/wize-works/jobsight-pro/commit/3b22c97b6667f0571e801f733c8d7a6d62199651))
+
+# [1.10.0](https://github.com/wize-works/jobsight-pro/compare/v1.9.1...v1.10.0) (2025-05-27)
+
+
+### Features
+
+* add initial Tailwind CSS configuration file ([989ae9e](https://github.com/wize-works/jobsight-pro/commit/989ae9e072ce0953189d1e9179b5240080f9f1ac))
+
+## [1.9.1](https://github.com/wize-works/jobsight-pro/compare/v1.9.0...v1.9.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* update Dockerfile to copy next.config.js instead of next.config.ts ([16bcd82](https://github.com/wize-works/jobsight-pro/commit/16bcd8206ad396cd04f85ff98f777e75f29b6550))
+
 # [1.9.0](https://github.com/wize-works/jobsight-pro/compare/v1.8.1...v1.9.0) (2025-05-27)
 
 
