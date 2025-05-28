@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/wize-works/jobsight-pro/compare/v1.13.0...v1.13.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* Correct import path for dynamic map component and ensure newline at end of manifest file ([9a70106](https://github.com/wize-works/jobsight-pro/commit/9a701065e790ffb372f3b7cabca547c963b94e03))
+
 # [1.13.0](https://github.com/wize-works/jobsight-pro/compare/v1.12.0...v1.13.0) (2025-05-28)
 
 
