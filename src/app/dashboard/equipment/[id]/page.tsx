@@ -1,6 +1,6 @@
 import { getEquipmentById } from "@/app/actions/equipments";
 import { getEquipmentMaintenancesByEquipmentId } from "@/app/actions/equipment-maintenance";
-import { getEquipmentUsagesByEquipmentId } from "@/app/actions/equipment_usage";
+import { getEquipmentUsagesWithDetailsByEquipmentId } from "@/app/actions/equipment_usage";
 import { getEquipmentAssignmentsByEquipmentId } from "@/app/actions/equipment-assignments";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 import { getMediaByEquipmentId } from "@/app/actions/media";
@@ -20,7 +20,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     // Fetch all related records and filter by equipmentId
     const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
         getEquipmentMaintenancesByEquipmentId(id),
-        getEquipmentUsagesByEquipmentId(id),
+        getEquipmentUsagesWithDetailsByEquipmentId(id),
         getEquipmentAssignmentsByEquipmentId(id),
         getEquipmentSpecificationsByEquipmentId(id),
         getMediaByEquipmentId(id, "documents"),

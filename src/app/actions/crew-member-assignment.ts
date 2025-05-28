@@ -3,19 +3,15 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { CrewMemberAssignment, CrewMemberAssignmentInsert, CrewMemberAssignmentUpdate } from "@/types/crew-member-assignments";
 import { getUserBusiness } from "@/app/actions/business";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 // Get all crew member assignments for the current business
 export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
+    const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
         orderBy: {
             column: "created_at",
             ascending: false
@@ -34,24 +30,11 @@ export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]
 export const createCrewMemberAssignment = async (
     assignment: CrewMemberAssignmentInsert
 ): Promise<CrewMemberAssignment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a crew member assignment.");
-        return null;
-    }
+    assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
 
-    const { data, error } = await insertWithBusiness("crew_member_assignments", {
-        ...assignment,
-        business_id: businessId,
-        created_by: user?.id,
-        created_at: new Date().toISOString(),
-        updated_by: user?.id,
-        updated_at: new Date().toISOString(),
-    }, businessId);
+    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment, business.id);
 
     if (error) {
         console.error("Error creating crew member assignment:", error);
@@ -62,25 +45,18 @@ export const createCrewMemberAssignment = async (
 };
 
 export const addCrewMemberToCrew = async (crewId: string, memberId: string): Promise<CrewMemberAssignment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
-    if (!businessId) {
-        console.error("Business ID is required to add a crew member to a crew.");
-        return null;
-    }
-    const assignment: CrewMemberAssignmentInsert = {
+    const { business } = await withBusinessServer();
+
+    let assignment = {
         crew_id: crewId,
         crew_member_id: memberId,
-        business_id: businessId,
-        created_by: user?.id || "",
-        created_at: new Date().toISOString(),
-        updated_by: user?.id || "",
-        updated_at: new Date().toISOString(),
         id: ""
     };
-    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment, businessId);
+
+    assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
+
+
+    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment as CrewMemberAssignmentInsert, business.id);
     if (error) {
         console.error("Error adding crew member to crew:", error);
         return null;
@@ -93,26 +69,11 @@ export const updateCrewMemberAssignment = async (
     id: string,
     assignment: CrewMemberAssignmentUpdate
 ): Promise<CrewMemberAssignment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a crew member assignment.");
-        return null;
-    }
+    assignment = await applyUpdated<CrewMemberAssignmentUpdate>(assignment);
 
-    const { data, error } = await updateWithBusinessCheck(
-        "crew_member_assignments",
-        id,
-        {
-            ...assignment,
-            updated_by: user?.id,
-            updated_at: new Date().toISOString(),
-        },
-        businessId
-    );
+    const { data, error } = await updateWithBusinessCheck("crew_member_assignments", id, assignment, business.id);
 
     if (error) {
         console.error("Error updating crew member assignment:", error);
@@ -124,17 +85,9 @@ export const updateCrewMemberAssignment = async (
 
 // Delete a crew member assignment
 export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a crew member assignment.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("crew_member_assignments", id, businessId);
+    const { error } = await deleteWithBusinessCheck("crew_member_assignments", id, business.id);
 
     if (error) {
         console.error("Error deleting crew member assignment:", error);
@@ -148,16 +101,9 @@ export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> =
 export const searchCrewMemberAssignments = async (
     searchTerm: string
 ): Promise<CrewMemberAssignment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
+    const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
         filter: {
             or: [
                 { crew_id: { ilike: `%${searchTerm}%` } },

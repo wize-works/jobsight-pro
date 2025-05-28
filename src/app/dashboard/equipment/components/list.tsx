@@ -3,16 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { searchEquipments } from "@/app/actions/equipments";
-import type { Equipment } from "@/types/equipment";
+import type { Equipment, EquipmentStatus } from "@/types/equipment";
+import { equipmentStatusOptions } from "@/types/equipment";
 import { EquipmentCard } from "./card";
-
-const statusOptions = {
-    in_use: { label: "In Use", color: "badge-primary" },
-    available: { label: "Available", color: "badge-success" },
-    maintenance: { label: "Maintenance", color: "badge-warning" },
-    repair: { label: "Under Repair", color: "badge-error" },
-    retired: { label: "Retired", color: "badge-neutral" },
-};
 
 export default function EquipmentList({ initialEquipments }: { initialEquipments: Equipment[] }) {
     const [equipments, setEquipments] = useState<Equipment[]>(initialEquipments || []);
@@ -51,15 +44,6 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
         }
     };
 
-    // Helper to safely get status option
-    const getStatusOption = (status: string | null | undefined) => {
-        if (!status) return undefined;
-        if (Object.prototype.hasOwnProperty.call(statusOptions, status)) {
-            return statusOptions[status as keyof typeof statusOptions];
-        }
-        return undefined;
-    };
-
     return (
         <div>
             <div className="flex justify-between mb-6">
@@ -72,11 +56,11 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1">
-                            <label className="input input-bordered input-secondary flex items-center gap-2">
+                            <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
                                 <input
                                     type="text"
-                                    placeholder="Search clients..."
+                                    placeholder="Search equipment..."
                                     className="grow"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -84,7 +68,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             </label>
                         </div>
                         <select
-                            className="select select-bordered select-secondary"
+                            className="select select-bordered select-secondary w-full"
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
                         >
@@ -96,20 +80,20 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             ))}
                         </select>
                         <select
-                            className="select select-bordered select-secondary"
+                            className="select select-bordered select-secondary w-full"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             <option value="all">All Statuses</option>
-                            {Object.entries(statusOptions).map(([value, { label }]) => (
-                                <option key={value} value={value}>
+                            {Object.entries(equipmentStatusOptions).map(([key, { label }]) => (
+                                <option key={key} value={key}>
                                     {label}
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed tabs-sm">
-                            <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button className={`tab ${viewType === "table" ? "tab-active" : ""}`} onClick={() => updateViewType("table")}> <i className="fas fa-th-list"></i> </button>
+                        <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "table" ? "tab-active" : ""}`} onClick={() => updateViewType("table")}> <i className="fas fa-th-list"></i> </button>
                         </div>
                     </div>
                 </div>
@@ -142,8 +126,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                                 <tr key={item.id}>
                                     <td>{item.name}</td>
                                     <td>{item.type || "-"}</td>
-                                    <td><span className={`badge ${getStatusOption(item.status)?.color || "badge-neutral"}`}>{getStatusOption(item.status)?.label || item.status || "-"}</span></td>
-                                    {/* Assignment info is not available directly on Equipment. Show '-' or 'Unassigned'. */}
+                                    <td>{equipmentStatusOptions.badge(item.status as EquipmentStatus)}</td>
                                     <td>-</td>
                                     <td>{item.location || "-"}</td>
                                     <td>{item.next_maintenance ? new Date(item.next_maintenance).toLocaleDateString() : "-"}</td>

@@ -19,11 +19,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
     }
 
     try {
-        console.log("[withBusinessServer] Getting business data for user:", user.id)
         const businessResponse = await getUserBusiness(user.id)
-
-        // Log detailed business response for debugging
-        console.log("[withBusinessServer] Business response:", JSON.stringify(businessResponse, null, 2))
 
         // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
@@ -37,7 +33,6 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             redirect("/dashboard/business")
         }
 
-        console.log("[withBusinessServer] Successfully found business:", businessResponse.id)
         return {
             business: businessResponse,
             userId: user.id

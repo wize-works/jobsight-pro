@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneUpdate } from "@/types/project_milestones";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch project milestones.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("project_milestones", businessId);
+    const { data, error } = await fetchByBusiness("project_milestones", business.id);
 
     if (error) {
         console.error("Error fetching project milestones:", error);
@@ -31,17 +26,9 @@ export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
 }
 
 export const getProjectMilestoneById = async (id: string): Promise<ProjectMilestone | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch project milestones.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("project_milestones", businessId, id);
+    const { data, error } = await fetchByBusiness("project_milestones", business.id, id);
 
     if (error) {
         console.error("Error fetching project milestone by ID:", error);
@@ -56,17 +43,11 @@ export const getProjectMilestoneById = async (id: string): Promise<ProjectMilest
 };
 
 export const createProjectMilestone = async (milestone: ProjectMilestoneInsert): Promise<ProjectMilestone | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a project milestone.");
-        return null;
-    }
+    milestone = await applyCreated<ProjectMilestoneInsert>(milestone);
 
-    const { data, error } = await insertWithBusiness("project_milestones", milestone, businessId);
+    const { data, error } = await insertWithBusiness("project_milestones", milestone, business.id);
 
     if (error) {
         console.error("Error creating project milestone:", error);
@@ -77,17 +58,11 @@ export const createProjectMilestone = async (milestone: ProjectMilestoneInsert):
 }
 
 export const updateProjectMilestone = async (id: string, milestone: ProjectMilestoneUpdate): Promise<ProjectMilestone | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a project milestone.");
-        return null;
-    }
+    milestone = await applyUpdated<ProjectMilestoneUpdate>(milestone);
 
-    const { data, error } = await updateWithBusinessCheck("project_milestones", id, milestone, businessId);
+    const { data, error } = await updateWithBusinessCheck("project_milestones", id, milestone, business.id);
 
     if (error) {
         console.error("Error updating project milestone:", error);
@@ -98,17 +73,9 @@ export const updateProjectMilestone = async (id: string, milestone: ProjectMiles
 }
 
 export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a project milestone.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("project_milestones", id, businessId);
+    const { error } = await deleteWithBusinessCheck("project_milestones", id, business.id);
 
     if (error) {
         console.error("Error deleting project milestone:", error);
@@ -119,17 +86,9 @@ export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
 }
 
 export const searchProjectMilestones = async (query: string): Promise<ProjectMilestone[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search project milestones.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("project_milestones", businessId, "*", {
+    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

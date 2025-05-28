@@ -2,6 +2,8 @@
 import type { Project, ProjectInsert, ProjectUpdate } from "@/types/projects";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getProjects = async (): Promise<Project[]> => {
     try {
@@ -55,7 +57,9 @@ export const createProject = async (project: ProjectInsert): Promise<Project | n
     try {
         const { business } = await withBusinessServer();
 
-        const { data, error } = await insertWithBusiness("projects", { ...project }, business.id);
+        project = await applyCreated<ProjectInsert>(project);
+
+        const { data, error } = await insertWithBusiness("projects", project, business.id);
 
         if (error) {
             console.error("Error creating project:", error);
@@ -72,6 +76,8 @@ export const createProject = async (project: ProjectInsert): Promise<Project | n
 export const updateProject = async (id: string, project: ProjectUpdate): Promise<Project | null> => {
     try {
         const { business } = await withBusinessServer();
+
+        project = await applyUpdated<ProjectUpdate>(project);
 
         const { data, error } = await updateWithBusinessCheck("projects", id, project, business.id);
 

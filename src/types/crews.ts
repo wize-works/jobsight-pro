@@ -1,4 +1,5 @@
 import type { Database } from "@/types/supabase";
+import { createOptions } from "@/utils/options";
 
 export type Crew = Database["public"]["Tables"]["crews"]["Row"];
 export type CrewInsert = Database["public"]["Tables"]["crews"]["Insert"];
@@ -22,3 +23,18 @@ export type CrewWithStats = Crew & {
     current_project: string;
     current_project_id: string;
 };
+
+export const crewStatusOptions = createOptions<CrewStatus>({
+    "active": { label: "Active", badge: "badge-success" },
+    "inactive": { label: "Inactive", badge: "badge-secondary" },
+    "on_hold": { label: "On Hold", badge: "badge-warning" },
+    "archived": { label: "Archived", badge: "badge-error" }
+});
+
+export const crewTypeOptions = createOptions<CrewType>({
+    "construction": { label: "Construction", badge: "badge-primary" },
+    "maintenance": { label: "Maintenance", badge: "badge-secondary" },
+    "cleaning": { label: "Cleaning", badge: "badge-success" },
+    "security": { label: "Security", badge: "badge-warning" },
+    "other": { label: "Other", badge: "badge-neutral" }
+});

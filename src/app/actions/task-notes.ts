@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { TaskNote, TaskNoteInsert, TaskNoteUpdate } from "@/types/task-notes";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getTaskNotes = async (): Promise<TaskNote[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch task notes.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("task_notes", businessId);
+    const { data, error } = await fetchByBusiness("task_notes", business.id);
 
     if (error) {
         console.error("Error fetching task notes:", error);
@@ -31,17 +26,9 @@ export const getTaskNotes = async (): Promise<TaskNote[]> => {
 }
 
 export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch task notes.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("task_notes", businessId, id);
+    const { data, error } = await fetchByBusiness("task_notes", business.id, id);
 
     if (error) {
         console.error("Error fetching task note by ID:", error);
@@ -56,17 +43,11 @@ export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
 };
 
 export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a task note.");
-        return null;
-    }
+    note = await applyCreated<TaskNoteInsert>(note);
 
-    const { data, error } = await insertWithBusiness("task_notes", note, businessId);
+    const { data, error } = await insertWithBusiness("task_notes", note, business.id);
 
     if (error) {
         console.error("Error creating task note:", error);
@@ -77,17 +58,11 @@ export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | n
 }
 
 export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<TaskNote | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a task note.");
-        return null;
-    }
+    note = await applyUpdated<TaskNoteUpdate>(note);
 
-    const { data, error } = await updateWithBusinessCheck("task_notes", id, note, businessId);
+    const { data, error } = await updateWithBusinessCheck("task_notes", id, note, business.id);
 
     if (error) {
         console.error("Error updating task note:", error);
@@ -98,17 +73,9 @@ export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<
 }
 
 export const deleteTaskNote = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a task note.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("task_notes", id, businessId);
+    const { error } = await deleteWithBusinessCheck("task_notes", id, business.id);
 
     if (error) {
         console.error("Error deleting task note:", error);
@@ -119,17 +86,9 @@ export const deleteTaskNote = async (id: string): Promise<boolean> => {
 }
 
 export const searchTaskNotes = async (query: string): Promise<TaskNote[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search task notes.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("task_notes", businessId, "*", {
+    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", {
         filter: {
             or: [
                 { note: { ilike: `%${query}%` } },

@@ -33,7 +33,6 @@ interface ClientDetailProps {
     projects: any[];
     contacts: any[];
     interactions: any[];
-    businessId: string;
 }
 
 export default function ClientDetailComponent({
@@ -41,7 +40,6 @@ export default function ClientDetailComponent({
     projects,
     contacts,
     interactions,
-    businessId,
 }: ClientDetailProps) {
     const { user } = useKindeAuth();
     const router = useRouter()
@@ -126,7 +124,6 @@ export default function ClientDetailComponent({
 
         const interactionData = {
             client_id: client.id,
-            business_id: businessId,
             type: newInteraction.type,
             date: new Date().toISOString(),
             summary: newInteraction.summary,
@@ -163,6 +160,7 @@ export default function ClientDetailComponent({
         try {
             await createProject({
                 id: "",
+                business_id: "",
                 name: newProject.name,
                 type: newProject.type || null,
                 status: newProject.status,
@@ -172,7 +170,6 @@ export default function ClientDetailComponent({
                 location: newProject.location || null,
                 description: newProject.description || null,
                 client_id: client.id,
-                business_id: businessId,
                 manager_id: null,
                 progress: null,
                 created_by: null,

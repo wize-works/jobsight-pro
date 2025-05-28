@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Subtask, SubtaskInsert, SubtaskUpdate } from "@/types/subtasks";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getSubtasks = async (): Promise<Subtask[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch subtasks.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("subtasks", businessId);
+    const { data, error } = await fetchByBusiness("subtasks", business.id);
 
     if (error) {
         console.error("Error fetching subtasks:", error);
@@ -31,17 +26,9 @@ export const getSubtasks = async (): Promise<Subtask[]> => {
 }
 
 export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch subtasks.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("subtasks", businessId, id);
+    const { data, error } = await fetchByBusiness("subtasks", business.id, id);
 
     if (error) {
         console.error("Error fetching subtask by ID:", error);
@@ -56,17 +43,11 @@ export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
 };
 
 export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a subtask.");
-        return null;
-    }
+    subtask = await applyCreated<SubtaskInsert>(subtask);
 
-    const { data, error } = await insertWithBusiness("subtasks", subtask, businessId);
+    const { data, error } = await insertWithBusiness("subtasks", subtask, business.id);
 
     if (error) {
         console.error("Error creating subtask:", error);
@@ -77,17 +58,11 @@ export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | n
 }
 
 export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise<Subtask | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a subtask.");
-        return null;
-    }
+    subtask = await applyUpdated<SubtaskUpdate>(subtask);
 
-    const { data, error } = await updateWithBusinessCheck("subtasks", id, subtask, businessId);
+    const { data, error } = await updateWithBusinessCheck("subtasks", id, subtask, business.id);
 
     if (error) {
         console.error("Error updating subtask:", error);
@@ -98,17 +73,9 @@ export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise
 }
 
 export const deleteSubtask = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a subtask.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("subtasks", id, businessId);
+    const { error } = await deleteWithBusinessCheck("subtasks", id, business.id);
 
     if (error) {
         console.error("Error deleting subtask:", error);
@@ -119,17 +86,9 @@ export const deleteSubtask = async (id: string): Promise<boolean> => {
 }
 
 export const searchSubtasks = async (query: string): Promise<Subtask[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search subtasks.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("subtasks", businessId, "*", {
+    const { data, error } = await fetchByBusiness("subtasks", business.id, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

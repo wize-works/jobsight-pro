@@ -16,7 +16,6 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
     const [equipment, setEquipment] = useState<Partial<EquipmentWithDetails>>(initialEquipment);
     const [specifications, setSpecifications] = useState<EquipmentSpecification[]>(initialSpecifications);
     const router = useRouter();
-    console.log('specifications', initialSpecifications);
 
     const handleEquipmentChange = (e: { target: { name: any; value: any; }; }) => {
         const { name, value } = e.target;

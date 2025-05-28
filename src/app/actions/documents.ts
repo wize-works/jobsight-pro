@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Document, DocumentInsert, DocumentUpdate } from "@/types/documents";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getDocuments = async (): Promise<Document[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch documents.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("documents", businessId);
+    const { data, error } = await fetchByBusiness("documents", business.id);
 
     if (error) {
         console.error("Error fetching documents:", error);
@@ -31,17 +26,9 @@ export const getDocuments = async (): Promise<Document[]> => {
 }
 
 export const getDocumentById = async (id: string): Promise<Document | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch documents.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("documents", businessId, id);
+    const { data, error } = await fetchByBusiness("documents", business.id, id);
 
     if (error) {
         console.error("Error fetching document by ID:", error);
@@ -56,17 +43,11 @@ export const getDocumentById = async (id: string): Promise<Document | null> => {
 };
 
 export const createDocument = async (doc: DocumentInsert): Promise<Document | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a document.");
-        return null;
-    }
+    doc = await applyCreated<DocumentInsert>(doc);
 
-    const { data, error } = await insertWithBusiness("documents", doc, businessId);
+    const { data, error } = await insertWithBusiness("documents", doc, business.id);
 
     if (error) {
         console.error("Error creating document:", error);
@@ -77,17 +58,11 @@ export const createDocument = async (doc: DocumentInsert): Promise<Document | nu
 }
 
 export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<Document | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a document.");
-        return null;
-    }
+    doc = await applyUpdated<DocumentUpdate>(doc);
 
-    const { data, error } = await updateWithBusinessCheck("documents", id, doc, businessId);
+    const { data, error } = await updateWithBusinessCheck("documents", id, doc, business.id);
 
     if (error) {
         console.error("Error updating document:", error);
@@ -98,17 +73,9 @@ export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<D
 }
 
 export const deleteDocument = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a document.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("documents", id, businessId);
+    const { error } = await deleteWithBusinessCheck("documents", id, business.id);
 
     if (error) {
         console.error("Error deleting document:", error);
@@ -119,17 +86,9 @@ export const deleteDocument = async (id: string): Promise<boolean> => {
 }
 
 export const searchDocuments = async (query: string): Promise<Document[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search documents.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("documents", businessId, "*", {
+    const { data, error } = await fetchByBusiness("documents", business.id, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

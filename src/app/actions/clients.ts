@@ -6,6 +6,8 @@ import type { ClientInsert, ClientUpdate, Client } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Project } from "@/types/projects";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getClientById = async (id: string): Promise<Client | null> => {
     try {
@@ -94,7 +96,9 @@ export const createClient = async (client: ClientInsert): Promise<Client | null>
     try {
         const { business } = await withBusinessServer();
 
-        const { data, error } = await insertWithBusiness("clients", { ...client }, business.id);
+        client = await applyCreated<ClientInsert>(client);
+
+        const { data, error } = await insertWithBusiness("clients", client, business.id);
 
         if (error) {
             console.error("Error creating client:", error);
@@ -111,6 +115,8 @@ export const createClient = async (client: ClientInsert): Promise<Client | null>
 export const updateClient = async (id: string, client: ClientUpdate): Promise<Client | null> => {
     try {
         const { business } = await withBusinessServer();
+
+        client = await applyUpdated<ClientUpdate>(client);
 
         const { data, error } = await updateWithBusinessCheck("clients", id, client, business.id);
 

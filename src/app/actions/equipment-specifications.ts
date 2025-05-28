@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { EquipmentSpecification, EquipmentSpecificationInsert, EquipmentSpecificationUpdate } from "@/types/equipment-specifications";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getEquipmentSpecifications = async (): Promise<EquipmentSpecification[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch equipment specifications.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("equipment_specifications", businessId);
+    const { data, error } = await fetchByBusiness("equipment_specifications", business.id);
 
     if (error) {
         console.error("Error fetching equipment specifications:", error);
@@ -31,17 +26,9 @@ export const getEquipmentSpecifications = async (): Promise<EquipmentSpecificati
 }
 
 export const getEquipmentSpecificationById = async (id: string): Promise<EquipmentSpecification | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch equipment specifications.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("equipment_specifications", businessId, id);
+    const { data, error } = await fetchByBusiness("equipment_specifications", business.id, id);
 
     if (error) {
         console.error("Error fetching equipment specification by ID:", error);
@@ -56,22 +43,11 @@ export const getEquipmentSpecificationById = async (id: string): Promise<Equipme
 };
 
 export const createEquipmentSpecification = async (spec: EquipmentSpecificationInsert): Promise<EquipmentSpecification | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create an equipment specification.");
-        return null;
-    }
+    spec = await applyCreated<EquipmentSpecificationInsert>(spec);
 
-    spec.created_at = new Date().toISOString();
-    spec.created_by = user?.id || "";
-    spec.updated_at = new Date().toISOString();
-    spec.updated_by = user?.id || "";
-
-    const { data, error } = await insertWithBusiness("equipment_specifications", spec, businessId);
+    const { data, error } = await insertWithBusiness("equipment_specifications", spec, business.id);
 
     if (error) {
         console.error("Error creating equipment specification:", error);
@@ -82,20 +58,11 @@ export const createEquipmentSpecification = async (spec: EquipmentSpecificationI
 }
 
 export const updateEquipmentSpecification = async (id: string, spec: EquipmentSpecificationUpdate): Promise<EquipmentSpecification | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update an equipment specification.");
-        return null;
-    }
+    spec = await applyUpdated<EquipmentSpecificationUpdate>(spec);
 
-    spec.updated_at = new Date().toISOString();
-    spec.updated_by = user?.id || "";
-    console.log("updated spec", spec);
-    const { data, error } = await updateWithBusinessCheck("equipment_specifications", id, spec, businessId);
+    const { data, error } = await updateWithBusinessCheck("equipment_specifications", id, spec, business.id);
 
     if (error) {
         console.error("Error updating equipment specification:", error);
@@ -106,17 +73,9 @@ export const updateEquipmentSpecification = async (id: string, spec: EquipmentSp
 }
 
 export const deleteEquipmentSpecification = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete an equipment specification.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("equipment_specifications", id, businessId);
+    const { error } = await deleteWithBusinessCheck("equipment_specifications", id, business.id);
 
     if (error) {
         console.error("Error deleting equipment specification:", error);
@@ -127,24 +86,16 @@ export const deleteEquipmentSpecification = async (id: string): Promise<boolean>
 }
 
 export const searchEquipmentSpecifications = async (query: string): Promise<EquipmentSpecification[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search equipment specifications.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("equipment_specifications", businessId, "*", {
+    const { data, error } = await fetchByBusiness("equipment_specifications", business.id, "*", {
         filter: {
             or: [
                 { specification: { ilike: `%${query}%` } },
                 { value: { ilike: `%${query}%` } },
             ],
         },
-        orderBy: { column: "id", ascending: true },
+        orderBy: { column: "created_at", ascending: true },
     });
 
     if (error) {
@@ -156,19 +107,11 @@ export const searchEquipmentSpecifications = async (query: string): Promise<Equi
 };
 
 export const getEquipmentSpecificationsByEquipmentId = async (id: string): Promise<EquipmentSpecification[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch equipment specifications.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("equipment_specifications", businessId, "*", {
+    const { data, error } = await fetchByBusiness("equipment_specifications", business.id, "*", {
         filter: { equipment_id: id },
-        orderBy: { column: "id", ascending: true },
+        orderBy: { column: "created_at", ascending: true },
     });
 
     if (error) {

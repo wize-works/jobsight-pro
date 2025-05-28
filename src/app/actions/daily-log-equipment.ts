@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily log equipments.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId);
+    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id);
 
     if (error) {
         console.error("Error fetching daily log equipments:", error);
@@ -31,17 +26,9 @@ export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
 }
 
 export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEquipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch daily log equipments.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId, id);
+    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, id);
 
     if (error) {
         console.error("Error fetching daily log equipment by ID:", error);
@@ -56,17 +43,11 @@ export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEqui
 };
 
 export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert): Promise<DailyLogEquipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a daily log equipment.");
-        return null;
-    }
+    equipment = await applyCreated<DailyLogEquipmentInsert>(equipment);
 
-    const { data, error } = await insertWithBusiness("daily_log_equipment", equipment, businessId);
+    const { data, error } = await insertWithBusiness("daily_log_equipment", equipment, business.id);
 
     if (error) {
         console.error("Error creating daily log equipment:", error);
@@ -77,17 +58,11 @@ export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert
 }
 
 export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEquipmentUpdate): Promise<DailyLogEquipment | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a daily log equipment.");
-        return null;
-    }
+    equipment = await applyUpdated<DailyLogEquipmentUpdate>(equipment);
 
-    const { data, error } = await updateWithBusinessCheck("daily_log_equipment", id, equipment, businessId);
+    const { data, error } = await updateWithBusinessCheck("daily_log_equipment", id, equipment, business.id);
 
     if (error) {
         console.error("Error updating daily log equipment:", error);
@@ -98,17 +73,9 @@ export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEqu
 }
 
 export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a daily log equipment.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("daily_log_equipment", id, businessId);
+    const { error } = await deleteWithBusinessCheck("daily_log_equipment", id, business.id);
 
     if (error) {
         console.error("Error deleting daily log equipment:", error);
@@ -119,17 +86,9 @@ export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogEquipments = async (query: string): Promise<DailyLogEquipment[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search daily log equipments.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId, "*", {
+    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
         filter: {
             or: [
                 { equipment_id: { ilike: `%${query}%` } },

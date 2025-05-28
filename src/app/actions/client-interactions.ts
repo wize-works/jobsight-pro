@@ -3,20 +3,15 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "@/lib/db";
 import type { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 // Get all client interactions for the current business
 export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch client interactions.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         orderBy: { column: "created_at", ascending: false },
     });
 
@@ -34,17 +29,9 @@ export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
 
 // Get a single client interaction by ID
 export const getClientInteractionById = async (id: string): Promise<ClientInteraction | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch client interaction by ID.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         filter: { id },
     });
 
@@ -64,17 +51,11 @@ export const getClientInteractionById = async (id: string): Promise<ClientIntera
 export const createClientInteraction = async (
     interaction: ClientInteractionInsert
 ): Promise<ClientInteraction | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a client interaction.");
-        return null;
-    }
+    interaction = await applyCreated<ClientInteractionInsert>(interaction);
 
-    const { data, error } = await insertWithBusiness("client_interactions", { ...interaction }, businessId);
+    const { data, error } = await insertWithBusiness("client_interactions", { ...interaction }, business.id);
 
     if (error) {
         console.error("Error creating client interaction:", error);
@@ -89,17 +70,11 @@ export const updateClientInteraction = async (
     id: string,
     interaction: ClientInteractionUpdate
 ): Promise<ClientInteraction | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a client interaction.");
-        return null;
-    }
+    interaction = await applyUpdated<ClientInteractionUpdate>(interaction);
 
-    const { data, error } = await updateWithBusinessCheck("client_interactions", id, interaction, businessId);
+    const { data, error } = await updateWithBusinessCheck("client_interactions", id, interaction, business.id);
 
     if (error) {
         console.error("Error updating client interaction:", error);
@@ -111,17 +86,9 @@ export const updateClientInteraction = async (
 
 // Delete a client interaction
 export const deleteClientInteraction = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a client interaction.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("client_interactions", id, businessId);
+    const { error } = await deleteWithBusinessCheck("client_interactions", id, business.id);
 
     if (error) {
         console.error("Error deleting client interaction:", error);
@@ -132,17 +99,9 @@ export const deleteClientInteraction = async (id: string): Promise<boolean> => {
 };
 
 export const getClientInteractionsByClientId = async (clientId: string): Promise<ClientInteraction[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch client interactions.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         filter: { client_id: clientId },
         orderBy: { column: "created_at", ascending: false },
     });

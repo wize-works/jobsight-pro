@@ -1,23 +1,9 @@
 import { Equipment } from "@/types/equipment";
 import Link from "next/link";
-
-const statusOptions = {
-    in_use: { label: "In Use", color: "badge-primary" },
-    available: { label: "Available", color: "badge-success" },
-    maintenance: { label: "Maintenance", color: "badge-warning" },
-    repair: { label: "Under Repair", color: "badge-error" },
-    retired: { label: "Retired", color: "badge-neutral" },
-};
+import { EquipmentStatus } from "@/types/equipment";
+import { equipmentStatusOptions } from "@/types/equipment";
 
 export const EquipmentCard = (equipment: Equipment) => {
-
-    const getStatusOption = (status: string | null | undefined) => {
-        if (!status) return undefined;
-        if (Object.prototype.hasOwnProperty.call(statusOptions, status)) {
-            return statusOptions[status as keyof typeof statusOptions];
-        }
-        return undefined;
-    };
     return (
         <div className="card bg-base-100 shadow-lg">
             <figure className="px-4 pt-4">
@@ -26,8 +12,8 @@ export const EquipmentCard = (equipment: Equipment) => {
             <div className="card-body">
                 <div className="flex justify-between items-start">
                     <h2 className="card-title">{equipment.name}</h2>
-                    <div className={`badge ${getStatusOption(equipment.status)?.color || "badge-neutral"}`}>
-                        {getStatusOption(equipment.status)?.label || equipment.status || "-"}
+                    <div>
+                        {equipmentStatusOptions.badge(equipment.status as EquipmentStatus)}
                     </div>
                 </div>
                 <div className="mt-2 space-y-1">

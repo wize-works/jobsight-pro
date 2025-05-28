@@ -1,7 +1,4 @@
 import { getCrewById, updateCrew, getCrewMembersByCrewId } from "@/app/actions/crews";
-import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import CrewEditForm from "../../components/edit";
 import { Crew, CrewUpdate } from "@/types/crews";
@@ -9,9 +6,6 @@ import { CrewMember } from "@/types/crew-members";
 
 export default async function EditCrewPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: crewId } = await params;
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-
     const crew = await getCrewById(crewId) as Crew;
     const members = await getCrewMembersByCrewId(crewId) || [];
 
@@ -23,7 +17,7 @@ export default async function EditCrewPage({ params }: { params: Promise<{ id: s
         );
     } async function handleUpdateCrew(formData: any) {
         "use server";
-        const crewData: CrewUpdate = {
+        const crewData = {
             id: crewId,
             business_id: crew.business_id,
             name: formData.name,
@@ -31,11 +25,7 @@ export default async function EditCrewPage({ params }: { params: Promise<{ id: s
             leader_id: formData.leader_id || null,
             specialty: formData.specialty,
             notes: formData.notes,
-            updated_at: new Date().toISOString(),
-            updated_by: user?.id || "",
-            created_at: crew.created_at,
-            created_by: crew.created_by,
-        };
+        } as CrewUpdate;
 
         try {
             const result = await updateCrew(crewId, crewData);

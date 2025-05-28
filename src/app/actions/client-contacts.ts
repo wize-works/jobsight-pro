@@ -4,20 +4,14 @@ import type { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyUpdated } from "@/utils/apply-updated";
 
 // Get all client contacts for the current business
 export const getClientContacts = async (): Promise<ClientContact[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to get client contacts.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
         orderBy: { column: "name", ascending: true },
     });
 
@@ -35,17 +29,9 @@ export const getClientContacts = async (): Promise<ClientContact[]> => {
 
 // Get a single client contact by ID
 export const getClientContactById = async (id: string): Promise<ClientContact | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to get a client contact.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
         filter: { id },
     });
 
@@ -65,17 +51,11 @@ export const updateClientContact = async (
     id: string,
     contact: ClientContactUpdate
 ): Promise<ClientContact | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a client contact.");
-        return null;
-    }
+    contact = await applyUpdated<ClientContactUpdate>(contact);
 
-    const { data, error } = await updateWithBusinessCheck("client_contacts", id, contact, businessId);
+    const { data, error } = await updateWithBusinessCheck("client_contacts", id, contact, business.id);
 
     if (error) {
         console.error("Error updating client contact:", error);
@@ -89,17 +69,11 @@ export const updateClientContact = async (
 export const createClientContact = async (
     contact: ClientContactInsert
 ): Promise<ClientContact | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a client contact.");
-        return null;
-    }
+    contact = await applyUpdated<ClientContactInsert>(contact);
 
-    const { data, error } = await insertWithBusiness("client_contacts", contact, businessId);
+    const { data, error } = await insertWithBusiness("client_contacts", contact, business.id);
 
     if (error) {
         console.error("Error creating client contact:", error);
@@ -111,17 +85,9 @@ export const createClientContact = async (
 
 // Delete a client contact by ID
 export const deleteClientContactById = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a client contact.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("client_contacts", id, businessId);
+    const { error } = await deleteWithBusinessCheck("client_contacts", id, business.id);
 
     if (error) {
         console.error("Error deleting client contact:", error);
@@ -133,17 +99,9 @@ export const deleteClientContactById = async (id: string): Promise<boolean> => {
 
 // Search client contacts by query (name, email, etc.)
 export const searchClientContacts = async (query: string): Promise<ClientContact[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search client contacts.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -166,17 +124,9 @@ export const searchClientContacts = async (query: string): Promise<ClientContact
 };
 
 export const getClientContactsByClientId = async (clientId: string): Promise<ClientContact[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to get client contacts.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
+    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
         filter: { client_id: clientId },
         orderBy: { column: "name", ascending: true },
     });

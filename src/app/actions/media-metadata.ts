@@ -4,19 +4,14 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { MediaMetadata, MediaMetadataInsert, MediaMetadataUpdate } from "@/types/media-metadata";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { applyCreated } from "@/utils/apply-created";
+import { applyUpdated } from "@/utils/apply-updated";
 
 export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch media metadatas.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("media_metadata", businessId);
+    const { data, error } = await fetchByBusiness("media_metadata", business.id);
 
     if (error) {
         console.error("Error fetching media metadatas:", error);
@@ -31,17 +26,9 @@ export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
 }
 
 export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to fetch media metadatas.");
-        return null;
-    }
-
-    const { data, error } = await fetchByBusiness("media_metadata", businessId, id);
+    const { data, error } = await fetchByBusiness("media_metadata", business.id, id);
 
     if (error) {
         console.error("Error fetching media metadata by ID:", error);
@@ -56,17 +43,11 @@ export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | 
 };
 
 export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promise<MediaMetadata | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to create a media metadata.");
-        return null;
-    }
+    metadata = await applyCreated<MediaMetadataInsert>(metadata);
 
-    const { data, error } = await insertWithBusiness("media_metadata", metadata, businessId);
+    const { data, error } = await insertWithBusiness("media_metadata", metadata, business.id);
 
     if (error) {
         console.error("Error creating media metadata:", error);
@@ -77,17 +58,11 @@ export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promis
 }
 
 export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpdate): Promise<MediaMetadata | null> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to update a media metadata.");
-        return null;
-    }
+    metadata = await applyUpdated<MediaMetadataUpdate>(metadata);
 
-    const { data, error } = await updateWithBusinessCheck("media_metadata", id, metadata, businessId);
+    const { data, error } = await updateWithBusinessCheck("media_metadata", id, metadata, business.id);
 
     if (error) {
         console.error("Error updating media metadata:", error);
@@ -98,17 +73,9 @@ export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpd
 }
 
 export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to delete a media metadata.");
-        return false;
-    }
-
-    const { error } = await deleteWithBusinessCheck("media_metadata", id, businessId);
+    const { error } = await deleteWithBusinessCheck("media_metadata", id, business.id);
 
     if (error) {
         console.error("Error deleting media metadata:", error);
@@ -119,17 +86,9 @@ export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
 }
 
 export const searchMediaMetadatas = async (query: string): Promise<MediaMetadata[]> => {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
-    const business = await getUserBusiness(user?.id || "");
-    const businessId = business?.id || "";
+    const { business } = await withBusinessServer();
 
-    if (!businessId) {
-        console.error("Business ID is required to search media metadatas.");
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("media_metadata", businessId, "*", {
+    const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", {
         filter: {
             or: [
                 { key: { ilike: `%${query}%` } },
