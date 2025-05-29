@@ -167,6 +167,9 @@ jobs:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
           env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+          ref: ${{ github.ref }}
+          sha: ${{ github.sha }}
+          description: "Deploying ${{ github.sha }} to ${{ github.ref_name }}"
 
       - name: Render deployment.yaml with secrets
         run: |
