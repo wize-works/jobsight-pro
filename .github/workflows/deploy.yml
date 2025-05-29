@@ -160,6 +160,17 @@ jobs:
       - name: Convert kubeconfig to use Azure CLI token
         run: kubelogin convert-kubeconfig -l azurecli
 
+      - name: Create GitHub deployment
+        id: create_deployment
+        uses: bobheadxi/deployments@v1
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+          ref: ${{ github.ref }}
+          sha: ${{ github.sha }}
+          description: "Deploying ${{ github.sha }} to ${{ github.ref_name }}"
+
       - name: Render deployment.yaml with secrets
         run: |
           echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.version }}" >> $GITHUB_ENV
@@ -192,4 +203,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: success
           env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
