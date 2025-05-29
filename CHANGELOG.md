@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/wize-works/jobsight-pro/compare/v1.13.1...v1.14.0) (2025-05-29)
+
+
+### Bug Fixes
+
+* remove PushManager component from DashboardLayout ([b545659](https://github.com/wize-works/jobsight-pro/commit/b545659ac90d95f32bb9653ad3b90f175744b2f6))
+
+
+### Features
+
+* add notification and push subscription management ([bfc72f9](https://github.com/wize-works/jobsight-pro/commit/bfc72f9884d66bccd1d2a58bc054402b9aebc61c))
+
 ## [1.13.1](https://github.com/wize-works/jobsight-pro/compare/v1.13.0...v1.13.1) (2025-05-28)
 
 
