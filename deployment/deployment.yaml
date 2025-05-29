@@ -65,6 +65,16 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: OPENWEATHER_API_KEY
+            - name: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+            - name: VAPID_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: VAPID_PRIVATE_KEY
 
           resources:
             requests:

@@ -1798,6 +1798,177 @@ export interface Database {
                 }
                 Relationships: []
             }
+
+            user_notification_preferences: {
+                Row: {
+                    id: string
+                    user_id: string
+                    business_id: string
+                    email_enabled: boolean
+                    push_enabled: boolean
+                    in_app_enabled: boolean
+                    created_at: string | null
+                    updated_at: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    business_id?: string
+                    email_enabled?: boolean
+                    push_enabled?: boolean
+                    in_app_enabled?: boolean
+                    created_at?: string | null
+                    updated_at?: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    business_id?: string
+                    email_enabled?: boolean
+                    push_enabled?: boolean
+                    in_app_enabled?: boolean
+                    created_at?: string | null
+                    updated_at?: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+            }
+
+            user_notification_type_preferences: {
+                Row: {
+                    id: string
+                    user_id: string
+                    business_id: string
+                    notification_type: string
+                    email_enabled: boolean
+                    push_enabled: boolean
+                    in_app_enabled: boolean
+                    created_at: string | null
+                    updated_at: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    business_id?: string
+                    notification_type: string
+                    email_enabled?: boolean
+                    push_enabled?: boolean
+                    in_app_enabled?: boolean
+                    created_at?: string | null
+                    updated_at?: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    business_id?: string
+                    notification_type?: string
+                    email_enabled?: boolean
+                    push_enabled?: boolean
+                    in_app_enabled?: boolean
+                    created_at?: string | null
+                    updated_at?: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+            }
+
+            push_subscriptions: {
+                Row: {
+                    id: string
+                    user_id: string
+                    business_id: string
+                    endpoint: string
+                    p256dh: string
+                    auth: string
+                    user_agent: string | null
+                    last_used_at: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    business_id?: string
+                    endpoint: string
+                    p256dh: string
+                    auth: string
+                    user_agent: string | null
+                    last_used_at: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    business_id?: string
+                    endpoint?: string
+                    p256dh?: string
+                    auth?: string
+                    user_agent: string | null
+                    last_used_at: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                    created_by: string | null
+                    updated_by: string | null
+                }
+            }
+
+            notifications: {
+                Row: {
+                    id: string
+                    user_id: string
+                    business_id: string
+                    type: string
+                    title: string
+                    message: string
+                    link: string | null
+                    read: boolean
+                    read_at: string | null
+                    metadata: Record<string, any> | null
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    business_id?: string
+                    type: string
+                    title: string
+                    message: string
+                    link?: string | null
+                    read?: boolean
+                    read_at: string | null
+                    metadata?: Record<string, any> | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    business_id?: string
+                    type?: string
+                    title?: string
+                    message?: string
+                    link?: string | null
+                    read?: boolean
+                    read_at: string | null
+                    metadata?: Record<string, any> | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+            }
         }
         Views: {
             [_ in never]: never

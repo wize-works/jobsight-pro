@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BusinessProvider } from "@/lib/business-context";
 import { withBusiness } from "@/lib/auth/with-business";
 import { usePathname } from "next/navigation";
+import PushManager from "@/components/push-manager";
 
 function DashboardLayout({
     children,
@@ -32,7 +33,7 @@ function DashboardLayout({
                             {children}
                         </div>
                     ) : (
-                        <div className="container mx-auto pb-20 lg:pb-6">
+                        <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
                             {children}
                         </div>
                     )}

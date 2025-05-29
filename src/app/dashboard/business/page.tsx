@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { updateBusinessFromForm } from "@/app/actions/business";
 import { toast } from "@/hooks/use-toast";
+import PushManager from "@/components/push-manager";
 
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile");
