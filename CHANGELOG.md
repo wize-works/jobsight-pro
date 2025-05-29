@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/wize-works/jobsight-pro/compare/v1.15.0...v1.15.1) (2025-05-29)
+
+
+### Bug Fixes
+
+* streamline Docker login and build steps in deployment workflow ([a725afa](https://github.com/wize-works/jobsight-pro/commit/a725afad5493bd16d978ab6a1090854c970ea766))
+
 # [1.15.0](https://github.com/wize-works/jobsight-pro/compare/v1.14.0...v1.15.0) (2025-05-29)
 
 
