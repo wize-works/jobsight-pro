@@ -1,11 +1,82 @@
 "use client"
 
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import PushManager from "@/components/push-manager";
+import { useNotifications } from "@/hooks/use-notifications";
+import { notificationTypeOptions } from "@/types/notifications";
+
+type NotificationType = 'projectUpdates' | 'taskAssignments' | 'equipmentAlerts' | 'invoiceUpdates' | 'systemAnnouncements';
+type NotificationChannel = 'email' | 'push' | 'inApp';
+
+interface NotificationPreferences {
+    email: boolean;
+    push: boolean;
+    inApp: boolean;
+    types: {
+        [K in NotificationType]: {
+            [C in NotificationChannel]: boolean;
+        };
+    };
+}
 
 export default function ProfilePage() {
     const { user, isLoading } = useKindeAuth()
     const [activeTab, setActiveTab] = useState("profile")
+    const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
+        email: true,
+        push: false,
+        inApp: true,
+        types: {
+            projectUpdates: { email: true, push: true, inApp: true },
+            taskAssignments: { email: true, push: true, inApp: true },
+            equipmentAlerts: { email: true, push: true, inApp: true },
+            invoiceUpdates: { email: true, push: false, inApp: true },
+            systemAnnouncements: { email: true, push: false, inApp: true }
+        }
+    });
+
+    const { loading: notificationsLoading, preferences, updateGlobalPreferences, updateTypePreferences, sendTestNotification } = useNotifications({
+        userId: user?.id || ""
+    });
+
+    useEffect(() => {
+        if (preferences) {
+            setNotificationPreferences(preferences);
+        }
+    }, [preferences]);
+
+    // Handler for updating notification preferences
+    const handleNotificationChange = async (
+        type: 'general' | NotificationType,
+        channel: NotificationChannel,
+        value: boolean
+    ) => {
+        try {
+            if (type === 'general') {
+                await updateGlobalPreferences(channel, value);
+                setNotificationPreferences(prev => ({
+                    ...prev,
+                    [channel]: value
+                }));
+            } else {
+                await updateTypePreferences(type, channel, value);
+                setNotificationPreferences(prev => ({
+                    ...prev,
+                    types: {
+                        ...prev.types,
+                        [type]: {
+                            ...prev.types[type],
+                            [channel]: value
+                        }
+                    }
+                }));
+            }
+        } catch (error) {
+            console.error("Error updating notification preferences:", error);
+            // TODO: Show error toast
+        }
+    };
 
     if (isLoading) {
         return (
@@ -192,7 +263,12 @@ export default function ProfilePage() {
                         <div className="space-y-4">
                             <div className="form-control">
                                 <label className="label cursor-pointer justify-start gap-4">
-                                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        className="toggle toggle-primary"
+                                        checked={notificationPreferences.email}
+                                        onChange={(e) => handleNotificationChange('general', 'email', e.target.checked)}
+                                    />
                                     <div>
                                         <span className="label-text font-medium block">Email Notifications</span>
                                         <span className="text-xs text-base-content/70">
@@ -204,22 +280,39 @@ export default function ProfilePage() {
 
                             <div className="form-control">
                                 <label className="label cursor-pointer justify-start gap-4">
-                                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        className="toggle toggle-primary"
+                                        checked={notificationPreferences.push}
+                                        onChange={(e) => handleNotificationChange('general', 'push', e.target.checked)}
+                                    />
                                     <div>
                                         <span className="label-text font-medium block">Push Notifications</span>
                                         <span className="text-xs text-base-content/70">
-                                            Receive push notifications on your mobile device
+                                            Receive push notifications on your device
                                         </span>
                                     </div>
                                 </label>
+                                {notificationPreferences.push && (
+                                    <div className="ml-14 mt-2">
+                                        <PushManager />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-control">
                                 <label className="label cursor-pointer justify-start gap-4">
-                                    <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        className="toggle toggle-primary"
+                                        checked={notificationPreferences.inApp}
+                                        onChange={(e) => handleNotificationChange('general', 'inApp', e.target.checked)}
+                                    />
                                     <div>
                                         <span className="label-text font-medium block">In-App Notifications</span>
-                                        <span className="text-xs text-base-content/70">Receive notifications within the application</span>
+                                        <span className="text-xs text-base-content/70">
+                                            Receive notifications within the application
+                                        </span>
                                     </div>
                                 </label>
                             </div>
@@ -233,73 +326,54 @@ export default function ProfilePage() {
                             <table className="table">
                                 <thead>
                                     <tr>
-                                        <th>Notification Type</th>
-                                        <th>Email</th>
-                                        <th>Push</th>
-                                        <th>In-App</th>
+                                        <th className="w-1/2">Notification Type</th>
+                                        <th className="w-1/6">Email</th>
+                                        <th className="w-1/6">Push</th>
+                                        <th className="w-1/6">In-App</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>Project updates</td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Task assignments</td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Equipment alerts</td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Invoice updates</td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>System announcements</td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" className="checkbox checkbox-primary" defaultChecked />
-                                        </td>
-                                    </tr>
+                                    {(Object.entries(notificationPreferences.types) as [NotificationType, any][]).map(([key, value]) => (
+                                        <tr key={key}>
+                                            <td className="flex items-center gap-2">
+                                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                                                <button
+                                                    className="btn btn-xs btn-ghost tooltip"
+                                                    data-tip="Send test notification"
+                                                    onClick={() => sendTestNotification(key as NotificationType)}
+                                                >
+                                                    <i className="fas fa-paper-plane"></i>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox checkbox-primary"
+                                                    checked={value.email && notificationPreferences.email}
+                                                    disabled={!notificationPreferences.email}
+                                                    onChange={(e) => handleNotificationChange(key, 'email', e.target.checked)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox checkbox-primary"
+                                                    checked={value.push && notificationPreferences.push}
+                                                    disabled={!notificationPreferences.push}
+                                                    onChange={(e) => handleNotificationChange(key, 'push', e.target.checked)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox checkbox-primary"
+                                                    checked={value.inApp && notificationPreferences.inApp}
+                                                    disabled={!notificationPreferences.inApp}
+                                                    onChange={(e) => handleNotificationChange(key, 'inApp', e.target.checked)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>

@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BusinessProvider } from "@/lib/business-context";
 import { withBusiness } from "@/lib/auth/with-business";
 import { usePathname } from "next/navigation";
+import PushManager from "@/components/push-manager";
 
 function DashboardLayout({
     children,
@@ -25,6 +26,7 @@ function DashboardLayout({
         <div className="drawer lg:drawer-open">
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content flex flex-col bg-base-200">
+                <PushManager />
                 <Navbar setSidebarCollapsed={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} />
                 <BusinessProvider>
                     {pathname === "/dashboard/map" ? (
@@ -32,7 +34,7 @@ function DashboardLayout({
                             {children}
                         </div>
                     ) : (
-                        <div className="container mx-auto pb-20 lg:pb-6">
+                        <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
                             {children}
                         </div>
                     )}
