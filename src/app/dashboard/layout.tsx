@@ -26,7 +26,6 @@ function DashboardLayout({
         <div className="drawer lg:drawer-open">
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content flex flex-col bg-base-200">
-                <PushManager />
                 <Navbar setSidebarCollapsed={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} />
                 <BusinessProvider>
                     {pathname === "/dashboard/map" ? (
