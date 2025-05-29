@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/wize-works/jobsight-pro/compare/v1.16.0...v1.17.0) (2025-05-29)
+
+
+### Features
+
+* Implement project media, members, and tasks fetching ([5b7aff5](https://github.com/wize-works/jobsight-pro/commit/5b7aff53d49f173b9fd75c427cf5e4831b48e24d))
+
 # [1.16.0](https://github.com/wize-works/jobsight-pro/compare/v1.15.1...v1.16.0) (2025-05-29)
 
 
