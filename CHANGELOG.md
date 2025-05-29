@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/wize-works/jobsight-pro/compare/v1.14.0...v1.15.0) (2025-05-29)
+
+
+### Features
+
+* add Kubernetes secret creation step in deployment workflow ([ce7db46](https://github.com/wize-works/jobsight-pro/commit/ce7db46273993da9b3608c1c7cccd3ede30b6d1b))
+
 # [1.14.0](https://github.com/wize-works/jobsight-pro/compare/v1.13.1...v1.14.0) (2025-05-29)
 
 
