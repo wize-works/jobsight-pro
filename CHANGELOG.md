@@ -1,3 +1,11 @@
+# [1.16.0](https://github.com/wize-works/jobsight-pro/compare/v1.15.1...v1.16.0) (2025-05-29)
+
+
+### Features
+
+* add GitHub deployment creation step in AKS deployment workflow ([f25fce9](https://github.com/wize-works/jobsight-pro/commit/f25fce9ea051597704dc717f182af38c61357462))
+* add GitHub deployment details to AKS deployment workflow ([06aed1c](https://github.com/wize-works/jobsight-pro/commit/06aed1c9e06540463273571e40267e24db00bb19))
+
 ## [1.15.1](https://github.com/wize-works/jobsight-pro/compare/v1.15.0...v1.15.1) (2025-05-29)
 
 
