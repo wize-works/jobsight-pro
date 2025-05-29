@@ -16,7 +16,6 @@ export const metadata: Metadata = {
     keywords: "construction management, project management, field service, jobsite management, construction app",
     authors: [{ name: "JobSight Team" }],
     applicationName: "JobSight Pro",
-    viewport: "width=device-width, initial-scale=1",
     manifest: "/manifest.json",
     icons: {
         icon: [
@@ -45,7 +44,6 @@ export const metadata: Metadata = {
         statusBarStyle: "default",
         title: "JobSight Pro"
     },
-    themeColor: "#F87431",
     openGraph: {
         title: "JobSight Pro",
         description: "All your construction management needs in one place.",

@@ -152,6 +152,23 @@ jobs:
           resource-group: ${{ secrets.AZURE_RG }}
           admin: true
 
+      - name: Create Kubernetes secret for app
+        run: |
+          kubectl create secret generic jobsight-secrets \
+          --namespace=jobsight \
+          --from-literal=KINDE_CLIENT_SECRET="${KINDE_CLIENT_SECRET}" \
+          --from-literal=SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
+          --from-literal=OPENWEATHER_API_KEY="${OPENWEATHER_API_KEY}" \
+          --from-literal=NEXT_PUBLIC_VAPID_PUBLIC_KEY="${NEXT_PUBLIC_VAPID_PUBLIC_KEY}" \
+          --from-literal=VAPID_PRIVATE_KEY="${VAPID_PRIVATE_KEY}" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          KINDE_CLIENT_SECRET: ${{ secrets.KINDE_CLIENT_SECRET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+
       - name: Convert kubeconfig to use Azure CLI token
         run: kubelogin convert-kubeconfig -l azurecli
 
