@@ -72,13 +72,12 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set up Docker to use ACR
-        run: |
-          az acr login --name ${{ secrets.ACR_NAME }}
+        run: az acr login --name ${{ secrets.ACR_NAME }}
 
       - name: Docker Build and Tag
         run: |
           docker build --no-cache \
-            --build-arg NODE_ENV=${{ github.ref_name == 'main' && 'production' || 'development' }} \
+            --build-arg NODE_ENV=production \
             --build-arg KINDE_CLIENT_ID=${{ secrets.KINDE_CLIENT_ID }} \
             --build-arg KINDE_CLIENT_SECRET=${{ secrets.KINDE_CLIENT_SECRET }} \
             --build-arg KINDE_ISSUER_URL=${{ secrets.KINDE_ISSUER_URL }} \
@@ -103,15 +102,6 @@ jobs:
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }}
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
 
-      - name: Save metadata artifact
-        run: echo "Version=${{ needs.release.outputs.version }}" > metadata.txt
-
-      - name: Upload metadata artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-metadata
-          path: metadata.txt
-
   aks-deploy:
     name: Deploy to AKS
     needs: docker-build-and-push
@@ -119,8 +109,8 @@ jobs:
     timeout-minutes: 15
     environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
     permissions:
-        contents: write
-        deployments: write
+      contents: write
+      deployments: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -128,11 +118,10 @@ jobs:
       - name: Load secrets from Doppler
         uses: dopplerhq/cli-action@v2
         with:
-            doppler-token: ${{ secrets.DOPPLER_TOKEN }}
-            project: jobsight
-            config: production
-            inject-env-vars: true
-
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          project: jobsight
+          config: production
+          inject-env-vars: true
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -143,7 +132,6 @@ jobs:
         uses: azure/use-kubelogin@v1
         with:
           kubelogin-version: v0.0.25
-        
 
       - name: Set AKS Context with admin access
         uses: azure/aks-set-context@v4
@@ -155,13 +143,13 @@ jobs:
       - name: Create Kubernetes secret for app
         run: |
           kubectl create secret generic jobsight-secrets \
-          --namespace=jobsight \
-          --from-literal=KINDE_CLIENT_SECRET="${KINDE_CLIENT_SECRET}" \
-          --from-literal=SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
-          --from-literal=OPENWEATHER_API_KEY="${OPENWEATHER_API_KEY}" \
-          --from-literal=NEXT_PUBLIC_VAPID_PUBLIC_KEY="${NEXT_PUBLIC_VAPID_PUBLIC_KEY}" \
-          --from-literal=VAPID_PRIVATE_KEY="${VAPID_PRIVATE_KEY}" \
-          --dry-run=client -o yaml | kubectl apply -f -
+            --namespace=jobsight \
+            --from-literal=KINDE_CLIENT_SECRET="${KINDE_CLIENT_SECRET}" \
+            --from-literal=SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
+            --from-literal=OPENWEATHER_API_KEY="${OPENWEATHER_API_KEY}" \
+            --from-literal=NEXT_PUBLIC_VAPID_PUBLIC_KEY="${NEXT_PUBLIC_VAPID_PUBLIC_KEY}" \
+            --from-literal=VAPID_PRIVATE_KEY="${VAPID_PRIVATE_KEY}" \
+            --dry-run=client -o yaml | kubectl apply -f -
         env:
           KINDE_CLIENT_SECRET: ${{ secrets.KINDE_CLIENT_SECRET }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -172,26 +160,22 @@ jobs:
       - name: Convert kubeconfig to use Azure CLI token
         run: kubelogin convert-kubeconfig -l azurecli
 
-      - name: Create GitHub deployment
-        id: deployment
-        uses: bobheadxi/deployments@v1
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ github.ref_name == 'main' && 'production' || 'development' }}
-
-      - name: Debug environment variables
-        run: |
-          echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.version }}"
-          echo "ACR_NAME=${{ secrets.ACR_NAME }}"
-
       - name: Render deployment.yaml with secrets
         run: |
-          echo "VERSION=${{ needs.docker-build-and-push.outputs.version }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.version }}" >> $GITHUB_ENV
           envsubst < deployment/deployment.yaml > deployment/deployment.final.yaml
         env:
           IMAGE_TAG: ${{ needs.docker-build-and-push.outputs.version }}
           ACR_NAME: ${{ secrets.ACR_NAME }}
+          KINDE_CLIENT_ID: ${{ secrets.KINDE_CLIENT_ID }}
+          KINDE_ISSUER_URL: ${{ secrets.KINDE_ISSUER_URL }}
+          KINDE_DOMAIN: ${{ secrets.KINDE_DOMAIN }}
+          KINDE_SITE_URL: ${{ secrets.KINDE_SITE_URL }}
+          KINDE_LOGOUT_REDIRECT_URI: ${{ secrets.KINDE_LOGOUT_REDIRECT_URI }}
+          KINDE_POST_LOGOUT_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }}
+          KIDNE_REDIRECT_URI: ${{ secrets.KIDNE_REDIRECT_URI }}
+          KINDE_POST_LOGIN_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
 
       - name: Deploy to AKS
         run: |
