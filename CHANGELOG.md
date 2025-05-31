@@ -1,3 +1,83 @@
+# [1.17.0](https://github.com/wize-works/jobsight-pro/compare/v1.16.0...v1.17.0) (2025-05-29)
+
+
+### Features
+
+* Implement project media, members, and tasks fetching ([5b7aff5](https://github.com/wize-works/jobsight-pro/commit/5b7aff53d49f173b9fd75c427cf5e4831b48e24d))
+
+# [1.16.0](https://github.com/wize-works/jobsight-pro/compare/v1.15.1...v1.16.0) (2025-05-29)
+
+
+### Features
+
+* add GitHub deployment creation step in AKS deployment workflow ([f25fce9](https://github.com/wize-works/jobsight-pro/commit/f25fce9ea051597704dc717f182af38c61357462))
+* add GitHub deployment details to AKS deployment workflow ([06aed1c](https://github.com/wize-works/jobsight-pro/commit/06aed1c9e06540463273571e40267e24db00bb19))
+
+## [1.15.1](https://github.com/wize-works/jobsight-pro/compare/v1.15.0...v1.15.1) (2025-05-29)
+
+
+### Bug Fixes
+
+* streamline Docker login and build steps in deployment workflow ([a725afa](https://github.com/wize-works/jobsight-pro/commit/a725afad5493bd16d978ab6a1090854c970ea766))
+
+# [1.15.0](https://github.com/wize-works/jobsight-pro/compare/v1.14.0...v1.15.0) (2025-05-29)
+
+
+### Features
+
+* add Kubernetes secret creation step in deployment workflow ([ce7db46](https://github.com/wize-works/jobsight-pro/commit/ce7db46273993da9b3608c1c7cccd3ede30b6d1b))
+
+# [1.14.0](https://github.com/wize-works/jobsight-pro/compare/v1.13.1...v1.14.0) (2025-05-29)
+
+
+### Bug Fixes
+
+* remove PushManager component from DashboardLayout ([b545659](https://github.com/wize-works/jobsight-pro/commit/b545659ac90d95f32bb9653ad3b90f175744b2f6))
+
+
+### Features
+
+* add notification and push subscription management ([bfc72f9](https://github.com/wize-works/jobsight-pro/commit/bfc72f9884d66bccd1d2a58bc054402b9aebc61c))
+
+## [1.13.1](https://github.com/wize-works/jobsight-pro/compare/v1.13.0...v1.13.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* Correct import path for dynamic map component and ensure newline at end of manifest file ([9a70106](https://github.com/wize-works/jobsight-pro/commit/9a701065e790ffb372f3b7cabca547c963b94e03))
+
+# [1.13.0](https://github.com/wize-works/jobsight-pro/compare/v1.12.0...v1.13.0) (2025-05-28)
+
+
+### Bug Fixes
+
+* Add 'use client' directive to landing page for client-side rendering ([8bbc3e0](https://github.com/wize-works/jobsight-pro/commit/8bbc3e036671f301e5f38841cf27e187417bb005))
+
+
+### Features
+
+* Add map functionality with equipment markers and location tracking ([66ecaa1](https://github.com/wize-works/jobsight-pro/commit/66ecaa175834c3109e1073b590a6892ef053244b))
+
+# [1.12.0](https://github.com/wize-works/jobsight-pro/compare/v1.11.0...v1.12.0) (2025-05-28)
+
+
+### Features
+
+* Implement theme-based logo display on landing page ([7ed3782](https://github.com/wize-works/jobsight-pro/commit/7ed37821bf8ebf78aaf9b77fe43aee9520494a42))
+
+# [1.11.0](https://github.com/wize-works/jobsight-pro/compare/v1.10.15...v1.11.0) (2025-05-28)
+
+
+### Bug Fixes
+
+* Refactor code structure for improved navigation ([76103e1](https://github.com/wize-works/jobsight-pro/commit/76103e1a6e3de8efbd9124caff286382d8b5ac2a))
+* update sidebar menu styles for improved layout ([3a295aa](https://github.com/wize-works/jobsight-pro/commit/3a295aafd8bedf50340e6c40ce2b3b7598f442aa))
+
+
+### Features
+
+* Enhance type definitions and add options for documents, equipment, invoices, media, projects, and users ([d98e6d6](https://github.com/wize-works/jobsight-pro/commit/d98e6d61e30defb6c359b03b322a8182cc449eb9))
+
 ## [1.10.15](https://github.com/wize-works/jobsight-pro/compare/v1.10.14...v1.10.15) (2025-05-28)
 
 
