@@ -10,6 +10,12 @@ export type EquipmentAssignmentWithDetails = EquipmentAssignment & {
     crew_name?: string | null;
 };
 
+export type EquipmentAssignmentWithEquipmentDetails = EquipmentAssignment & {
+    equipment_name?: string | null;
+    equipment_type?: string | null;
+    equipment_status?: string | null;
+};
+
 export type EquipmentAssignmentStatus = "assigned" | "available" | "maintenance" | "repair" | "retired";
 
 export const assignmentStatusOptions = createOptions<EquipmentAssignmentStatus>({

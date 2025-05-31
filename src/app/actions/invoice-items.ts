@@ -28,7 +28,7 @@ export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
 export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("invoice_items", business.id, id);
+    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching invoice item by ID:", error);
@@ -92,10 +92,9 @@ export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> 
         filter: {
             or: [
                 { description: { ilike: `%${query}%` } },
-                { item_name: { ilike: `%${query}%` } },
             ],
         },
-        orderBy: { column: "item_name", ascending: true },
+        orderBy: { column: "created_at", ascending: true },
     });
 
     if (error) {

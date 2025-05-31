@@ -28,7 +28,7 @@ export const getSubtasks = async (): Promise<Subtask[]> => {
 export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("subtasks", business.id, id);
+    const { data, error } = await fetchByBusiness("subtasks", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching subtask by ID:", error);

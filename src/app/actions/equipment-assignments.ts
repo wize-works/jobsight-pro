@@ -29,7 +29,7 @@ export const getEquipmentAssignments = async (): Promise<EquipmentAssignment[]> 
 export const getEquipmentAssignmentById = async (id: string): Promise<EquipmentAssignment | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("equipment_assignments", business.id, id);
+    const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching equipment assignment by ID:", error);

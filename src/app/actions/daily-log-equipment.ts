@@ -2,8 +2,6 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
-import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -28,18 +26,19 @@ export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
 export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEquipment | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, id);
+    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+        filter: { id },
+    });
 
     if (error) {
         console.error("Error fetching daily log equipment by ID:", error);
-        return null;
+        throw new Error("Failed to fetch daily log equipment");
     }
 
     if (data && data[0]) {
         return data[0] as unknown as DailyLogEquipment;
     }
-
-    return null;
+    throw new Error("Daily log equipment not found");
 };
 
 export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert): Promise<DailyLogEquipment | null> => {

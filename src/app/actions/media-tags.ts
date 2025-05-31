@@ -28,7 +28,7 @@ export const getMediaTags = async (): Promise<MediaTag[]> => {
 export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("media_tags", business.id, id);
+    const { data, error } = await fetchByBusiness("media_tags", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching media tag by ID:", error);

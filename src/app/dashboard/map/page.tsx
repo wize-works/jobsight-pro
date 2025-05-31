@@ -2,8 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { Equipment } from '@/types/equipment';
-import { getEquipments } from '@/app/actions/equipments';
 
 // Dynamically import the map component with no SSR
 const MapComponent = dynamic(
@@ -16,7 +14,6 @@ const MapComponent = dynamic(
 
 
 export default function MapPage() {
-    const [equipment, setEquipment] = useState<Equipment[]>([]);
     const [location, setLocation] = useState({ latitude: 0.00, longitude: 0.00 });
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -32,10 +29,6 @@ export default function MapPage() {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude
                 });
-
-                // Then get equipment
-                const equipmentData = await getEquipments();
-                setEquipment(equipmentData);
 
                 // Only set loaded when both are done
                 setIsLoaded(true);
@@ -56,7 +49,7 @@ export default function MapPage() {
 
     return (
         <div className="h-[calc(100vh-4rem)] w-full">
-            <MapComponent equipment={equipment} location={location} />
+            <MapComponent location={location} />
         </div>
     );
 }

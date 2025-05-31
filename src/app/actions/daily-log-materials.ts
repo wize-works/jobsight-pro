@@ -29,7 +29,9 @@ export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
 export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMaterial | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, id);
+    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+        filter: { id: id }
+    });
 
     if (error) {
         console.error("Error fetching daily log material by ID:", error);

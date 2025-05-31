@@ -21,14 +21,14 @@ export const getClientContacts = async (): Promise<ClientContact[]> => {
     }
 
     if (!data || data.length === 0) {
-        return [] as ClientContact[];
+        return [];
     }
 
-    return data as unknown as ClientContact[];
+    return data;
 };
 
 // Get a single client contact by ID
-export const getClientContactById = async (id: string): Promise<ClientContact | null> => {
+export const getClientContactById = async (id: string): Promise<ClientContact> => {
     const { business } = await withBusinessServer();
 
     const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
@@ -37,20 +37,20 @@ export const getClientContactById = async (id: string): Promise<ClientContact | 
 
     if (error) {
         console.error("Error fetching client contact:", error);
-        return null;
+        throw new Error("Failed to fetch client contact");
     }
 
     if (data && data.length > 0) {
-        return data[0] as unknown as ClientContact;
+        return data[0];
     }
-    return null;
+    throw new Error("Client contact not found");
 };
 
 // Update a client contact
 export const updateClientContact = async (
     id: string,
     contact: ClientContactUpdate
-): Promise<ClientContact | null> => {
+): Promise<ClientContact> => {
     const { business } = await withBusinessServer();
 
     contact = await applyUpdated<ClientContactUpdate>(contact);
@@ -59,16 +59,16 @@ export const updateClientContact = async (
 
     if (error) {
         console.error("Error updating client contact:", error);
-        return null;
+        throw new Error("Failed to update client contact");
     }
 
-    return data as ClientContact;
+    return data;
 };
 
 // Create a new client contact
 export const createClientContact = async (
     contact: ClientContactInsert
-): Promise<ClientContact | null> => {
+): Promise<ClientContact> => {
     const { business } = await withBusinessServer();
 
     contact = await applyUpdated<ClientContactInsert>(contact);
@@ -77,10 +77,10 @@ export const createClientContact = async (
 
     if (error) {
         console.error("Error creating client contact:", error);
-        return null;
+        throw new Error("Failed to create client contact");
     }
 
-    return data as ClientContact;
+    return data;
 };
 
 // Delete a client contact by ID
@@ -118,9 +118,9 @@ export const searchClientContacts = async (query: string): Promise<ClientContact
     }
 
     if (!data || data.length === 0) {
-        return [] as ClientContact[];
+        return [];
     }
-    return data as unknown as ClientContact[];
+    return data;
 };
 
 export const getClientContactsByClientId = async (clientId: string): Promise<ClientContact[]> => {
@@ -137,8 +137,8 @@ export const getClientContactsByClientId = async (clientId: string): Promise<Cli
     }
 
     if (!data || data.length === 0) {
-        return [] as ClientContact[];
+        return [];
     }
 
-    return data as unknown as ClientContact[];
+    return data;
 };

@@ -28,7 +28,7 @@ export const getProjectIssues = async (): Promise<ProjectIssue[]> => {
 export const getProjectIssueById = async (id: string): Promise<ProjectIssue | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("project_issues", business.id, id);
+    const { data, error } = await fetchByBusiness("project_issues", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching project issue by ID:", error);

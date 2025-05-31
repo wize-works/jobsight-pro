@@ -121,10 +121,12 @@ export const setEquipmentStatus = async (id: string, status: EquipmentStatus): P
     return data as unknown as Equipment;
 }
 
-export const setEquipmentLocation = async (id: string, location: string): Promise<Equipment | null> => {
+export const setEquipmentLocation = async (equipment: EquipmentUpdate): Promise<Equipment | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await updateWithBusinessCheck("equipment", id, { location } as EquipmentUpdate, business.id);
+    equipment = await applyUpdated<EquipmentUpdate>(equipment);
+
+    const { data, error } = await updateWithBusinessCheck("equipment", equipment.id, equipment, business.id);
 
     if (error) {
         console.error("Error setting equipment location:", error);

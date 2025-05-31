@@ -12,8 +12,8 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
-    const [viewType, setViewType] = useState<"grid" | "table">(
-        typeof window !== "undefined" && localStorage.getItem("equipmentViewType") === "table" ? "table" : "grid"
+    const [viewType, setViewType] = useState<"grid" | "list">(
+        typeof window !== "undefined" && localStorage.getItem("equipmentViewType") === "list" ? "list" : "grid"
     );
     const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
 
@@ -37,7 +37,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
         setEquipments(results);
     };
 
-    const updateViewType = (type: "grid" | "table") => {
+    const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
         if (typeof window !== "undefined") {
             localStorage.setItem("equipmentViewType", type);
@@ -93,7 +93,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                         </select>
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "table" ? "tab-active" : ""}`} onClick={() => updateViewType("table")}> <i className="fas fa-th-list"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>

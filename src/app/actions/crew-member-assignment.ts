@@ -23,13 +23,13 @@ export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]
         return [];
     }
 
-    return data as unknown as CrewMemberAssignment[];
+    return data || [];
 };
 
 // Create a new crew member assignment
 export const createCrewMemberAssignment = async (
     assignment: CrewMemberAssignmentInsert
-): Promise<CrewMemberAssignment | null> => {
+): Promise<CrewMemberAssignment> => {
     const { business } = await withBusinessServer();
 
     assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
@@ -38,13 +38,13 @@ export const createCrewMemberAssignment = async (
 
     if (error) {
         console.error("Error creating crew member assignment:", error);
-        return null;
+        throw new Error("Failed to create crew member assignment");
     }
 
-    return data as unknown as CrewMemberAssignment;
+    return data;
 };
 
-export const addCrewMemberToCrew = async (crewId: string, memberId: string): Promise<CrewMemberAssignment | null> => {
+export const addCrewMemberToCrew = async (crewId: string, memberId: string): Promise<CrewMemberAssignment> => {
     const { business } = await withBusinessServer();
 
     let assignment = {
@@ -59,16 +59,16 @@ export const addCrewMemberToCrew = async (crewId: string, memberId: string): Pro
     const { data, error } = await insertWithBusiness("crew_member_assignments", assignment as CrewMemberAssignmentInsert, business.id);
     if (error) {
         console.error("Error adding crew member to crew:", error);
-        return null;
+        throw new Error("Failed to add crew member to crew");
     }
-    return data as unknown as CrewMemberAssignment;
+    return data;
 };
 
 // Update a crew member assignment
 export const updateCrewMemberAssignment = async (
     id: string,
     assignment: CrewMemberAssignmentUpdate
-): Promise<CrewMemberAssignment | null> => {
+): Promise<CrewMemberAssignment> => {
     const { business } = await withBusinessServer();
 
     assignment = await applyUpdated<CrewMemberAssignmentUpdate>(assignment);
@@ -77,10 +77,10 @@ export const updateCrewMemberAssignment = async (
 
     if (error) {
         console.error("Error updating crew member assignment:", error);
-        return null;
+        throw new Error("Failed to update crew member assignment");
     }
 
-    return data as unknown as CrewMemberAssignment;
+    return data;
 };
 
 // Delete a crew member assignment
@@ -121,5 +121,5 @@ export const searchCrewMemberAssignments = async (
         return [];
     }
 
-    return data as unknown as CrewMemberAssignment[];
+    return data || [];
 };

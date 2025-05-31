@@ -30,87 +30,65 @@ function withBusinessId<T extends Record<string, any>>(
 
     return result
 }
-
-// Generic function to fetch data with business_id filter
 export async function fetchByBusiness<T extends TableName>(
     table: T,
     businessId: string,
-    columns = "*",
+    columns: Array<keyof Tables[T]["Row"]> | "*" = "*",
     options?: {
         filter?: Record<string, any>
-        orderBy?: { column: string; ascending?: boolean }
+        orderBy?: { column: keyof Tables[T]["Row"]; ascending?: boolean }
         limit?: number
         page?: number
         client?: SupabaseClient<Database>
-    },
-) {
+    }
+): Promise<{
+    data: Tables[T]["Row"][] | null
+    error: Error | null
+}> {
     const supabase = options?.client || createServerClient()
     if (!supabase) {
         return { data: null, error: new Error("Supabase client not initialized") }
     }
 
-    let query = supabase.from(table).select(columns).eq("business_id", businessId);
+    const columnList: string = Array.isArray(columns) ? (columns as string[]).join(",") : columns;
 
-    // Apply additional filters
+    let query = supabase.from(table).select(columnList).eq("business_id", businessId)
+
     if (options?.filter) {
         Object.entries(options.filter).forEach(([key, value]) => {
-            // Handle complex filter operations
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
-                // Check for 'in' operation
-                if ('in' in value && Array.isArray(value.in)) {
-                    query = query.in(key, value.in);
+            if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+                if ("in" in value) {
+                    query = query.in(key, value.in)
+                } else if ("eq" in value) {
+                    query = query.eq(key, value.eq)
+                } else if ("gt" in value) {
+                    query = query.gt(key, value.gt)
+                } else if ("lt" in value) {
+                    query = query.lt(key, value.lt)
                 }
-                // Greater than
-                if ('gt' in value) {
-                    query = query.gt(key, value.gt);
-                }
-                // Greater than or equal
-                if ('gte' in value) {
-                    query = query.gte(key, value.gte);
-                }
-                // Less than
-                if ('lt' in value) {
-                    query = query.lt(key, value.lt);
-                }
-                // Less than or equal
-                if ('lte' in value) {
-                    query = query.lte(key, value.lte);
-                }
-                // Default to eq for simple objects without known operators
-                if (
-                    !('in' in value) &&
-                    !('gt' in value) &&
-                    !('gte' in value) &&
-                    !('lt' in value) &&
-                    !('lte' in value)
-                ) {
-                    query = query.eq(key, value);
-                }
+            } else {
+                query = query.eq(key, value)
             }
-            // Default to eq for simple values
-            else {
-                query = query.eq(key, value);
-            }
-        });
+        })
     }
 
-    // Apply ordering
     if (options?.orderBy) {
-        const { column, ascending = true } = options.orderBy
-        query = query.order(column, { ascending })
+        query = query.order(options.orderBy.column as string, {
+            ascending: options.orderBy.ascending,
+        })
     }
 
-    // Apply pagination
     if (options?.limit) {
         query = query.limit(options.limit)
-
-        if (options?.page && options.page > 1) {
+        if (options.page && options.page > 1) {
             query = query.range((options.page - 1) * options.limit, options.page * options.limit - 1)
         }
     }
 
-    return await query
+    const { data, error } = await query
+    return { data: data as unknown as Tables[T]["Row"][], error }
 }
+
 
 // Update insertWithBusiness to include userId parameter
 export async function insertWithBusiness<T extends TableName>(

@@ -5,6 +5,12 @@ export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
+export type TaskWithDetails = Task & {
+    crew_name?: string;
+    project_name?: string;
+    client_name?: string;
+};
+
 export type TaskStatus = "not_started" | "in_progress" | "completed" | "on_hold" | "cancelled";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 

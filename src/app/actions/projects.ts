@@ -1,9 +1,10 @@
 "use server";
-import type { Project, ProjectInsert, ProjectUpdate } from "@/types/projects";
+import type { Project, ProjectInsert, ProjectUpdate, ProjectWithDetails } from "@/types/projects";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { Client } from "@/types/clients";
 
 export const getProjects = async (): Promise<Project[]> => {
     try {
@@ -29,7 +30,7 @@ export const getProjects = async (): Promise<Project[]> => {
     }
 };
 
-export const getProjectById = async (id: string): Promise<Project | null> => {
+export const getProjectById = async (id: string): Promise<Project> => {
     try {
         const { business } = await withBusinessServer();
 
@@ -39,17 +40,17 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
 
         if (error) {
             console.error("Error fetching project by ID:", error);
-            return null;
+            throw error;
         }
 
         if (data && data[0]) {
-            return data[0] as unknown as Project;
+            return data[0];
         }
 
-        return null;
+        throw new Error(`Project with ID ${id} not found`);
     } catch (err) {
         console.error("Error in getProjectById:", err);
-        return null;
+        throw err;
     }
 };
 
@@ -162,6 +163,65 @@ export const getProjectsByClientId = async (clientId: string): Promise<Project[]
         return data as unknown as Project[];
     } catch (err) {
         console.error("Error in getProjectsByClientId:", err);
+        return [];
+    }
+};
+
+export const setProjectLocation = async (project: ProjectUpdate): Promise<Project | null> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        project = await applyUpdated<ProjectUpdate>(project);
+
+        const { data, error } = await updateWithBusinessCheck("projects", project.id, project, business.id);
+
+        if (error) {
+            console.error("Error creating project:", error);
+            return null;
+        }
+
+        return data as Project;
+    } catch (err) {
+        console.error("Error in createProject:", err);
+        return null;
+    }
+};
+
+export const getProjectsWithDetails = async (): Promise<ProjectWithDetails[]> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+            orderBy: { column: "created_at", ascending: false },
+        });
+
+        if (error) {
+            console.error("Error fetching projects:", error);
+            return [];
+        }
+
+        if (!data || data.length === 0) {
+            return [] as ProjectWithDetails[];
+        }
+
+        // Ensure data is an array of ProjectWithDetails before accessing client_id
+        const projectsWithDetails = data as unknown as ProjectWithDetails[];
+        const clientIds = projectsWithDetails.map((project) => project.client_id).filter(Boolean);
+
+        const { data: clients, error: clientError } = await fetchByBusiness("clients", business.id, ["id", "name"], {
+            filter: { id: { in: clientIds } },
+        });
+
+        return projectsWithDetails.map((project) => {
+            const client = (clients as unknown as Client[])?.find((c) => c.id === project.client_id);
+            return {
+                ...project,
+                client_name: client ? client.name : "Unknown Client",
+            };
+        });
+
+    } catch (err) {
+        console.error("Error in getProjects:", err);
         return [];
     }
 };

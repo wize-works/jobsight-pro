@@ -12,21 +12,8 @@ import { toast } from "@/hooks/use-toast";
 import { ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
 import { updateClientNotes } from "@/app/actions/clients";
-
-// Status options with colors and labels
-const statusOptions = {
-    active: { label: "Active", color: "badge-success" },
-    inactive: { label: "Inactive", color: "badge-neutral" },
-    prospect: { label: "Prospect", color: "badge-warning" },
-}
-
-// Project status options with colors and labels
-const projectStatusOptions = {
-    "in_progress": { label: "In Progress", color: "badge-primary" },
-    completed: { label: "Completed", color: "badge-success" },
-    "on_hold": { label: "On Hold", color: "badge-warning" },
-    cancelled: { label: "Cancelled", color: "badge-error" },
-}
+import { ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { ClientStatus, clientStatusOptions } from "@/types/clients";
 
 interface ClientDetailProps {
     client: any;
@@ -315,9 +302,7 @@ export default function ClientDetailComponent({
                             <i className="fas fa-arrow-left"></i>
                         </Link>
                         <h1 className="text-2xl font-bold">{client.name}</h1>
-                        <div className={`badge ${statusOptions[client.status as keyof typeof statusOptions]?.color || "badge-neutral"}`}>
-                            {statusOptions[client.status as keyof typeof statusOptions]?.label || client.status}
-                        </div>
+                        {clientStatusOptions.badge(client.status as ClientStatus)}
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -461,9 +446,7 @@ export default function ClientDetailComponent({
                                                             </Link>
                                                         </td>
                                                         <td>
-                                                            <div className={`badge ${projectStatusOptions[project.status as keyof typeof projectStatusOptions]?.color || "badge-neutral"}`}>
-                                                                {projectStatusOptions[project.status as keyof typeof projectStatusOptions]?.label || project.status}
-                                                            </div>
+                                                            {projectStatusOptions.badge(project.status as ProjectStatus)}
                                                         </td>
                                                         <td>${project.budget?.toLocaleString() || 0}</td>
                                                         <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>
@@ -610,9 +593,7 @@ export default function ClientDetailComponent({
                                                         </Link>
                                                     </td>
                                                     <td>
-                                                        <div className={`badge ${projectStatusOptions[project.status as keyof typeof projectStatusOptions]?.color || "badge-neutral"}`}>
-                                                            {projectStatusOptions[project.status as keyof typeof projectStatusOptions]?.label || project.status}
-                                                        </div>
+                                                        {projectStatusOptions.badge(project.status as ProjectStatus)}
                                                     </td>
                                                     <td>${project.budget?.toLocaleString() || 0}</td>
                                                     <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>

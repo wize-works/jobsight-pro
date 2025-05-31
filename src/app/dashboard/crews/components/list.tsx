@@ -26,7 +26,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
     const [showAddCrewModal, setShowAddCrewModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [viewType, setViewType] = useState<"grid" | "list">(
-        typeof window !== "undefined" && localStorage.getItem("crewViewType") === "list" ? "list" : "grid"
+        typeof window !== "undefined" && localStorage.getItem("crewsViewType") === "list" ? "list" : "grid"
     );
     const [newCrew, setNewCrew] = useState<{
         name: string;
@@ -76,7 +76,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
     const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
         if (typeof window !== "undefined") {
-            localStorage.setItem("crewViewType", type);
+            localStorage.setItem("crewsViewType", type);
         }
     };
 
@@ -116,13 +116,9 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
                                 </option>
                             ))}
                         </select>
-                        <div className="tabs tabs-boxed tabs-sm">
-                            <button className={`tab tab-secondary ${viewType === "grid" ? "tab-active" : ""}`} onClick={() => updateViewType("grid")}>
-                                <i className="fas fa-grid-2"></i>
-                            </button>
-                            <button className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}>
-                                <i className="fas fa-th-list"></i>
-                            </button>
+                        <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>

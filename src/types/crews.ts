@@ -5,8 +5,13 @@ export type Crew = Database["public"]["Tables"]["crews"]["Row"];
 export type CrewInsert = Database["public"]["Tables"]["crews"]["Insert"];
 export type CrewUpdate = Database["public"]["Tables"]["crews"]["Update"];
 
-export type CrewStatus = "active" | "inactive" | "on_hold" | "archived";
-export type CrewType = "construction" | "maintenance" | "cleaning" | "security" | "other";
+export type CrewStatus = "all" | "active" | "inactive" | "on_hold" | "archived";
+export type CrewType = "all" | "construction" | "maintenance" | "cleaning" | "security" | "other";
+
+export type CrewWithMemberInfo = Crew & {
+    member_count: number;
+    leader_name?: string | null;
+}
 
 export type CrewWithDetails = Crew & {
     leader: string;
@@ -25,6 +30,7 @@ export type CrewWithStats = Crew & {
 };
 
 export const crewStatusOptions = createOptions<CrewStatus>({
+    "all": { label: "All", badge: "badge-neutral" },
     "active": { label: "Active", badge: "badge-success" },
     "inactive": { label: "Inactive", badge: "badge-secondary" },
     "on_hold": { label: "On Hold", badge: "badge-warning" },
@@ -32,6 +38,7 @@ export const crewStatusOptions = createOptions<CrewStatus>({
 });
 
 export const crewTypeOptions = createOptions<CrewType>({
+    "all": { label: "All", badge: "badge-neutral" },
     "construction": { label: "Construction", badge: "badge-primary" },
     "maintenance": { label: "Maintenance", badge: "badge-secondary" },
     "cleaning": { label: "Cleaning", badge: "badge-success" },

@@ -28,7 +28,9 @@ export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
 export const getProjectMilestoneById = async (id: string): Promise<ProjectMilestone | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("project_milestones", business.id, id);
+    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
+        filter: { id }
+    });
 
     if (error) {
         console.error("Error fetching project milestone by ID:", error);
@@ -103,5 +105,23 @@ export const searchProjectMilestones = async (query: string): Promise<ProjectMil
         return [];
     }
 
+    return data as unknown as ProjectMilestone[];
+};
+
+export const getProjectMilestonesByProjectId = async (id: string): Promise<ProjectMilestone[] | []> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
+        filter: { project_id: id },
+        orderBy: { column: "due_date", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching project milestones:", error);
+        return [];
+    }
+    if (!data || data.length === 0) {
+        return [] as ProjectMilestone[];
+    }
     return data as unknown as ProjectMilestone[];
 };
