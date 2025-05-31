@@ -28,7 +28,7 @@ export const getInvoices = async (): Promise<Invoice[]> => {
 export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id, id);
+    const { data, error } = await fetchByBusiness("invoices", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching invoice by ID:", error);

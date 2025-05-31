@@ -21,14 +21,14 @@ export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
     }
 
     if (!data || data.length === 0) {
-        return [] as ClientInteraction[];
+        return [];
     }
 
-    return data as unknown as ClientInteraction[];
+    return data;
 };
 
 // Get a single client interaction by ID
-export const getClientInteractionById = async (id: string): Promise<ClientInteraction | null> => {
+export const getClientInteractionById = async (id: string): Promise<ClientInteraction> => {
     const { business } = await withBusinessServer();
 
     const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
@@ -37,20 +37,20 @@ export const getClientInteractionById = async (id: string): Promise<ClientIntera
 
     if (error) {
         console.error("Error fetching client interaction by ID:", error);
-        return null;
+        throw new Error("Failed to fetch client interaction");
     }
 
     if (data && data[0]) {
-        return data[0] as unknown as ClientInteraction;
+        return data[0];
     }
 
-    return null;
+    throw new Error("Client interaction not found");
 };
 
 // Create a new client interaction
 export const createClientInteraction = async (
     interaction: ClientInteractionInsert
-): Promise<ClientInteraction | null> => {
+): Promise<ClientInteraction> => {
     const { business } = await withBusinessServer();
 
     interaction = await applyCreated<ClientInteractionInsert>(interaction);
@@ -59,17 +59,17 @@ export const createClientInteraction = async (
 
     if (error) {
         console.error("Error creating client interaction:", error);
-        return null;
+        throw new Error("Failed to create client interaction");
     }
 
-    return data as ClientInteraction;
+    return data;
 };
 
 // Update an existing client interaction
 export const updateClientInteraction = async (
     id: string,
     interaction: ClientInteractionUpdate
-): Promise<ClientInteraction | null> => {
+): Promise<ClientInteraction> => {
     const { business } = await withBusinessServer();
 
     interaction = await applyUpdated<ClientInteractionUpdate>(interaction);
@@ -78,10 +78,10 @@ export const updateClientInteraction = async (
 
     if (error) {
         console.error("Error updating client interaction:", error);
-        return null;
+        throw new Error("Failed to update client interaction");
     }
 
-    return data as ClientInteraction;
+    return data;
 };
 
 // Delete a client interaction
@@ -112,8 +112,8 @@ export const getClientInteractionsByClientId = async (clientId: string): Promise
     }
 
     if (!data || data.length === 0) {
-        return [] as ClientInteraction[];
+        return [];
     }
 
-    return data as unknown as ClientInteraction[];
+    return data;
 };

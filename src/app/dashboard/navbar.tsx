@@ -21,7 +21,7 @@ export const Navbar = ({ sidebarCollapsed, setSidebarCollapsed }: NavbarProps) =
             {!isMobile && (
                 <div className="flex-none hidden lg:block">
                     <button onClick={() => handleSidebarToggle()} className="btn btn-square btn-ghost">
-                        <i className={`fa-kit fa-xl ${sidebarCollapsed ? "fa-light-sidebar-circle-arrow-right" : "fa-light-sidebar-circle-arrow-left"}`}></i>
+                        <i className={`far fa-xl ${sidebarCollapsed ? "fa-square-chevron-right" : "fa-square-chevron-left"}`}></i>
                     </button>
                 </div>
             )}

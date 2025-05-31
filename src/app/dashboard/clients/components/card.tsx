@@ -1,5 +1,5 @@
 import { ClientWithStats } from "@/types/clients";
-import { StatusOptions } from "./list";
+import { clientStatusOptions, ClientStatus } from "@/types/clients";
 import Link from "next/link";
 export const ClientCard = ({ client }: {
     client: ClientWithStats
@@ -23,9 +23,7 @@ export const ClientCard = ({ client }: {
                             <p className="text-sm opacity-50">{client.type}</p>
                         </div>
                     </div>
-                    <span className={`badge ${StatusOptions[client?.status || "prospect"]?.color || "badge-neutral"}`}>
-                        {StatusOptions[client?.status || "prospect"]?.label || "Unknown"}
-                    </span>
+                    {clientStatusOptions.badge(client.status as ClientStatus)}
                 </div>
                 <p><i className="fas fa-user fa-fw mr-2" />{client.contact_name}</p>
                 <p className="text-sm opacity-50"><i className="fas fa-envelope fa-fw mr-2" />{client.contact_email}</p>

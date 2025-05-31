@@ -22,7 +22,7 @@ export class Options<T extends string> {
         return React.createElement(
             "select",
             {
-                className: "select select-bordered w-full",
+                className: "select select-bordered",
                 value: selectedValue,
                 onChange: (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value as T)
             },

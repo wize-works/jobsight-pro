@@ -9,7 +9,7 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 
-export const getClientById = async (id: string): Promise<Client | null> => {
+export const getClientById = async (id: string): Promise<Client> => {
     try {
         const { business } = await withBusinessServer();
 
@@ -19,16 +19,16 @@ export const getClientById = async (id: string): Promise<Client | null> => {
 
         if (error) {
             console.error("Error fetching client by ID:", error);
-            return null;
+            throw new Error("Failed to fetch client");
         }
 
         if (data && data.length > 0) {
-            return data[0] as unknown as Client;
+            return data[0];
         }
-        return null;
+        throw new Error("Client not found");
     } catch (err) {
         console.error("Error in getClientById:", err);
-        return null;
+        throw new Error("Failed to fetch client by ID");
     }
 }
 
@@ -46,10 +46,10 @@ export const getClients = async (): Promise<Client[]> => {
         }
 
         if (!data || data.length === 0) {
-            return [] as Client[];
+            return [];
         }
 
-        return data as unknown as Client[];
+        return data;
     } catch (err) {
         console.error("Error in getClients:", err);
         return [];
@@ -68,14 +68,14 @@ export const getClientsWithStats = async (): Promise<Client[]> => {
             return [];
         }
 
-        const clientIds = (clients as unknown as Client[]).map((client) => client.id);
+        const clientIds = clients.map((client) => client.id);
 
         const { data: projects } = await fetchByBusiness("projects", business.id, "*", {
             filter: { client_id: { in: clientIds } },
         });
 
-        return (clients as unknown as Client[]).map((client) => {
-            const clientProjects = (projects as unknown as Project[])?.filter((project: Project) => project.client_id === client.id) || [];
+        return clients.map((client) => {
+            const clientProjects = projects?.filter((project: Project) => project.client_id === client.id) || [];
             const totalBudget = clientProjects.reduce((acc, project) => acc + (project.budget || 0), 0);
             const activeProjects = clientProjects.filter((project) => project.status === "active").length;
 
@@ -92,7 +92,7 @@ export const getClientsWithStats = async (): Promise<Client[]> => {
     }
 }
 
-export const createClient = async (client: ClientInsert): Promise<Client | null> => {
+export const createClient = async (client: ClientInsert): Promise<Client> => {
     try {
         const { business } = await withBusinessServer();
 
@@ -102,17 +102,17 @@ export const createClient = async (client: ClientInsert): Promise<Client | null>
 
         if (error) {
             console.error("Error creating client:", error);
-            return null;
+            throw new Error("Failed to create client");
         }
 
-        return data as Client;
+        return data;
     } catch (err) {
         console.error("Error in createClient:", err);
-        return null;
+        throw new Error("Failed to create client");
     }
 }
 
-export const updateClient = async (id: string, client: ClientUpdate): Promise<Client | null> => {
+export const updateClient = async (id: string, client: ClientUpdate): Promise<Client> => {
     try {
         const { business } = await withBusinessServer();
 
@@ -122,13 +122,13 @@ export const updateClient = async (id: string, client: ClientUpdate): Promise<Cl
 
         if (error) {
             console.error("Error updating client:", error);
-            return null;
+            throw new Error("Failed to update client");
         }
 
-        return data as Client;
+        return data;
     } catch (err) {
         console.error("Error in updateClient:", err);
-        return null;
+        throw new Error("Failed to update client");
     }
 }
 
@@ -171,17 +171,17 @@ export const searchClients = async (query: string): Promise<Client[]> => {
         }
 
         if (!data || data.length === 0) {
-            return [] as Client[];
+            return [];
         }
 
-        return data as unknown as Client[];
+        return data;
     } catch (err) {
         console.error("Error in searchClients:", err);
         return [];
     }
 };
 
-export const updateClientNotes = async (id: string, notes: string): Promise<Client | null> => {
+export const updateClientNotes = async (id: string, notes: string): Promise<Client> => {
     try {
         const { business, userId } = await withBusinessServer();
 
@@ -198,12 +198,12 @@ export const updateClientNotes = async (id: string, notes: string): Promise<Clie
 
         if (error) {
             console.error("Error updating client notes:", error);
-            return null;
+            throw new Error("Failed to update client notes");
         }
 
-        return data as Client;
+        return data;
     } catch (err) {
         console.error("Error in updateClientNotes:", err);
-        return null;
+        throw new Error("Failed to update client notes");
     }
 };

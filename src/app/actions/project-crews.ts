@@ -28,7 +28,7 @@ export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
 export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("project_crews", business.id, id);
+    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching project crew by ID:", error);

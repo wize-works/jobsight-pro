@@ -1,15 +1,24 @@
 import React from "react";
 import Link from "next/link";
+import { taskStatusOptions, TaskStatus } from "@/types/tasks";
+import { formatDate, formatCurrency } from "@/utils/formatters";
 
-const formatDate = (dateString: string): string => {
-    if (!dateString) return "Not set";
-    
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString();
-    } catch (error) {
-        return dateString;
-    }
+// Helper function to normalize status strings to match TaskStatus type
+const normalizeStatus = (status: string): TaskStatus => {
+    const normalized = status.toLowerCase().replace(/ /g, '_') as TaskStatus;
+    return normalized;
+};
+
+// Helper function to get badge class for status
+const getStatusBadge = (status: string) => {
+    const normalized = normalizeStatus(status);
+    return taskStatusOptions.get(normalized).badge || 'badge-neutral';
+};
+
+// Helper function to get display label for status
+const getStatusLabel = (status: string) => {
+    const normalized = normalizeStatus(status);
+    return taskStatusOptions.get(normalized).label || status;
 };
 
 interface ProjectDetailProps {
@@ -63,45 +72,7 @@ interface ProjectDetailProps {
     };
 }
 
-const getStatusBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
-        case 'completed':
-            return 'badge-success';
-        case 'in progress':
-            return 'badge-primary';
-        case 'not started':
-            return 'badge-secondary';
-        case 'planning':
-            return 'badge-info';
-        case 'on hold':
-            return 'badge-warning';
-        case 'cancelled':
-            return 'badge-error';
-        default:
-            return 'badge-neutral';
-    }
-};
-
-const getMilestoneBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
-        case 'completed':
-            return 'badge-success';
-        case 'in progress':
-            return 'badge-primary';
-        case 'not started':
-            return 'badge-secondary';
-        default:
-            return 'badge-neutral';
-    }
-};
-
-const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-    }).format(amount || 0);
-};
+// We'll use the normalized helper functions for all status badges and labels
 
 const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
     return (
@@ -111,9 +82,10 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard/projects" className="btn btn-ghost btn-sm">
                             <i className="fas fa-arrow-left"></i>
-                        </Link>
-                        <h1 className="text-2xl font-bold">{project.name}</h1>
-                        <div className={`badge ${getStatusBadgeColor(project.status)}`}>{project.status}</div>
+                        </Link>                        <h1 className="text-2xl font-bold">{project.name}</h1>
+                        <div className={`badge ${getStatusBadge(project.status)}`}>
+                            {getStatusLabel(project.status)}
+                        </div>
                     </div>
                     <p className="text-base-content/70 mt-1">
                         Client:{" "}
@@ -147,7 +119,7 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm mb-6">
@@ -214,11 +186,9 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                                                 <td>
                                                     <div className="font-medium">{milestone.name}</div>
                                                     <div className="text-sm text-base-content/70">{milestone.description}</div>
-                                                </td>
-                                                <td>{formatDate(milestone.dueDate)}</td>
-                                                <td>
-                                                    <div className={`badge ${getMilestoneBadgeColor(milestone.status)}`}>
-                                                        {milestone.status}
+                                                </td>                                                <td>{formatDate(milestone.dueDate)}</td>                                                <td>
+                                                    <div className={`badge ${getStatusBadge(milestone.status)}`}>
+                                                        {getStatusLabel(milestone.status)}
                                                     </div>
                                                 </td>
                                                 <td>
@@ -230,10 +200,10 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                                                 </td>
                                             </tr>
                                         )) || (
-                                            <tr>
-                                                <td colSpan={4} className="text-center py-4">No milestones added yet</td>
-                                            </tr>
-                                        )}
+                                                <tr>
+                                                    <td colSpan={4} className="text-center py-4">No milestones added yet</td>
+                                                </tr>
+                                            )}
                                     </tbody>
                                 </table>
                             </div>
@@ -266,10 +236,10 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                                                     <div className="text-xs text-base-content/70">
                                                         {formatDate(task.startDate)} - {formatDate(task.endDate)}
                                                     </div>
-                                                </td>
-                                                <td>{task.assignedToName || task.assignedTo || "Unassigned"}</td>
-                                                <td>
-                                                    <div className={`badge ${getStatusBadgeColor(task.status)}`}>{task.status}</div>
+                                                </td>                                                <td>{task.assignedToName || task.assignedTo || "Unassigned"}</td>                                                <td>
+                                                    <div className={`badge ${getStatusBadge(task.status)}`}>
+                                                        {getStatusLabel(task.status)}
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <div className="flex items-center gap-2">
@@ -283,10 +253,10 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                                                 </td>
                                             </tr>
                                         )) || (
-                                            <tr>
-                                                <td colSpan={4} className="text-center py-4">No tasks added yet</td>
-                                            </tr>
-                                        )}
+                                                <tr>
+                                                    <td colSpan={4} className="text-center py-4">No tasks added yet</td>
+                                                </tr>
+                                            )}
                                     </tbody>
                                 </table>
                             </div>
@@ -303,9 +273,9 @@ const ProjectDetailComponent: React.FC<ProjectDetailProps> = ({ project }) => {
                                     <span>Overall Progress</span>
                                     <span className="font-semibold">{project.progress || 0}%</span>
                                 </div>
-                                <progress 
-                                    className="progress progress-primary w-full" 
-                                    value={project.progress || 0} 
+                                <progress
+                                    className="progress progress-primary w-full"
+                                    value={project.progress || 0}
                                     max="100"
                                 ></progress>
                             </div>

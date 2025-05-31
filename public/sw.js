@@ -38,9 +38,6 @@ self.addEventListener('install', function (event) {
         caches.open('v1').then(function (cache) {
             return cache.addAll([
                 // Add any assets you want to cache here
-                '/index.html',
-                '/styles.css',
-                '/script.js',
                 '/favicon.ico'
             ]);
         })

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Equipment, EquipmentStatus, EquipmentWithDetails } from "@/types/equipment";
+import type { Equipment, EquipmentStatus, EquipmentUpdate, EquipmentWithDetails } from "@/types/equipment";
 import { equipmentStatusOptions } from "@/types/equipment";
 import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMaintenanceType } from "@/types/equipment-maintenance";
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
@@ -172,7 +172,7 @@ export default function EquipmentDetail({
                                     <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
                                         const { latitude, longitude } = position.coords;
                                         setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
-                                        setEquipmentLocation(equipment.id, `Lat: ${latitude}, Lon: ${longitude}`);
+                                        setEquipmentLocation({ id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
                                     })}>
                                         <i className="fas fa-map-marker-alt"></i>
                                     </button>

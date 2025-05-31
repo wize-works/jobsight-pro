@@ -28,7 +28,7 @@ export const getTaskNotes = async (): Promise<TaskNote[]> => {
 export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("task_notes", business.id, id);
+    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching task note by ID:", error);

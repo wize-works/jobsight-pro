@@ -28,7 +28,9 @@ export const getDocuments = async (): Promise<Document[]> => {
 export const getDocumentById = async (id: string): Promise<Document | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("documents", business.id, id);
+    const { data, error } = await fetchByBusiness("documents", business.id, "*", {
+        filter: { id: id }
+    });
 
     if (error) {
         console.error("Error fetching document by ID:", error);

@@ -726,8 +726,9 @@ const crewsData = {
     },
 }
 
-export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id: projectId } = await params;
+export default function ProjectDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const router = useRouter()
     const [activeTab, setActiveTab] = useState("overview")
     const [showAssignCrewModal, setShowAssignCrewModal] = useState(false)
@@ -736,7 +737,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     const [showAddIssueModal, setShowAddIssueModal] = useState(false)
     const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false)
 
-    const project = projectsData[projectId as keyof typeof projectsData]
+    const project = projectsData[id as keyof typeof projectsData]
 
     // If project doesn't exist, redirect to projects page
     useEffect(() => {

@@ -28,7 +28,7 @@ export const getTaskDependencies = async (): Promise<TaskDependency[]> => {
 export const getTaskDependencyById = async (id: string): Promise<TaskDependency | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("task_dependencies", business.id, id);
+    const { data, error } = await fetchByBusiness("task_dependencies", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching task dependency by ID:", error);

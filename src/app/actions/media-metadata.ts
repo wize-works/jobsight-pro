@@ -28,7 +28,7 @@ export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
 export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("media_metadata", business.id, id);
+    const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching media metadata by ID:", error);

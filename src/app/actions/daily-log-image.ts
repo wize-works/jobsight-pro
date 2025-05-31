@@ -28,7 +28,9 @@ export const getDailyLogImages = async (): Promise<DailyLogImage[]> => {
 export const getDailyLogImageById = async (id: string): Promise<DailyLogImage | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness("daily_log_images", business.id, id);
+    const { data, error } = await fetchByBusiness("daily_log_images", business.id, "*", {
+        filter: { id: id }
+    });
 
     if (error) {
         console.error("Error fetching daily log image by ID:", error);
