@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
+import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
 import { progressBar } from "@/utils/progress";
-import { getProjectsWithDetails } from "@/app/actions/projects";
+import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
 import Loading from "@/app/loading";
+import ProjectModal from "./components/modal-project";
 
 
 export default function ProjectsPage() {
@@ -16,6 +17,7 @@ export default function ProjectsPage() {
     );
     const [search, setSearch] = useState("");
     const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+    const [showAddIssueModal, setShowAddIssueModal] = useState(false);
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
     const [sortOption, setSortOption] = useState("name");
@@ -50,6 +52,21 @@ export default function ProjectsPage() {
         if (typeof window !== "undefined") {
             localStorage.setItem("projectsViewType", type);
         }
+    };
+
+    const handleIssueSave = async (issue: any) => {
+        // Placeholder for issue saving logic
+        console.log("Issue saved:", issue);
+        setShowAddProjectModal(false);
+    }
+
+    const handleProjectSave = async (project: any) => {
+        if (project.id) {
+            updateProject(project.id, project);
+        } else {
+            createProject(project);
+        }
+        setShowAddProjectModal(false);
     };
 
     if (loading) {
@@ -293,115 +310,7 @@ export default function ProjectsPage() {
 
             {/* Add Project Modal */}
             {showAddProjectModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-3xl">
-                        <h3 className="font-bold text-lg mb-4">Add New Project</h3>
-                        <form>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Project Name</span>
-                                    </label>
-                                    <input type="text" placeholder="Enter project name" className="input input-bordered" />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Client</span>
-                                    </label>
-                                    <select className="select select-bordered" defaultValue="">
-                                        <option disabled value="">
-                                            Select a client
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Project Type</span>
-                                    </label>
-                                    <select className="select select-bordered" defaultValue="">
-                                        <option disabled value="">
-                                            Select type
-                                        </option>
-                                        <option value="commercial">Commercial</option>
-                                        <option value="residential">Residential</option>
-                                        <option value="industrial">Industrial</option>
-                                        <option value="government">Government</option>
-                                        <option value="healthcare">Healthcare</option>
-                                        <option value="education">Education</option>
-                                    </select>
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Status</span>
-                                    </label>
-                                    <select className="select select-bordered" defaultValue="">
-                                        <option disabled value="">
-                                            Select status
-                                        </option>
-                                        <option value="planning">Planning</option>
-                                        <option value="bidding">Bidding</option>
-                                        <option value="in_progress">In Progress</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="on_hold">On Hold</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Start Date</span>
-                                    </label>
-                                    <input type="date" className="input input-bordered" />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">End Date</span>
-                                    </label>
-                                    <input type="date" className="input input-bordered" />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Budget</span>
-                                    </label>
-                                    <input type="number" placeholder="Enter budget amount" className="input input-bordered" />
-                                </div>
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Location</span>
-                                    </label>
-                                    <input type="text" placeholder="Enter project location" className="input input-bordered" />
-                                </div>
-                            </div>
-
-                            <div className="form-control mb-4">
-                                <label className="label">
-                                    <span className="label-text">Project Description</span>
-                                </label>
-                                <textarea
-                                    className="textarea textarea-bordered h-24"
-                                    placeholder="Enter project description"
-                                ></textarea>
-                            </div>
-
-                            <div className="modal-action">
-                                <button type="button" className="btn btn-ghost" onClick={() => setShowAddProjectModal(false)}>
-                                    Cancel
-                                </button>
-                                <button type="button" className="btn btn-primary" onClick={() => setShowAddProjectModal(false)}>
-                                    Create Project
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowAddProjectModal(false)}></div>
-                </div>
+                <ProjectModal project={{} as Project} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
             )}
         </>
     );
@@ -426,15 +335,4 @@ function formatCurrency(amount: number | null | undefined): string {
         currency: "USD",
         maximumFractionDigits: 0,
     }).format(amount);
-}
-
-function getStatusBadgeColor(status: string) {
-    const colors: { [key: string]: string } = {
-        planning: "badge-info",
-        bidding: "badge-warning",
-        in_progress: "badge-primary",
-        completed: "badge-success",
-        on_hold: "badge-neutral",
-    };
-    return colors[status] || "badge-neutral";
 }

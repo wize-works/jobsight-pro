@@ -7,8 +7,10 @@ import { createCrew, getCrewsWithDetails } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";
+import Loading from "./loading";
 
 export default function CrewsList() {
+    const [loading, setLoading] = useState(true);
     const [crews, setCrews] = useState<CrewWithDetails[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -38,6 +40,7 @@ export default function CrewsList() {
                 console.error("Error fetching crews:", error);
                 toast.error("Failed to load crews. Please try again later.");
             }
+            setLoading(false);
         }
         fetchCrews();
     }, []);
@@ -81,6 +84,12 @@ export default function CrewsList() {
             localStorage.setItem("crewsViewType", type);
         }
     };
+
+    if (loading) {
+        return (
+            <Loading />
+        );
+    }
 
     return (
         <>

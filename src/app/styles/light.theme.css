@@ -39,4 +39,7 @@
     --border: 1px;
     --depth: 1;
     --noise: 0;
+
+    active: #F87431;
+    active-content: #FAFAF9;
 }

@@ -17,12 +17,12 @@ export class Options<T extends string> {
         return this.config[key];
     }
 
-    select(value: T | null | undefined, onChange: (value: T) => void): ReactNode {
+    select(value: T | null | undefined, onChange: (value: T) => void, className?: string): ReactNode {
         const selectedValue = value || "";
         return React.createElement(
             "select",
             {
-                className: "select select-bordered",
+                className: `select select-bordered w-full ${className}`,
                 value: selectedValue,
                 onChange: (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value as T)
             },
@@ -36,11 +36,11 @@ export class Options<T extends string> {
         );
     }
 
-    badge(key: T | null | undefined): ReactNode {
+    badge(key: T | null | undefined, className?: string): ReactNode {
         const option = this.get(key);
         return React.createElement(
             "span",
-            { className: `badge ${option.badge || "badge-neutral"}` },
+            { className: `badge ${option.badge || "badge-neutral"} ${className}` },
             option.label
         );
     }
