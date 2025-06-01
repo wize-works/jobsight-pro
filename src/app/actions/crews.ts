@@ -313,7 +313,10 @@ export const getCrewScheduleCurrent = async (crewId: string): Promise<ProjectCre
     const { business } = await withBusinessServer();
 
     const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", business.id, "*", {
-        filter: { crew_id: crewId, end_date: { eq: null, gte: new Date().toISOString() } },
+        filter: {
+            crew_id: crewId,
+            end_date: { neq: null, gte: new Date().toISOString() }
+        },
         orderBy: { column: "start_date", ascending: false },
     });
     if (error) {

@@ -8,6 +8,9 @@
     width: 100%;
 }
 
+:root {
+}
+
 @layer base {
     .label {
         @apply w-full pb-2;

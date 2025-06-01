@@ -9,6 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@azure/storage-blob": "^12.27.0",
         "@hookform/resolvers": "latest",
         "@kinde-oss/kinde-auth-nextjs": "latest",
         "@supabase/supabase-js": "latest",

@@ -9,15 +9,20 @@ export type ProjectIssueStatus = "open" | "in_progress" | "resolved" | "closed";
 export type ProjectIssuePriority = "low" | "medium" | "high" | "critical";
 
 export const projectIssueStatusOptions = createOptions<ProjectIssueStatus>({
-    open: { label: "Open", badge: "badge-primary" },
-    in_progress: { label: "In Progress", badge: "badge-warning" },
+    open: { label: "Open", badge: "badge-accent" },
+    in_progress: { label: "In Progress", badge: "badge-info" },
     resolved: { label: "Resolved", badge: "badge-success" },
     closed: { label: "Closed", badge: "badge-secondary" }
 });
 
 export const projectIssuePriorityOptions = createOptions<ProjectIssuePriority>({
     low: { label: "Low", badge: "badge-success" },
-    medium: { label: "Medium", badge: "badge-warning" },
-    high: { label: "High", badge: "badge-error" },
-    critical: { label: "Critical", badge: "badge-danger" }
+    medium: { label: "Medium", badge: "badge-info" },
+    high: { label: "High", badge: "badge-warning" },
+    critical: { label: "Critical", badge: "badge-error" }
 });
+
+export type ProjectIssueWithDetails = ProjectIssue & {
+    assigned_to_name: string;
+    project_name: string;
+};

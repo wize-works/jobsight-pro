@@ -30,6 +30,7 @@ function withBusinessId<T extends Record<string, any>>(
 
     return result
 }
+
 export async function fetchByBusiness<T extends TableName>(
     table: T,
     businessId: string,
@@ -55,21 +56,79 @@ export async function fetchByBusiness<T extends TableName>(
     let query = supabase.from(table).select(columnList).eq("business_id", businessId)
 
     if (options?.filter) {
-        Object.entries(options.filter).forEach(([key, value]) => {
+        // Handle special or conditions first
+
+        if (options.filter.or) {
+            const orConditions = options.filter.or;
+            if (Array.isArray(orConditions)) {
+                const orFilterString = orConditions
+                    .map((condition) => {
+                        const [key, value] = Object.entries(condition)[0];
+                        if (value === null) {
+                            return `${key}.is.null`; // ✅ this is crucial
+                        } else if (typeof value === 'object') {
+                            const [op, opValue] = Object.entries(value)[0];
+                            return `${key}.${op}.${opValue}`;
+                        } else {
+                            return `${key}.eq.${value}`;
+                        }
+                    })
+                    .join(',');
+                console.log("Constructed OR clause:", orFilterString);
+                query = query.or(orFilterString);
+            }
+
+            // Remove `or` from the main filter
+
+            const { or, ...restFilter } = options.filter;
+            options.filter = restFilter;
+        }
+
+        // Process remaining filters
+        for (const [key, value] of Object.entries(options.filter)) {
             if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                if ("in" in value) {
-                    query = query.in(key, value.in)
-                } else if ("eq" in value) {
-                    query = query.eq(key, value.eq)
-                } else if ("gt" in value) {
-                    query = query.gt(key, value.gt)
-                } else if ("lt" in value) {
-                    query = query.lt(key, value.lt)
+                for (const [op, opValue] of Object.entries(value)) {
+                    switch (op) {
+                        case "eq":
+                            query = query.eq(key, opValue);
+                            break;
+                        case "neq":
+                            if (opValue === null) {
+                                query = query.not(key, "is", null);
+                            } else {
+                                query = query.neq(key, opValue);
+                            }
+                            break;
+                        case "gt":
+                            query = query.gt(key, opValue);
+                            break;
+                        case "gte":
+                            query = query.gte(key, opValue);
+                            break;
+                        case "lt":
+                            query = query.lt(key, opValue);
+                            break;
+                        case "lte":
+                            query = query.lte(key, opValue);
+                            break;
+                        case "ilike":
+                            query = query.ilike(key, String(opValue));
+                            break;
+                        case "in":
+                            query = query.in(key, opValue as readonly any[]);
+                            break;
+                        default:
+                            console.warn(`Unsupported operator: ${op}`);
+                    }
                 }
             } else {
-                query = query.eq(key, value)
+                if (value === null) {
+                    query = query.is(key, null);
+                } else {
+                    query = query.eq(key, value);
+                }
             }
-        })
+        }
     }
 
     if (options?.orderBy) {
@@ -88,7 +147,6 @@ export async function fetchByBusiness<T extends TableName>(
     const { data, error } = await query
     return { data: data as unknown as Tables[T]["Row"][], error }
 }
-
 
 // Update insertWithBusiness to include userId parameter
 export async function insertWithBusiness<T extends TableName>(

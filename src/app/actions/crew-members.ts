@@ -26,7 +26,7 @@ export const getCrewMembers = async (): Promise<CrewMember[]> => {
     return data;
 }
 
-export const getCrewMemberById = async (id: string): Promise<CrewMember> => {
+export const getCrewMemberById = async (id: string): Promise<CrewMember | null> => {
     const { business } = await withBusinessServer();
 
     const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
@@ -42,7 +42,7 @@ export const getCrewMemberById = async (id: string): Promise<CrewMember> => {
         return data[0];
     }
 
-    throw new Error("Crew member not found");
+    return null;
 };
 
 export const createCrewMember = async (crewMember: CrewMemberInsert): Promise<CrewMember> => {

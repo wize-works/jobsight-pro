@@ -2,24 +2,35 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Project, ProjectStatus, projectStatusOptions } from "@/types/projects";
-import { getProjectById } from "@/app/actions/projects";
-import { getProjectMilestonesByProjectId } from "@/app/actions/project_milestones";
+import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { getProjectById, updateProject } from "@/app/actions/projects";
+import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project_milestones";
 import { getTasksByProjectId } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
 import { toast } from "@/hooks/use-toast";
-import Loading from "@/app/loading";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
+import { TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { progressBar } from "@/utils/progress";
-import { formatDistance, formatDistanceToNow } from "date-fns";
+import { formatDistance, formatDistanceToNow, set } from "date-fns";
 import TasksTab from "../components/tab-tasks";
 import { Client } from "@/types/clients";
 import CrewsTab from "../components/tab-crews";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { ClientContact } from "@/types/client-contacts";
-import { getCrews, getCrewsByProjectId } from "@/app/actions/crews";
+import { getCrewsByProjectId } from "@/app/actions/crews";
 import { CrewWithMemberInfo } from "@/types/crews";
+import IssuesTab from "../components/tab-issues";
+import IssueModal from "../components/modal-issues";
+import { getProjectIssuesWithDetailsByProjectId } from "@/app/actions/projects-issues";
+import { ProjectIssueWithDetails } from "@/types/projects-issues";
+import Loading from "./loading";
+import { getMediaByProjectId } from "@/app/actions/media";
+import { Media } from "@/types/media";
+import MediaTab from "../components/tab-media";
+import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
+import { CrewMember } from "@/types/crew-members";
+import MilestoneModal from "../components/modal-milestone";
+import ProjectEditModal from "../components/modal.edit";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -41,6 +52,7 @@ const formatCurrency = (amount: number): string => {
 };
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const [issueModalOpen, setIssueModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
     const [project, setProject] = useState<Project>();
@@ -49,22 +61,34 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [client, setClient] = useState<Client | null>(null);
     const [contacts, setContacts] = useState<ClientContact[]>([]);
     const [crews, setCrews] = useState<CrewWithMemberInfo[]>([]);
+    const [manager, setManager] = useState<CrewMember>();
+    const [issues, setIssues] = useState<ProjectIssueWithDetails[]>([]);
+    const [documents, setDocuments] = useState<Media[]>([]);
+    const [progress, setProgress] = useState(0);
+    const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
+    const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchClients = async () => {
             const { id } = await params;
             console.log("Fetching project with ID:", id);
             try {
-                const [projectData, milestonesData, tasksData, crewsData] = await Promise.all([
+                const [projectData, milestonesData, tasksData, crewsData, issuesData, documents] = await Promise.all([
                     getProjectById(id),
                     getProjectMilestonesByProjectId(id),
                     getTasksByProjectId(id),
-                    getCrewsByProjectId(id)
+                    getCrewsByProjectId(id),
+                    getProjectIssuesWithDetailsByProjectId(id),
+                    getMediaByProjectId(id, "document")
                 ]);
                 setProject(projectData);
                 setMilestones(milestonesData);
                 setTasks(tasksData);
                 setCrews(crewsData);
+                setIssues(issuesData);
+                setDocuments(documents);
+                setProgress(projectData.progress || 0);
 
                 if (projectData && projectData.client_id) {
                     const clientData = await getClientById(projectData.client_id);
@@ -75,7 +99,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 } else {
                     setClient(null);
                 }
-                console.log('tasks data:', tasksData);
+
+                if (projectData && projectData.manager_id) {
+                    const managerData = await getCrewMemberById(projectData.manager_id);
+                    setManager(managerData as CrewMember);
+                } else {
+                    setManager({} as CrewMember);
+                }
+
                 setLoading(false);
 
             } catch (error) {
@@ -85,6 +116,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         }
         fetchClients();
     }, [params]);
+
+    const handleEditMilestone = (milestone: ProjectMilestone) => {
+        setSelectedMilestone(milestone);
+        setMilestoneModalOpen(true);
+    };
+
+    const handleMilestoneSave = async (milestone: ProjectMilestone) => {
+        if (selectedMilestone) {
+            await updateProjectMilestone(selectedMilestone.id, milestone);
+            setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
+        } else {
+            await createProjectMilestone(milestone);
+            setMilestones((prev) => [...prev, milestone]);
+        }
+        setMilestoneModalOpen(false);
+        setSelectedMilestone(null);
+        toast.success("Milestone saved successfully!");
+    };
 
     if (loading) {
         return (
@@ -109,21 +158,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Link href="/dashboard/projects" className="btn btn-ghost btn-sm">
-                            <i className="fas fa-arrow-left"></i>
+                        <Link href="/dashboard/projects" className="btn btn-outline">
+                            <i className="fas fa-arrow-left mr-2"></i> Back to Projects
                         </Link>
-                        <h1 className="text-2xl font-bold">{project.name}</h1>hi
-                        {projectStatusOptions.badge(project.status as ProjectStatus)}
                     </div>
-                    <p className="text-base-content/70 mt-1">
-                        Client:{" "}
-                        <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
-                            {client?.name || "Not specified"}
-                        </Link>
-                    </p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-outline btn-sm">
+                    <button className="btn btn-outline btn-sm" onClick={() => setEditModalOpen(true)}>
                         <i className="fas fa-edit mr-2"></i> Edit
                     </button>
                     <div className="dropdown dropdown-end">
@@ -147,11 +188,76 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="card bg-base-100 shadow-sm">
+                    <div className="card-body p-4">
+                        <div className="flex items-center gap-2">
+                            <div className="rounded-full bg-primary/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                <i className="fas fa-calendar-alt fa-bounce fa-lg fa-fw text-primary"></i>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg text-base-content font-medium">Last updated {formatDate(project.updated_at || "")}</span>
+                                <span className="text-sm text-base-content/50">Created on {formatDate(project.created_at || "")}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow-sm">
+                    <div className="card-body p-4">
+                        <div className="flex items-center gap-2">
+                            <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                <i className="fas fa-users fa-beat fa-lg fa-fw text-info"></i>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg text-base-content font-medium">Managed by {manager?.name || "Not assigned"}</span>
+                                <span className="text-sm text-base-content/50">Team size: {crews.length} crews</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow-sm">
+                    <div className="card-body p-4">
+                        <div className="flex items-center gap-2">
+                            <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                <i className="fas fa-spinner-third fa-spin fa-lg fa-fw text-info"></i>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg text-base-content font-medium">Progress: {progress || 0}%</span>
+                                <span className="text-sm text-base-content/50">Status: {projectStatusOptions.badge(project.status as ProjectStatus, "badge-xs")}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow-sm">
+                    <div className="card-body p-4">
+                        <div className="flex items-center gap-2">
+                            <div className="rounded-full bg-success/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                <i className="fas fa-dollar-sign fa-flip fa-lg fa-fw text-success"></i>
+                            </div>
+
+                            <div className="flex flex-col">
+                                <span className="text-lg text-base-content font-medium">Budget: {formatCurrency(project.budget || 0.00)}</span>
+                                <span className="text-sm text-base-content/50">Spent: {formatCurrency((project.budget || 0) * (progress / 100))}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
+
+                            <h1 className="text-2xl font-bold">{project.name}</h1>
+                            {projectStatusOptions.badge(project.status as ProjectStatus)}
+                            <p className="text-base-content/70 mt-1">
+                                Client:{" "}
+                                <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
+                                    {client?.name || "Not specified"}
+                                </Link>
+                            </p>
+                            <div className="divider my-4"></div>
                             <h2 className="card-title">Project Details</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -165,7 +271,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <div className="mb-4">
                                         <h4 className="text-sm font-medium text-base-content/70">Project Manager</h4>
-                                        <p>{project.manager_id || "Not assigned"}</p>
+                                        <p>{manager?.name || "Not assigned"}</p>
                                     </div>
                                 </div>
                                 <div>
@@ -204,7 +310,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 <div className="card-body">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Milestones</h3>
-                                        <button className="btn btn-sm btn-outline">
+                                        <button className="btn btn-sm btn-outline" onClick={() => setMilestoneModalOpen(true)}>
                                             <i className="fas fa-plus mr-2"></i> Add Milestone
                                         </button>
                                     </div>
@@ -252,7 +358,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 <div className="card-body">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Recent Tasks</h3>
-                                        <button className="btn btn-sm btn-outline">
+                                        <button className="btn btn-sm btn-outline" onClick={() => setActiveTab("tasks")}>
                                             <i className="fas fa-eye mr-2"></i> View All
                                         </button>
                                     </div>
@@ -302,22 +408,42 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {activeTab === "crew" && (
                         <CrewsTab crews={crews} />
                     )}
+                    {activeTab === "budget" && (
+                        <div className="card bg-base-100 shadow-sm">
+                            <div className="card-body">
+                                <div className="alert alert-info">
+                                    <h3 className="text-lg font-semibold">Budget Overview</h3>
+                                    <p className="">Budget details coming soon.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {activeTab === "issues" && (
+                        <IssuesTab issues={issues} setIssues={setIssues} modalHandler={setIssueModalOpen} />
+                    )}
+                    {activeTab === "documents" && (
+                        <MediaTab documents={documents} />
+                    )}
                 </div>
 
                 <div className="lg:col-span-1">
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
                             <h3 className="text-lg font-semibold mb-4">Project Progress</h3>
                             <div className="mb-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <span>Overall Progress</span>
-                                    <span className="font-semibold">{project.progress || 0}%</span>
+                                    <span className="font-semibold">{progress || 0}%</span>
                                 </div>
-                                <progress
-                                    className="progress progress-primary w-full"
-                                    value={project.progress || 0}
-                                    max="100"
-                                ></progress>
+                                <input
+                                    type="range"
+                                    className="range range-primary w-full"
+                                    name="progress"
+                                    value={progress || 0}
+                                    onChange={(e) => setProgress(Number(e.target.value))}
+                                    onMouseUp={(e) => updateProject(project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                    onTouchEnd={(e) => updateProject(project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                />
                             </div>
                             <div className="stats stats-vertical shadow">
                                 <div className="stat">
@@ -328,20 +454,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                                     <div className="stat-desc">
                                         of {formatDistance(project.start_date || "", project.end_date || new Date())}
-                                    </div>
-                                </div>
-
-                                <div className="stat">
-                                    <div className="stat-title">Budget Used</div>
-                                    <div className="badge badge-info mt-2">coming soon</div>
-                                    <div className="hidden">
-                                        TODO: Update this to show actual budget usage
-                                        <div className="stat-value text-lg">
-                                            {project.budget || 0}%
-                                        </div>
-                                        <div className="stat-desc">
-                                            {formatCurrency((project.budget || 0) * ((project.budget || 0) / 100))}
-                                        </div>
                                     </div>
                                 </div>
 
@@ -363,11 +475,27 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 <div key={contact.email || index} className={index > 0 ? "mt-4 pt-4 border-t" : ""}>
                                     <p className="font-medium">{contact.name}</p>
                                     <p className="text-sm">{contact.is_primary}</p>
-                                    <a href={`mailto:${contact.email}`} className="text-sm link link-primary">
-                                        <i className="fas fa-envelope mr-1"></i> {contact.email}
-                                    </a>
-                                    <p className="text-sm">
-                                        <i className="fas fa-phone mr-1"></i> {contact.phone}
+                                    <p>
+                                        {!contact.email || contact.email === "" ?
+                                            <>
+                                                <i className="fas fa-envelope mr-1"></i>Not provided
+                                            </>
+                                            :
+                                            <a href={`mailto:${contact.email}`} className="text-sm link link-primary">
+                                                <i className="fas fa-envelope mr-1"></i>{contact.email}
+                                            </a>
+                                        }
+                                    </p>
+                                    <p>
+                                        {!contact.phone || contact.phone === "" ?
+                                            <>
+                                                <i className="fas fa-phone mr-1"></i>Not provided
+                                            </>
+                                            :
+                                            <a href={`tel:${contact.phone}`} className="text-sm link link-primary">
+                                                <i className="fas fa-phone mr-1"></i>{contact.phone}
+                                            </a>
+                                        }
                                     </p>
                                 </div>
                             )) || <p>No contacts available.</p>}
@@ -398,6 +526,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
             </div>
+            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
+            {milestoneModalOpen && <MilestoneModal onClose={() => setMilestoneModalOpen(false)} projectId={project.id} milestone={selectedMilestone} onSave={() => alert('on save')} />}
+            {editModalOpen && <ProjectEditModal onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
         </div>
     );
 };
