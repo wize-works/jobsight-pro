@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/wize-works/jobsight-pro/compare/v1.18.0...v1.19.0) (2025-06-01)
+
+
+### Features
+
+* Implement project and issue management modals with CRUD functionality ([a236242](https://github.com/wize-works/jobsight-pro/commit/a236242714807b9201a7a9361d4cffe68012b249))
+
 # [1.18.0](https://github.com/wize-works/jobsight-pro/compare/v1.17.0...v1.18.0) (2025-05-31)
 
 
