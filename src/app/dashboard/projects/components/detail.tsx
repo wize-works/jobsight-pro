@@ -77,6 +77,8 @@ export default function ProjectDetail(params: ProjectDetailParams) {
     const [progress, setProgress] = useState(0);
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
+    const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
@@ -128,17 +130,29 @@ export default function ProjectDetail(params: ProjectDetailParams) {
         setMilestoneModalOpen(true);
     };
 
+    const handleEditTask = (task: TaskWithDetails) => {
+        setSelectedTask(task);
+        setTaskModalOpen(true);
+    };
+
     const handleMilestoneSave = async (milestone: ProjectMilestone) => {
         if (selectedMilestone) {
+            console.log("Updating milestone:", milestone);
             await updateProjectMilestone(selectedMilestone.id, milestone);
             setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
         } else {
+            console.log("Creating new milestone:", milestone);
             await createProjectMilestone(milestone);
             setMilestones((prev) => [...prev, milestone]);
         }
         setMilestoneModalOpen(false);
         setSelectedMilestone(null);
         toast.success("Milestone saved successfully!");
+    };
+
+    const handleMilestoneModalClose = () => {
+        setMilestoneModalOpen(false);
+        setSelectedMilestone(null);
     };
 
     if (loading) {
@@ -256,13 +270,19 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
-                            <div className="flex justify-between gap-6 items-start">
-                                <div className="flex justify-start items-start gap-4">
-                                    <h1 className="text-2xl font-bold">{project.name}</h1>
-                                    {projectStatusOptions.badge(project.status as ProjectStatus)}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col justify-start items-start gap-2 mb-4">
+                                    <div className="flex justify-start items-start gap-4">
+                                        <h1 className="text-2xl font-bold">{project.name}</h1>
+                                        {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                    </div>
+                                    <div className="mb-4">
+                                        <h4 className="font-medium">Project Manager</h4>
+                                        <p>{manager?.name || "Not assigned"}</p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-center gap-2">
-                                    <p className="text-base-content/70 mt-1">
+                                <div className="flex flex-col items-start gap-2">
+                                    <div className="text-base-content/70 mt-1">
                                         <div className="text-xl">
                                             Client:{" "}
                                             <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
@@ -289,7 +309,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                 </p>
                                             )}
                                         </div>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className="divider my-4"></div>
@@ -339,10 +359,6 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                 </Link>
                                             </>
                                         )}
-                                    </div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">Project Manager</h4>
-                                        <p>{manager?.name || "Not assigned"}</p>
                                     </div>
                                 </div>
                                 <div>
@@ -408,8 +424,11 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                         </td>
                                                         <td>
                                                             <div className="flex gap-2">
-                                                                <button className="btn btn-ghost btn-xs">
-                                                                    <i className="fas fa-edit"></i>
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => handleEditMilestone(milestone)}
+                                                                >
+                                                                    <i className="fas fa-edit fa-lg"></i>
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -441,6 +460,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                     <th>Assigned To</th>
                                                     <th>Status</th>
                                                     <th>Progress</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -452,12 +472,22 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                                 {formatDate(task.start_date || "")} - {formatDate(task.end_date || "")}
                                                             </div>
                                                         </td>
-                                                        <td>{task.assigned_to || task.assigned_to || "Unassigned"}</td>
+                                                        <td>{task.crew_name || task.crew_name || "Unassigned"}</td>
                                                         <td>
                                                             {taskStatusOptions.badge(task.status as TaskStatus)}
                                                         </td>
                                                         <td>
                                                             {progressBar(task.progress, 100)}
+                                                        </td>
+                                                        <td>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => handleEditTask(task)}
+                                                                >
+                                                                    <i className="fas fa-edit fa-lg"></i>
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 )) || (
@@ -596,9 +626,8 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         </div>
                     </div>
                 </div>
-            </div>
-            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
-            {milestoneModalOpen && <MilestoneModal onClose={() => setMilestoneModalOpen(false)} projectId={project.id} milestone={selectedMilestone} onSave={() => alert('on save')} />}
+            </div>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
+            {milestoneModalOpen && <MilestoneModal onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {editModalOpen && <ProjectEditModal onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
         </div>
     );

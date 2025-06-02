@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +20,31 @@ export default function MilestoneModal({ onClose, projectId, milestone, onSave }
         (milestone?.status as ProjectMilestoneStatus) || "planned"
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Reset form values when milestone prop changes
+    useEffect(() => {
+        if (milestone) {
+            setName(milestone.name || "");
+            setDescription(milestone.description || "");
+            setDueDate(milestone.due_date?.split("T")[0] || "");
+            setStatus((milestone.status as ProjectMilestoneStatus) || "planned");
+        } else {
+            resetForm();
+        }
+    }, [milestone]);
+
+    const resetForm = () => {
+        setName("");
+        setDescription("");
+        setDueDate("");
+        setStatus("planned");
+        setIsSubmitting(false);
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,15 +81,13 @@ export default function MilestoneModal({ onClose, projectId, milestone, onSave }
                 }
             } else {
                 // Create new milestone
-                const newMilestone = await createProjectMilestone(milestoneData);
-
-                if (newMilestone) {
+                const newMilestone = await createProjectMilestone(milestoneData); if (newMilestone) {
                     toast.success("Milestone created successfully");
                     if (onSave) onSave(newMilestone);
                 }
             }
 
-            onClose();
+            handleClose();
         } catch (error) {
             console.error("Error saving milestone:", error);
             toast.error("Failed to save milestone");
@@ -127,13 +150,11 @@ export default function MilestoneModal({ onClose, projectId, milestone, onSave }
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
-                    </div>
-
-                    <div className="modal-action">
+                    </div>                    <div className="modal-action">
                         <button
                             type="button"
                             className="btn btn-ghost"
-                            onClick={onClose}
+                            onClick={handleClose}
                             disabled={isSubmitting}
                         >
                             Cancel
@@ -157,7 +178,7 @@ export default function MilestoneModal({ onClose, projectId, milestone, onSave }
                     </div>
                 </form>
             </div>
-            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-backdrop" onClick={handleClose}></div>
         </div>
     );
 }

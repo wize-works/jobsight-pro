@@ -81,7 +81,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         );
     }
 
-    console.log("Project Details:", project);
+    console.log("Tasks Details:", tasks);
 
     return (
         <Suspense fallback={<Loading />}>
