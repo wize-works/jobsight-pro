@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/wize-works/jobsight-pro/compare/v1.19.0...v1.20.0) (2025-06-02)
+
+
+### Features
+
+* add Azure storage environment variables to Dockerfile ([0d2fff2](https://github.com/wize-works/jobsight-pro/commit/0d2fff27f5ee75dc8fd725066b546dd3306e6c0c))
+
 # [1.19.0](https://github.com/wize-works/jobsight-pro/compare/v1.18.0...v1.19.0) (2025-06-01)
 
 
