@@ -20,6 +20,9 @@ COPY . .
 ENV KINDE_ISSUER_URL=https://placeholder
 ENV KINDE_CLIENT_ID=1234567890abcdef
 ENV KINDE_CLIENT_SECRET=placeholder
+ENV AZURE_STORAGE_ACCOUNT=placeholder
+ENV AZURE_STORAGE_KEY=placeholder
+ENV AZURE_STORAGE_ENDPOINT=https://placeholder
 
 # Build the app (generates .next folder)
 RUN npm run build
