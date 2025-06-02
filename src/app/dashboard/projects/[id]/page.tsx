@@ -30,7 +30,7 @@ import MediaTab from "../components/tab-media";
 import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import MilestoneModal from "../components/modal-milestone";
-import ProjectEditModal from "../components/modal.edit";
+import ProjectEditModal from "../components/modal-edit";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
