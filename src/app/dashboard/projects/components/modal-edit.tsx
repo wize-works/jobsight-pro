@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
 import { User } from "@/types/users";
 import { updateProject } from "@/app/actions/projects";
 import { formatDate } from "@/utils/formatters";
@@ -24,7 +24,7 @@ export default function ProjectEditModal({
     const [managerId, setManagerId] = useState(project.manager_id || "");
     const [budget, setBudget] = useState(project.budget?.toString() || "0");
     const [location, setLocation] = useState(project.location || "");
-    const [type, setType] = useState(project.type || "");
+    const [type, setType] = useState<ProjectType>((project.type || "other") as ProjectType);
     const [startDate, setStartDate] = useState(project.start_date ? formatDate(project.start_date) : "");
     const [endDate, setEndDate] = useState(project.end_date ? formatDate(project.end_date) : "");
     const [status, setStatus] = useState<ProjectStatus>(project.status as ProjectStatus || "pending");
@@ -39,9 +39,9 @@ export default function ProjectEditModal({
         setManagerId(project.manager_id || "");
         setBudget(project.budget?.toString() || "0");
         setLocation(project.location || "");
-        setType(project.type || "");
-        setStartDate(project.start_date ? formatDate(project.start_date) : "");
-        setEndDate(project.end_date ? formatDate(project.end_date) : "");
+        setType((project.type || "other") as ProjectType);
+        setStartDate(project.start_date ? project.start_date : "");
+        setEndDate(project.end_date ? project.end_date : "");
         setStatus(project.status as ProjectStatus || "pending");
 
         const fetchManagers = async () => {
@@ -95,7 +95,7 @@ export default function ProjectEditModal({
             setIsSubmitting(false);
         }
     };
-
+    console.log("ProjectEditModal", project.start_date);
     return (
         <div className="modal modal-open">
             <div className="modal-box max-w-4xl">
@@ -148,55 +148,57 @@ export default function ProjectEditModal({
                                 onChange={(e) => setBudget(e.target.value)}
                             />
                         </div>
-
                         <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Location</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Enter project location"
-                                className="input input-bordered w-full"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                            />
+                            <label className="label mb-2">Location</label>
+                            <div className="join w-full">
+                                <input
+                                    className="input input-bordered w-full join-item mt-0"
+                                    name="location"
+                                    value={location || ""}
+                                    onChange={(e) => e}
+                                />
+                                <button className="btn btn-secondary join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
+                                    const { latitude, longitude } = position.coords;
+                                    setLocation(`${latitude}, ${longitude}`);
+                                })}>
+                                    <i className="fas fa-map-marker-alt"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Project Type</span>
                             </label>
-                            <input
-                                type="text"
-                                placeholder="Enter project type"
-                                className="input input-bordered w-full"
-                                value={type}
-                                onChange={(e) => setType(e.target.value)}
-                            />
+                            {projectTypeOptions.select(
+                                type,
+                                (value) => setType(value as ProjectType),
+                            )}
                         </div>
+                        <div className="flex gap-6">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Start Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered w-full"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                            </div>
 
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Start Date</span>
-                            </label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">End Date</span>
-                            </label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                            />
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">End Date</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered w-full"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
+                            </div>
                         </div>
 
                         <div className="form-control">
@@ -224,14 +226,6 @@ export default function ProjectEditModal({
 
                     <div className="modal-action">
                         <button
-                            type="button"
-                            className="btn btn-ghost"
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                        >
-                            Cancel
-                        </button>
-                        <button
                             type="submit"
                             className="btn btn-primary"
                             disabled={isSubmitting}
@@ -244,6 +238,14 @@ export default function ProjectEditModal({
                             ) : (
                                 "Update Project"
                             )}
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-ghost"
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
                         </button>
                     </div>
                 </form>
