@@ -1,3 +1,17 @@
+# [1.19.0](https://github.com/wize-works/jobsight-pro/compare/v1.18.0...v1.19.0) (2025-06-01)
+
+
+### Features
+
+* Implement project and issue management modals with CRUD functionality ([a236242](https://github.com/wize-works/jobsight-pro/commit/a236242714807b9201a7a9361d4cffe68012b249))
+
+# [1.18.0](https://github.com/wize-works/jobsight-pro/compare/v1.17.0...v1.18.0) (2025-05-31)
+
+
+### Features
+
+* update sidebar styles and improve accessibility ([6374757](https://github.com/wize-works/jobsight-pro/commit/63747570fea3daae57eb6a3f0fed26a375f8f3d0)), closes [#5C95](https://github.com/wize-works/jobsight-pro/issues/5C95) [#983486](https://github.com/wize-works/jobsight-pro/issues/983486) [#983486](https://github.com/wize-works/jobsight-pro/issues/983486) [#5C95](https://github.com/wize-works/jobsight-pro/issues/5C95)
+
 # [1.17.0](https://github.com/wize-works/jobsight-pro/compare/v1.16.0...v1.17.0) (2025-05-29)
 
 
