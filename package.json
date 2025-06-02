@@ -12,6 +12,7 @@
         "@azure/storage-blob": "^12.27.0",
         "@hookform/resolvers": "latest",
         "@kinde-oss/kinde-auth-nextjs": "latest",
+        "@microsoft/clarity": "^1.0.0",
         "@supabase/supabase-js": "latest",
         "@tailwindcss/postcss": "^4.0.14",
         "@types/leaflet": "^1.9.18",

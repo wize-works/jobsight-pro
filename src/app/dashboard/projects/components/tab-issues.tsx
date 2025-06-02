@@ -2,11 +2,17 @@ import { ProjectIssue, ProjectIssuePriority, projectIssuePriorityOptions, Projec
 
 export default function IssuesTab({ issues, setIssues, modalHandler }: { issues: ProjectIssueWithDetails[]; setIssues: (issues: ProjectIssueWithDetails[]) => void; modalHandler: (open: boolean) => void }) {
     return (
-        <div className="">
-            {
-                issues.length > 0 ? (
-                    <div className="card bg-base-100 shadow-md">
-                        <div className="card-body">
+        <div className="card bg-base-100 shadow-md">
+            <div className="card-body">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">Project Issues</h2>
+                    <button className="btn btn-primary btn-sm" onClick={() => modalHandler(true)}>
+                        <i className="fas fa-plus mr-2"></i>Create Issue
+                    </button>
+                </div>
+                {
+                    issues.length > 0 ? (
+                        <div className="">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="card-title">Project Issues</h2>
                                 <button className="btn btn-primary btn-sm" onClick={() => modalHandler(true)}>
@@ -54,19 +60,17 @@ export default function IssuesTab({ issues, setIssues, modalHandler }: { issues:
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                ) : (
-                    <div className="card bg-base-100 shadow-md">
-                        <div className="card-body text-center bg-active">
+                    ) : (
+                        <div className="">
                             <h2 className="card-title justify-center">No issues reported for this project.</h2>
                             <p className="text-base-content/70">Have something to report, create a new issue now.</p>
                             <div className="mt-4">
                                 <button className="btn btn-active" onClick={() => modalHandler(true)}>Create Issue</button>
                             </div>
                         </div>
-                    </div>
-                )
-            }
+                    )
+                }
+            </div>
         </div>
     );
 }

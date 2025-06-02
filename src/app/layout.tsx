@@ -1,12 +1,14 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "@/app/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/lib/auth-context"
-import Script from "next/script"
-import { toast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/toaster"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "@/app/globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/lib/auth-context";
+import Script from "next/script";
+import { Toaster } from "@/components/toaster";
+import Clarity from '@microsoft/clarity';
+
+Clarity.init(process.env.NEXT_PUBLIC_CLARITY_ID || "");
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -60,13 +62,14 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <AuthProvider>            <html lang="en" suppressHydrationWarning>
-            <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
-            <body className={inter.className}>
-                <ThemeProvider>{children}</ThemeProvider>
-                <Toaster />
-            </body>
-        </html>
+        <AuthProvider>
+            <html lang="en" suppressHydrationWarning>
+                <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
+                <body className={inter.className}>
+                    <ThemeProvider>{children}</ThemeProvider>
+                    <Toaster />
+                </body>
+            </html>
         </AuthProvider >
     )
 }
