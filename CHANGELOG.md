@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/wize-works/jobsight-pro/compare/v1.20.0...v1.21.0) (2025-06-02)
+
+
+### Features
+
+* enhance project editing modal with location and type selection ([680edfb](https://github.com/wize-works/jobsight-pro/commit/680edfbe5238797f91527d25aca5112b04ab0331))
+
 # [1.20.0](https://github.com/wize-works/jobsight-pro/compare/v1.19.0...v1.20.0) (2025-06-02)
 
 
