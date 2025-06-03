@@ -52,10 +52,59 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                     <i className="fas fa-plus mr-2"></i> Add Equipment
                 </button>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Total Equipments</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value">{equipments.length}</div>
+                        <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-tools fa-lg"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">All equipment items</div>
+                </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Active Equipments</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value">
+                            {equipments.filter((item) => item.status === "in_use").length}
+                        </div>
+                        <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-check-circle fa-lg"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Currently in use</div>
+                </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Available Equipments</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value">
+                            {equipments.filter((item) => item.status === "available").length}
+                        </div>
+                        <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-exclamation-triangle fa-lg"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Not currently in use</div>
+                </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Maintenance Due</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value">
+                            {equipments.filter((item) => item.next_maintenance && new Date(item.next_maintenance) <= new Date()).length}
+                        </div>
+                        <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-tools fa-lg"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Equipment due for maintenance</div>
+                </div>
+
+            </div>
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
+                        <div className="w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
                                 <input

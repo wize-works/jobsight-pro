@@ -89,60 +89,47 @@ export default function ProjectsPage() {
 
             {/* Project Statistics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center">
-                            <div className="rounded-full bg-primary/10 p-3 mr-4">
-                                <i className="fas fa-project-diagram text-primary text-xl"></i>
-                            </div>
-                            <div>
-                                <div className="text-xs text-base-content/70">Total Projects</div>
-                                <div className="text-2xl font-bold">{totalProjects}</div>
-                            </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title">Total Projects</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-primary">{totalProjects}</div>
+                        <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-person-digging text-primary text-2xl"></i>
                         </div>
                     </div>
+                    <div className="stat-desc">All projects across all statuses</div>
                 </div>
 
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center">
-                            <div className="rounded-full bg-success/10 p-3 mr-4">
-                                <i className="fas fa-hammer text-success text-xl"></i>
-                            </div>
-                            <div>
-                                <div className="text-xs text-base-content/70">Active Projects</div>
-                                <div className="text-2xl font-bold">{activeProjects}</div>
-                            </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title">Active Projects</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-success">{activeProjects}</div>
+                        <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-hammer text-success text-2xl"></i>
                         </div>
                     </div>
+                    <div className="stat-desc">Projects currently in progress</div>
                 </div>
 
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center">
-                            <div className="rounded-full bg-info/10 p-3 mr-4">
-                                <i className="fas fa-calendar-alt text-info text-xl"></i>
-                            </div>
-                            <div>
-                                <div className="text-xs text-base-content/70">Upcoming Projects</div>
-                                <div className="text-2xl font-bold">{upcomingProjects}</div>
-                            </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title">Upcoming Projects</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-info">{upcomingProjects}</div>
+                        <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-calendar-alt text-info text-2xl"></i>
                         </div>
                     </div>
+                    <div className="stat-desc">Projects scheduled to start soon</div>
                 </div>
-
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center">
-                            <div className="rounded-full bg-secondary/10 p-3 mr-4">
-                                <i className="fas fa-check-circle text-secondary text-xl"></i>
-                            </div>
-                            <div>
-                                <div className="text-xs text-base-content/70">Completed Projects</div>
-                                <div className="text-2xl font-bold">{completedProjects}</div>
-                            </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title">Completed Projects</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-secondary">{completedProjects}</div>
+                        <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="fas fa-check-circle text-secondary text-2xl"></i>
                         </div>
                     </div>
+                    <div className="stat-desc">Projects successfully completed</div>
                 </div>
             </div>
 
@@ -150,7 +137,7 @@ export default function ProjectsPage() {
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
+                        <div className="form-control w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
                                 <input
@@ -171,7 +158,7 @@ export default function ProjectsPage() {
                             (value) => setTypeFilter(value as string)
                         )}
 
-                        <div className="form-control">
+                        <div className="form-control w-full">
                             <select
                                 className="select select-bordered w-full"
                                 value={sortOption}

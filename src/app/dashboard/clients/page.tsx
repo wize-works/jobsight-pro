@@ -127,6 +127,46 @@ export default function ClientsPage() {
                 </button>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat-title text-lg">Total Clients</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl font-bold text-primary">{clients.length}</div>
+                        <i className="fas fa-users text-4xl text-primary"></i>
+                    </div>
+                    <div className="stat-desc">Total number of clients</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat-title text-lg">Active Clients</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl font-bold text-success">{clients.filter(c => c.status === "active").length}</div>
+                        <i className="fas fa-user-check text-4xl text-success"></i>
+                    </div>
+                    <div className="stat-desc">Clients currently engaged</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat-title text-lg">Prospects</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl font-bold text-warning">{clients.filter(c => c.status === "prospect").length}</div>
+                        <i className="fas fa-user-clock text-4xl text-warning"></i>
+                    </div>
+                    <div className="stat-desc">Potential clients in pipeline</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat-title text-lg">Inactive Clients</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl font-bold text-error">{clients.filter(c => c.status === "inactive").length}</div>
+                        <i className="fas fa-user-slash text-4xl text-error"></i>
+                    </div>
+                    <div className="stat-desc">Clients not currently active</div>
+                </div>
+            </div>
+
+
+
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
