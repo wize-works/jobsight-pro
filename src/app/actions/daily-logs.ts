@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { DailyLog, DailyLogInsert, DailyLogUpdate } from "@/types/daily-logs";
+import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
@@ -19,10 +19,10 @@ export const getDailyLogs = async (): Promise<DailyLog[]> => {
     }
 
     if (!data || data.length === 0) {
-        return [] as DailyLog[];
+        return [];
     }
 
-    return data as unknown as DailyLog[];
+    return data;
 }
 
 export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
@@ -107,3 +107,77 @@ export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
 
     return data as unknown as DailyLog[];
 };
+
+export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+        orderBy: { column: "date", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching daily logs with details:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    const logIds = data.map(log => log.id);
+    const crewIds = data.map(log => log.crew_id).filter(id => id !== null);
+    const projectIds = data.map(log => log.project_id);
+
+    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+        filter: { daily_log_id: { in: logIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+        filter: { daily_log_id: { in: logIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const equipmentIds = equipmentData?.map(equip => equip.equipment_id) || [];
+    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", business.id, "*", {
+        filter: { id: { in: equipmentIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+    console.log("Equipment Info Data:", equipmentData, equipmentInfoData, equipmentIds);
+
+    const { data: crewData, error: crewError } = await fetchByBusiness("crews", business.id, "*", {
+        filter: { id: { in: crewIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const { data: projectData, error: projectError } = await fetchByBusiness("projects", business.id, "*", {
+        filter: { id: { in: projectIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const dataWithDetails = data.map(log => {
+        const materials = materialData?.filter(material => material.daily_log_id === log.id) || [];
+        const equipment = equipmentData?.filter(equip => equip.daily_log_id === log.id) || [];
+        const crew = crewData?.find(c => c.id === log.crew_id) || null;
+        const project = projectData?.find(p => p.id === log.project_id) || null;
+
+        return {
+            ...log,
+            materials: materials.map(material => ({
+                id: material.id,
+                name: material.name,
+                quantity: material.quantity,
+                cost_per_unit: material.cost,
+            })),
+            equipment: equipment.map(equip => ({
+                id: equip.id,
+                name: equipmentInfoData?.find(info => info.id === equip.equipment_id)?.name || equip.name,
+                hours: equip.hours || 0,
+            })),
+            crew: crew ? { id: crew.id, name: crew.name } : null,
+            project: project ? { id: project.id, name: project.name, description: project.description } : null,
+        } as DailyLogWithDetails;
+    });
+
+    return dataWithDetails;
+}

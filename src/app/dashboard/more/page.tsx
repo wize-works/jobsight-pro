@@ -18,7 +18,7 @@ export default function MorePage() {
                     Crews
                 </Link>
                 <Link href="/dashboard/equipment" className="btn btn-ghost justify-start">
-                    <i className="fal fa-truck fa-fw fa-lg mr-3"></i>
+                    <i className="fal fa-excavator fa-fw fa-lg mr-3"></i>
                     Equipment
                     <span className="badge badge-sm badge-accent ml-auto">New</span>
                 </Link>

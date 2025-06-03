@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
-import { getProjectById, updateProject } from "@/app/actions/projects";
-import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project_milestones";
-import { getTasksByProjectId } from "@/app/actions/tasks";
+import { updateProject } from "@/app/actions/projects";
+import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
+import { createTask, getTasksByProjectId, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
 import { toast } from "@/hooks/use-toast";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-import { TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
+import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow, set } from "date-fns";
 import TasksTab from "../components/tab-tasks";
@@ -17,19 +17,17 @@ import { Client } from "@/types/clients";
 import CrewsTab from "../components/tab-crews";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { ClientContact } from "@/types/client-contacts";
-import { getCrewsByProjectId } from "@/app/actions/crews";
 import { CrewWithMemberInfo } from "@/types/crews";
 import IssuesTab from "../components/tab-issues";
 import IssueModal from "../components/modal-issues";
-import { getProjectIssuesWithDetailsByProjectId } from "@/app/actions/projects-issues";
 import { ProjectIssueWithDetails } from "@/types/projects-issues";
-import { getMediaByProjectId } from "@/app/actions/media";
 import { Media } from "@/types/media";
 import MediaTab from "../components/tab-media";
-import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
+import { getCrewMemberById } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import MilestoneModal from "../components/modal-milestone";
 import ProjectEditModal from "../components/modal-edit";
+import TaskModal from "../components/modal-task";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -153,6 +151,28 @@ export default function ProjectDetail(params: ProjectDetailParams) {
     const handleMilestoneModalClose = () => {
         setMilestoneModalOpen(false);
         setSelectedMilestone(null);
+    };
+
+    const handleTaskSave = async (task: Task) => {
+        if (selectedTask) {
+            await updateTask(selectedTask.id, task);
+            setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, ...task } as TaskWithDetails : t));
+        } else {
+            await createTask(task);
+            // We need to fetch the updated task list since the new task might have additional details
+            if (project) {
+                const updatedTasks = await getTasksByProjectId(project.id);
+                setTasks(updatedTasks);
+            }
+        }
+        setTaskModalOpen(false);
+        setSelectedTask(null);
+        toast.success("Task saved successfully!");
+    };
+
+    const handleTaskModalClose = () => {
+        setTaskModalOpen(false);
+        setSelectedTask(null);
     };
 
     if (loading) {
@@ -507,7 +527,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         <TasksTab tasks={tasks} />
                     )}
                     {activeTab === "crew" && (
-                        <CrewsTab crews={crews} />
+                        <CrewsTab projectId={project.id} crews={crews} />
                     )}
                     {activeTab === "budget" && (
                         <div className="card bg-base-100 shadow-sm">
@@ -628,6 +648,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 </div>
             </div>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
             {milestoneModalOpen && <MilestoneModal onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
+            {taskModalOpen && <TaskModal onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
             {editModalOpen && <ProjectEditModal onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
         </div>
     );

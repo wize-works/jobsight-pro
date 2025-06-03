@@ -4,8 +4,9 @@ import { Crew, CrewWithMemberInfo } from "@/types/crews";
 import { set } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { removeCrewFromProject } from "@/app/actions/project-crews";
 
-export default function CrewsTab({ crews }: { crews: CrewWithMemberInfo[] }) {
+export default function CrewsTab({ projectId, crews }: { projectId: string, crews: CrewWithMemberInfo[] }) {
     const [loading, setLoading] = useState(true);
     const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]);
 
@@ -104,14 +105,14 @@ export default function CrewsTab({ crews }: { crews: CrewWithMemberInfo[] }) {
                                         {!crew.leader_name ? "No leader assigned" : `Led by ${crew.leader_name}`}
                                     </div>
                                     <div className="flex justify-end space-x-2">
-                                        <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-xs btn-ghost">
+                                        <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                             <i className="fas fa-eye"></i>
                                             View
                                         </Link>
-                                        <button className="btn btn-xs btn-error" onClick={() => {
-                                            // Handle crew assignment logic here
+                                        <button className="btn btn-sm btn-error" onClick={async () => {
+                                            await removeCrewFromProject(projectId, crew.id);
                                         }}>
-                                            <i className="fas fa-user-plus"></i>
+                                            <i className="fas fa-user-minus"></i>
                                             Remove
                                         </button>
                                     </div>
@@ -138,11 +139,11 @@ export default function CrewsTab({ crews }: { crews: CrewWithMemberInfo[] }) {
                                         {!crew.leader_name ? "No leader assigned" : `Led by ${crew.leader_name}`}
                                     </div>
                                     <div className="flex justify-end space-x-2">
-                                        <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-xs btn-ghost">
+                                        <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                             <i className="fas fa-eye"></i>
                                             View
                                         </Link>
-                                        <button className="btn btn-xs btn-success" onClick={() => {
+                                        <button className="btn btn-sm btn-success" onClick={() => {
                                             // Handle crew assignment logic here
                                         }}>
                                             <i className="fas fa-user-plus"></i>

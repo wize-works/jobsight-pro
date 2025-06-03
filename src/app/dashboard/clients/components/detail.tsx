@@ -9,17 +9,19 @@ import { createClientInteraction, updateClientInteraction } from "@/app/actions/
 import { createProject } from "@/app/actions/projects";
 import { date } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
-import { ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
-import { updateClientNotes } from "@/app/actions/clients";
-import { ProjectStatus, projectStatusOptions } from "@/types/projects";
-import { ClientStatus, clientStatusOptions } from "@/types/clients";
+import { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
+import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
+import { updateClientNotes, updateClient } from "@/app/actions/clients";
+import { Project, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { Client, ClientStatus, clientStatusOptions } from "@/types/clients";
+import ClientEditForm from "../components/modal-edit";
+import InteractionModal from "./modal-interaction";
 
 interface ClientDetailProps {
-    client: any;
-    projects: any[];
-    contacts: any[];
-    interactions: any[];
+    client: Client;
+    projects: Project[];
+    contacts: ClientContact[];
+    interactions: ClientInteraction[];
 }
 
 export default function ClientDetailComponent({
@@ -32,7 +34,8 @@ export default function ClientDetailComponent({
     const router = useRouter()
     const [activeTab, setActiveTab] = useState("overview")
     const [showAddContactModal, setShowAddContactModal] = useState(false)
-    const [showAddInteractionModal, setShowAddInteractionModal] = useState(false)
+    const [showInteractionModal, setShowInteractionModal] = useState(false)
+    const [showEditClientModal, setShowEditClientModal] = useState(false)
     const [newContact, setNewContact] = useState({
         name: "",
         title: "",
@@ -40,14 +43,7 @@ export default function ClientDetailComponent({
         phone: "",
         isPrimary: false,
     })
-    const [newInteraction, setNewInteraction] = useState({
-        type: "Meeting",
-        summary: "",
-        staff: "",
-        date: null,
-        followUpDate: "",
-        followUpTask: "",
-    })
+    const [interaction, setInteraction] = useState<Partial<ClientInteractionInsert> | null>(null)
     const [editContact, setEditContact] = useState<any | null>(null);
     const [showEditContactModal, setShowEditContactModal] = useState(false);
     const [editInteraction, setEditInteraction] = useState<any | null>(null);
@@ -108,15 +104,22 @@ export default function ClientDetailComponent({
     }
 
     const handleAddInteraction = async () => {
+        if (!interaction) {
+            toast.error({
+                title: "Error",
+                description: "Interaction data is missing.",
+            });
+            return;
+        }
 
         const interactionData = {
             client_id: client.id,
-            type: newInteraction.type,
+            type: interaction.type,
             date: new Date().toISOString(),
-            summary: newInteraction.summary,
-            staff: newInteraction.staff,
-            follow_up_date: newInteraction.followUpDate || null,
-            follow_up_task: newInteraction.followUpTask || null,
+            summary: interaction.summary,
+            staff: interaction.staff,
+            follow_up_date: interaction.follow_up_date || null,
+            follow_up_task: interaction.follow_up_task || null,
             created_by: user?.id,
             created_at: new Date().toISOString(),
             updated_by: user?.id,
@@ -138,7 +141,7 @@ export default function ClientDetailComponent({
             });
         }
         finally {
-            setShowAddInteractionModal(false);
+            setShowInteractionModal(false);
         }
     }
 
@@ -293,6 +296,50 @@ export default function ClientDetailComponent({
         }
     }
 
+    const handleUpdateClient = async (formData: any) => {
+        try {
+            const clientData = {
+                id: client.id,
+                business_id: client.business_id,
+                name: formData.name ?? client.name,
+                type: formData.type ?? client.type,
+                industry: formData.industry ?? client.industry,
+                contact_name: formData.contact ?? client.contact_name,
+                contact_email: formData.email ?? client.contact_email,
+                contact_phone: formData.phone ?? client.contact_phone,
+                website: formData.website ?? client.website,
+                address: formData.address ?? client.address,
+                city: formData.city ?? client.city,
+                state: formData.state ?? client.state,
+                zip: formData.zip ?? client.zip,
+                country: formData.country ?? client.country,
+                tax_id: formData.taxId ?? client.tax_id,
+                notes: formData.notes ?? client.notes,
+                logo_url: formData.logoUrl ?? client.logo_url,
+                status: formData.status ?? client.status,
+                created_at: client.created_at,
+                created_by: client.created_by,
+                updated_at: new Date().toISOString(),
+                updated_by: user?.id || null
+            };
+
+            await updateClient(client.id, clientData);
+            setShowEditClientModal(false);
+            toast.success({
+                title: "Client updated",
+                description: "Client information has been updated successfully.",
+                autoClose: true,
+            });
+            router.refresh();
+        } catch (error) {
+            console.error("Error updating client:", error);
+            toast.error({
+                title: "Error updating client",
+                description: "There was an error updating the client information.",
+            });
+        }
+    };
+
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -304,11 +351,13 @@ export default function ClientDetailComponent({
                         <h1 className="text-2xl font-bold">{client.name}</h1>
                         {clientStatusOptions.badge(client.status as ClientStatus)}
                     </div>
-                </div>
-                <div className="flex gap-2">
-                    <Link href={`/dashboard/clients/${client.id}/edit`} className="btn btn-outline btn-sm">
+                </div>                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowEditClientModal(true)}
+                        className="btn btn-outline btn-sm"
+                    >
                         <i className="fas fa-edit mr-2"></i> Edit
-                    </Link>
+                    </button>
                     <button className="btn btn-primary btn-sm">
                         <i className="fas fa-file-invoice mr-2"></i> Create Invoice
                     </button>
@@ -515,7 +564,9 @@ export default function ClientDetailComponent({
                                             <div key={interaction.id} className="mb-4 pb-4 border-b border-base-200 last:mb-0 last:pb-0 last:border-0">
                                                 <div className="flex justify-between">
                                                     <span className="font-medium">{interaction.type}</span>
-                                                    <span className="text-sm text-base-content/70">{new Date(interaction.date).toLocaleDateString()}</span>
+                                                    <span className="text-sm text-base-content/70">
+                                                        {interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}
+                                                    </span>
                                                 </div>
                                                 <p className="mt-1 text-sm">{interaction.summary}</p>
                                                 {interaction.follow_up_date && (
@@ -534,7 +585,7 @@ export default function ClientDetailComponent({
                                 ) : (
                                     <div className="text-center py-4">
                                         <p className="text-base-content/70 mb-2">No interactions recorded</p>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setShowAddInteractionModal(true)}>
+                                        <button className="btn btn-sm btn-outline" onClick={() => setShowInteractionModal(true)}>
                                             <i className="fas fa-plus mr-2"></i> Log Interaction
                                         </button>
                                     </div>
@@ -694,7 +745,7 @@ export default function ClientDetailComponent({
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Interactions</h3>
-                                <button className="btn btn-primary btn-sm" onClick={() => setShowAddInteractionModal(true)}>
+                                <button className="btn btn-primary btn-sm" onClick={() => setShowInteractionModal(true)}>
                                     <i className="fas fa-plus mr-2"></i> Log Interaction
                                 </button>
                             </div>
@@ -713,7 +764,7 @@ export default function ClientDetailComponent({
                                         <tbody>
                                             {interactions.map((interaction) => (
                                                 <tr key={interaction.id}>
-                                                    <td>{new Date(interaction.date).toLocaleDateString()}</td>
+                                                    <td>{interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}</td>
                                                     <td>{interaction.type}</td>
                                                     <td>{interaction.summary}</td>
                                                     <td>{interaction.staff}</td>
@@ -739,7 +790,7 @@ export default function ClientDetailComponent({
                                 <div className="text-center py-8">
                                     <h3 className="text-xl font-semibold mb-2">No interactions found</h3>
                                     <p className="text-base-content/70 mb-4">Log interactions to track your communication with this client</p>
-                                    <button className="btn btn-primary" onClick={() => setShowAddInteractionModal(true)}>
+                                    <button className="btn btn-primary" onClick={() => setShowInteractionModal(true)}>
                                         <i className="fas fa-plus mr-2"></i> Log Interaction
                                     </button>
                                 </div>
@@ -791,324 +842,263 @@ export default function ClientDetailComponent({
                         </div>
                     </div>
                 )
-            }
+            }        {/* Edit Client Modal */}
+            {showEditClientModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-4xl">
+                        <button
+                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                            onClick={() => setShowEditClientModal(false)}
+                        >
+                            ✕
+                        </button>
+                        <h3 className="font-bold text-lg mb-4">Edit Client</h3>
+                        <ClientEditForm client={client} onClose={() => setShowEditClientModal(false)} onSubmit={handleUpdateClient} />
+                    </div>
+                    <div className="modal-backdrop" onClick={() => setShowEditClientModal(false)}></div>
+                </div>
+            )}
 
             {/* Add Contact Modal */}
-            {
-                showAddContactModal && (
-                    <div className="modal modal-open">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-lg mb-4">Add New Contact</h3>
-                            <form onSubmit={(e) => { e.preventDefault(); handleAddContact(); }}>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Name</span>
-                                    </label>
+            {showAddContactModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Add New Contact</h3>
+                        <form onSubmit={(e) => { e.preventDefault(); handleAddContact(); }}>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newContact.name}
+                                    onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Title / Position</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newContact.title}
+                                    onChange={(e) => setNewContact({ ...newContact, title: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Email</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={newContact.email}
+                                    onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Phone</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    className="input input-bordered"
+                                    value={newContact.phone}
+                                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control mb-6">
+                                <label className="label cursor-pointer">
+                                    <span className="label-text">Set as Primary Contact</span>
                                     <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={newContact.name}
-                                        onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                                        required
+                                        type="checkbox"
+                                        className="toggle toggle-primary"
+                                        checked={newContact.isPrimary}
+                                        onChange={(e) => setNewContact({ ...newContact, isPrimary: e.target.checked })}
                                     />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Title / Position</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={newContact.title}
-                                        onChange={(e) => setNewContact({ ...newContact, title: e.target.value })}
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Email</span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        className="input input-bordered"
-                                        value={newContact.email}
-                                        onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Phone</span>
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        className="input input-bordered"
-                                        value={newContact.phone}
-                                        onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                                    />
-                                </div>
-                                <div className="form-control mb-6">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Set as Primary Contact</span>
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-primary"
-                                            checked={newContact.isPrimary}
-                                            onChange={(e) => setNewContact({ ...newContact, isPrimary: e.target.checked })}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="modal-action">
-                                    <button type="button" className="btn" onClick={() => setShowAddContactModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Add Contact
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                                </label>
+                            </div>
+                            <div className="modal-action">
+                                <button type="button" className="btn" onClick={() => setShowAddContactModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    Add Contact
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                )
+                </div>
+            )
             }
 
-            {/* Add Interaction Modal */}
-            {
-                showAddInteractionModal && (
-                    <div className="modal modal-open">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-lg mb-4">Log New Interaction</h3>
-                            <form onSubmit={(e) => { e.preventDefault(); handleAddInteraction(); }}>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Type</span>
-                                    </label>
-                                    <select
-                                        className="select select-bordered w-full"
-                                        value={newInteraction.type}
-                                        onChange={(e) => setNewInteraction({ ...newInteraction, type: e.target.value })}
-                                        required
-                                    >
-                                        <option value="Meeting">Meeting</option>
-                                        <option value="Call">Call</option>
-                                        <option value="Email">Email</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Summary</span>
-                                    </label>
-                                    <textarea
-                                        className="textarea textarea-bordered h-24"
-                                        value={newInteraction.summary}
-                                        onChange={(e) => setNewInteraction({ ...newInteraction, summary: e.target.value })}
-                                        required
-                                    ></textarea>
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Staff Member</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={newInteraction.staff}
-                                        onChange={(e) => setNewInteraction({ ...newInteraction, staff: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Follow-up Date (Optional)</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className="input input-bordered"
-                                        value={newInteraction.followUpDate}
-                                        onChange={(e) => setNewInteraction({ ...newInteraction, followUpDate: e.target.value })}
-                                    />
-                                </div>
-                                <div className="form-control mb-6">
-                                    <label className="label">
-                                        <span className="label-text">Follow-up Task (Optional)</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={newInteraction.followUpTask}
-                                        onChange={(e) => setNewInteraction({ ...newInteraction, followUpTask: e.target.value })}
-                                    />
-                                </div>
-                                <div className="modal-action">
-                                    <button type="button" className="btn" onClick={() => setShowAddInteractionModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Log Interaction
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )
-            }
+            {showInteractionModal && (
+                <InteractionModal
+                    clientId={client.id}
+                    interaction={interaction as ClientInteraction}
+                    onClose={() => setShowInteractionModal(false)}
+                    onSubmit={handleAddInteraction}
+                />
+            )}
 
             {/* Edit Contact Modal */}
-            {
-                showEditContactModal && editContact && (
-                    <div className="modal modal-open">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-lg mb-4">Edit Contact</h3>
-                            <form onSubmit={e => { e.preventDefault(); handleEditContactSubmit(); }}>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Name</span>
-                                    </label>
+            {showEditContactModal && editContact && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Edit Contact</h3>
+                        <form onSubmit={e => { e.preventDefault(); handleEditContactSubmit(); }}>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editContact.name}
+                                    onChange={e => handleEditContactChange("name", e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Title / Position</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editContact.title}
+                                    onChange={e => handleEditContactChange("title", e.target.value)}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Email</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={editContact.email}
+                                    onChange={e => handleEditContactChange("email", e.target.value)}
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Phone</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    className="input input-bordered"
+                                    value={editContact.phone}
+                                    onChange={e => handleEditContactChange("phone", e.target.value)}
+                                />
+                            </div>
+                            <div className="form-control mb-6">
+                                <label className="label cursor-pointer">
+                                    <span className="label-text">Set as Primary Contact</span>
                                     <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={editContact.name}
-                                        onChange={e => handleEditContactChange("name", e.target.value)}
-                                        required
+                                        type="checkbox"
+                                        className="toggle toggle-primary"
+                                        checked={editContact.isPrimary}
+                                        onChange={e => handleEditContactChange("isPrimary", e.target.checked)}
                                     />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Title / Position</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={editContact.title}
-                                        onChange={e => handleEditContactChange("title", e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Email</span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        className="input input-bordered"
-                                        value={editContact.email}
-                                        onChange={e => handleEditContactChange("email", e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Phone</span>
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        className="input input-bordered"
-                                        value={editContact.phone}
-                                        onChange={e => handleEditContactChange("phone", e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-control mb-6">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Set as Primary Contact</span>
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-primary"
-                                            checked={editContact.isPrimary}
-                                            onChange={e => handleEditContactChange("isPrimary", e.target.checked)}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="modal-action">
-                                    <button type="button" className="btn" onClick={() => { setShowEditContactModal(false); setEditContact(null); }}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                                </label>
+                            </div>
+                            <div className="modal-action">
+                                <button type="button" className="btn" onClick={() => { setShowEditContactModal(false); setEditContact(null); }}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                )
+                </div>
+            )
             }
 
             {/* Edit Interaction Modal */}
-            {
-                showEditInteractionModal && editInteraction && (
-                    <div className="modal modal-open">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-lg mb-4">Edit Interaction</h3>
-                            <form onSubmit={e => { e.preventDefault(); handleEditInteractionSubmit(); }}>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Type</span>
-                                    </label>
-                                    <select
-                                        className="select select-bordered w-full"
-                                        value={editInteraction.type}
-                                        onChange={e => handleEditInteractionChange("type", e.target.value)}
-                                        required
-                                    >
-                                        <option value="Meeting">Meeting</option>
-                                        <option value="Call">Call</option>
-                                        <option value="Email">Email</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Summary</span>
-                                    </label>
-                                    <textarea
-                                        className="textarea textarea-bordered h-24"
-                                        value={editInteraction.summary}
-                                        onChange={e => handleEditInteractionChange("summary", e.target.value)}
-                                        required
-                                    ></textarea>
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Staff Member</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={editInteraction.staff}
-                                        onChange={e => handleEditInteractionChange("staff", e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-control mb-3">
-                                    <label className="label">
-                                        <span className="label-text">Follow-up Date (Optional)</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className="input input-bordered"
-                                        value={editInteraction.followUpDate}
-                                        onChange={e => handleEditInteractionChange("followUpDate", e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-control mb-6">
-                                    <label className="label">
-                                        <span className="label-text">Follow-up Task (Optional)</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered"
-                                        value={editInteraction.followUpTask}
-                                        onChange={e => handleEditInteractionChange("followUpTask", e.target.value)}
-                                    />
-                                </div>
-                                <div className="modal-action">
-                                    <button type="button" className="btn" onClick={() => { setShowEditInteractionModal(false); setEditInteraction(null); }}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+            {showEditInteractionModal && editInteraction && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Edit Interaction</h3>
+                        <form onSubmit={e => { e.preventDefault(); handleEditInteractionSubmit(); }}>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Type</span>
+                                </label>
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={editInteraction.type}
+                                    onChange={e => handleEditInteractionChange("type", e.target.value)}
+                                    required
+                                >
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Call">Call</option>
+                                    <option value="Email">Email</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Summary</span>
+                                </label>
+                                <textarea
+                                    className="textarea textarea-bordered h-24"
+                                    value={editInteraction.summary}
+                                    onChange={e => handleEditInteractionChange("summary", e.target.value)}
+                                    required
+                                ></textarea>
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Staff Member</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editInteraction.staff}
+                                    onChange={e => handleEditInteractionChange("staff", e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-control mb-3">
+                                <label className="label">
+                                    <span className="label-text">Follow-up Date (Optional)</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    className="input input-bordered"
+                                    value={editInteraction.followUpDate}
+                                    onChange={e => handleEditInteractionChange("followUpDate", e.target.value)}
+                                />
+                            </div>
+                            <div className="form-control mb-6">
+                                <label className="label">
+                                    <span className="label-text">Follow-up Task (Optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editInteraction.followUpTask}
+                                    onChange={e => handleEditInteractionChange("followUpTask", e.target.value)}
+                                />
+                            </div>
+                            <div className="modal-action">
+                                <button type="button" className="btn" onClick={() => { setShowEditInteractionModal(false); setEditInteraction(null); }}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                )
+                </div>
+            )
             }
 
             {/* Add Project Modal */}
