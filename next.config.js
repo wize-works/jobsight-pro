@@ -1,40 +1,53 @@
-/** @type {import('next').NextConfig} */
-const path = require('path');
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-    webpack: (config) => {
-        config.resolve.alias = {
-            ...(config.resolve.alias || {}),
-            "@": path.resolve(__dirname, "src"),
-        };
-        return config;
-    },
-    experimental: {
-        webpackBuildWorker: true,
-    },
-    images: {
-        dangerouslyAllowSVG: true,
-        remotePatterns: [
-            {
-                protocol: "https",
-                hostname: "placehold.co",
-                port: '',
-                pathname: "/700x500/**",
-            },
-            {
-                protocol: "https",
-                hostname: "placehold.co",
-                port: '',
-                pathname: "/600x400/**",
-            },
-            {
-                protocol: "https",
-                hostname: "wize.works",
-                port: '',
-                pathname: "/**",
-            }
-        ]
-    }
+  experimental: {
+    optimizePackageImports: ['@kinde-oss/kinde-auth-nextjs']
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
+  // PWA Configuration
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/',
+          },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  // Security headers
+  async rewrites() {
+    return [
+      {
+        source: '/api/auth/:path*',
+        destination: '/api/auth/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
