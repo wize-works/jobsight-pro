@@ -153,7 +153,7 @@ export default function DailyLogs() {
             </div>
 
             {/* Logs List */}
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {logs.map((log, i) => {
 
                     return (

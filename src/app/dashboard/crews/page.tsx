@@ -100,6 +100,51 @@ export default function CrewsList() {
                 </button>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Total Crews</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl text-primary">{crews.length}</div>
+                        <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="far fa-users fa-xl text-primary"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">All crews in the system</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Total Members</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl text-secondary">{crews.reduce((total, crew) => total + crew.member_count, 0)}</div>
+                        <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="far fa-users fa-xl text-secondary"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Total crew members across all crews</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Active Crews</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl text-accent">{crews.filter(crew => crew.status === "active").length}</div>
+                        <div className="stat-icon text-accent bg-accent/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="far fa-users fa-xl text-accent"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Currently working</div>
+                </div>
+                <div className="stat bg-base-100 shadow">
+                    <div className="stat-title text-lg">Available Crews</div>
+                    <div className="flex items-center justify-between">
+                        <div className="stat-value text-3xl text-success">{crews.filter(crew => crew.status === "available").length}</div>
+                        <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
+                            <i className="far fa-users fa-xl text-success"></i>
+                        </div>
+                    </div>
+                    <div className="stat-desc">Ready for new projects</div>
+                </div>
+            </div>
+
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
