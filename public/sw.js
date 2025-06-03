@@ -103,13 +103,38 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncOfflineData() {
-  // This would sync any offline-stored data back to the server
-  console.log('Service Worker: Syncing offline data');
+  console.log('Service Worker: Starting offline data sync');
 
-  // Example: Get queued daily logs from IndexedDB and sync
   try {
-    // Implementation would depend on your offline storage strategy
-    console.log('Service Worker: Offline data synced successfully');
+    // Open IndexedDB
+    const dbRequest = indexedDB.open('jobsight-offline', 1);
+    
+    const db = await new Promise((resolve, reject) => {
+      dbRequest.onsuccess = () => resolve(dbRequest.result);
+      dbRequest.onerror = () => reject(dbRequest.error);
+    });
+
+    // Get all pending sync items
+    const transaction = db.transaction(['syncQueue'], 'readonly');
+    const store = transaction.objectStore('syncQueue');
+    const getAllRequest = store.getAll();
+    
+    const syncItems = await new Promise((resolve, reject) => {
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+
+    console.log(`Service Worker: Found ${syncItems.length} items to sync`);
+
+    // Send sync items to the main application
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_REQUIRED',
+        items: syncItems
+      });
+    });
+
   } catch (error) {
     console.error('Service Worker: Failed to sync offline data:', error);
   }
