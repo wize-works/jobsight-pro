@@ -3,8 +3,8 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default async function DailyLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default function DailyLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const id = params;
     const log = {
         id: id,
         date: "2023-05-20",
@@ -104,26 +104,26 @@ export default async function DailyLogDetailPage({ params }: { params: Promise<{
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Link href="/dashboard/daily-logs" className="btn btn-ghost btn-sm">
+                        <a href="/dashboard/daily-logs" className="btn btn-ghost btn-sm">
                             <i className="fas fa-arrow-left"></i>
-                        </Link>
+                        </a>
                         <h1 className="text-2xl font-bold">Daily Log</h1>
                         <span className="badge badge-primary">{new Date(log.date).toLocaleDateString()}</span>
                     </div>
                     <p className="text-gray-500">
-                        <Link href={`/dashboard/projects/${log.project.id}`} className="hover:text-primary">
+                        <a href={`/dashboard/projects/${log.project.id}`} className="hover:text-primary">
                             {log.project.name}
-                        </Link>{" "}
+                        </a>{" "}
                         | Logged by {log.author.name}
                     </p>
                 </div>
                 <div className="flex gap-2 mt-4 md:mt-0">
-                    <Link href={`/dashboard/daily-logs/${log.id}/edit`} className="btn btn-outline btn-sm">
+                    <a href={`/dashboard/daily-logs/${log.id}`} className="btn btn-outline btn-sm">
                         <i className="fas fa-edit mr-2"></i> Edit
-                    </Link>
-                    <Link href={`/dashboard/daily-logs/${log.id}/print`} className="btn btn-outline btn-sm">
+                    </a>
+                    <a href={`/dashboard/daily-logs/${log.id}`} className="btn btn-outline btn-sm">
                         <i className="fas fa-print mr-2"></i> Print
-                    </Link>
+                    </a>
                     <button className="btn btn-outline btn-sm">
                         <i className="fas fa-share-alt mr-2"></i> Share
                     </button>

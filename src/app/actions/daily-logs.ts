@@ -181,3 +181,78 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
 
     return dataWithDetails;
 }
+
+export const getDailyLogWithDetailsById = async (id: string): Promise<DailyLogWithDetails> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+        filter: { id: id },
+        orderBy: { column: "date", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching daily logs with details:", error);
+        throw new Error("Failed to fetch daily log details");
+    }
+
+    if (!data || data.length === 0) {
+        throw new Error("Daily log not found");
+    }
+
+    const logIds = data.map(log => log.id);
+    const crewIds = data.map(log => log.crew_id).filter(id => id !== null);
+    const projectIds = data.map(log => log.project_id);
+
+    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+        filter: { daily_log_id: { in: logIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+        filter: { daily_log_id: { in: logIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const equipmentIds = equipmentData?.map(equip => equip.equipment_id) || [];
+    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", business.id, "*", {
+        filter: { id: { in: equipmentIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+    console.log("Equipment Info Data:", equipmentData, equipmentInfoData, equipmentIds);
+
+    const { data: crewData, error: crewError } = await fetchByBusiness("crews", business.id, "*", {
+        filter: { id: { in: crewIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    const { data: projectData, error: projectError } = await fetchByBusiness("projects", business.id, "*", {
+        filter: { id: { in: projectIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    let log = data[0] as DailyLog;
+
+
+    const materials = materialData?.filter(material => material.daily_log_id === log.id) || [];
+    const equipment = equipmentData?.filter(equip => equip.daily_log_id === log.id) || [];
+    const crew = crewData?.find(c => c.id === log.crew_id) || null;
+    const project = projectData?.find(p => p.id === log.project_id) || null;
+
+    return {
+        ...log,
+        materials: materials.map(material => ({
+            id: material.id,
+            name: material.name,
+            quantity: material.quantity,
+            cost_per_unit: material.cost,
+        })),
+        equipment: equipment.map(equip => ({
+            id: equip.id,
+            name: equipmentInfoData?.find(info => info.id === equip.equipment_id)?.name || equip.name,
+            hours: equip.hours || 0,
+        })),
+        crew: crew ? { id: crew.id, name: crew.name } : null,
+        project: project ? { id: project.id, name: project.name, description: project.description } : null,
+    } as DailyLogWithDetails;
+
+}

@@ -160,7 +160,12 @@ export default function DailyLogs() {
 
                         <div key={log.id} className={`card bg-base-100 shadow ${selectedLog?.id === log.id ? "border border-primary" : ""}`} onClick={() => setSelectedLog(log)}>
                             <div className="card-body">
-                                <h2 className="card-title">{log.project?.name}</h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="card-title">{log.project?.name}</h2>
+                                    <a className="btn btn-sm btn-secondary" href={`/dashboard/daily-logs/${log.id}`}>
+                                        <i className="fal fa-edit fa-fw"></i> Edit
+                                    </a>
+                                </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-base-content/50">Crew: {log.crew?.name}</span>
                                 </div>

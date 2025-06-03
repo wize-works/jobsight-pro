@@ -4,9 +4,16 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
 import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export default function Home() {
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    // After mounting, we have access to the theme
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     return (
         <main className="min-h-screen flex flex-col lg:flex-row relative">
@@ -15,11 +22,9 @@ export default function Home() {
                 <ThemeToggle />
             </div>
             <section className="bg-base-100 w-full lg:w-1/2 flex flex-col items-center justify-center min-h-screen p-6 text-center">
-
-
                 <div className="max-w-md">
                     <div className="mb-3">
-                        {theme === "dark" ?
+                        {mounted && resolvedTheme === "dark" ?
                             <Image src="/logo-full-white.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />
                             :
                             <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={16} className="mx-auto" />

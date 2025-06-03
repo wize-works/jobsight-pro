@@ -1,25 +1,30 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface SidebarProps {
     sidebarCollapsed: boolean;
 }
 
 export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    // After mounting, we have access to the theme
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     return (
         <div className="drawer-side bg-base-100">
             <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
-            <div
-                className={`menu ${sidebarCollapsed ? "w-16" : "w-64"} min-h-full text-base-content transition-all duration-300`}
-            >
+            <div className={`menu ${sidebarCollapsed ? "w-16" : "w-64"} min-h-full text-base-content transition-all duration-300`} >
                 <div className="mb-6 flex items-center justify-center">
                     {sidebarCollapsed ? (
                         <img src="/logo.png" alt="JobSight" className="h-10" />
                     ) : (
                         <img
-                            src={theme === 'dark' ? "/logo-full-white.png" : "/logo-full.png"}
+                            src={mounted && resolvedTheme === 'dark' ? "/logo-full-white.png" : "/logo-full.png"}
                             alt="JobSight"
                             className="h-10"
                         />
