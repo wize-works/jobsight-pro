@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import ClientEditForm from "../components/edit";
+import ClientEditForm from "../components/modal-edit";
 import { createClient } from "@/app/actions/clients";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { v4 as uuidv4 } from "uuid";
-import { ClientInsert } from "@/types/clients";
+import { Client, ClientInsert } from "@/types/clients";
 
 export default async function NewClientPage() {
 
@@ -40,23 +40,24 @@ export default async function NewClientPage() {
     };
 
     const initialClient = {
+        id: "",
         name: "",
         type: "",
         industry: "",
-        contact: "",
-        email: "",
-        phone: "",
+        contact_name: "",
+        contact_email: "",
+        contact_phone: "",
         website: "",
         address: "",
         city: "",
         state: "",
         zip: "",
         country: "USA",
-        taxId: "",
+        tax_id: "",
         notes: "",
-        logoUrl: "",
+        logo_url: "",
         status: "active",
-    };
+    } as Client;
 
     return (
         <div className="container mx-auto py-8">

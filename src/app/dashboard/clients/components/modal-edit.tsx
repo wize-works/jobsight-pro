@@ -3,7 +3,7 @@
 import { Client, clientStatusOptions } from "@/types/clients";
 import { useState } from "react";
 
-export default function ClientEditForm({ client, onClose, onSubmit }: { client: Client; onClose: () => void; onSubmit: (formData: any) => void }) {
+export default function ClientEditForm({ client, onSubmit }: { client: Client; onSubmit: (formData: any) => void }) {
     const [form, setForm] = useState({
         name: client.name || "",
         type: client.type || "",
@@ -202,7 +202,7 @@ export default function ClientEditForm({ client, onClose, onSubmit }: { client: 
                     <button type="submit" className="btn btn-primary" disabled={loading}>
                         {loading ? "Saving..." : "Save Changes"}
                     </button>
-                    <button className="btn btn-outline" type="button" onClick={() => onClose()}>
+                    <button className="btn btn-outline" type="button" onClick={() => console.log("Cancel")}>
                         Cancel
                     </button>
                 </div>
