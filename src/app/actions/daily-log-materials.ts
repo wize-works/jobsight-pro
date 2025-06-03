@@ -20,10 +20,10 @@ export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
     }
 
     if (!data || data.length === 0) {
-        return [] as DailyLogMaterial[];
+        return [];
     }
 
-    return data as unknown as DailyLogMaterial[];
+    return data;
 }
 
 export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMaterial | null> => {
@@ -39,7 +39,7 @@ export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMater
     }
 
     if (data && data[0]) {
-        return data[0] as unknown as DailyLogMaterial;
+        return data[0];
     }
 
     return null;
@@ -57,7 +57,7 @@ export const createDailyLogMaterial = async (material: DailyLogMaterialInsert): 
         return null;
     }
 
-    return data as unknown as DailyLogMaterial;
+    return data;
 }
 
 export const updateDailyLogMaterial = async (id: string, material: DailyLogMaterialUpdate): Promise<DailyLogMaterial | null> => {
@@ -72,7 +72,7 @@ export const updateDailyLogMaterial = async (id: string, material: DailyLogMater
         return null;
     }
 
-    return data as unknown as DailyLogMaterial;
+    return data;
 }
 
 export const deleteDailyLogMaterial = async (id: string): Promise<boolean> => {
@@ -106,5 +106,25 @@ export const searchDailyLogMaterials = async (query: string): Promise<DailyLogMa
         return [];
     }
 
-    return data as unknown as DailyLogMaterial[];
+    return data as DailyLogMaterial[];
 };
+
+export const getDailyLogMaterialsWithDetailsByLogId = async (id: string): Promise<DailyLogMaterial[]> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+        filter: { daily_log_id: id },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching daily log materials:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    return data;
+}

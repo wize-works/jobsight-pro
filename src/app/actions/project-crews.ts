@@ -105,3 +105,52 @@ export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> 
 
     return data as unknown as ProjectCrew[];
 };
+
+export const addCrewToProject = async (projectId: string, crewId: string): Promise<ProjectCrew | null> => {
+    const { business } = await withBusinessServer();
+
+    let newCrew = {
+        project_id: projectId,
+        crew_id: crewId,
+    } as ProjectCrewInsert;
+
+    newCrew = await applyCreated<ProjectCrewInsert>(newCrew);
+
+    const createdCrew = await createProjectCrew(newCrew);
+
+    if (!createdCrew) {
+        console.error("Failed to add crew to project");
+        return null;
+    }
+
+    return createdCrew;
+};
+
+export const removeCrewFromProject = async (projectId: string, crewId: string): Promise<boolean> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
+        filter: { project_id: projectId, crew_id: crewId },
+    }) as { data: ProjectCrew[], error: any };
+
+    if (error) {
+        console.error("Error fetching project crew for removal:", error);
+        return false;
+    }
+    if (!data || data.length === 0) {
+        console.warn("No crew found for the specified project and crew ID");
+        return false;
+    }
+    if (data.length > 1) {
+        console.warn("Multiple crews found for the specified project and crew ID, removing the first one");
+    }
+
+    const success = await deleteProjectCrew(data[0].id);
+
+    if (!success) {
+        console.error("Failed to remove crew from project");
+        return false;
+    }
+
+    return true;
+};

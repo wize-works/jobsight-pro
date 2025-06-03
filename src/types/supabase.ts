@@ -691,8 +691,9 @@ export interface Database {
                     daily_log_id: string
                     equipment_id: string
                     business_id: string
-                    operator: string | null
                     crew_member_id: string | null
+                    name: string | null
+                    operator: string | null
                     hours: number | null
                     condition: string | null
                     created_at: string | null
@@ -705,8 +706,9 @@ export interface Database {
                     daily_log_id: string
                     equipment_id: string
                     business_id: string
-                    operator: string | null
                     crew_member_id: string | null
+                    name: string | null
+                    operator: string | null
                     hours: number | null
                     condition: string | null
                     created_at: string | null
@@ -719,8 +721,9 @@ export interface Database {
                     daily_log_id: string
                     equipment_id: string
                     business_id: string
-                    operator: string | null
                     crew_member_id: string | null
+                    name: string | null
+                    operator: string | null
                     hours: number | null
                     condition: string | null
                     created_at: string | null

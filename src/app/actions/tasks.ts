@@ -151,8 +151,10 @@ export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]
         });
 
         const crewIds = projects?.map((project: any) => project.crew_id).filter(Boolean) || [];
+        const taskCrewIds = data?.map((task: Task) => task.assigned_to).filter(Boolean) || [];
+        const crewIdsSet = new Set([...crewIds, ...taskCrewIds]);
         const { data: crews, error: crewsError } = await fetchByBusiness("crews", business.id, "*", {
-            filter: { id: { in: crewIds } },
+            filter: { id: { in: crewIdsSet } },
         });
 
         const clientIds = projects?.map((project: any) => project.client_id).filter(Boolean) || [];

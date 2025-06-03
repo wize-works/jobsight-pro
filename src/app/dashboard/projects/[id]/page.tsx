@@ -68,7 +68,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         manager = await getCrewMemberById(project.manager_id);
     }
 
-
     if (!project) {
         return (
             <div className="p-8 text-center">
@@ -80,8 +79,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </div>
         );
     }
-
-    console.log("Project Details:", project);
 
     return (
         <Suspense fallback={<Loading />}>

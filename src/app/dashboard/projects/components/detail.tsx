@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
-import { getProjectById, updateProject } from "@/app/actions/projects";
-import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project_milestones";
-import { getTasksByProjectId } from "@/app/actions/tasks";
+import { updateProject } from "@/app/actions/projects";
+import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
+import { createTask, getTasksByProjectId, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
 import { toast } from "@/hooks/use-toast";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-import { TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
+import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow, set } from "date-fns";
 import TasksTab from "../components/tab-tasks";
@@ -17,19 +17,17 @@ import { Client } from "@/types/clients";
 import CrewsTab from "../components/tab-crews";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { ClientContact } from "@/types/client-contacts";
-import { getCrewsByProjectId } from "@/app/actions/crews";
 import { CrewWithMemberInfo } from "@/types/crews";
 import IssuesTab from "../components/tab-issues";
 import IssueModal from "../components/modal-issues";
-import { getProjectIssuesWithDetailsByProjectId } from "@/app/actions/projects-issues";
 import { ProjectIssueWithDetails } from "@/types/projects-issues";
-import { getMediaByProjectId } from "@/app/actions/media";
 import { Media } from "@/types/media";
 import MediaTab from "../components/tab-media";
-import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
+import { getCrewMemberById } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import MilestoneModal from "../components/modal-milestone";
 import ProjectEditModal from "../components/modal-edit";
+import TaskModal from "../components/modal-task";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -77,6 +75,8 @@ export default function ProjectDetail(params: ProjectDetailParams) {
     const [progress, setProgress] = useState(0);
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
+    const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
@@ -128,17 +128,51 @@ export default function ProjectDetail(params: ProjectDetailParams) {
         setMilestoneModalOpen(true);
     };
 
+    const handleEditTask = (task: TaskWithDetails) => {
+        setSelectedTask(task);
+        setTaskModalOpen(true);
+    };
+
     const handleMilestoneSave = async (milestone: ProjectMilestone) => {
         if (selectedMilestone) {
+            console.log("Updating milestone:", milestone);
             await updateProjectMilestone(selectedMilestone.id, milestone);
             setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
         } else {
+            console.log("Creating new milestone:", milestone);
             await createProjectMilestone(milestone);
             setMilestones((prev) => [...prev, milestone]);
         }
         setMilestoneModalOpen(false);
         setSelectedMilestone(null);
         toast.success("Milestone saved successfully!");
+    };
+
+    const handleMilestoneModalClose = () => {
+        setMilestoneModalOpen(false);
+        setSelectedMilestone(null);
+    };
+
+    const handleTaskSave = async (task: Task) => {
+        if (selectedTask) {
+            await updateTask(selectedTask.id, task);
+            setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, ...task } as TaskWithDetails : t));
+        } else {
+            await createTask(task);
+            // We need to fetch the updated task list since the new task might have additional details
+            if (project) {
+                const updatedTasks = await getTasksByProjectId(project.id);
+                setTasks(updatedTasks);
+            }
+        }
+        setTaskModalOpen(false);
+        setSelectedTask(null);
+        toast.success("Task saved successfully!");
+    };
+
+    const handleTaskModalClose = () => {
+        setTaskModalOpen(false);
+        setSelectedTask(null);
     };
 
     if (loading) {
@@ -256,13 +290,19 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
-                            <div className="flex justify-between gap-6 items-start">
-                                <div className="flex justify-start items-start gap-4">
-                                    <h1 className="text-2xl font-bold">{project.name}</h1>
-                                    {projectStatusOptions.badge(project.status as ProjectStatus)}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col justify-start items-start gap-2 mb-4">
+                                    <div className="flex justify-start items-start gap-4">
+                                        <h1 className="text-2xl font-bold">{project.name}</h1>
+                                        {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                    </div>
+                                    <div className="mb-4">
+                                        <h4 className="font-medium">Project Manager</h4>
+                                        <p>{manager?.name || "Not assigned"}</p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-center gap-2">
-                                    <p className="text-base-content/70 mt-1">
+                                <div className="flex flex-col items-start gap-2">
+                                    <div className="text-base-content/70 mt-1">
                                         <div className="text-xl">
                                             Client:{" "}
                                             <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
@@ -289,7 +329,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                 </p>
                                             )}
                                         </div>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className="divider my-4"></div>
@@ -339,10 +379,6 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                 </Link>
                                             </>
                                         )}
-                                    </div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">Project Manager</h4>
-                                        <p>{manager?.name || "Not assigned"}</p>
                                     </div>
                                 </div>
                                 <div>
@@ -408,8 +444,11 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                         </td>
                                                         <td>
                                                             <div className="flex gap-2">
-                                                                <button className="btn btn-ghost btn-xs">
-                                                                    <i className="fas fa-edit"></i>
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => handleEditMilestone(milestone)}
+                                                                >
+                                                                    <i className="fas fa-edit fa-lg"></i>
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -441,6 +480,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                     <th>Assigned To</th>
                                                     <th>Status</th>
                                                     <th>Progress</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -452,12 +492,22 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                                 {formatDate(task.start_date || "")} - {formatDate(task.end_date || "")}
                                                             </div>
                                                         </td>
-                                                        <td>{task.assigned_to || task.assigned_to || "Unassigned"}</td>
+                                                        <td>{task.crew_name || task.crew_name || "Unassigned"}</td>
                                                         <td>
                                                             {taskStatusOptions.badge(task.status as TaskStatus)}
                                                         </td>
                                                         <td>
                                                             {progressBar(task.progress, 100)}
+                                                        </td>
+                                                        <td>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => handleEditTask(task)}
+                                                                >
+                                                                    <i className="fas fa-edit fa-lg"></i>
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 )) || (
@@ -477,7 +527,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         <TasksTab tasks={tasks} />
                     )}
                     {activeTab === "crew" && (
-                        <CrewsTab crews={crews} />
+                        <CrewsTab projectId={project.id} crews={crews} />
                     )}
                     {activeTab === "budget" && (
                         <div className="card bg-base-100 shadow-sm">
@@ -596,9 +646,9 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         </div>
                     </div>
                 </div>
-            </div>
-            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
-            {milestoneModalOpen && <MilestoneModal onClose={() => setMilestoneModalOpen(false)} projectId={project.id} milestone={selectedMilestone} onSave={() => alert('on save')} />}
+            </div>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
+            {milestoneModalOpen && <MilestoneModal onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
+            {taskModalOpen && <TaskModal onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
             {editModalOpen && <ProjectEditModal onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
         </div>
     );
