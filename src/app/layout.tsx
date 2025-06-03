@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import Script from "next/script";
 import { Toaster } from "@/components/toaster";
+import OfflineIndicator from '@/components/offline-indicator';
 import Clarity from '@microsoft/clarity';
 
 Clarity.init(process.env.NEXT_PUBLIC_CLARITY_ID || "");
@@ -66,8 +67,16 @@ export default function RootLayout({
             <html lang="en" suppressHydrationWarning>
                 <Script src="https://kit.fontawesome.com/40c3b5129c.js" crossOrigin="anonymous" />
                 <body className={inter.className}>
-                    <ThemeProvider>{children}</ThemeProvider>
-                    <Toaster />
+                    <ThemeProvider
+                        attribute="class"
+                        defaultTheme="system"
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        <OfflineIndicator />
+                        {children}
+                        <Toaster />
+                    </ThemeProvider>
                 </body>
             </html>
         </AuthProvider >
