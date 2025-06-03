@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/wize-works/jobsight-pro/compare/v1.23.0...v1.24.0) (2025-06-03)
+
+
+### Features
+
+* add client, crew, equipment, and project statistics to respective pages ([76150f0](https://github.com/wize-works/jobsight-pro/commit/76150f02fa8da99203f49eec4fb373922e6c6290))
+
 # [1.23.0](https://github.com/wize-works/jobsight-pro/compare/v1.22.0...v1.23.0) (2025-06-03)
 
 
