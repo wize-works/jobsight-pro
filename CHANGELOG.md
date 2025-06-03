@@ -1,3 +1,11 @@
+# [1.23.0](https://github.com/wize-works/jobsight-pro/compare/v1.22.0...v1.23.0) (2025-06-03)
+
+
+### Features
+
+* add onClose prop to ClientEditForm and update cancel button functionality ([27173be](https://github.com/wize-works/jobsight-pro/commit/27173becfe8436046ad63e897d8975d01d94c84a))
+* refactor client edit form and update import paths for consistency ([35c5672](https://github.com/wize-works/jobsight-pro/commit/35c567213f74f7d3b2d05afaf09594f6a652680f))
+
 # [1.22.0](https://github.com/wize-works/jobsight-pro/compare/v1.21.0...v1.22.0) (2025-06-03)
 
 
