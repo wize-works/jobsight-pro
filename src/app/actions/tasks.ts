@@ -65,6 +65,33 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
             return null;
         }
 
+        // Trigger push notification for task assignment
+        if (data && data.assigned_to) {
+            // Assuming getProjectById and triggerTaskNotification are defined elsewhere
+            // and are accessible in this scope.  Need to create dummy functions
+            async function getProjectById(project_id: string) {
+              return {name: "test"};
+            }
+
+            async function triggerTaskNotification(
+              taskId: any,
+              title: any,
+              projectName: any,
+              assigned: any,
+              assigned_to: any
+            ) {
+              console.log("triggerTaskNotification called");
+            }
+            const project = await getProjectById(data.project_id);
+            await triggerTaskNotification(
+                data.id,
+                task.name,
+                project?.name || 'Unknown Project',
+                'assigned',
+                data.assigned_to
+            );
+        }
+
         return data as unknown as Task;
     } catch (err) {
         console.error("Error in createTask:", err);

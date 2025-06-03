@@ -7,6 +7,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { triggerEquipmentNotification } from "@/lib/push/notification-triggers";
 
 export const getEquipments = async (): Promise<Equipment[]> => {
     const { business } = await withBusinessServer();
