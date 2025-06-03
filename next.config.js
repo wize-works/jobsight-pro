@@ -9,6 +9,9 @@ const nextConfig = {
         };
         return config;
     },
+    experimental: {
+        webpackBuildWorker: true,
+    },
     images: {
         dangerouslyAllowSVG: true,
         remotePatterns: [
