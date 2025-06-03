@@ -1,3 +1,12 @@
+# [1.22.0](https://github.com/wize-works/jobsight-pro/compare/v1.21.0...v1.22.0) (2025-06-03)
+
+
+### Features
+
+* add loading states and new daily log page ([842d4b7](https://github.com/wize-works/jobsight-pro/commit/842d4b78ff78c02f3a28414524d30739f85d9c90))
+* enhance project detail page with task editing functionality and milestone form reset ([5f7e41e](https://github.com/wize-works/jobsight-pro/commit/5f7e41e911fc1fe7734917e6e183cefef8979994))
+* implement daily log detail page and enhance daily logs component with tabs ([249b0a3](https://github.com/wize-works/jobsight-pro/commit/249b0a3a9fea3945785004035ec4ab6a81a7cd4f))
+
 # [1.21.0](https://github.com/wize-works/jobsight-pro/compare/v1.20.0...v1.21.0) (2025-06-02)
 
 
