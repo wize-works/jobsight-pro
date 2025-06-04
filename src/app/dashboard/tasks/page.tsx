@@ -1,13 +1,10 @@
-"use client"
-
 import { Suspense } from "react";
 import TasksComponent from "./components/list";
 import { getTasks } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
-import { useState, useEffect, SetStateAction } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { SetStateAction } from "react";
+import Link from "next/link";
 
 export default async function TasksPage() {
     try {
@@ -15,12 +12,20 @@ export default async function TasksPage() {
         const [tasks, projects, crews] = await Promise.all([
             getTasks(),
             getProjects(),
-            getCrews()
+            getCrews(),
         ]);
 
         return (
-            <Suspense fallback={<div className="loading loading-spinner loading-lg"></div>}>
-                <TasksComponent tasks={tasks} projects={projects} crews={crews} />
+            <Suspense
+                fallback={
+                    <div className="loading loading-spinner loading-lg"></div>
+                }
+            >
+                <TasksComponent
+                    tasks={tasks}
+                    projects={projects}
+                    crews={crews}
+                />
             </Suspense>
         );
     } catch (error) {
@@ -36,6 +41,10 @@ export default async function TasksPage() {
 
 // Helper function to format date
 function formatDate(dateString: string | number | Date) {
-    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+    const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
 }
