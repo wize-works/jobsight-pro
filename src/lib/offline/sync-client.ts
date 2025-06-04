@@ -1,7 +1,7 @@
-
 "use client";
 
 import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from "./storage";
+import { syncQueueToServer } from "./client-actions";
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -89,81 +89,31 @@ class SyncManager {
         return;
       }
 
-      const supabase = createClientComponentClient();
-      if (!supabase) {
-        throw new Error("Supabase client not available");
-      }
+      // Use server action to sync the queue
+      const result = await syncQueueToServer(businessId);
 
-      let syncedCount = 0;
-      let errorCount = 0;
-
-      // Process queue items one by one
-      for (const item of queue) {
-        try {
-          await this.syncItem(supabase, item);
-          await removeFromSyncQueue(item.id);
-          syncedCount++;
-        } catch (error) {
-          console.error("Failed to sync item:", item, error);
-          errorCount++;
-
-          // Update retry count
-          item.retryCount = (item.retryCount || 0) + 1;
-
-          // Remove items that have failed too many times
-          if (item.retryCount >= 3) {
-            await removeFromSyncQueue(item.id);
-            console.warn("Removing item after 3 failed attempts:", item);
-          }
+      if (result.success) {
+        // Remove successfully synced items from local queue
+        for (const syncedItemId of result.syncedItems || []) {
+          await removeFromSyncQueue(syncedItemId);
         }
-      }
 
-      const remainingQueue = await getSyncQueue(businessId);
-      this.updateStatus({
-        isSyncing: false,
-        queueCount: remainingQueue.length,
-        lastSyncTime: new Date(),
-        syncError:
-          errorCount > 0 ? `${errorCount} items failed to sync` : undefined,
-      });
+        const remainingQueue = await getSyncQueue(businessId);
+        this.updateStatus({
+          isSyncing: false,
+          queueCount: remainingQueue.length,
+          lastSyncTime: new Date(),
+          syncError: result.errorCount > 0 ? `${result.errorCount} items failed to sync` : undefined,
+        });
+      } else {
+        throw new Error(result.error || "Sync failed");
+      }
     } catch (error) {
       console.error("Sync failed:", error);
       this.updateStatus({
         isSyncing: false,
         syncError: error instanceof Error ? error.message : "Sync failed",
       });
-    }
-  }
-
-  private async syncItem(supabase: any, item: any) {
-    const { table, operation, data } = item;
-
-    switch (operation) {
-      case "insert":
-        const { error: insertError } = await supabase.from(table).insert(data);
-        if (insertError) throw insertError;
-        break;
-
-      case "update":
-        const { error: updateError } = await supabase
-          .from(table)
-          .update(data)
-          .eq("id", data.id)
-          .eq("business_id", item.businessId);
-        if (updateError) throw updateError;
-        break;
-
-      case "delete":
-        const { error: deleteError } = await supabase
-          .from(table)
-          .delete()
-          .eq("id", data.id)
-          .eq("business_id", item.businessId);
-        if (deleteError) throw deleteError;
-        break;
-
-      default:
-        throw new Error(`Unknown operation: ${operation}`);
     }
   }
 
