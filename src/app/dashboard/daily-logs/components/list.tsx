@@ -145,8 +145,8 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
                             <div className="card-body">
                                 <div className="flex items-center justify-between">
                                     <h2 className="card-title">{log.project?.name}</h2>
-                                    <a className="btn btn-sm btn-secondary" href={`/dashboard/daily-logs/${log.id}`}>
-                                        <i className="fal fa-edit fa-fw"></i> Edit
+                                    <a className="btn btn-sm btn-outline" href={`/dashboard/daily-logs/${log.id}`}>
+                                        View Details
                                     </a>
                                 </div>
                                 <div className="flex items-center justify-between">
