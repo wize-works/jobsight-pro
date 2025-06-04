@@ -1,3 +1,10 @@
+## [1.25.3](https://github.com/wize-works/jobsight-pro/compare/v1.25.2...v1.25.3) (2025-06-04)
+
+
+### Bug Fixes
+
+* Add webpack alias configuration for improved module resolution ([3162226](https://github.com/wize-works/jobsight-pro/commit/316222677a12d8bd2f8aa349d7d1fe1fcf505d28))
+
 ## [1.25.2](https://github.com/wize-works/jobsight-pro/compare/v1.25.1...v1.25.2) (2025-06-04)
 
 
