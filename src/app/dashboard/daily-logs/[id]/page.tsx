@@ -4,8 +4,8 @@ import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
 import { getCrews } from "@/app/actions/crews";
 import { getProjects } from "@/app/actions/projects";
 
-export default async function DailyLogPage({ params }: { params: { id: string } }) {
-    const id = params.id;
+export default async function DailyLogPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     try {
         // Fetch all required data in parallel

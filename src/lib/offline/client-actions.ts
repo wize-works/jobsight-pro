@@ -1,65 +1,107 @@
+"use server";
 
-'use client';
+import { getSyncQueue, removeFromSyncQueue } from "./storage";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
+import {
+  insertWithBusiness,
+  updateWithBusinessCheck,
+  deleteWithBusinessCheck,
+} from "@/lib/db";
 
-import { useOfflineSync } from '@/hooks/use-offline-sync';
-import { withOfflineCache } from './actions';
-import { v4 as uuidv4 } from 'uuid';
+export interface SyncResult {
+  success: boolean;
+  error?: string;
+  syncedItems?: string[];
+  errorCount: number;
+}
 
-export function useOfflineActions() {
-  const { queueOperation, isOnline } = useOfflineSync();
+export async function syncQueueToServer(
+  businessId: string,
+): Promise<SyncResult> {
+  try {
+    const { business } = await withBusinessServer();
 
-  const createDailyLog = async (data: any, businessId: string, userId?: string) => {
-    if (!isOnline) {
-      // Generate temporary ID for offline creation
-      const tempData = {
-        ...data,
-        id: data.id || uuidv4(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        business_id: businessId,
-        created_by: userId,
-        updated_by: userId,
+    if (business.id !== businessId) {
+      throw new Error("Business ID mismatch");
+    }
+
+    const queue = await getSyncQueue(businessId);
+
+    if (queue.length === 0) {
+      return {
+        success: true,
+        syncedItems: [],
+        errorCount: 0,
       };
-      
-      await queueOperation('daily_logs', 'insert', tempData, businessId, userId);
-      return { data: tempData, error: null };
     }
-    
-    // Call server action when online
-    const { createDailyLog: serverAction } = await import('@/app/actions/daily-logs');
-    return await serverAction(data, businessId, userId);
-  };
 
-  const updateDailyLog = async (id: string, data: any, businessId: string, userId?: string) => {
-    if (!isOnline) {
-      const tempData = {
-        ...data,
-        id,
-        updated_at: new Date().toISOString(),
-        updated_by: userId,
-      };
-      
-      await queueOperation('daily_logs', 'update', tempData, businessId, userId);
-      return { data: tempData, error: null };
+    let syncedItems: string[] = [];
+    let errorCount = 0;
+
+    // Process queue items one by one
+    for (const item of queue) {
+      try {
+        await syncItem(item, businessId);
+        syncedItems.push(item.id);
+      } catch (error) {
+        console.error("Failed to sync item:", item, error);
+        errorCount++;
+
+        // Update retry count
+        item.retryCount = (item.retryCount || 0) + 1;
+
+        // Remove items that have failed too many times
+        if (item.retryCount >= 3) {
+          syncedItems.push(item.id); // Mark for removal
+          console.warn("Removing item after 3 failed attempts:", item);
+        }
+      }
     }
-    
-    const { updateDailyLog: serverAction } = await import('@/app/actions/daily-logs');
-    return await serverAction(id, data, businessId, userId);
-  };
 
-  const deleteDailyLog = async (id: string, businessId: string) => {
-    if (!isOnline) {
-      await queueOperation('daily_logs', 'delete', { id }, businessId);
-      return { data: null, error: null };
-    }
-    
-    const { deleteDailyLog: serverAction } = await import('@/app/actions/daily-logs');
-    return await serverAction(id, businessId);
-  };
+    return {
+      success: true,
+      syncedItems,
+      errorCount,
+    };
+  } catch (error) {
+    console.error("Sync operation failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown sync error",
+      errorCount: 0,
+    };
+  }
+}
 
-  return {
-    createDailyLog,
-    updateDailyLog,
-    deleteDailyLog,
-  };
+async function syncItem(item: any, businessId: string) {
+  const { table, operation, data } = item;
+
+  switch (operation) {
+    case "insert":
+      const insertResult = await insertWithBusiness(table, data, businessId);
+      if (insertResult.error) throw insertResult.error;
+      break;
+
+    case "update":
+      const updateResult = await updateWithBusinessCheck(
+        table,
+        data.id,
+        data,
+        businessId,
+      );
+      if (updateResult.error) throw updateResult.error;
+      break;
+
+    case "delete":
+      const deleteResult = await deleteWithBusinessCheck(
+        table,
+        data.id,
+        businessId,
+      );
+      if (deleteResult.error) throw deleteResult.error;
+      break;
+
+    default:
+      throw new Error(`Unknown operation: ${operation}`);
+  }
 }
