@@ -1,4 +1,3 @@
-
 'use server';
 
 import webpush from 'web-push';
@@ -122,8 +121,8 @@ export async function sendPushNotificationToUser(
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 keys: {
-                    p256dh: sub.p256dh_key,
-                    auth: sub.auth_key
+                    p256dh: sub.p256dh,
+                    auth: sub.auth
                 }
             };
 
@@ -197,8 +196,8 @@ export async function sendPushNotificationToBusiness(
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 keys: {
-                    p256dh: sub.p256dh_key,
-                    auth: sub.auth_key
+                    p256dh: sub.p256dh,
+                    auth: sub.auth
                 }
             };
 
