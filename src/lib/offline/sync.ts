@@ -1,6 +1,7 @@
-
-import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from './storage';
-import { createServerClient } from '@/lib/supabase';
+"use server";
+import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from "./storage";
+import { createServerClient } from "@/lib/supabase";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -24,12 +25,12 @@ class SyncManager {
   }
 
   private setupEventListeners() {
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.updateStatus({ isOnline: true, syncError: undefined });
       this.syncWhenOnline();
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.updateStatus({ isOnline: false, isSyncing: false });
     });
   }
@@ -37,25 +38,25 @@ class SyncManager {
   private async loadQueueCount() {
     try {
       // Get business ID from context or storage
-      const businessId = localStorage.getItem('currentBusinessId');
+      const businessId = localStorage.getItem("currentBusinessId");
       if (businessId) {
         const queue = await getSyncQueue(businessId);
         this.updateStatus({ queueCount: queue.length });
       }
     } catch (error) {
-      console.error('Failed to load queue count:', error);
+      console.error("Failed to load queue count:", error);
     }
   }
 
   private updateStatus(updates: Partial<SyncStatus>) {
     this.status = { ...this.status, ...updates };
-    this.listeners.forEach(listener => listener(this.status));
+    this.listeners.forEach((listener) => listener(this.status));
   }
 
   public subscribe(listener: (status: SyncStatus) => void): () => void {
     this.listeners.push(listener);
     listener(this.status); // Send current status immediately
-    
+
     return () => {
       const index = this.listeners.indexOf(listener);
       if (index > -1) {
@@ -70,25 +71,26 @@ class SyncManager {
     this.updateStatus({ isSyncing: true, syncError: undefined });
 
     try {
-      const businessId = localStorage.getItem('currentBusinessId');
+      const { business } = await withBusinessServer();
+      const businessId = business?.id;
       if (!businessId) {
-        throw new Error('No business ID found');
+        throw new Error("No business ID found");
       }
 
       const queue = await getSyncQueue(businessId);
-      
+
       if (queue.length === 0) {
-        this.updateStatus({ 
-          isSyncing: false, 
+        this.updateStatus({
+          isSyncing: false,
           queueCount: 0,
-          lastSyncTime: new Date() 
+          lastSyncTime: new Date(),
         });
         return;
       }
 
       const supabase = createServerClient();
       if (!supabase) {
-        throw new Error('Supabase client not available');
+        throw new Error("Supabase client not available");
       }
 
       let syncedCount = 0;
@@ -101,16 +103,16 @@ class SyncManager {
           await removeFromSyncQueue(item.id);
           syncedCount++;
         } catch (error) {
-          console.error('Failed to sync item:', item, error);
+          console.error("Failed to sync item:", item, error);
           errorCount++;
-          
+
           // Update retry count
           item.retryCount = (item.retryCount || 0) + 1;
-          
+
           // Remove items that have failed too many times
           if (item.retryCount >= 3) {
             await removeFromSyncQueue(item.id);
-            console.warn('Removing item after 3 failed attempts:', item);
+            console.warn("Removing item after 3 failed attempts:", item);
           }
         }
       }
@@ -120,14 +122,14 @@ class SyncManager {
         isSyncing: false,
         queueCount: remainingQueue.length,
         lastSyncTime: new Date(),
-        syncError: errorCount > 0 ? `${errorCount} items failed to sync` : undefined,
+        syncError:
+          errorCount > 0 ? `${errorCount} items failed to sync` : undefined,
       });
-
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error("Sync failed:", error);
       this.updateStatus({
         isSyncing: false,
-        syncError: error instanceof Error ? error.message : 'Sync failed',
+        syncError: error instanceof Error ? error.message : "Sync failed",
       });
     }
   }
@@ -136,28 +138,26 @@ class SyncManager {
     const { table, operation, data } = item;
 
     switch (operation) {
-      case 'insert':
-        const { error: insertError } = await supabase
-          .from(table)
-          .insert(data);
+      case "insert":
+        const { error: insertError } = await supabase.from(table).insert(data);
         if (insertError) throw insertError;
         break;
 
-      case 'update':
+      case "update":
         const { error: updateError } = await supabase
           .from(table)
           .update(data)
-          .eq('id', data.id)
-          .eq('business_id', item.businessId);
+          .eq("id", data.id)
+          .eq("business_id", item.businessId);
         if (updateError) throw updateError;
         break;
 
-      case 'delete':
+      case "delete":
         const { error: deleteError } = await supabase
           .from(table)
           .delete()
-          .eq('id', data.id)
-          .eq('business_id', item.businessId);
+          .eq("id", data.id)
+          .eq("business_id", item.businessId);
         if (deleteError) throw deleteError;
         break;
 
@@ -168,10 +168,10 @@ class SyncManager {
 
   public async queueOperation(
     table: string,
-    operation: 'insert' | 'update' | 'delete',
+    operation: "insert" | "update" | "delete",
     data: any,
     businessId: string,
-    userId?: string
+    userId?: string,
   ) {
     await addToSyncQueue(table, operation, data, businessId, userId);
     await this.loadQueueCount();
@@ -182,4 +182,7 @@ class SyncManager {
   }
 }
 
-export const syncManager = new SyncManager();
+export async function getSyncManager(): Promise<SyncManager> {}
+  const syncManager = new SyncManager();
+  return syncManager;
+}
