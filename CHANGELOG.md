@@ -1,3 +1,11 @@
+## [1.25.1](https://github.com/wize-works/jobsight-pro/compare/v1.25.0...v1.25.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* Refactor push notification actions to use userId consistently and improve code readability ([c40f83a](https://github.com/wize-works/jobsight-pro/commit/c40f83a3e37dcc6ebc22e33a3d5cffff5d2c75c5))
+* Update push notification actions to use userId consistently and enhance subscription data handling ([4e95a83](https://github.com/wize-works/jobsight-pro/commit/4e95a83c11ec8d57c57a1f7dc97636ebb63b36f0))
+
 # [1.25.0](https://github.com/wize-works/jobsight-pro/compare/v1.24.0...v1.25.0) (2025-06-04)
 
 
