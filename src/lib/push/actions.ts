@@ -20,11 +20,14 @@ export async function subscribeUser(subscription: PushSubscription) {
             user_id: userId,
             business_id: business.id,
             endpoint: subscription.endpoint,
-            p256dh_key: subscription.keys.p256dh,
-            auth_key: subscription.keys.auth,
-            is_active: true,
+            p256dh: subscription.getKey("p256dh") ? Buffer.from(subscription.getKey("p256dh") as ArrayBuffer).toString('base64') : '',
+            auth: subscription.getKey("auth") ? Buffer.from(subscription.getKey("auth") as ArrayBuffer).toString('base64') : '',
             created_by: userId,
-            updated_by: userId
+            updated_by: userId,
+            user_agent: null,
+            last_used_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
 
         const { data, error } = await insertWithBusiness("push_subscriptions", subscriptionData, business.id);
@@ -64,8 +67,9 @@ export async function unsubscribeUser() {
             const updatePromises = subscriptions.map(sub =>
                 updateWithBusinessCheck("push_subscriptions", sub.id, {
                     is_active: false,
-                    updated_by: userId
-                }, business.id)
+                    updated_by: userId,
+                    updated_at: new Date().toISOString()
+                } as unknown as PushSubscriptionUpdate, business.id)
             );
 
             await Promise.all(updatePromises);
@@ -132,11 +136,11 @@ export async function sendPushNotificationToUser(
             } catch (error) {
                 console.error('Failed to send push notification:', error);
                 // Deactivate invalid subscriptions
-                if (error.statusCode === 410) {
+                if (typeof error === 'object' && error !== null && 'statusCode' in error && (error as any).statusCode === 410) {
                     await updateWithBusinessCheck("push_subscriptions", sub.id, {
-                        is_active: false,
-                        updated_by: userId
-                    }, business.id);
+                        updated_by: userId,
+                        updated_at: new Date().toISOString(),
+                    } as PushSubscriptionUpdate, business.id);
                 }
             }
         });
@@ -207,10 +211,11 @@ export async function sendPushNotificationToBusiness(
             } catch (error) {
                 console.error('Failed to send push notification:', error);
                 // Deactivate invalid subscriptions
-                if (error.statusCode === 410) {
+                if (typeof error === 'object' && error !== null && 'statusCode' in error && (error as any).statusCode === 410) {
                     await updateWithBusinessCheck("push_subscriptions", sub.id, {
-                        is_active: false
-                    }, business.id);
+                        updated_by: sub.user_id,
+                        updated_at: new Date().toISOString(),
+                    } as PushSubscriptionUpdate, business.id);
                 }
             }
         });
