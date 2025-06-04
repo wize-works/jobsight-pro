@@ -15,6 +15,7 @@ export interface TaskNoteInsert {
     task_id: string;
     business_id: string;
     content: string;
+    author_id?: string;
     created_by?: string;
     created_at?: string;
 }

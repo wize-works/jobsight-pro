@@ -43,9 +43,10 @@ export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
 };
 
 export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | null> => {
-    const { business } = await withBusinessServer();
+    const { business, userId } = await withBusinessServer();
 
     note = await applyCreated<TaskNoteInsert>(note);
+    note.author_id = userId; // Set the author to the current Kinde user ID
 
     const { data, error } = await insertWithBusiness("task_notes", note, business.id);
 
