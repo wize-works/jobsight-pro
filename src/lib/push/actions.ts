@@ -1,4 +1,3 @@
-
 'use server';
 
 import webpush from 'web-push';
@@ -14,22 +13,25 @@ webpush.setVapidDetails(
 
 export async function subscribeUser(subscription: PushSubscription) {
     try {
-        const { business, user } = await withBusinessServer();
-        
+        const { business, userId } = await withBusinessServer();
+
         // Store subscription in database
         const subscriptionData: PushSubscriptionInsert = {
-            user_id: user.id,
+            user_id: userId,
             business_id: business.id,
             endpoint: subscription.endpoint,
-            p256dh_key: subscription.keys.p256dh,
-            auth_key: subscription.keys.auth,
-            is_active: true,
-            created_by: user.id,
-            updated_by: user.id
+            p256dh: subscription.getKey("p256dh") ? Buffer.from(subscription.getKey("p256dh") as ArrayBuffer).toString('base64') : '',
+            auth: subscription.getKey("auth") ? Buffer.from(subscription.getKey("auth") as ArrayBuffer).toString('base64') : '',
+            created_by: userId,
+            updated_by: userId,
+            user_agent: null,
+            last_used_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
 
         const { data, error } = await insertWithBusiness("push_subscriptions", subscriptionData, business.id);
-        
+
         if (error) {
             console.error('Error storing push subscription:', error);
             return { success: false, error: 'Failed to store subscription' };
@@ -45,14 +47,14 @@ export async function subscribeUser(subscription: PushSubscription) {
 
 export async function unsubscribeUser() {
     try {
-        const { business, user } = await withBusinessServer();
-        
+        const { business, userId } = await withBusinessServer();
+
         // Find and deactivate user's subscriptions
         const { data: subscriptions, error: fetchError } = await fetchByBusiness(
-            "push_subscriptions", 
-            business.id, 
-            "*", 
-            { filter: { user_id: user.id, is_active: true } }
+            "push_subscriptions",
+            business.id,
+            "*",
+            { filter: { user_id: userId, is_active: true } }
         );
 
         if (fetchError) {
@@ -62,11 +64,12 @@ export async function unsubscribeUser() {
 
         if (subscriptions && subscriptions.length > 0) {
             // Deactivate all subscriptions for the user
-            const updatePromises = subscriptions.map(sub => 
-                updateWithBusinessCheck("push_subscriptions", sub.id, { 
+            const updatePromises = subscriptions.map(sub =>
+                updateWithBusinessCheck("push_subscriptions", sub.id, {
                     is_active: false,
-                    updated_by: user.id 
-                }, business.id)
+                    updated_by: userId,
+                    updated_at: new Date().toISOString()
+                } as unknown as PushSubscriptionUpdate, business.id)
             );
 
             await Promise.all(updatePromises);
@@ -81,20 +84,20 @@ export async function unsubscribeUser() {
 }
 
 export async function sendPushNotificationToUser(
-    userId: string, 
-    title: string, 
-    body: string, 
+    userId: string,
+    title: string,
+    body: string,
     data?: any,
     url?: string
 ) {
     try {
         const { business } = await withBusinessServer();
-        
+
         // Get active subscriptions for the user
         const { data: subscriptions, error } = await fetchByBusiness(
-            "push_subscriptions", 
-            business.id, 
-            "*", 
+            "push_subscriptions",
+            business.id,
+            "*",
             { filter: { user_id: userId, is_active: true } }
         );
 
@@ -122,8 +125,8 @@ export async function sendPushNotificationToUser(
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 keys: {
-                    p256dh: sub.p256dh_key,
-                    auth: sub.auth_key
+                    p256dh: sub.p256dh,
+                    auth: sub.auth
                 }
             };
 
@@ -133,11 +136,11 @@ export async function sendPushNotificationToUser(
             } catch (error) {
                 console.error('Failed to send push notification:', error);
                 // Deactivate invalid subscriptions
-                if (error.statusCode === 410) {
-                    await updateWithBusinessCheck("push_subscriptions", sub.id, { 
-                        is_active: false,
-                        updated_by: userId 
-                    }, business.id);
+                if (typeof error === 'object' && error !== null && 'statusCode' in error && (error as any).statusCode === 410) {
+                    await updateWithBusinessCheck("push_subscriptions", sub.id, {
+                        updated_by: userId,
+                        updated_at: new Date().toISOString(),
+                    } as PushSubscriptionUpdate, business.id);
                 }
             }
         });
@@ -151,20 +154,20 @@ export async function sendPushNotificationToUser(
 }
 
 export async function sendPushNotificationToBusiness(
-    title: string, 
-    body: string, 
+    title: string,
+    body: string,
     data?: any,
     url?: string,
     excludeUserId?: string
 ) {
     try {
         const { business } = await withBusinessServer();
-        
+
         // Get all active subscriptions for the business
         const { data: subscriptions, error } = await fetchByBusiness(
-            "push_subscriptions", 
-            business.id, 
-            "*", 
+            "push_subscriptions",
+            business.id,
+            "*",
             { filter: { is_active: true } }
         );
 
@@ -179,7 +182,7 @@ export async function sendPushNotificationToBusiness(
         }
 
         // Filter out excluded user if specified
-        const filteredSubscriptions = excludeUserId 
+        const filteredSubscriptions = excludeUserId
             ? subscriptions.filter((sub: any) => sub.user_id !== excludeUserId)
             : subscriptions;
 
@@ -197,8 +200,8 @@ export async function sendPushNotificationToBusiness(
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 keys: {
-                    p256dh: sub.p256dh_key,
-                    auth: sub.auth_key
+                    p256dh: sub.p256dh,
+                    auth: sub.auth
                 }
             };
 
@@ -208,10 +211,11 @@ export async function sendPushNotificationToBusiness(
             } catch (error) {
                 console.error('Failed to send push notification:', error);
                 // Deactivate invalid subscriptions
-                if (error.statusCode === 410) {
-                    await updateWithBusinessCheck("push_subscriptions", sub.id, { 
-                        is_active: false 
-                    }, business.id);
+                if (typeof error === 'object' && error !== null && 'statusCode' in error && (error as any).statusCode === 410) {
+                    await updateWithBusinessCheck("push_subscriptions", sub.id, {
+                        updated_by: sub.user_id,
+                        updated_at: new Date().toISOString(),
+                    } as PushSubscriptionUpdate, business.id);
                 }
             }
         });
