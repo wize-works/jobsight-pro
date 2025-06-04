@@ -1,4 +1,3 @@
-
 "use server";
 
 import { getSyncQueue, removeFromSyncQueue } from "./storage";

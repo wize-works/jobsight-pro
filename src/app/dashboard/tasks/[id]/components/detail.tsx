@@ -1,55 +1,25 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { updateTask, deleteTask } from "@/app/actions/tasks"
 import { Task } from "@/types/tasks"
-import { TaskNote } from "@/types/task-notes"
-import { TaskDependency } from "@/types/task_dependencies"
-import { Subtask } from "@/types/subtasks"
-import { deleteTask, updateTask } from "@/app/actions/tasks"
-import { getTaskNotes, createTaskNote, updateTaskNote, deleteTaskNote } from "@/app/actions/task-notes"
-import { getTaskDependencies, createTaskDependency, deleteTaskDependency } from "@/app/actions/task_dependencies"
-import { getSubtasks, createSubtask, updateSubtask, deleteSubtask } from "@/app/actions/subtasks"
-import { toast } from "@/hooks/use-toast"
-import TaskEditModal from "../../components/modal-edit"
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
+import toast from "react-hot-toast"
 
-interface TaskDetailProps {
+interface TaskDetailComponentProps {
     task: Task
-    projects?: { id: string; name: string }[]
-    crews?: { id: string; name: string }[]
+    projects: Project[]
+    crews: Crew[]
 }
 
-export default function TaskDetailComponent({ task: initialTask, projects = [], crews = [] }: TaskDetailProps) {
+export default function TaskDetailComponent({ task: initialTask, projects, crews }: TaskDetailComponentProps) {
     const router = useRouter()
     const [task, setTask] = useState(initialTask)
     const [isEditing, setIsEditing] = useState(false)
-    const [activeTab, setActiveTab] = useState("overview")
-    
-    // Related data states
-    const [taskNotes, setTaskNotes] = useState<TaskNote[]>([])
-    const [taskDependencies, setTaskDependencies] = useState<TaskDependency[]>([])
-    const [subtasks, setSubtasks] = useState<Subtask[]>([])
-    const [tasks, setTasks] = useState<Task[]>([])
-    const [loading, setLoading] = useState(true)
-
-    // Modal states
-    const [isAddingNote, setIsAddingNote] = useState(false)
-    const [isAddingDependency, setIsAddingDependency] = useState(false)
-    const [isAddingSubtask, setIsAddingSubtask] = useState(false)
-    const [editingNote, setEditingNote] = useState<TaskNote | null>(null)
-    const [editingSubtask, setEditingSubtask] = useState<Subtask | null>(null)
-
-    // Form states
-    const [newNoteText, setNewNoteText] = useState("")
-    const [selectedDependencyTask, setSelectedDependencyTask] = useState("")
-    const [newSubtaskName, setNewSubtaskName] = useState("")
-    const [newSubtaskDescription, setNewSubtaskDescription] = useState("")
-    const [newSubtaskStatus, setNewSubtaskStatus] = useState("not_started")
-    const [newSubtaskAssignedTo, setNewSubtaskAssignedTo] = useState("")
 
     // Create lookup maps
     const projectMap = projects.reduce((acc, project) => {
@@ -64,33 +34,6 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
 
     const project = projectMap[task.project_id]
     const assignedCrew = task.assigned_to ? crewMap[task.assigned_to] : null
-
-    // Load related data
-    useEffect(() => {
-        const loadRelatedData = async () => {
-            try {
-                const [notesData, dependenciesData, subtasksData] = await Promise.all([
-                    getTaskNotes(),
-                    getTaskDependencies(),
-                    getSubtasks()
-                ])
-
-                // Filter data for this specific task
-                setTaskNotes(notesData.filter(note => note.task_id === task.id))
-                setTaskDependencies(dependenciesData.filter(dep => 
-                    dep.task_id === task.id || dep.depends_on_task_id === task.id
-                ))
-                setSubtasks(subtasksData.filter(subtask => subtask.task_id === task.id))
-            } catch (error) {
-                console.error("Error loading related data:", error)
-                toast.error("Failed to load task details")
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        loadRelatedData()
-    }, [task.id])
 
     // Get status badge color
     const getStatusBadgeColor = (status: string) => {
@@ -157,120 +100,6 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
         }
     }
 
-    // Note handlers
-    const handleAddNote = async () => {
-        if (!newNoteText.trim()) return
-
-        try {
-            const newNote = await createTaskNote({
-                task_id: task.id,
-                content: newNoteText,
-                business_id: task.business_id
-            })
-            if (newNote) {
-                setTaskNotes([...taskNotes, newNote])
-                setNewNoteText("")
-                setIsAddingNote(false)
-                toast.success("Note added successfully!")
-            }
-        } catch (error) {
-            console.error("Error adding note:", error)
-            toast.error("Failed to add note")
-        }
-    }
-
-    const handleUpdateNote = async (noteId: string, noteText: string) => {
-        try {
-            const updatedNote = await updateTaskNote(noteId, { content: noteText })
-            if (updatedNote) {
-                setTaskNotes(taskNotes.map(note => note.id === noteId ? updatedNote : note))
-                setEditingNote(null)
-                toast.success("Note updated successfully!")
-            }
-        } catch (error) {
-            console.error("Error updating note:", error)
-            toast.error("Failed to update note")
-        }
-    }
-
-    const handleDeleteNote = async (noteId: string) => {
-        if (confirm("Are you sure you want to delete this note?")) {
-            try {
-                await deleteTaskNote(noteId)
-                setTaskNotes(taskNotes.filter(note => note.id !== noteId))
-                toast.success("Note deleted successfully!")
-            } catch (error) {
-                console.error("Error deleting note:", error)
-                toast.error("Failed to delete note")
-            }
-        }
-    }
-
-    // Subtask handlers
-    const handleAddSubtask = async () => {
-        if (!newSubtaskName.trim()) return
-
-        try {
-            const newSubtask = await createSubtask({
-                task_id: task.id,
-                name: newSubtaskName,
-                description: newSubtaskDescription || null,
-                status: newSubtaskStatus || "not_started",
-                assigned_to: newSubtaskAssignedTo || null,
-                business_id: task.business_id
-            })
-            if (newSubtask) {
-                setSubtasks([...subtasks, newSubtask])
-                setNewSubtaskName("")
-                setNewSubtaskDescription("")
-                setNewSubtaskStatus("not_started")
-                setNewSubtaskAssignedTo("")
-                setIsAddingSubtask(false)
-                toast.success("Subtask added successfully!")
-            }
-        } catch (error) {
-            console.error("Error adding subtask:", error)
-            toast.error("Failed to add subtask")
-        }
-    }
-
-    const handleUpdateSubtask = async (subtaskId: string, updates: Partial<Subtask>) => {
-        try {
-            // Remove priority field if it exists since it's not in the database schema
-            const { priority, ...cleanUpdates } = updates as any;
-            const updatedSubtask = await updateSubtask(subtaskId, cleanUpdates)
-            if (updatedSubtask) {
-                setSubtasks(subtasks.map(subtask => subtask.id === subtaskId ? updatedSubtask : subtask))
-                setEditingSubtask(null)
-                toast.success("Subtask updated successfully!")
-            }
-        } catch (error) {
-            console.error("Error updating subtask:", error)
-            toast.error("Failed to update subtask")
-        }
-    }
-
-    const handleDeleteSubtask = async (subtaskId: string) => {
-        if (confirm("Are you sure you want to delete this subtask?")) {
-            try {
-                await deleteSubtask(subtaskId)
-                setSubtasks(subtasks.filter(subtask => subtask.id !== subtaskId))
-                toast.success("Subtask deleted successfully!")
-            } catch (error) {
-                console.error("Error deleting subtask:", error)
-                toast.error("Failed to delete subtask")
-            }
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="loading loading-spinner loading-lg"></div>
-            </div>
-        )
-    }
-
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -297,477 +126,154 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                 </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="tabs tabs-boxed mb-6">
-                <button 
-                    className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("overview")}
-                >
-                    Overview
-                </button>
-                <button 
-                    className={`tab ${activeTab === "subtasks" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("subtasks")}
-                >
-                    Subtasks ({subtasks.length})
-                </button>
-                <button 
-                    className={`tab ${activeTab === "notes" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("notes")}
-                >
-                    Notes ({taskNotes.length})
-                </button>
-                <button 
-                    className={`tab ${activeTab === "dependencies" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("dependencies")}
-                >
-                    Dependencies ({taskDependencies.length})
-                </button>
-            </div>
-
-            {/* Tab Content */}
-            {activeTab === "overview" && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                        <div className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <h2 className="card-title mb-4">Task Information</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Task Name</span>
-                                        </label>
-                                        <div className="text-lg">{task.name}</div>
-                                    </div>
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Project</span>
-                                        </label>
-                                        <Link 
-                                            href={`/dashboard/projects/${task.project_id}`} 
-                                            className="text-lg text-primary hover:underline"
-                                        >
-                                            {project?.name || "Unknown Project"}
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Assigned To</span>
-                                        </label>
-                                        <div className="text-lg">{assignedCrew?.name || "Unassigned"}</div>
-                                    </div>
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Status</span>
-                                        </label>
-                                        <div className={`badge ${getStatusBadgeColor(task.status)} badge-lg`}>
-                                            {formatStatus(task.status)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Priority</span>
-                                        </label>
-                                        <div className={`badge ${getPriorityBadgeColor(task.priority)} badge-lg`}>
-                                            {formatPriority(task.priority)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text font-medium">Progress</span>
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <progress className="progress progress-primary w-32" value={task.progress || 0} max="100"></progress>
-                                            <span className="text-lg">{task.progress || 0}%</span>
-                                        </div>
-                                    </div>
-                                    {task.start_date && (
-                                        <div>
-                                            <label className="label">
-                                                <span className="label-text font-medium">Start Date</span>
-                                            </label>
-                                            <div className="text-lg">{formatDate(task.start_date)}</div>
-                                        </div>
-                                    )}
-                                    {task.end_date && (
-                                        <div>
-                                            <label className="label">
-                                                <span className="label-text font-medium">Due Date</span>
-                                            </label>
-                                            <div className="text-lg">{formatDate(task.end_date)}</div>
-                                        </div>
-                                    )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <h2 className="card-title mb-4">Task Information</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Task Name</span>
+                                    </label>
+                                    <div className="text-lg">{task.name}</div>
                                 </div>
-                                {task.description && (
-                                    <div className="mt-4">
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Project</span>
+                                    </label>
+                                    <Link 
+                                        href={`/dashboard/projects/${task.project_id}`} 
+                                        className="text-lg text-primary hover:underline"
+                                    >
+                                        {project?.name || "Unknown Project"}
+                                    </Link>
+                                </div>
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Assigned To</span>
+                                    </label>
+                                    <div className="text-lg">{assignedCrew?.name || "Unassigned"}</div>
+                                </div>
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Status</span>
+                                    </label>
+                                    <div className={`badge ${getStatusBadgeColor(task.status)} badge-lg`}>
+                                        {formatStatus(task.status)}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Priority</span>
+                                    </label>
+                                    <div className={`badge ${getPriorityBadgeColor(task.priority)} badge-lg`}>
+                                        {formatPriority(task.priority)}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="label">
+                                        <span className="label-text font-medium">Progress</span>
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <progress className="progress progress-primary w-32" value={task.progress || 0} max="100"></progress>
+                                        <span className="text-lg">{task.progress || 0}%</span>
+                                    </div>
+                                </div>
+                                {task.start_date && (
+                                    <div>
                                         <label className="label">
-                                            <span className="label-text font-medium">Description</span>
+                                            <span className="label-text font-medium">Start Date</span>
                                         </label>
-                                        <div className="text-base-content/80">{task.description}</div>
+                                        <div className="text-lg">{formatDate(task.start_date)}</div>
+                                    </div>
+                                )}
+                                {task.end_date && (
+                                    <div>
+                                        <label className="label">
+                                            <span className="label-text font-medium">Due Date</span>
+                                        </label>
+                                        <div className="text-lg">{formatDate(task.end_date)}</div>
                                     </div>
                                 )}
                             </div>
+                            {task.description && (
+                                <div className="mt-4">
+                                    <label className="label">
+                                        <span className="label-text font-medium">Description</span>
+                                    </label>
+                                    <div className="text-base-content/80">{task.description}</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card-body">
+                            <h3 className="card-title text-lg mb-4">Quick Actions</h3>
+                            <div className="space-y-2">
+                                <button 
+                                    className="btn btn-sm btn-outline w-full"
+                                    onClick={() => handleUpdateTask({ status: "in_progress" })}
+                                    disabled={task.status === "in_progress"}
+                                >
+                                    Start Task
+                                </button>
+                                <button 
+                                    className="btn btn-sm btn-success w-full"
+                                    onClick={() => handleUpdateTask({ status: "completed", progress: 100 })}
+                                    disabled={task.status === "completed"}
+                                >
+                                    Mark Complete
+                                </button>
+                                <Link 
+                                    href={`/dashboard/projects/${task.project_id}`} 
+                                    className="btn btn-sm btn-ghost w-full"
+                                >
+                                    View Project
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                    {task.created_at && (
+                        <div className="card bg-base-100 shadow-sm">
                             <div className="card-body">
-                                <h3 className="card-title text-lg mb-4">Quick Actions</h3>
-                                <div className="space-y-2">
-                                    <button 
-                                        className="btn btn-sm btn-outline w-full"
-                                        onClick={() => handleUpdateTask({ status: "in_progress" })}
-                                        disabled={task.status === "in_progress"}
-                                    >
-                                        Start Task
-                                    </button>
-                                    <button 
-                                        className="btn btn-sm btn-success w-full"
-                                        onClick={() => handleUpdateTask({ status: "completed", progress: 100 })}
-                                        disabled={task.status === "completed"}
-                                    >
-                                        Mark Complete
-                                    </button>
-                                    <Link 
-                                        href={`/dashboard/projects/${task.project_id}`} 
-                                        className="btn btn-sm btn-ghost w-full"
-                                    >
-                                        View Project
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-                        {task.created_at && (
-                            <div className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <h3 className="card-title text-lg mb-4">Task Details</h3>
-                                    <div className="space-y-2 text-sm">
+                                <h3 className="card-title text-lg mb-4">Task Details</h3>
+                                <div className="space-y-2 text-sm">
+                                    <div>
+                                        <span className="text-base-content/70">Created:</span>
+                                        <div>{formatDate(task.created_at)}</div>
+                                    </div>
+                                    {task.updated_at && (
                                         <div>
-                                            <span className="text-base-content/70">Created:</span>
-                                            <div>{formatDate(task.created_at)}</div>
+                                            <span className="text-base-content/70">Last Updated:</span>
+                                            <div>{formatDate(task.updated_at)}</div>
                                         </div>
-                                        {task.updated_at && (
-                                            <div>
-                                                <span className="text-base-content/70">Last Updated:</span>
-                                                <div>{formatDate(task.updated_at)}</div>
-                                            </div>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Subtasks Tab */}
-            {activeTab === "subtasks" && (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Subtasks</h3>
-                        <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => setIsAddingSubtask(true)}
-                        >
-                            <i className="fas fa-plus mr-2"></i> Add Subtask
-                        </button>
-                    </div>
-
-                    <div className="grid gap-4">
-                        {subtasks.map((subtask) => (
-                            <div key={subtask.id} className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            <h4 className="font-semibold">{subtask.name}</h4>
-                                            {subtask.description && (
-                                                <p className="text-base-content/70 text-sm mt-1">{subtask.description}</p>
-                                            )}
-                                            <div className="flex gap-2 mt-2">
-                                                <div className={`badge ${getStatusBadgeColor(subtask.status || "not_started")}`}>
-                                                    {formatStatus(subtask.status || "not_started")}
-                                                </div>
-                                                {subtask.assigned_to && crewMap[subtask.assigned_to] && (
-                                                    <div className="badge badge-outline">
-                                                        {crewMap[subtask.assigned_to].name}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                className="btn btn-sm btn-ghost"
-                                                onClick={() => setEditingSubtask(subtask)}
-                                            >
-                                                <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button 
-                                                className="btn btn-sm btn-ghost text-error"
-                                                onClick={() => handleDeleteSubtask(subtask.id)}
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {subtasks.length === 0 && (
-                            <div className="text-center py-8 text-base-content/50">
-                                No subtasks yet. Add one to break down this task into smaller pieces.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Notes Tab */}
-            {activeTab === "notes" && (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Notes</h3>
-                        <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => setIsAddingNote(true)}
-                        >
-                            <i className="fas fa-plus mr-2"></i> Add Note
-                        </button>
-                    </div>
-
-                    <div className="space-y-4">
-                        {taskNotes.map((note) => (
-                            <div key={note.id} className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            {editingNote?.id === note.id ? (
-                                                <div className="space-y-2">
-                                                    <textarea 
-                                                        className="textarea textarea-bordered w-full"
-                                                        value={editingNote.content}
-                                                        onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
-                                                        rows={3}
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <button 
-                                                            className="btn btn-sm btn-primary"
-                                                            onClick={() => handleUpdateNote(note.id, editingNote.content)}
-                                                        >
-                                                            Save
-                                                        </button>
-                                                        <button 
-                                                            className="btn btn-sm btn-ghost"
-                                                            onClick={() => setEditingNote(null)}
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <p className="whitespace-pre-wrap">{note.content}</p>
-                                                    {note.created_at && (
-                                                        <p className="text-xs text-base-content/50 mt-2">
-                                                            {formatDate(note.created_at)}
-                                                        </p>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                        {editingNote?.id !== note.id && (
-                                            <div className="flex gap-2">
-                                                <button 
-                                                    className="btn btn-sm btn-ghost"
-                                                    onClick={() => setEditingNote(note)}
-                                                >
-                                                    <i className="fas fa-edit"></i>
-                                                </button>
-                                                <button 
-                                                    className="btn btn-sm btn-ghost text-error"
-                                                    onClick={() => handleDeleteNote(note.id)}
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {taskNotes.length === 0 && (
-                            <div className="text-center py-8 text-base-content/50">
-                                No notes yet. Add notes to track progress, issues, or important information.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Dependencies Tab */}
-            {activeTab === "dependencies" && (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Task Dependencies</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                        {taskDependencies.map((dependency) => (
-                            <div key={dependency.id} className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <p className="font-medium">
-                                                {dependency.task_id === task.id ? "This task depends on:" : "This task is a dependency for:"}
-                                            </p>
-                                            <p className="text-base-content/70">
-                                                Task ID: {dependency.task_id === task.id ? dependency.depends_on_task_id : dependency.task_id}
-                                            </p>
-                                        </div>
-                                        <button 
-                                            className="btn btn-sm btn-ghost text-error"
-                                            onClick={() => deleteTaskDependency(dependency.id)}
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {taskDependencies.length === 0 && (
-                            <div className="text-center py-8 text-base-content/50">
-                                No dependencies configured for this task.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Add Note Modal */}
-            {isAddingNote && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Add Note</h3>
-                        <div className="space-y-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Note</span>
-                                </label>
-                                <textarea 
-                                    className="textarea textarea-bordered"
-                                    placeholder="Enter your note..."
-                                    value={newNoteText}
-                                    onChange={(e) => setNewNoteText(e.target.value)}
-                                    rows={4}
-                                />
-                            </div>
                         </div>
-                        <div className="modal-action">
-                            <button className="btn btn-ghost" onClick={() => setIsAddingNote(false)}>
-                                Cancel
-                            </button>
-                            <button className="btn btn-primary" onClick={handleAddNote}>
-                                Add Note
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
-            )}
-
-            {/* Add Subtask Modal */}
-            {isAddingSubtask && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Add Subtask</h3>
-                        <div className="space-y-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Subtask Name</span>
-                                </label>
-                                <input 
-                                    type="text"
-                                    className="input input-bordered"
-                                    placeholder="Enter subtask name..."
-                                    value={newSubtaskName}
-                                    onChange={(e) => setNewSubtaskName(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Description (Optional)</span>
-                                </label>
-                                <textarea 
-                                    className="textarea textarea-bordered"
-                                    placeholder="Enter description..."
-                                    value={newSubtaskDescription}
-                                    onChange={(e) => setNewSubtaskDescription(e.target.value)}
-                                    rows={3}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Status</span>
-                                </label>
-                                <select 
-                                    className="select select-bordered"
-                                    value={newSubtaskStatus}
-                                    onChange={(e) => setNewSubtaskStatus(e.target.value)}
-                                >
-                                    <option value="not_started">Not Started</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="on_hold">On Hold</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Assigned To (Optional)</span>
-                                </label>
-                                <select 
-                                    className="select select-bordered"
-                                    value={newSubtaskAssignedTo}
-                                    onChange={(e) => setNewSubtaskAssignedTo(e.target.value)}
-                                >
-                                    <option value="">Select crew member...</option>
-                                    {crews.map((crew) => (
-                                        <option key={crew.id} value={crew.id}>
-                                            {crew.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="modal-action">
-                            <button className="btn btn-ghost" onClick={() => setIsAddingSubtask(false)}>
-                                Cancel
-                            </button>
-                            <button 
-                                className="btn btn-primary" 
-                                onClick={handleAddSubtask}
-                                disabled={!newSubtaskName.trim()}
-                            >
-                                Add Subtask
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            </div>
 
             {/* Edit Task Modal */}
             {isEditing && (
-               <TaskEditModal 
-                    isOpen={isEditing} 
-                    onClose={() => setIsEditing(false)} 
-                    task={task} 
-                    projects={projects}
-                    crews={crews}
-                    onUpdate={handleUpdateTask}
-                />
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-2xl">
+                        <h3 className="font-bold text-lg mb-4">Edit Task</h3>
+                        <p className="text-base-content/70">Task editing modal coming soon. For now, use the quick actions or project detail pages to update tasks.</p>
+                        <div className="modal-action">
+                            <button className="btn btn-ghost" onClick={() => setIsEditing(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                    <div className="modal-backdrop" onClick={() => setIsEditing(false)}></div>
+                </div>
             )}
         </div>
     )

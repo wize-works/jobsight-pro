@@ -45,12 +45,9 @@ export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
 export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | null> => {
     const { business } = await withBusinessServer();
 
-    // Remove priority field if it exists since it's not in the database schema
-    const { priority, ...subtaskData } = subtask as any;
-    
-    const processedSubtask = await applyCreated<SubtaskInsert>(subtaskData);
+    subtask = await applyCreated<SubtaskInsert>(subtask);
 
-    const { data, error } = await insertWithBusiness("subtasks", processedSubtask, business.id);
+    const { data, error } = await insertWithBusiness("subtasks", subtask, business.id);
 
     if (error) {
         console.error("Error creating subtask:", error);

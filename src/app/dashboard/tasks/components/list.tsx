@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, SetStateAction } from "react"
@@ -8,7 +9,6 @@ import { Task, TaskInsert, TaskStatus } from "@/types/tasks"
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
 import toast from "react-hot-toast"
-import TaskEditModal from "./modal-edit"
 
 interface TasksComponentProps {
     tasks: Task[]
@@ -26,9 +26,6 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
     const [assigneeFilter, setAssigneeFilter] = useState("All")
     const [priorityFilter, setPriorityFilter] = useState("All")
     const [showAddTaskModal, setShowAddTaskModal] = useState(false)
-    const [showEditTaskModal, setShowEditTaskModal] = useState(false)
-    const [editingTask, setEditingTask] = useState<Task | null>(null)
-    const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [sortBy, setSortBy] = useState("end_date")
     const [sortOrder, setSortOrder] = useState("asc")
 
@@ -186,31 +183,17 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
         }
     }
 
-    const handleEditTask = (task: Task) => {
-        setEditingTask(task)
-        setShowEditTaskModal(true)
-    }
-
-    const handleEditTaskSave = (updatedTask: Task) => {
-        setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task))
-        setShowEditTaskModal(false)
-        setEditingTask(null)
-        toast.success("Task updated successfully")
-    }
-
+    // Handle task deletion
     const handleDeleteTask = async (taskId: string) => {
-        if (!confirm("Are you sure you want to delete this task?")) return
-
-        setIsDeleting(taskId)
-        try {
-            await deleteTask(taskId)
-            setTasks(tasks.filter(task => task.id !== taskId))
-            toast.success("Task deleted successfully")
-        } catch (error) {
-            console.error("Error deleting task:", error)
-            toast.error("Failed to delete task")
-        } finally {
-            setIsDeleting(null)
+        if (confirm("Are you sure you want to delete this task?")) {
+            try {
+                await deleteTask(taskId)
+                setTasks(prev => prev.filter(task => task.id !== taskId))
+                toast.success("Task deleted successfully!")
+            } catch (error) {
+                console.error("Error deleting task:", error)
+                toast.error("Failed to delete task")
+            }
         }
     }
 
@@ -411,43 +394,19 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="dropdown dropdown-end">
-                                                <label tabIndex={0} className="btn btn-ghost btn-xs">
-                                                    <i className="fas fa-ellipsis-v"></i>
-                                                </label>
-                                                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
-                                                    <li>
-                                                        <Link href={`/dashboard/tasks/${task.id}`}>
-                                                            <i className="fas fa-eye mr-2"></i>
-                                                            View Details
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <button onClick={() => handleEditTask(task)}>
-                                                            <i className="fas fa-edit mr-2"></i>
-                                                            Edit
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="text-error"
-                                                            onClick={() => handleDeleteTask(task.id)}
-                                                            disabled={isDeleting === task.id}
-                                                        >
-                                                            {isDeleting === task.id ? (
-                                                                <>
-                                                                    <span className="loading loading-spinner loading-xs mr-2"></span>
-                                                                    Deleting...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <i className="fas fa-trash mr-2"></i>
-                                                                    Delete
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    </li>
-                                                </ul>
+                                            <div className="flex gap-2">
+                                                <Link href={`/dashboard/tasks/${task.id}`} className="btn btn-ghost btn-xs">
+                                                    <i className="fas fa-eye"></i>
+                                                </Link>
+                                                <button className="btn btn-ghost btn-xs">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button 
+                                                    className="btn btn-ghost btn-xs text-error"
+                                                    onClick={() => handleDeleteTask(task.id)}
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -467,12 +426,12 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 </div>
             </div>
 
-            {/* Add Task Modal */}
+            {/* Add Task Modal - Simplified for now */}
             {showAddTaskModal && (
                 <div className="modal modal-open">
-                    <div className="modal-box max-w-2xl">
+                    <div className="modal-box max-w-3xl">
                         <h3 className="font-bold text-lg mb-4">Add New Task</h3>
-                        <p className="text-base-content/70">Task creation modal coming soon. For now, use the project detail pages to create new tasks.</p>
+                        <p className="text-base-content/70">Task creation modal coming soon. For now, use the project detail pages to create tasks.</p>
                         <div className="modal-action">
                             <button className="btn btn-ghost" onClick={() => setShowAddTaskModal(false)}>
                                 Close
@@ -481,20 +440,6 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     </div>
                     <div className="modal-backdrop" onClick={() => setShowAddTaskModal(false)}></div>
                 </div>
-            )}
-
-            {/* Edit Task Modal */}
-            {showEditTaskModal && editingTask && (
-                <TaskEditModal
-                    onClose={() => {
-                        setShowEditTaskModal(false)
-                        setEditingTask(null)
-                    }}
-                    task={editingTask}
-                    onSave={handleEditTaskSave}
-                    projects={projects}
-                    crews={crews}
-                />
             )}
         </div>
     )

@@ -1,11 +1,6 @@
 "use server";
 
-import {
-    fetchByBusiness,
-    deleteWithBusinessCheck,
-    updateWithBusinessCheck,
-    insertWithBusiness,
-} from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { TaskNote, TaskNoteInsert, TaskNoteUpdate } from "@/types/task-notes";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
@@ -28,17 +23,12 @@ export const getTaskNotes = async (): Promise<TaskNote[]> => {
     }
 
     return data as unknown as TaskNote[];
-};
+}
 
 export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness(
-        "task_notes",
-        business.id,
-        "*",
-        { filter: { id: id } },
-    );
+    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching task note by ID:", error);
@@ -52,19 +42,12 @@ export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
     return null;
 };
 
-export const createTaskNote = async (
-    note: TaskNoteInsert,
-): Promise<TaskNote | null> => {
-    const { business, userId } = await withBusinessServer();
+export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | null> => {
+    const { business } = await withBusinessServer();
 
     note = await applyCreated<TaskNoteInsert>(note);
-    note.author = userId; // Set the author to the current Kinde user ID
 
-    const { data, error } = await insertWithBusiness(
-        "task_notes",
-        note,
-        business.id,
-    );
+    const { data, error } = await insertWithBusiness("task_notes", note, business.id);
 
     if (error) {
         console.error("Error creating task note:", error);
@@ -72,22 +55,14 @@ export const createTaskNote = async (
     }
 
     return data as unknown as TaskNote;
-};
+}
 
-export const updateTaskNote = async (
-    id: string,
-    note: TaskNoteUpdate,
-): Promise<TaskNote | null> => {
+export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<TaskNote | null> => {
     const { business } = await withBusinessServer();
 
     note = await applyUpdated<TaskNoteUpdate>(note);
 
-    const { data, error } = await updateWithBusinessCheck(
-        "task_notes",
-        id,
-        note,
-        business.id,
-    );
+    const { data, error } = await updateWithBusinessCheck("task_notes", id, note, business.id);
 
     if (error) {
         console.error("Error updating task note:", error);
@@ -95,16 +70,12 @@ export const updateTaskNote = async (
     }
 
     return data as unknown as TaskNote;
-};
+}
 
 export const deleteTaskNote = async (id: string): Promise<boolean> => {
     const { business } = await withBusinessServer();
 
-    const { error } = await deleteWithBusinessCheck(
-        "task_notes",
-        id,
-        business.id,
-    );
+    const { error } = await deleteWithBusinessCheck("task_notes", id, business.id);
 
     if (error) {
         console.error("Error deleting task note:", error);
@@ -112,22 +83,19 @@ export const deleteTaskNote = async (id: string): Promise<boolean> => {
     }
 
     return true;
-};
+}
 
 export const searchTaskNotes = async (query: string): Promise<TaskNote[]> => {
     const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness(
-        "task_notes",
-        business.id,
-        "*",
-        {
-            filter: {
-                or: [{ content: { ilike: `%${query}%` } }],
-            },
-            orderBy: { column: "id", ascending: true },
+    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", {
+        filter: {
+            or: [
+                { note: { ilike: `%${query}%` } },
+            ],
         },
-    );
+        orderBy: { column: "id", ascending: true },
+    });
 
     if (error) {
         console.error("Error searching task notes:", error);
