@@ -340,13 +340,16 @@ export default function EditModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-y-auto">
-            <div className="bg-base-100 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="modal modal-open">
+            <div className="modal-box w-full max-w-4xl max-h-[90vh] p-0">
                 {/* Modal Header */}
-                <div className="bg-base-200 p-4 flex justify-between items-center">
-                    <h2 className="text-xl font-bold">Edit Daily Log</h2>
+                <div className="flex justify-between items-center p-6 border-b border-base-300">
+                    <h2 className="text-xl font-bold text-base-content">
+                        <i className="far fa-edit mr-2 text-primary"></i>
+                        Edit Daily Log
+                    </h2>
                     <button
-                        className="btn btn-sm btn-circle"
+                        className="btn btn-sm btn-circle btn-ghost"
                         onClick={onClose}
                     >
                         <i className="far fa-times"></i>
@@ -354,13 +357,13 @@ export default function EditModal({
                 </div>
 
                 {/* Modal Body */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-6">
                     <form onSubmit={handleSubmit}>
                         {/* Tabs */}
-                        <div className="tabs tabs-boxed mb-4">
+                        <div className="tabs tabs-lifted mb-6">
                             <button
                                 type="button"
-                                className={`tab ${activeTab === "general" ? "tab-active" : ""}`}
+                                className={`tab tab-lg ${activeTab === "general" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("general")}
                             >
                                 <i className="far fa-clipboard-list fa-fw mr-2"></i>
@@ -368,7 +371,7 @@ export default function EditModal({
                             </button>
                             <button
                                 type="button"
-                                className={`tab ${activeTab === "materials" ? "tab-active" : ""}`}
+                                className={`tab tab-lg ${activeTab === "materials" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("materials")}
                             >
                                 <i className="far fa-boxes fa-fw mr-2"></i>
@@ -376,7 +379,7 @@ export default function EditModal({
                             </button>
                             <button
                                 type="button"
-                                className={`tab ${activeTab === "equipment" ? "tab-active" : ""}`}
+                                className={`tab tab-lg ${activeTab === "equipment" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("equipment")}
                             >
                                 <i className="far fa-truck-container fa-fw mr-2"></i>
@@ -384,7 +387,7 @@ export default function EditModal({
                             </button>
                             <button
                                 type="button"
-                                className={`tab ${activeTab === "notes" ? "tab-active" : ""}`}
+                                className={`tab tab-lg ${activeTab === "notes" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("notes")}
                             >
                                 <i className="far fa-sticky-note fa-fw mr-2"></i>
@@ -394,41 +397,42 @@ export default function EditModal({
 
                         {/* General Tab */}
                         {activeTab === "general" && (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Date</span>
+                                            <span className="label-text font-semibold">Date</span>
                                         </label>
                                         <input
                                             type="date"
                                             name="date"
                                             value={formData.date}
                                             onChange={handleInputChange}
-                                            className="input input-bordered"
+                                            className="input input-bordered w-full"
                                             required
                                         />
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Hours Worked</span>
+                                            <span className="label-text font-semibold">Hours Worked</span>
                                         </label>
                                         <input
                                             type="number"
                                             name="hours_worked"
                                             value={formData.hours_worked}
                                             onChange={handleNumberInputChange}
-                                            className="input input-bordered"
+                                            className="input input-bordered w-full"
                                             min="0"
                                             step="0.5"
+                                            placeholder="8.0"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Project</span>
+                                            <span className="label-text font-semibold">Project</span>
                                         </label>
                                         <select
                                             name="project_id"
@@ -447,7 +451,7 @@ export default function EditModal({
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Crew</span>
+                                            <span className="label-text font-semibold">Crew</span>
                                         </label>
                                         <select
                                             name="crew_id"
@@ -467,55 +471,55 @@ export default function EditModal({
 
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Work Completed</span>
+                                        <span className="label-text font-semibold">Work Completed</span>
                                     </label>
                                     <textarea
                                         name="work_completed"
                                         value={formData.work_completed}
                                         onChange={handleInputChange}
-                                        className="textarea textarea-bordered h-24"
-                                        placeholder="Describe the work completed"
+                                        className="textarea textarea-bordered h-32 w-full"
+                                        placeholder="Describe the work completed today..."
                                         required
                                     ></textarea>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Safety Concerns</span>
+                                            <span className="label-text font-semibold">Safety Concerns</span>
                                         </label>
                                         <textarea
                                             name="safety"
                                             value={formData.safety}
                                             onChange={handleInputChange}
-                                            className="textarea textarea-bordered h-24"
-                                            placeholder="Any safety concerns or incidents"
+                                            className="textarea textarea-bordered h-32 w-full"
+                                            placeholder="Any safety concerns or incidents..."
                                         ></textarea>
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Quality Assessment</span>
+                                            <span className="label-text font-semibold">Quality Assessment</span>
                                         </label>
                                         <textarea
                                             name="quality"
                                             value={formData.quality}
                                             onChange={handleInputChange}
-                                            className="textarea textarea-bordered h-24"
-                                            placeholder="Quality assessment notes"
+                                            className="textarea textarea-bordered h-32 w-full"
+                                            placeholder="Quality assessment notes..."
                                         ></textarea>
                                     </div>
                                 </div>
 
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Delays</span>
+                                        <span className="label-text font-semibold">Delays</span>
                                     </label>
                                     <textarea
                                         name="delays"
                                         value={formData.delays}
                                         onChange={handleInputChange}
-                                        className="textarea textarea-bordered h-24"
-                                        placeholder="Any delays or setbacks"
+                                        className="textarea textarea-bordered h-32 w-full"
+                                        placeholder="Any delays or setbacks..."
                                     ></textarea>
                                 </div>
                             </div>
@@ -523,34 +527,40 @@ export default function EditModal({
 
                         {/* Materials Tab */}
                         {activeTab === "materials" && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold">Materials Used</h3>
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-base-content">Materials Used</h3>
+                                        <p className="text-sm text-base-content/70">Track materials consumed during this work day</p>
+                                    </div>
                                     <button
                                         type="button"
-                                        className="btn btn-primary btn-sm"
+                                        className="btn btn-primary btn-sm gap-2"
                                         onClick={addMaterial}
                                     >
-                                        <i className="far fa-plus mr-2"></i>
+                                        <i className="far fa-plus"></i>
                                         Add Material
                                     </button>
                                 </div>
 
                                 {materials.length === 0 ? (
                                     <div className="alert alert-info">
-                                        <i className="far fa-info-circle mr-2"></i>
-                                        No materials added yet. Click "Add Material" to add materials used in this log.
+                                        <i className="far fa-info-circle"></i>
+                                        <span>No materials added yet. Click "Add Material" to track materials used in this log.</span>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {materials.map((material, index) => (
-                                            <div key={material.id} className="card bg-base-200 shadow-sm">
-                                                <div className="card-body">
-                                                    <div className="flex justify-between">
-                                                        <h4 className="font-semibold">Material #{index + 1}</h4>
+                                            <div key={material.id} className="card bg-base-100 border border-base-300 shadow-sm">
+                                                <div className="card-body p-4">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                                            <h4 className="font-semibold text-base-content">Material #{index + 1}</h4>
+                                                        </div>
                                                         <button
                                                             type="button"
-                                                            className="btn btn-sm btn-square btn-ghost text-error"
+                                                            className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
                                                             onClick={() => removeMaterial(index)}
                                                         >
                                                             <i className="far fa-trash-alt"></i>
@@ -560,28 +570,28 @@ export default function EditModal({
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Material Name</span>
+                                                                <span className="label-text font-medium">Material Name</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={material.name || ""}
                                                                 onChange={(e) => handleMaterialChange(index, "name", e.target.value)}
-                                                                className="input input-bordered"
-                                                                placeholder="e.g., Concrete, Lumber, etc."
+                                                                className="input input-bordered w-full"
+                                                                placeholder="e.g., Concrete, Lumber, Rebar..."
                                                                 required
                                                             />
                                                         </div>
 
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Cost Per Unit ($)</span>
+                                                                <span className="label-text font-medium">Cost Per Unit ($)</span>
                                                             </label>
                                                             <input
                                                                 type="number"
                                                                 value={material.cost_per_unit || ""}
                                                                 onChange={(e) => handleMaterialChange(index, "cost_per_unit", e.target.value)}
-                                                                className="input input-bordered"
-                                                                placeholder="Unit cost"
+                                                                className="input input-bordered w-full"
+                                                                placeholder="0.00"
                                                                 step="0.01"
                                                                 min="0"
                                                             />
@@ -591,14 +601,14 @@ export default function EditModal({
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Quantity</span>
+                                                                <span className="label-text font-medium">Quantity</span>
                                                             </label>
                                                             <input
                                                                 type="number"
                                                                 value={material.quantityValue}
                                                                 onChange={(e) => handleMaterialChange(index, "quantityValue", e.target.value)}
-                                                                className="input input-bordered"
-                                                                placeholder="Amount"
+                                                                className="input input-bordered w-full"
+                                                                placeholder="0"
                                                                 min="0"
                                                                 step="0.01"
                                                             />
@@ -606,22 +616,23 @@ export default function EditModal({
 
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Unit</span>
+                                                                <span className="label-text font-medium">Unit</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={material.quantityUnit || ""}
                                                                 onChange={(e) => handleMaterialChange(index, "quantityUnit", e.target.value)}
-                                                                className="input input-bordered"
+                                                                className="input input-bordered w-full"
                                                                 placeholder="e.g., pieces, yards, tons"
                                                             />
                                                         </div>
                                                     </div>
 
-                                                    <div className="mt-2 p-2 bg-base-100 rounded-md">
+                                                    <div className="divider my-2"></div>
+                                                    <div className="bg-base-200 p-3 rounded-lg">
                                                         <div className="flex justify-between items-center">
-                                                            <span className="font-semibold">Total Cost:</span>
-                                                            <span className="text-lg">
+                                                            <span className="font-semibold text-base-content">Total Cost:</span>
+                                                            <span className="text-lg font-bold text-primary">
                                                                 ${((material.quantityValue || 0) * (material.cost_per_unit || 0)).toFixed(2)}
                                                             </span>
                                                         </div>
@@ -636,34 +647,40 @@ export default function EditModal({
 
                         {/* Equipment Tab */}
                         {activeTab === "equipment" && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold">Equipment Used</h3>
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-base-content">Equipment Used</h3>
+                                        <p className="text-sm text-base-content/70">Track equipment usage and hours worked</p>
+                                    </div>
                                     <button
                                         type="button"
-                                        className="btn btn-primary btn-sm"
+                                        className="btn btn-primary btn-sm gap-2"
                                         onClick={addEquipment}
                                     >
-                                        <i className="far fa-plus mr-2"></i>
+                                        <i className="far fa-plus"></i>
                                         Add Equipment
                                     </button>
                                 </div>
 
                                 {equipment.length === 0 ? (
                                     <div className="alert alert-info">
-                                        <i className="far fa-info-circle mr-2"></i>
-                                        No equipment added yet. Click "Add Equipment" to add equipment used in this log.
+                                        <i className="far fa-info-circle"></i>
+                                        <span>No equipment added yet. Click "Add Equipment" to track equipment used in this log.</span>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {equipment.map((equip, index) => (
-                                            <div key={equip.id} className="card bg-base-200 shadow-sm">
-                                                <div className="card-body">
-                                                    <div className="flex justify-between">
-                                                        <h4 className="font-semibold">Equipment #{index + 1}</h4>
+                                            <div key={equip.id} className="card bg-base-100 border border-base-300 shadow-sm">
+                                                <div className="card-body p-4">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                                                            <h4 className="font-semibold text-base-content">Equipment #{index + 1}</h4>
+                                                        </div>
                                                         <button
                                                             type="button"
-                                                            className="btn btn-sm btn-square btn-ghost text-error"
+                                                            className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
                                                             onClick={() => removeEquipment(index)}
                                                         >
                                                             <i className="far fa-trash-alt"></i>
@@ -673,28 +690,28 @@ export default function EditModal({
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Equipment Name</span>
+                                                                <span className="label-text font-medium">Equipment Name</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={equip.name || ""}
                                                                 onChange={(e) => handleEquipmentChange(index, "name", e.target.value)}
-                                                                className="input input-bordered"
-                                                                placeholder="e.g., Excavator, Bulldozer, etc."
+                                                                className="input input-bordered w-full"
+                                                                placeholder="e.g., Excavator, Bulldozer, Crane..."
                                                                 required
                                                             />
                                                         </div>
 
                                                         <div className="form-control">
                                                             <label className="label">
-                                                                <span className="label-text">Hours Used</span>
+                                                                <span className="label-text font-medium">Hours Used</span>
                                                             </label>
                                                             <input
                                                                 type="number"
                                                                 value={equip.hours || ""}
                                                                 onChange={(e) => handleEquipmentChange(index, "hours", e.target.value)}
-                                                                className="input input-bordered"
-                                                                placeholder="Hours"
+                                                                className="input input-bordered w-full"
+                                                                placeholder="0.0"
                                                                 min="0"
                                                                 step="0.5"
                                                             />
@@ -710,36 +727,43 @@ export default function EditModal({
 
                         {/* Notes Tab */}
                         {activeTab === "notes" && (
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Additional Notes</span>
-                                </label>
-                                <textarea
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleInputChange}
-                                    className="textarea textarea-bordered h-64"
-                                    placeholder="Any additional notes or comments"
-                                ></textarea>
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-base-content mb-2">Additional Notes</h3>
+                                    <p className="text-sm text-base-content/70">Add any additional observations, comments, or important details</p>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">Notes</span>
+                                    </label>
+                                    <textarea
+                                        name="notes"
+                                        value={formData.notes}
+                                        onChange={handleInputChange}
+                                        className="textarea textarea-bordered h-64 w-full"
+                                        placeholder="Any additional notes, observations, or important details about today's work..."
+                                    ></textarea>
+                                </div>
                             </div>
                         )}
 
                         {error && (
-                            <div className="alert alert-error mt-4">
-                                <i className="far fa-exclamation-triangle mr-2"></i>
-                                {error}
+                            <div className="alert alert-error mt-6">
+                                <i className="far fa-exclamation-triangle"></i>
+                                <span>{error}</span>
                             </div>
                         )}
                     </form>
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-base-200 p-4 flex justify-end space-x-2">
+                <div className="modal-action p-6 border-t border-base-300">
                     <button
                         className="btn btn-outline"
                         onClick={onClose}
                         disabled={loading}
                     >
+                        <i className="far fa-times mr-2"></i>
                         Cancel
                     </button>
                     <button
