@@ -164,7 +164,7 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
         try {
             const newNote = await createTaskNote({
                 task_id: task.id,
-                note: newNoteText,
+                content: newNoteText,
                 business_id: task.business_id
             })
             if (newNote) {
@@ -181,7 +181,7 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
 
     const handleUpdateNote = async (noteId: string, noteText: string) => {
         try {
-            const updatedNote = await updateTaskNote(noteId, { note: noteText })
+            const updatedNote = await updateTaskNote(noteId, { content: noteText })
             if (updatedNote) {
                 setTaskNotes(taskNotes.map(note => note.id === noteId ? updatedNote : note))
                 setEditingNote(null)
@@ -547,14 +547,14 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                                                 <div className="space-y-2">
                                                     <textarea 
                                                         className="textarea textarea-bordered w-full"
-                                                        value={editingNote.note}
-                                                        onChange={(e) => setEditingNote({ ...editingNote, note: e.target.value })}
+                                                        value={editingNote.content}
+                                                        onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
                                                         rows={3}
                                                     />
                                                     <div className="flex gap-2">
                                                         <button 
                                                             className="btn btn-sm btn-primary"
-                                                            onClick={() => handleUpdateNote(note.id, editingNote.note)}
+                                                            onClick={() => handleUpdateNote(note.id, editingNote.content)}
                                                         >
                                                             Save
                                                         </button>
@@ -568,7 +568,7 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <p className="whitespace-pre-wrap">{note.note}</p>
+                                                    <p className="whitespace-pre-wrap">{note.content}</p>
                                                     {note.created_at && (
                                                         <p className="text-xs text-base-content/50 mt-2">
                                                             {formatDate(note.created_at)}

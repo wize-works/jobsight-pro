@@ -91,7 +91,7 @@ export const searchTaskNotes = async (query: string): Promise<TaskNote[]> => {
     const { data, error } = await fetchByBusiness("task_notes", business.id, "*", {
         filter: {
             or: [
-                { note: { ilike: `%${query}%` } },
+                { content: { ilike: `%${query}%` } },
             ],
         },
         orderBy: { column: "id", ascending: true },
