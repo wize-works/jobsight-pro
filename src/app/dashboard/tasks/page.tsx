@@ -3,8 +3,6 @@ import TasksComponent from "./components/list";
 import { getTasks } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
-import { SetStateAction } from "react";
-import Link from "next/link";
 
 export default async function TasksPage() {
     try {

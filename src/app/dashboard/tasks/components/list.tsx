@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, SetStateAction } from "react"
+import { useState, useEffect, useMemo, SetStateAction } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createTask, updateTask, deleteTask } from "@/app/actions/tasks"
@@ -35,16 +35,20 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
     const inProgressTasks = tasks.filter((task) => task.status === "in_progress").length
     const notStartedTasks = tasks.filter((task) => task.status === "not_started").length
 
-    // Create project and crew lookup maps
-    const projectMap = projects.reduce((acc, project) => {
-        acc[project.id] = project.name
-        return acc
-    }, {} as Record<string, string>)
+    // Create project and crew lookup maps using useMemo to prevent recreation on every render
+    const projectMap = useMemo(() => {
+        return projects.reduce((acc, project) => {
+            acc[project.id] = project.name
+            return acc
+        }, {} as Record<string, string>)
+    }, [projects])
 
-    const crewMap = crews.reduce((acc, crew) => {
-        acc[crew.id] = crew.name
-        return acc
-    }, {} as Record<string, string>)
+    const crewMap = useMemo(() => {
+        return crews.reduce((acc, crew) => {
+            acc[crew.id] = crew.name
+            return acc
+        }, {} as Record<string, string>)
+    }, [crews])
 
     // Apply filters
     useEffect(() => {
