@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { syncManager, type SyncStatus } from '@/lib/offline/sync-client';
 

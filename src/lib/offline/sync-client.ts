@@ -2,7 +2,6 @@
 "use client";
 
 import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from "./storage";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export interface SyncStatus {
   isOnline: boolean;
