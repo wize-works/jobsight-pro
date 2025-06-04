@@ -1,22 +1,22 @@
-
 "use client"
 
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { updateTask, deleteTask } from "@/app/actions/tasks"
 import { Task } from "@/types/tasks"
+import { deleteTask, updateTask } from "@/app/actions/tasks"
+import { toast } from "@/hooks/use-toast"
+import TaskEditModal from "../../components/modal-edit"
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
-import toast from "react-hot-toast"
 
-interface TaskDetailComponentProps {
+interface TaskDetailProps {
     task: Task
-    projects: Project[]
-    crews: Crew[]
+    projects?: { id: string; name: string }[]
+    crews?: { id: string; name: string }[]
 }
 
-export default function TaskDetailComponent({ task: initialTask, projects, crews }: TaskDetailComponentProps) {
+export default function TaskDetailComponent({ task: initialTask, projects = [], crews = [] }: TaskDetailProps) {
     const router = useRouter()
     const [task, setTask] = useState(initialTask)
     const [isEditing, setIsEditing] = useState(false)
@@ -262,18 +262,14 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
 
             {/* Edit Task Modal */}
             {isEditing && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-2xl">
-                        <h3 className="font-bold text-lg mb-4">Edit Task</h3>
-                        <p className="text-base-content/70">Task editing modal coming soon. For now, use the quick actions or project detail pages to update tasks.</p>
-                        <div className="modal-action">
-                            <button className="btn btn-ghost" onClick={() => setIsEditing(false)}>
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setIsEditing(false)}></div>
-                </div>
+               <TaskEditModal 
+                    isOpen={isEditing} 
+                    onClose={() => setIsEditing(false)} 
+                    task={task} 
+                    projects={projects}
+                    crews={crews}
+                    onUpdate={handleUpdateTask}
+                />
             )}
         </div>
     )
