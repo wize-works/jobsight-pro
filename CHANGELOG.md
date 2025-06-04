@@ -1,3 +1,15 @@
+# [1.25.0](https://github.com/wize-works/jobsight-pro/compare/v1.24.0...v1.25.0) (2025-06-04)
+
+
+### Bug Fixes
+
+* Update button style and text in DailyLogsList component for improved clarity ([d856164](https://github.com/wize-works/jobsight-pro/commit/d856164b317b91c318be329b550e5900ff5490fe))
+
+
+### Features
+
+* Refactor DailyLogs component to use server-side data fetching and separate DailyLogsList component for better organization; remove unused equipment index file; add EditModal component for editing daily logs with materials and equipment management. ([d0c4067](https://github.com/wize-works/jobsight-pro/commit/d0c4067dd9414f9f07b91c29af2f7eca62459427))
+
 # [1.24.0](https://github.com/wize-works/jobsight-pro/compare/v1.23.0...v1.24.0) (2025-06-03)
 
 
