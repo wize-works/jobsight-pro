@@ -1,9 +1,12 @@
-
 "use server";
 
 import { getSyncQueue, removeFromSyncQueue } from "./storage";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
-import { insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "@/lib/db";
+import {
+  insertWithBusiness,
+  updateWithBusinessCheck,
+  deleteWithBusinessCheck,
+} from "@/lib/db";
 
 export interface SyncResult {
   success: boolean;
@@ -12,10 +15,12 @@ export interface SyncResult {
   errorCount: number;
 }
 
-export async function syncQueueToServer(businessId: string): Promise<SyncResult> {
+export async function syncQueueToServer(
+  businessId: string,
+): Promise<SyncResult> {
   try {
     const { business } = await withBusinessServer();
-    
+
     if (business.id !== businessId) {
       throw new Error("Business ID mismatch");
     }
@@ -78,12 +83,21 @@ async function syncItem(item: any, businessId: string) {
       break;
 
     case "update":
-      const updateResult = await updateWithBusinessCheck(table, data.id, data, businessId);
+      const updateResult = await updateWithBusinessCheck(
+        table,
+        data.id,
+        data,
+        businessId,
+      );
       if (updateResult.error) throw updateResult.error;
       break;
 
     case "delete":
-      const deleteResult = await deleteWithBusinessCheck(table, data.id, businessId);
+      const deleteResult = await deleteWithBusinessCheck(
+        table,
+        data.id,
+        businessId,
+      );
       if (deleteResult.error) throw deleteResult.error;
       break;
 
