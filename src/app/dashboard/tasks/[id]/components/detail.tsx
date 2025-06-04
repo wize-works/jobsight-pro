@@ -48,6 +48,8 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
     const [selectedDependencyTask, setSelectedDependencyTask] = useState("")
     const [newSubtaskName, setNewSubtaskName] = useState("")
     const [newSubtaskDescription, setNewSubtaskDescription] = useState("")
+    const [newSubtaskStatus, setNewSubtaskStatus] = useState("not_started")
+    const [newSubtaskAssignedTo, setNewSubtaskAssignedTo] = useState("")
 
     // Create lookup maps
     const projectMap = projects.reduce((acc, project) => {
@@ -213,14 +215,16 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                 task_id: task.id,
                 name: newSubtaskName,
                 description: newSubtaskDescription || null,
-                status: "not_started",
-                priority: "medium",
+                status: newSubtaskStatus || "not_started",
+                assigned_to: newSubtaskAssignedTo || null,
                 business_id: task.business_id
             })
             if (newSubtask) {
                 setSubtasks([...subtasks, newSubtask])
                 setNewSubtaskName("")
                 setNewSubtaskDescription("")
+                setNewSubtaskStatus("not_started")
+                setNewSubtaskAssignedTo("")
                 setIsAddingSubtask(false)
                 toast.success("Subtask added successfully!")
             }
@@ -232,7 +236,9 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
 
     const handleUpdateSubtask = async (subtaskId: string, updates: Partial<Subtask>) => {
         try {
-            const updatedSubtask = await updateSubtask(subtaskId, updates)
+            // Remove priority field if it exists since it's not in the database schema
+            const { priority, ...cleanUpdates } = updates as any;
+            const updatedSubtask = await updateSubtask(subtaskId, cleanUpdates)
             if (updatedSubtask) {
                 setSubtasks(subtasks.map(subtask => subtask.id === subtaskId ? updatedSubtask : subtask))
                 setEditingSubtask(null)
@@ -483,9 +489,11 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                                                 <div className={`badge ${getStatusBadgeColor(subtask.status || "not_started")}`}>
                                                     {formatStatus(subtask.status || "not_started")}
                                                 </div>
-                                                <div className={`badge ${getPriorityBadgeColor(subtask.priority || "medium")}`}>
-                                                    {formatPriority(subtask.priority || "medium")}
-                                                </div>
+                                                {subtask.assigned_to && crewMap[subtask.assigned_to] && (
+                                                    <div className="badge badge-outline">
+                                                        {crewMap[subtask.assigned_to].name}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -700,12 +708,49 @@ export default function TaskDetailComponent({ task: initialTask, projects = [], 
                                     rows={3}
                                 />
                             </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Status</span>
+                                </label>
+                                <select 
+                                    className="select select-bordered"
+                                    value={newSubtaskStatus}
+                                    onChange={(e) => setNewSubtaskStatus(e.target.value)}
+                                >
+                                    <option value="not_started">Not Started</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Assigned To (Optional)</span>
+                                </label>
+                                <select 
+                                    className="select select-bordered"
+                                    value={newSubtaskAssignedTo}
+                                    onChange={(e) => setNewSubtaskAssignedTo(e.target.value)}
+                                >
+                                    <option value="">Select crew member...</option>
+                                    {crews.map((crew) => (
+                                        <option key={crew.id} value={crew.id}>
+                                            {crew.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                         <div className="modal-action">
                             <button className="btn btn-ghost" onClick={() => setIsAddingSubtask(false)}>
                                 Cancel
                             </button>
-                            <button className="btn btn-primary" onClick={handleAddSubtask}>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleAddSubtask}
+                                disabled={!newSubtaskName.trim()}
+                            >
                                 Add Subtask
                             </button>
                         </div>
