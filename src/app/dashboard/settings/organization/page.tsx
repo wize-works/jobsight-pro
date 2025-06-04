@@ -545,3 +545,350 @@ export default function OrganizationSettingsPage() {
         </div>
     )
 }
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { toast } from "@/hooks/use-toast"
+import { useBusiness } from "@/hooks/use-business"
+import { updateBusiness } from "@/app/actions/business"
+
+export default function OrganizationSettingsPage() {
+    const { business, loading: businessLoading } = useBusiness()
+    const [loading, setLoading] = useState(false)
+    const [formData, setFormData] = useState({
+        name: "",
+        legal_name: "",
+        email: "",
+        phone: "",
+        website: "",
+        address_line_1: "",
+        address_line_2: "",
+        city: "",
+        state_province: "",
+        postal_code: "",
+        country: "",
+        industry: "",
+        business_license: "",
+        tax_id: "",
+        description: ""
+    })
+
+    useEffect(() => {
+        if (business) {
+            setFormData({
+                name: business.name || "",
+                legal_name: business.legal_name || "",
+                email: business.email || "",
+                phone: business.phone || "",
+                website: business.website || "",
+                address_line_1: business.address_line_1 || "",
+                address_line_2: business.address_line_2 || "",
+                city: business.city || "",
+                state_province: business.state_province || "",
+                postal_code: business.postal_code || "",
+                country: business.country || "",
+                industry: business.industry || "",
+                business_license: business.business_license || "",
+                tax_id: business.tax_id || "",
+                description: business.description || ""
+            })
+        }
+    }, [business])
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!business?.id) return
+
+        setLoading(true)
+        try {
+            await updateBusiness(business.id, formData)
+            toast({ title: "Success", description: "Organization settings updated successfully" })
+        } catch (error) {
+            console.error("Error updating organization:", error)
+            toast({ title: "Error", description: "Failed to update organization settings", variant: "destructive" })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Country options
+    const countries = [
+        { value: "United States", label: "United States" },
+        { value: "Canada", label: "Canada" },
+        { value: "Mexico", label: "Mexico" },
+        { value: "United Kingdom", label: "United Kingdom" },
+        { value: "Australia", label: "Australia" },
+        { value: "Germany", label: "Germany" },
+        { value: "France", label: "France" },
+        { value: "Japan", label: "Japan" },
+        { value: "China", label: "China" },
+        { value: "Brazil", label: "Brazil" },
+    ]
+
+    const industries = [
+        "Construction",
+        "Manufacturing",
+        "Technology",
+        "Healthcare",
+        "Finance",
+        "Real Estate",
+        "Retail",
+        "Transportation",
+        "Energy",
+        "Other"
+    ]
+
+    if (businessLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <span className="loading loading-spinner loading-lg"></span>
+            </div>
+        )
+    }
+
+    return (
+        <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div className="flex items-center gap-2">
+                    <Link href="/dashboard/settings" className="btn btn-ghost btn-sm">
+                        <i className="fas fa-arrow-left"></i>
+                    </Link>
+                    <h1 className="text-2xl font-bold">Organization Settings</h1>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Information */}
+                <div className="card bg-base-100 shadow-lg">
+                    <div className="card-body">
+                        <h2 className="card-title text-xl mb-4">Basic Information</h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Business Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Legal Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.legal_name}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, legal_name: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Email</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Phone</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    className="input input-bordered"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Website</span>
+                                </label>
+                                <input
+                                    type="url"
+                                    className="input input-bordered"
+                                    value={formData.website}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Industry</span>
+                                </label>
+                                <select
+                                    className="select select-bordered"
+                                    value={formData.industry}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
+                                >
+                                    <option value="">Select Industry</option>
+                                    {industries.map((industry) => (
+                                        <option key={industry} value={industry}>{industry}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text font-medium">Description</span>
+                            </label>
+                            <textarea
+                                className="textarea textarea-bordered h-24"
+                                value={formData.description}
+                                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                placeholder="Brief description of your business..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Address Information */}
+                <div className="card bg-base-100 shadow-lg">
+                    <div className="card-body">
+                        <h2 className="card-title text-xl mb-4">Address Information</h2>
+                        
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Address Line 1</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.address_line_1}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, address_line_1: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Address Line 2</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.address_line_2}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, address_line_2: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">City</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered"
+                                        value={formData.city}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">State/Province</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered"
+                                        value={formData.state_province}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, state_province: e.target.value }))}
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">Postal Code</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered"
+                                        value={formData.postal_code}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, postal_code: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Country</span>
+                                </label>
+                                <select
+                                    className="select select-bordered"
+                                    value={formData.country}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                                >
+                                    <option value="">Select Country</option>
+                                    {countries.map((country) => (
+                                        <option key={country.value} value={country.value}>{country.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Legal Information */}
+                <div className="card bg-base-100 shadow-lg">
+                    <div className="card-body">
+                        <h2 className="card-title text-xl mb-4">Legal Information</h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Business License Number</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.business_license}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, business_license: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Tax ID</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={formData.tax_id}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, tax_id: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end">
+                    <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        disabled={loading}
+                    >
+                        {loading && <span className="loading loading-spinner loading-sm"></span>}
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    )
+}
