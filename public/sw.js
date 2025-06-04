@@ -1,155 +1,144 @@
-
 const CACHE_NAME = 'jobsight-v1';
-const STATIC_CACHE_NAME = 'jobsight-static-v1';
-const DYNAMIC_CACHE_NAME = 'jobsight-dynamic-v1';
+const OFFLINE_URL = '/dashboard';
 
-// Static assets to cache immediately
-const STATIC_ASSETS = [
+// Critical resources to cache for offline functionality
+const STATIC_CACHE_URLS = [
   '/',
   '/dashboard',
-  '/manifest.webmanifest',
-  '/favicon.ico',
-  '/logo-full.png',
-  '/logo-full-white.png',
-  // Add other critical static assets
-];
-
-// Dynamic routes to cache
-const CACHE_ROUTES = [
-  '/dashboard/projects',
   '/dashboard/daily-logs',
-  '/dashboard/equipment',
+  '/dashboard/projects',
   '/dashboard/crews',
-  '/dashboard/tasks'
+  '/dashboard/equipment',
+  '/manifest.json',
+  '/favicon.ico',
+  '/logo.png'
 ];
 
-// Install event - cache static assets
-self.addEventListener('install', function(event) {
-  console.log('Service Worker installing');
+// Install event - cache critical resources
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE_NAME).then(function(cache) {
-        return cache.addAll(STATIC_ASSETS);
-      }),
-      caches.open(DYNAMIC_CACHE_NAME)
-    ])
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Service Worker: Caching critical resources');
+        return cache.addAll(STATIC_CACHE_URLS);
+      })
+      .then(() => {
+        console.log('Service Worker: Skip waiting');
+        return self.skipWaiting();
+      })
   );
-  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', function(event) {
-  console.log('Service Worker activating');
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          if (cacheName !== STATIC_CACHE_NAME && 
-              cacheName !== DYNAMIC_CACHE_NAME &&
-              cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Service Worker: Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('Service Worker: Claiming clients');
+        return self.clients.claim();
+      })
   );
 });
 
-// Fetch event - implement caching strategies
-self.addEventListener('fetch', function(event) {
-  const { request } = event;
-  const url = new URL(request.url);
-
+// Fetch event - network first with cache fallback
+self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
 
   // Skip external requests
-  if (url.origin !== location.origin) {
-    return;
-  }
+  if (!event.request.url.startsWith(self.location.origin)) return;
 
-  // API requests - Network First with Cache Fallback
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then(function(response) {
-          // Only cache successful responses
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE_NAME).then(function(cache) {
-              cache.put(request, responseClone);
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // If we got a valid response, clone and cache it
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseClone);
             });
-          }
-          return response;
-        })
-        .catch(function() {
-          return caches.match(request);
-        })
-    );
-    return;
-  }
-
-  // Static assets - Cache First
-  if (request.destination === 'image' || 
-      request.destination === 'style' || 
-      request.destination === 'script' ||
-      url.pathname.includes('/_next/static/')) {
-    event.respondWith(
-      caches.match(request).then(function(response) {
-        if (response) {
-          return response;
         }
-        return fetch(request).then(function(response) {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE_NAME).then(function(cache) {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        });
+        return response;
       })
-    );
-    return;
-  }
-
-  // HTML pages - Network First with Cache Fallback
-  if (request.destination === 'document' || 
-      CACHE_ROUTES.some(route => url.pathname.startsWith(route))) {
-    event.respondWith(
-      fetch(request)
-        .then(function(response) {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE_NAME).then(function(cache) {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(function() {
-          return caches.match(request).then(function(response) {
+      .catch(() => {
+        // Network failed, try cache
+        return caches.match(event.request)
+          .then((response) => {
             if (response) {
               return response;
             }
-            // Return offline page if available
-            return caches.match('/dashboard').then(function(fallback) {
-              return fallback || new Response('Offline - Please check your connection', {
-                status: 503,
-                statusText: 'Service Unavailable'
-              });
+            // If no cache match, return offline page for navigation requests
+            if (event.request.mode === 'navigate') {
+              return caches.match(OFFLINE_URL);
+            }
+            // For other requests, return a generic offline response
+            return new Response('Offline', { 
+              status: 503, 
+              statusText: 'Service Unavailable' 
             });
           });
-        })
+      })
+  );
+});
+
+// Background sync for offline data
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      // Handle queued data when back online
+      syncOfflineData()
     );
-    return;
   }
 });
+
+async function syncOfflineData() {
+  console.log('Service Worker: Starting offline data sync');
+
+  try {
+    // Open IndexedDB
+    const dbRequest = indexedDB.open('jobsight-offline', 1);
+    
+    const db = await new Promise((resolve, reject) => {
+      dbRequest.onsuccess = () => resolve(dbRequest.result);
+      dbRequest.onerror = () => reject(dbRequest.error);
+    });
+
+    // Get all pending sync items
+    const transaction = db.transaction(['syncQueue'], 'readonly');
+    const store = transaction.objectStore('syncQueue');
+    const getAllRequest = store.getAll();
+    
+    const syncItems = await new Promise((resolve, reject) => {
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+
+    console.log(`Service Worker: Found ${syncItems.length} items to sync`);
+
+    // Send sync items to the main application
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_REQUIRED',
+        items: syncItems
+      });
+    });
+
+  } catch (error) {
+    console.error('Service Worker: Failed to sync offline data:', error);
+  }
+}
 
 // Push notification handling
 self.addEventListener('push', function(event) {
@@ -216,18 +205,6 @@ self.addEventListener('notificationclick', function(event) {
       }
     })
   );
-});
-
-// Background sync for offline actions
-self.addEventListener('sync', function(event) {
-  console.log('Background sync event:', event.tag);
-  
-  if (event.tag === 'background-sync') {
-    event.waitUntil(
-      // Handle queued offline actions here
-      console.log('Processing background sync')
-    );
-  }
 });
 
 // Handle service worker updates

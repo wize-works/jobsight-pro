@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import Script from "next/script";
 import { Toaster } from "@/components/toaster";
-import OfflineIndicator from "@/components/offline-indicator";
 import Clarity from "@microsoft/clarity";
 
 Clarity.init(process.env.NEXT_PUBLIC_CLARITY_ID || "");
@@ -106,7 +105,6 @@ export default function RootLayout({
                 />
                 <body className={inter.className}>
                     <ThemeProvider>
-                        <OfflineIndicator />
                         {children}
                         <Toaster />
                     </ThemeProvider>

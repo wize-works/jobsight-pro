@@ -67,6 +67,15 @@ export const createProject = async (project: ProjectInsert): Promise<Project | n
             return null;
         }
 
+        // Trigger push notification
+        if (data) {
+            await triggerProjectNotification(
+                data.id,
+                data.name,
+                'created'
+            );
+        }
+
         return data as Project;
     } catch (err) {
         console.error("Error in createProject:", err);
@@ -85,6 +94,15 @@ export const updateProject = async (id: string, project: ProjectUpdate): Promise
         if (error) {
             console.error("Error updating project:", error);
             return null;
+        }
+
+        // Trigger push notification
+        if (data) {
+            await triggerProjectNotification(
+                data.id,
+                data.name,
+                'updated'
+            );
         }
 
         return data as Project;
@@ -225,3 +243,8 @@ export const getProjectsWithDetails = async (): Promise<ProjectWithDetails[]> =>
         return [];
     }
 };
+
+// Placeholder function for triggering project notifications.  This would need to be implemented.
+async function triggerProjectNotification(projectId: string, projectName: string, eventType: string) {
+    console.log(`Simulating push notification for project ${projectName} (${projectId}) - ${eventType}`);
+}
