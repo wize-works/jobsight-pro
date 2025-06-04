@@ -5,11 +5,19 @@ import { withBusinessServer } from '@/lib/auth/with-business-server';
 import { insertWithBusiness, fetchByBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from '@/lib/db';
 import type { PushSubscriptionInsert, PushSubscriptionUpdate } from '@/types/notifications';
 
-webpush.setVapidDetails(
-    "mailto:brandon@jobsight.co",
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
-    process.env.VAPID_PRIVATE_KEY || ''
-);
+function ensureVapidDetails() {
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+        console.warn('VAPID keys not configured for push notifications');
+        return false;
+    }
+    
+    webpush.setVapidDetails(
+        "mailto:brandon@jobsight.co",
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+    return true;
+}
 
 export async function subscribeUser(subscription: PushSubscription) {
     try {
@@ -91,6 +99,10 @@ export async function sendPushNotificationToUser(
     url?: string
 ) {
     try {
+        if (!ensureVapidDetails()) {
+            return { success: false, message: 'Push notifications not configured' };
+        }
+
         const { business } = await withBusinessServer();
 
         // Get active subscriptions for the user
@@ -161,6 +173,10 @@ export async function sendPushNotificationToBusiness(
     excludeUserId?: string
 ) {
     try {
+        if (!ensureVapidDetails()) {
+            return { success: false, message: 'Push notifications not configured' };
+        }
+
         const { business } = await withBusinessServer();
 
         // Get all active subscriptions for the business
