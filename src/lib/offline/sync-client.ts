@@ -1,7 +1,8 @@
-"use server";
+
+"use client";
+
 import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from "./storage";
-import { createServerClient } from "@/lib/supabase";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -14,14 +15,16 @@ export interface SyncStatus {
 class SyncManager {
   private listeners: ((status: SyncStatus) => void)[] = [];
   private status: SyncStatus = {
-    isOnline: navigator.onLine,
+    isOnline: typeof window !== 'undefined' ? navigator.onLine : true,
     isSyncing: false,
     queueCount: 0,
   };
 
   constructor() {
-    this.setupEventListeners();
-    this.loadQueueCount();
+    if (typeof window !== 'undefined') {
+      this.setupEventListeners();
+      this.loadQueueCount();
+    }
   }
 
   private setupEventListeners() {
@@ -66,13 +69,12 @@ class SyncManager {
   }
 
   public async syncWhenOnline() {
-    if (!navigator.onLine || this.status.isSyncing) return;
+    if (typeof window === 'undefined' || !navigator.onLine || this.status.isSyncing) return;
 
     this.updateStatus({ isSyncing: true, syncError: undefined });
 
     try {
-      const { business } = await withBusinessServer();
-      const businessId = business?.id;
+      const businessId = localStorage.getItem("currentBusinessId");
       if (!businessId) {
         throw new Error("No business ID found");
       }
@@ -88,7 +90,7 @@ class SyncManager {
         return;
       }
 
-      const supabase = createServerClient();
+      const supabase = createClientComponentClient();
       if (!supabase) {
         throw new Error("Supabase client not available");
       }
@@ -182,7 +184,4 @@ class SyncManager {
   }
 }
 
-export async function getSyncManager(): Promise<SyncManager> {
-  const syncManager = new SyncManager();
-  return syncManager;
-}
+export const syncManager = new SyncManager();

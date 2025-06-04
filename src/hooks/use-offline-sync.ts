@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { syncManager, type SyncStatus } from '@/lib/offline/sync';
+import { syncManager, type SyncStatus } from '@/lib/offline/sync-client';
 
 export function useOfflineSync() {
   const [status, setStatus] = useState<SyncStatus>(syncManager.getStatus());
