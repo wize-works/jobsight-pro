@@ -1,4 +1,4 @@
-import InvoiceDetail from "../components/detail";
+import InvoiceDetail from "./components/detail";
 import { getInvoiceById, getInvoiceWitDetailsById } from "@/app/actions/invoices";
 import { InvoiceWithDetails } from "@/types/invoices";
 
@@ -11,5 +11,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         return <div>Invoice not found.</div>;
     }
 
-    return <InvoiceDetail invoice={invoice} />;
+    return (
+        <div className="max-w-6xl mx-auto p-4">
+            <InvoiceDetail invoice={invoice} />
+        </div>
+    );
 }

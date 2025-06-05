@@ -1128,6 +1128,7 @@ export interface Database {
                     client_id: string
                     project_id: string
                     amount: number | null
+                    tax_rate: number | null
                     status: string | null
                     issue_date: string | null
                     due_date: string | null
@@ -1146,6 +1147,7 @@ export interface Database {
                     client_id: string
                     project_id: string
                     amount: number | null
+                    tax_rate: number | null
                     status: string | null
                     issue_date: string | null
                     due_date: string | null
@@ -1164,6 +1166,7 @@ export interface Database {
                     client_id: string
                     project_id: string
                     amount: number | null
+                    tax_rate: number | null
                     status: string | null
                     issue_date: string | null
                     due_date: string | null
@@ -1186,9 +1189,10 @@ export interface Database {
                     description: string | null
                     quantity: number | null
                     unit_price: number | null
-                    total_price: number | null
+                    amount: number | null
                     tax_rate: number | null
                     tax_amount: number | null
+                    total_price: number | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1201,9 +1205,10 @@ export interface Database {
                     description: string | null
                     quantity: number | null
                     unit_price: number | null
-                    total_price: number | null
+                    amount: number | null
                     tax_rate: number | null
                     tax_amount: number | null
+                    total_price: number | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1216,9 +1221,10 @@ export interface Database {
                     description: string | null
                     quantity: number | null
                     unit_price: number | null
-                    total_price: number | null
+                    amount: number | null
                     tax_rate: number | null
                     tax_amount: number | null
+                    total_price: number | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null

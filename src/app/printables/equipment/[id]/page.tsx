@@ -1,15 +1,16 @@
 import { getEquipmentById } from "@/app/actions/equipments";
 import { getEquipmentMaintenancesByEquipmentId } from "@/app/actions/equipment-maintenance";
-import { getEquipmentUsagesByEquipmentId } from "@/app/actions/equipment_usage";
+import { getEquipmentUsagesWithDetailsByEquipmentId } from "@/app/actions/equipment_usage";
 import { getEquipmentAssignmentsByEquipmentId } from "@/app/actions/equipment-assignments";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 import { getMediaByEquipmentId } from "@/app/actions/media";
 import { EquipmentMaintenance } from "@/types/equipment-maintenance";
-import { EquipmentUsage } from "@/types/equipment_usage";
+import { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import { EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 import QRCode from "@/components/qrcode";
+import { getCrewById } from "@/app/actions/crews";
 
 export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -19,11 +20,12 @@ export default async function EquipmentPrintPage({ params }: { params: Promise<{
     }
     const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
         getEquipmentMaintenancesByEquipmentId(id),
-        getEquipmentUsagesByEquipmentId(id),
+        getEquipmentUsagesWithDetailsByEquipmentId(id),
         getEquipmentAssignmentsByEquipmentId(id),
         getEquipmentSpecificationsByEquipmentId(id),
         getMediaByEquipmentId(id, "documents"),
     ]);
+
 
     // Find the most recent active assignment
     let assignedTo = "Unassigned";
@@ -39,7 +41,7 @@ export default async function EquipmentPrintPage({ params }: { params: Promise<{
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-base-100 p-8 print:p-0 print:bg-white print:shadow-none shadow rounded-lg text-base-content">
+        <div className="max-w-4xl mx-auto bg-white p-8 print:p-0 print:bg-white print:shadow-none shadow rounded-lg text-base-content text-sm">
             <div className="flex flex-col items-start mb-8">
                 <div className="flex flex-row justify-between mb-4 w-full">
                     <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-48 h-48 object-cover mb-4" />
@@ -131,10 +133,10 @@ export default async function EquipmentPrintPage({ params }: { params: Promise<{
                             </tr>
                         </thead>
                         <tbody>
-                            {(usages as EquipmentUsage[]).map((u) => (
+                            {(usages as EquipmentUsageWithDetails[]).map((u) => (
                                 <tr key={u.id}>
-                                    <td>{u.project_id}</td>
-                                    <td>{u.crew_id}</td>
+                                    <td>{u.project_name}</td>
+                                    <td>{u.crew_name}</td>
                                     <td>{u.hours_used}</td>
                                     <td>{u.fuel_consumed}</td>
                                 </tr>

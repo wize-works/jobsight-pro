@@ -3,7 +3,7 @@ import { DailyLogMaterial } from "@/types/daily-log-materials";
 import { EquipmentCondition, equipmentConditionOptions, equipmentStatusOptions } from "@/types/equipment";
 import { formatCurrency } from "@/utils/formatters";
 
-export default function TabMaterials({ materials, equipment }: { materials: DailyLogMaterial[] | [], equipment: DailyLogEquipment[] | [] }) {
+export default function TabMaterials({ materials, equipment }: { materials: any[] | [], equipment: any[] | [] }) {
     const totalCost = materials.reduce((total, item) => total + (item.cost || 0), 0);
     const totalHours = equipment.reduce((total, item) => total + (item.hours || 0), 0);
 

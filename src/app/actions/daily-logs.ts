@@ -143,7 +143,6 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
         filter: { id: { in: equipmentIds } },
         orderBy: { column: "created_at", ascending: true },
     });
-    console.log("Equipment Info Data:", equipmentData, equipmentInfoData, equipmentIds);
 
     const { data: crewData, error: crewError } = await fetchByBusiness("crews", business.id, "*", {
         filter: { id: { in: crewIds } },
@@ -155,14 +154,28 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
         orderBy: { column: "created_at", ascending: true },
     });
 
+    const clientIds = projectData?.map(p => p.client_id) || [];
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+        filter: { id: { in: clientIds } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
     const dataWithDetails = data.map(log => {
         const materials = materialData?.filter(material => material.daily_log_id === log.id) || [];
         const equipment = equipmentData?.filter(equip => equip.daily_log_id === log.id) || [];
         const crew = crewData?.find(c => c.id === log.crew_id) || null;
         const project = projectData?.find(p => p.id === log.project_id) || null;
+        const client = clientData?.find(c => c.id === project?.client_id) || null;
 
         return {
             ...log,
+            client: {
+                id: client?.id || "",
+                name: client?.name || null,
+                contact_name: client?.contact_name || null,
+                contact_email: client?.contact_email || null,
+                contact_phone: client?.contact_phone || null,
+            },
             materials: materials.map(material => ({
                 id: material.id,
                 name: material.name,
@@ -176,7 +189,7 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
             })),
             crew: crew ? { id: crew.id, name: crew.name } : null,
             project: project ? { id: project.id, name: project.name, description: project.description } : null,
-        } as DailyLogWithDetails;
+        } as unknown as DailyLogWithDetails;
     });
 
     return dataWithDetails;

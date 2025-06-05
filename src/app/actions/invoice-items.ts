@@ -104,3 +104,53 @@ export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> 
 
     return data as unknown as InvoiceItem[];
 };
+
+export const getInvoiceItemsByInvoiceId = async (invoiceId: string): Promise<InvoiceItem[]> => {
+    const { business } = await withBusinessServer();
+
+    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
+        filter: { invoice_id: { eq: invoiceId } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
+    if (error) {
+        console.error("Error fetching invoice items:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as InvoiceItem[];
+    }
+
+    return data as unknown as InvoiceItem[];
+}
+
+export const upsertInvoiceItems = async (items: InvoiceItemInsert[]): Promise<InvoiceItem[] | null> => {
+    const { business } = await withBusinessServer();
+
+    if (!items || items.length === 0) {
+        return null;
+    }
+
+    const createdItems: InvoiceItem[] = [];
+    console.log("items: ", items);
+    for (let item of items) {
+        if (!item.id) {
+            item = await applyCreated<InvoiceItemInsert>(item);
+            const createdItem = await createInvoiceItem(item);
+            if (createdItem) {
+                createdItems.push(createdItem);
+            }
+
+            throw new Error("Invoice item must have an ID for upsert operation");
+        } else {
+            item = await applyUpdated<InvoiceItemUpdate>(item);
+            const updatedItem = await updateInvoiceItem(item.id, item);
+            if (updatedItem) {
+                createdItems.push(updatedItem);
+            }
+        }
+    }
+    console.log("Upserted invoice items:", createdItems);
+    return createdItems;
+}

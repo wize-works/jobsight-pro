@@ -30,12 +30,12 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
             const noteData: TaskNoteInsert = {
                 id: crypto.randomUUID(),
                 task_id: dailyLogId, // Using daily log ID as task ID for now
-                note: newNote.trim(),
+                content: newNote.trim(),
                 business_id: "", // This will be set by the server action
                 created_by: "", // This will be set by the server action
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-            };
+            } as TaskNoteInsert;
 
             const createdNote = await createTaskNote(noteData);
             if (createdNote) {
@@ -61,9 +61,9 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
                             <div className="space-y-3">
                                 {notes.map((note) => (
                                     <div key={note.id} className="bg-base-100 p-3 rounded">
-                                        <p className="text-sm">{note.note}</p>
+                                        <p className="text-sm">{note.content}</p>
                                         <p className="text-xs text-base-content/60 mt-2">
-                                            {new Date(note.created_at).toLocaleString()}
+                                            {note.created_at ? new Date(note.created_at).toLocaleString() : "Unknown date"}
                                         </p>
                                     </div>
                                 ))}
@@ -77,14 +77,14 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
                 <label className="label">
                     <span className="label-text font-semibold">Add a note</span>
                 </label>
-                <textarea 
-                    className="textarea textarea-bordered h-24" 
+                <textarea
+                    className="textarea textarea-bordered h-24"
                     placeholder="Add additional notes here..."
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                 ></textarea>
                 <div className="mt-2 flex justify-end">
-                    <button 
+                    <button
                         className="btn btn-primary"
                         onClick={handleAddNote}
                         disabled={loading || !newNote.trim()}

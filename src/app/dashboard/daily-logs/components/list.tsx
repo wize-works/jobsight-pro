@@ -175,7 +175,7 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
                                         <ul className="list-disc pl-5">
                                             {log.materials.map(material => (
                                                 <li key={material.id}>
-                                                    {material.name} - {material.quantity} @ ${material.cost_per_unit?.toFixed(2) || "0.00"} each
+                                                    {material.name} - {material.quantity} @ ${material.cost?.toFixed(2) || "0.00"} each
                                                 </li>
                                             ))}
                                         </ul>

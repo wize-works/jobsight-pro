@@ -10,6 +10,8 @@ import EditModal from "./edit-modal";
 import { CrewMember } from "@/types/crew-members";
 import TabSafety from "./tab-safety";
 import TabMaterials from "./tab-materials";
+import { DailyLogMaterial } from "@/types/daily-log-materials";
+import { DailyLogEquipment } from "@/types/daily-log-equipment";
 
 // Helper function to extract number from a string
 const extractNumber = (str: any) => {
@@ -32,7 +34,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
 
     // Calculate totals for summary
     const totalMaterialCost = currentLog.materials.reduce((total, material) =>
-        total + (extractNumber(material.quantity) * (material.cost_per_unit || 0)), 0);
+        total + (extractNumber(material.quantity) * (material.cost || 0)), 0);
 
     const totalEquipmentHours = currentLog.equipment.reduce((total, equip) =>
         total + (equip.hours || 0), 0);

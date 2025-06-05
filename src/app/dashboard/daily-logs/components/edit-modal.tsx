@@ -58,7 +58,7 @@ export default function EditModal({
         id: string;
         name: string | null;
         quantity: string | null;
-        cost_per_unit: number | null;
+        cost: number | null;
         quantityValue: number;
         quantityUnit: string;
         isNew?: boolean;
@@ -153,7 +153,7 @@ export default function EditModal({
                     quantity: value ? `${numValue} ${value}` : String(numValue),
                     quantityUnit: value
                 };
-            } else if (field === "cost_per_unit") {
+            } else if (field === "cost") {
                 const numValue = value === "" ? null : Number(value);
                 updatedMaterials[index] = {
                     ...updatedMaterials[index],
@@ -199,7 +199,7 @@ export default function EditModal({
                 id: `temp-${Date.now()}`,
                 name: "",
                 quantity: "0",
-                cost_per_unit: 0,
+                cost: 0,
                 quantityValue: 0,
                 quantityUnit: "",
                 isNew: true
@@ -277,7 +277,7 @@ export default function EditModal({
                         business_id: updatedLog.business_id,
                         name: material.name || "",
                         quantity: material.quantity,
-                        cost: material.cost_per_unit,
+                        cost: material.cost,
                     } as DailyLogMaterialInsert;
 
                     return await createDailyLogMaterial(newMaterial);
@@ -287,7 +287,7 @@ export default function EditModal({
                     const materialUpdateData = {
                         name: material.name,
                         quantity: material.quantity,
-                        cost: material.cost_per_unit,
+                        cost: material.cost,
                     } as DailyLogMaterialUpdate;
 
                     return await updateDailyLogMaterial(material.id, materialUpdateData);
@@ -588,7 +588,7 @@ export default function EditModal({
                                                             </label>
                                                             <input
                                                                 type="number"
-                                                                value={material.cost_per_unit || ""}
+                                                                value={material.cost || ""}
                                                                 onChange={(e) => handleMaterialChange(index, "cost_per_unit", e.target.value)}
                                                                 className="input input-bordered w-full"
                                                                 placeholder="0.00"
@@ -633,7 +633,7 @@ export default function EditModal({
                                                         <div className="flex justify-between items-center">
                                                             <span className="font-semibold text-base-content">Total Cost:</span>
                                                             <span className="text-lg font-bold text-primary">
-                                                                ${((material.quantityValue || 0) * (material.cost_per_unit || 0)).toFixed(2)}
+                                                                ${((material.quantityValue || 0) * (material.cost || 0)).toFixed(2)}
                                                             </span>
                                                         </div>
                                                     </div>

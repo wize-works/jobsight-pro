@@ -2,73 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
+import { withBusiness } from "@/lib/auth/with-business";
+import { useBusiness } from "@/hooks/use-business";
+import { toast } from "@/hooks/use-toast";
 
-// Define TypeScript interfaces
-interface InvoiceItem {
-    id: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    amount: number;
-}
-
-interface Address {
-    name: string;
-    attention: string;
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-}
-
-interface CompanyInfo {
-    name: string;
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-    phone: string;
-    email: string;
-    website: string;
-    taxId: string;
-}
-
-interface PaymentInstructions {
-    bankName: string;
-    accountName: string;
-    accountNumber: string;
-    routingNumber: string;
-    swift: string;
-}
-
-interface Invoice {
-    id: string;
-    client: string;
-    clientId: string;
-    project: string;
-    projectId: string;
-    amount: number;
-    status: string;
-    issueDate: string;
-    dueDate: string;
-    paidDate: string | null;
-    paymentMethod: string;
-    notes: string;
-    items: InvoiceItem[];
-    billingAddress: Address;
-    companyInfo: CompanyInfo;
-    paymentInstructions: PaymentInstructions;
-}
 
 interface InvoiceDetailProps {
-    invoice: Invoice;
+    invoice: InvoiceWithDetails;
 }
 
 export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
+    const { business } = useBusiness();
     const [showSendModal, setShowSendModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+    if (business === null) {
+        return <div className="text-center text-red-500">Business not found. Please select a business to view invoices.</div>;
+    }
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -89,24 +40,8 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         });
     };
 
-    // Get status badge color
-    const getStatusBadgeColor = (status: string) => {
-        switch (status) {
-            case "paid":
-                return "badge-success";
-            case "pending":
-                return "badge-warning";
-            case "overdue":
-                return "badge-error";
-            case "draft":
-                return "badge-ghost";
-            default:
-                return "badge-ghost";
-        }
-    };
-
     // Calculate subtotal
-    const subtotal = invoice.items.reduce((sum, item) => sum + item.amount, 0);
+    const subtotal = invoice.items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     // Calculate tax (assuming 8% tax rate)
     const taxRate = 0.08;
@@ -114,6 +49,22 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
 
     // Calculate total
     const total = subtotal + tax;
+
+    function handleSendInvoice(): void {
+        try {
+            // Here you would implement the logic to send the invoice
+            // For example, you might call an API endpoint to send the invoice via email
+            console.log("Sending invoice:", invoice.id);
+
+            // Close the modal after sending
+            setShowSendModal(false);
+            toast.success("Invoice sent successfully!");
+
+        } catch (error) {
+            console.error("Error sending invoice:", error);
+            toast.error("Failed to send invoice. Please try again later.");
+        }
+    }
 
     return (
         <div>
@@ -123,19 +74,17 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                         <Link href="/dashboard/invoices" className="btn btn-ghost btn-sm">
                             <i className="fas fa-arrow-left"></i>
                         </Link>
-                        <h1 className="text-2xl font-bold">Invoice {invoice.id}</h1>
-                        <div className={`badge ${getStatusBadgeColor(invoice.status)}`}>
-                            {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                        </div>
+                        <h1 className="text-2xl font-bold">Invoice {invoice.invoice_number}</h1>
+                        {invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}
                     </div>
                     <p className="text-base-content/70 mt-1">
-                        {invoice.client} - {invoice.project}
+                        {(invoice.client?.name ?? "-")} - {(invoice.project?.name ?? "-")}
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+                    <Link href={`/printables/invoices/${invoice.id}`} className="btn btn-outline btn-sm" target="_blank">
                         <i className="fas fa-print mr-2"></i> Print
-                    </button>
+                    </Link>
                     <button className="btn btn-outline btn-sm">
                         <i className="fas fa-download mr-2"></i> Download
                     </button>
@@ -153,17 +102,17 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             <div className="bg-base-100 p-6 rounded-lg shadow-sm mb-6 print:shadow-none" id="invoice-print">
                 <div className="flex flex-col md:flex-row justify-between mb-8">
                     <div>
-                        <img src="/logo-full.png" alt="JobSight Logo" className="h-12 mb-4" />
+                        <img src={invoice.business_info.logo_url ?? "/logo-full.png"} alt="JobSight Logo" className="h-12 mb-4" />
                         <div>
-                            <p className="font-bold">{invoice.companyInfo.name}</p>
-                            <p>{invoice.companyInfo.street}</p>
+                            <p className="font-bold">{invoice.business_info.name}</p>
+                            <p>{invoice.business_info.street}</p>
                             <p>
-                                {invoice.companyInfo.city}, {invoice.companyInfo.state} {invoice.companyInfo.zip}
+                                {invoice.business_info.city}, {invoice.business_info.state} {invoice.business_info.zip}
                             </p>
-                            <p>{invoice.companyInfo.country}</p>
-                            <p>Phone: {invoice.companyInfo.phone}</p>
-                            <p>Email: {invoice.companyInfo.email}</p>
-                            <p>Tax ID: {invoice.companyInfo.taxId}</p>
+                            <p>{invoice.business_info.country}</p>
+                            <p>Phone: {invoice.business_info.phone}</p>
+                            <p>Email: {invoice.business_info.email}</p>
+                            <p>Tax ID: {invoice.business_info.tax_id}</p>
                         </div>
                     </div>
                     <div className="mt-6 md:mt-0 text-right">
@@ -172,28 +121,26 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <tbody>
                                 <tr>
                                     <td className="text-right font-medium pr-4">Invoice #:</td>
-                                    <td>{invoice.id}</td>
+                                    <td>{invoice.invoice_number}</td>
                                 </tr>
                                 <tr>
                                     <td className="text-right font-medium pr-4">Issue Date:</td>
-                                    <td>{formatDate(invoice.issueDate)}</td>
+                                    <td>{formatDate(invoice.issue_date)}</td>
                                 </tr>
                                 <tr>
                                     <td className="text-right font-medium pr-4">Due Date:</td>
-                                    <td>{formatDate(invoice.dueDate)}</td>
+                                    <td>{formatDate(invoice.due_date)}</td>
                                 </tr>
-                                {invoice.paidDate && (
+                                {invoice.paid_date && (
                                     <tr>
                                         <td className="text-right font-medium pr-4">Paid Date:</td>
-                                        <td>{formatDate(invoice.paidDate)}</td>
+                                        <td>{formatDate(invoice.paid_date)}</td>
                                     </tr>
                                 )}
                                 <tr>
                                     <td className="text-right font-medium pr-4">Status:</td>
                                     <td>
-                                        <div className={`badge ${getStatusBadgeColor(invoice.status)}`}>
-                                            {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                                        </div>
+                                        {invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}
                                     </td>
                                 </tr>
                             </tbody>
@@ -205,22 +152,22 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Bill To:</h3>
                         <div className="p-4 bg-base-200 rounded-lg">
-                            <p className="font-bold">{invoice.billingAddress.name}</p>
-                            <p>Attn: {invoice.billingAddress.attention}</p>
-                            <p>{invoice.billingAddress.street}</p>
+                            <p className="font-bold">{invoice.billing_address.name}</p>
+                            <p>Attn: {invoice.billing_address.attention}</p>
+                            <p>{invoice.billing_address.street}</p>
                             <p>
-                                {invoice.billingAddress.city}, {invoice.billingAddress.state} {invoice.billingAddress.zip}
+                                {invoice.billing_address.city}, {invoice.billing_address.state} {invoice.billing_address.zip}
                             </p>
-                            <p>{invoice.billingAddress.country}</p>
+                            <p>{invoice.billing_address.country}</p>
                         </div>
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Project:</h3>
                         <div className="p-4 bg-base-200 rounded-lg">
-                            <p className="font-bold">{invoice.project}</p>
+                            <p className="font-bold">{invoice.project?.name}</p>
                             <p>Invoice for services rendered as part of the project.</p>
                             <p className="mt-2">
-                                <Link href={`/dashboard/projects/${invoice.projectId}`} className="link link-primary">
+                                <Link href={`/dashboard/projects/${invoice.project?.id}`} className="link link-primary">
                                     View Project Details
                                 </Link>
                             </p>
@@ -245,8 +192,8 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                                     <tr key={item.id}>
                                         <td>{item.description}</td>
                                         <td className="text-right">{item.quantity}</td>
-                                        <td className="text-right">{formatCurrency(item.unitPrice)}</td>
-                                        <td className="text-right">{formatCurrency(item.amount)}</td>
+                                        <td className="text-right">{formatCurrency(item.unit_price ?? 0)}</td>
+                                        <td className="text-right">{formatCurrency(item.amount ?? 0)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -287,38 +234,15 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     <h3 className="text-lg font-semibold mb-2">Payment Instructions:</h3>
                     <div className="p-4 bg-base-200 rounded-lg">
                         <p>Please make payment to:</p>
-                        <table className="mt-2">
-                            <tbody>
-                                <tr>
-                                    <td className="font-medium pr-4">Bank:</td>
-                                    <td>{invoice.paymentInstructions.bankName}</td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium pr-4">Account Name:</td>
-                                    <td>{invoice.paymentInstructions.accountName}</td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium pr-4">Account Number:</td>
-                                    <td>{invoice.paymentInstructions.accountNumber}</td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium pr-4">Routing Number:</td>
-                                    <td>{invoice.paymentInstructions.routingNumber}</td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium pr-4">SWIFT Code:</td>
-                                    <td>{invoice.paymentInstructions.swift}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <p>{invoice.payment_method}</p>
                     </div>
                 </div>
 
                 <div className="text-center text-sm text-base-content/70 mt-8">
                     <p>Thank you for your business!</p>
                     <p>
-                        If you have any questions about this invoice, please contact us at {invoice.companyInfo.email} or{" "}
-                        {invoice.companyInfo.phone}.
+                        If you have any questions about this invoice, please contact us at {invoice.business_info.email} or{" "}
+                        {invoice.business_info.phone}.
                     </p>
                 </div>
             </div>
@@ -346,7 +270,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <input
                                 type="text"
                                 className="input input-bordered"
-                                defaultValue={`Invoice ${invoice.id} from JobSight Construction`}
+                                defaultValue={`Invoice ${invoice.invoice_number} from ${business.name || "JobSight Technologies Partner"}`}
                             />
                         </div>
                         <div className="form-control mb-4">
@@ -356,18 +280,21 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <textarea
                                 className="textarea textarea-bordered"
                                 rows={5}
-                                defaultValue={`Dear ${invoice.billingAddress.attention},
+                                defaultValue={`Dear ${invoice.billing_address.attention},
 
-Please find attached invoice ${invoice.id} for the ${invoice.project} project in the amount of ${formatCurrency(
+Please find attached invoice ${invoice.invoice_number} for the ${invoice.project?.name || "work"} project in the amount of ${formatCurrency(
                                     total,
                                 )}.
 
-Payment is due by ${formatDate(invoice.dueDate)}.
+Payment is due by ${formatDate(invoice.due_date)}.
 
 Thank you for your business.
 
 Best regards,
-JobSight Construction`}
+
+${business.name || "JobSight Technologies Partner"}
+
+by JobSight Technologies`}
                             ></textarea>
                         </div>
                         <div className="form-control mb-4">
@@ -376,12 +303,12 @@ JobSight Construction`}
                                 <span className="label-text">Attach PDF copy of invoice</span>
                             </label>
                         </div>
-                        <div className="form-control mb-4">
+                        {/* <div className="form-control mb-4">
                             <label className="label cursor-pointer justify-start gap-2">
                                 <input type="checkbox" className="checkbox" defaultChecked />
                                 <span className="label-text">Include payment link</span>
                             </label>
-                        </div>
+                        </div> */}
                         <div className="modal-action">
                             <button className="btn" onClick={() => setShowSendModal(false)}>
                                 Cancel
@@ -443,7 +370,7 @@ JobSight Construction`}
                             <button className="btn" onClick={() => setShowPaymentModal(false)}>
                                 Cancel
                             </button>
-                            <button className="btn btn-success" onClick={() => setShowPaymentModal(false)}>
+                            <button className="btn btn-success" onClick={() => handleSendInvoice()}>
                                 Record Payment
                             </button>
                         </div>
