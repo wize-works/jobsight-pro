@@ -230,29 +230,52 @@ export const getDailyLogWithDetailsById = async (id: string): Promise<DailyLogWi
         orderBy: { column: "created_at", ascending: true },
     });
 
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+        filter: { id: { in: projectData?.map(p => p.client_id) || [] } },
+        orderBy: { column: "created_at", ascending: true },
+    });
+
     let log = data[0] as DailyLog;
 
 
     const materials = materialData?.filter(material => material.daily_log_id === log.id) || [];
+    console.log("Materials Data:", materials);
     const equipment = equipmentData?.filter(equip => equip.daily_log_id === log.id) || [];
     const crew = crewData?.find(c => c.id === log.crew_id) || null;
     const project = projectData?.find(p => p.id === log.project_id) || null;
+    const client = clientData?.find(c => c.id === project?.client_id) || null;
 
     return {
         ...log,
         materials: materials.map(material => ({
             id: material.id,
             name: material.name,
+            supplier: material.supplier,
             quantity: material.quantity,
-            cost_per_unit: material.cost,
+            cost: material.cost,
         })),
         equipment: equipment.map(equip => ({
             id: equip.id,
             name: equipmentInfoData?.find(info => info.id === equip.equipment_id)?.name || equip.name,
+            operator: equip.operator || null,
             hours: equip.hours || 0,
+            condition: equip.condition || null,
         })),
         crew: crew ? { id: crew.id, name: crew.name } : null,
         project: project ? { id: project.id, name: project.name, description: project.description } : null,
+        client: client ? {
+            id: client.id,
+            name: client.name,
+            contact_name: client.contact_name,
+            contact_email: client.contact_email,
+            contact_phone: client.contact_phone
+        } : {
+            id: "",
+            name: null,
+            contact_name: null,
+            contact_email: null,
+            contact_phone: null
+        }
     } as DailyLogWithDetails;
 
 }

@@ -2,9 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
 
 // Mock data for a single invoice (same as in the detail page)
 const mockInvoice = {
@@ -107,17 +105,8 @@ const mockProjects = [
 ]
 
 export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
-    const router = useRouter()
     const { id: invoiceId } = await params;
 
-    // State for form fields
-    const [client, setClient] = useState(mockInvoice.clientId)
-    const [project, setProject] = useState(mockInvoice.projectId)
-    const [issueDate, setIssueDate] = useState(mockInvoice.issueDate)
-    const [dueDate, setDueDate] = useState(mockInvoice.dueDate)
-    const [items, setItems] = useState([...mockInvoice.items])
-    const [notes, setNotes] = useState(mockInvoice.notes)
-    const [taxRate, setTaxRate] = useState(mockInvoice.taxRate)
 
     // Get client details based on selected client
     const selectedClient = mockClients.find((c) => c.id === client)
