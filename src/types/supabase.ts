@@ -1772,7 +1772,7 @@ export interface Database {
                     auth_id: string | null
                     first_name: string | null
                     last_name: string | null
-                    email: string | null
+                    email: string
                     phone: string | null
                     role: string | null
                     status: string | null
