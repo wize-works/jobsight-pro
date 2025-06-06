@@ -208,7 +208,7 @@ function UsersPermissionsTab() {
                                         </td>
                                         <td>
                                             <div className="flex gap-2">
-                                                {user.status === 'invited' && (
+                                                {user && user.email && user.status === 'invited' && (
                                                     <button
                                                         className="btn btn-sm btn-ghost text-primary"
                                                         onClick={() => handleResendInvitation(user.id, user.email)}
