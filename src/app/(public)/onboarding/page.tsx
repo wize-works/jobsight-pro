@@ -17,10 +17,9 @@ export default function OnboardingPage() {
         const token = searchParams.get("token");
 
         if (!token) {
-            toast({
+            toast.error({
                 title: "Invalid Invitation",
                 description: "No invitation token found",
-                variant: "destructive"
             });
             router.push("/");
             return;
@@ -32,10 +31,10 @@ export default function OnboardingPage() {
 
             // Check if token is expired
             if (new Date(decoded.expiresAt) < new Date()) {
-                toast({
+                toast.error({
                     title: "Invitation Expired",
-                    description: "This invitation link has expired. Please request a new one.",
-                    variant: "destructive"
+                    description:
+                        "This invitation link has expired. Please request a new one.",
                 });
                 router.push("/");
                 return;
@@ -43,10 +42,9 @@ export default function OnboardingPage() {
 
             setInvitationData(decoded);
         } catch (error) {
-            toast({
+            toast.error({
                 title: "Invalid Invitation",
                 description: "Invalid invitation token",
-                variant: "destructive"
             });
             router.push("/");
         }
@@ -65,30 +63,29 @@ export default function OnboardingPage() {
                 const result = await acceptInvitation(
                     invitationData.userId,
                     user.id,
-                    invitationData.email
+                    invitationData.email,
                 );
 
                 if (result.success) {
-                    toast({
+                    toast.success({
                         title: "Welcome!",
-                        description: "Your invitation has been accepted successfully",
-                        variant: "default"
+                        description:
+                            "Your invitation has been accepted successfully",
                     });
                     router.push("/dashboard");
                 } else {
-                    toast({
+                    toast.error({
                         title: "Error",
-                        description: result.error || "Failed to accept invitation",
-                        variant: "destructive"
+                        description:
+                            result.error || "Failed to accept invitation",
                     });
                     router.push("/");
                 }
             } catch (error) {
                 console.error("Error processing invitation:", error);
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to process invitation",
-                    variant: "destructive"
                 });
                 router.push("/");
             }
@@ -112,8 +109,12 @@ export default function OnboardingPage() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Complete Your Invitation</h1>
-                    <p className="mb-6">Please sign in to accept your team invitation</p>
+                    <h1 className="text-2xl font-bold mb-4">
+                        Complete Your Invitation
+                    </h1>
+                    <p className="mb-6">
+                        Please sign in to accept your team invitation
+                    </p>
                     <a href="/api/auth/login" className="btn btn-primary">
                         Sign In
                     </a>
