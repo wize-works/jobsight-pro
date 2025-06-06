@@ -1775,6 +1775,7 @@ export interface Database {
                     email: string | null
                     phone: string | null
                     role: string | null
+                    status: string | null
                     avatar_url: string | null
                     created_at: string | null
                     updated_at: string | null
@@ -1790,6 +1791,7 @@ export interface Database {
                     last_name?: string | null
                     phone?: string | null
                     role?: string | null
+                    status: string | null
                     updated_at?: string | null
                 }
                 Update: {
@@ -1803,6 +1805,7 @@ export interface Database {
                     last_name?: string | null
                     phone?: string | null
                     role?: string | null
+                    status: string | null
                     updated_at?: string | null
                 }
                 Relationships: []
