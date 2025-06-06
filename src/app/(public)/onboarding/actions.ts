@@ -1,3 +1,4 @@
+
 "use server"
 import { createBusiness } from "@/app/actions/business"
 import { createServerClient } from "@/lib/supabase"
@@ -26,6 +27,12 @@ export async function acceptInvitation(
 ) {
     try {
         const supabase = createServerClient();
+        if (!supabase) {
+            return {
+                success: false,
+                error: "Database connection failed"
+            };
+        }
 
         // First, verify the invited user exists and has the correct email
         const { data: invitedUser, error: fetchError } = await supabase
