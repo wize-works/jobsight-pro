@@ -6,7 +6,7 @@ import { updateBusinessFromForm } from "@/app/actions/business";
 import { getUsers, deleteUser } from "@/app/actions/users";
 import { sendUserInvitation, revokeUserInvitation, resendUserInvitation } from "@/app/actions/user-invitations";
 import { toast } from "@/hooks/use-toast";
-import { User, UserInsert, userRoleOptions } from "@/types/users";
+import { User, UserInsert, UserRole, userRoleOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import PushManager from "@/components/push-manager";
 
@@ -41,10 +41,9 @@ function UsersPermissionsTab() {
 
     const handleInviteUser = async () => {
         if (!inviteEmail || !inviteFirstName) {
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Please fill in all required fields",
-                variant: "destructive"
             });
             return;
         }
@@ -53,7 +52,7 @@ function UsersPermissionsTab() {
         try {
             const fullName = `${inviteFirstName} ${inviteLastName}`.trim();
             const result = await sendUserInvitation(inviteEmail, fullName, inviteRole);
-            
+
             if (result.success && result.user) {
                 setUsers(prev => [...prev, result.user]);
                 setShowInviteModal(false);
@@ -66,18 +65,16 @@ function UsersPermissionsTab() {
                     description: `Invitation email sent to ${inviteEmail}`,
                 });
             } else {
-                toast({
+                toast.error({
                     title: "Failed to Send Invitation",
                     description: result.error || "Failed to invite user",
-                    variant: "destructive"
                 });
             }
         } catch (error) {
             console.error("Error inviting user:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to invite user",
-                variant: "destructive"
             });
         } finally {
             setInviting(false);
@@ -91,7 +88,7 @@ function UsersPermissionsTab() {
 
         try {
             let success = false;
-            
+
             if (userStatus === 'invited') {
                 // Revoke invitation for invited users
                 const result = await revokeUserInvitation(userId);
@@ -100,7 +97,7 @@ function UsersPermissionsTab() {
                 // Delete user for active users
                 success = await deleteUser(userId);
             }
-            
+
             if (success) {
                 setUsers(prev => prev.filter(user => user.id !== userId));
                 toast({
@@ -108,18 +105,16 @@ function UsersPermissionsTab() {
                     description: `${userName} has been removed from your business`,
                 });
             } else {
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to remove user",
-                    variant: "destructive"
                 });
             }
         } catch (error) {
             console.error("Error removing user:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to remove user",
-                variant: "destructive"
             });
         }
     };
@@ -127,25 +122,23 @@ function UsersPermissionsTab() {
     const handleResendInvitation = async (userId: string, userEmail: string) => {
         try {
             const result = await resendUserInvitation(userId);
-            
+
             if (result.success) {
-                toast({
+                toast.success({
                     title: "Invitation Resent",
                     description: `Invitation email resent to ${userEmail}`,
                 });
             } else {
-                toast({
+                toast.error({
                     title: "Error",
                     description: result.error || "Failed to resend invitation",
-                    variant: "destructive"
                 });
             }
         } catch (error) {
             console.error("Error resending invitation:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to resend invitation",
-                variant: "destructive"
             });
         }
     };
@@ -159,7 +152,7 @@ function UsersPermissionsTab() {
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="card-title text-xl">Users & Permissions</h2>
-                    <button 
+                    <button
                         className="btn btn-primary"
                         onClick={() => setShowInviteModal(true)}
                     >
@@ -203,23 +196,20 @@ function UsersPermissionsTab() {
                                         </td>
                                         <td>{user.email}</td>
                                         <td>
-                                            <span className={`badge ${userRoleOptions[user.role as keyof typeof userRoleOptions]?.badge || 'badge-ghost'}`}>
-                                                {userRoleOptions[user.role as keyof typeof userRoleOptions]?.label || user.role}
-                                            </span>
+                                            {userRoleOptions.badge(user.role as UserRole)}
                                         </td>
                                         <td>
-                                            <span className={`badge ${
-                                                user.status === 'active' ? 'badge-success' : 
-                                                user.status === 'invited' ? 'badge-warning' : 
-                                                'badge-error'
-                                            }`}>
+                                            <span className={`badge ${user.status === 'active' ? 'badge-success' :
+                                                user.status === 'invited' ? 'badge-warning' :
+                                                    'badge-error'
+                                                }`}>
                                                 {user.status || 'active'}
                                             </span>
                                         </td>
                                         <td>
                                             <div className="flex gap-2">
                                                 {user.status === 'invited' && (
-                                                    <button 
+                                                    <button
                                                         className="btn btn-sm btn-ghost text-primary"
                                                         onClick={() => handleResendInvitation(user.id, user.email)}
                                                         title="Resend invitation"
@@ -228,7 +218,7 @@ function UsersPermissionsTab() {
                                                     </button>
                                                 )}
                                                 {user.auth_id !== currentUser?.id && (
-                                                    <button 
+                                                    <button
                                                         className="btn btn-sm btn-ghost text-error"
                                                         onClick={() => handleRemoveUser(user.id, `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || "User", user.status || 'active')}
                                                         title={user.status === 'invited' ? 'Revoke invitation' : 'Remove user'}
@@ -307,7 +297,7 @@ function UsersPermissionsTab() {
                 <div className="modal modal-open">
                     <div className="modal-box">
                         <h3 className="font-bold text-lg mb-4">Invite New User</h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div className="form-control">
                                 <label className="label">

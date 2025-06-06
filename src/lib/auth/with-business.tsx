@@ -53,9 +53,8 @@ export function useWithBusiness(): BusinessState {
                     loading: false,
                     error: (response && 'error' in response) ? response.error : "Authentication required"
                 })
-                toast({
+                toast.error({
                     description: (response && 'error' in response) ? response.error : "Authentication required",
-                    variant: "error"
                 })
                 console.error('No business found or error:', response)
                 router.push('/')
@@ -76,9 +75,8 @@ export function useWithBusiness(): BusinessState {
                 loading: false,
                 error: "Failed to verify business access"
             })
-            toast({
+            toast.error({
                 description: "Failed to verify business access",
-                variant: "error"
             })
             console.error('Redirecting to home due to error:', error)
             router.push('/')
