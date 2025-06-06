@@ -42,18 +42,16 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             if (!response) {
                 // User is valid but has no business
                 router.push('/dashboard/business')
-                toast({
+                toast.warning({
                     description: "Please set up your business profile",
-                    variant: "warning"
                 })
                 return
             }
 
             if ('success' in response && !response.success) {
                 // If there's an error with authentication
-                toast({
+                toast.error({
                     description: response.error,
-                    variant: "error"
                 })
                 console.error("Business auth error:", response.error)
                 router.push(response.redirect)
@@ -68,9 +66,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             console.error("Error fetching business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
-            toast({
+            toast.error({
                 description: "Failed to load business data",
-                variant: "error"
             })
         }
     }

@@ -15,9 +15,8 @@ export function useBusiness() {
 
     const update = async (data: Partial<CreateBusinessParams>) => {
         if (!businessId || !user?.id) {
-            toast({
+            toast.error({
                 description: "Authentication required",
-                variant: "error"
             })
             return { success: false, error: new Error("Authentication required") }
         }
@@ -26,17 +25,15 @@ export function useBusiness() {
             setLoading(true)
             await updateBusiness(businessId, user.id, data)
             await refreshBusiness()
-            toast({
+            toast.success({
                 description: "Business updated successfully",
-                variant: "success"
             })
             return { success: true, data: businessData }
         } catch (err) {
             console.error("Error updating business:", err)
             const errorMessage = err instanceof Error ? err.message : "Failed to update business"
-            toast({
+            toast.error({
                 description: errorMessage,
-                variant: "error"
             })
             return { success: false, error: err instanceof Error ? err : new Error(errorMessage) }
         } finally {
