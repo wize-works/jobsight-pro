@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/wize-works/jobsight-pro/compare/v1.26.1...v1.27.0) (2025-06-06)
+
+
+### Features
+
+* Add RESEND_API_KEY to Docker build arguments and deployment environment ([90bb697](https://github.com/wize-works/jobsight-pro/commit/90bb6978bcfb09c97401d22606035bdcf1950bd2))
+
 ## [1.26.1](https://github.com/wize-works/jobsight-pro/compare/v1.26.0...v1.26.1) (2025-06-06)
 
 
