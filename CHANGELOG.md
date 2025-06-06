@@ -1,3 +1,10 @@
+## [1.28.1](https://github.com/wize-works/jobsight-pro/compare/v1.28.0...v1.28.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* corrected toast implementation ([643eaef](https://github.com/wize-works/jobsight-pro/commit/643eaeff27627e3a8827a0b5a355d239abecd55e))
+
 # [1.28.0](https://github.com/wize-works/jobsight-pro/compare/v1.27.0...v1.28.0) (2025-06-06)
 
 
