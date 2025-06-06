@@ -15,8 +15,14 @@ export async function sendUserInvitation(email: string, name: string, role: stri
         const { business, userId } = await withBusinessServer();
         
         // Create the user in the database with invited status
+        // Split the name into first and last name
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
         const newUser: UserInsert = {
-            name: name,
+            first_name: firstName,
+            last_name: lastName,
             email: email,
             role: role as "admin" | "manager" | "member",
             status: "invited",
@@ -49,11 +55,13 @@ export async function sendUserInvitation(email: string, name: string, role: stri
         const supabase = createServerClient();
         const { data: currentUser } = await supabase
             .from('users')
-            .select('name, email')
+            .select('first_name, last_name, email')
             .eq('auth_id', userId)
             .single();
 
-        const inviterName = currentUser?.name || currentUser?.email || 'Team Admin';
+        const inviterName = currentUser 
+            ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+            : 'Team Admin';
 
         // Send the invitation email
         const emailResponse = await resend.emails.send({
@@ -174,11 +182,13 @@ export async function resendUserInvitation(userId: string) {
         // Get current user's name for the inviter
         const { data: currentUser } = await supabase
             .from('users')
-            .select('name, email')
+            .select('first_name, last_name, email')
             .eq('auth_id', currentUserId)
             .single();
 
-        const inviterName = currentUser?.name || currentUser?.email || 'Team Admin';
+        const inviterName = currentUser 
+            ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+            : 'Team Admin';
 
         // Send the invitation email
         const emailResponse = await resend.emails.send({
@@ -186,7 +196,9 @@ export async function resendUserInvitation(userId: string) {
             to: user.email,
             subject: `Reminder: You're invited to join ${business.name} on JobSight Pro`,
             react: TeamInvitationEmail({
-                recipientName: user.name || user.email,
+                recipientName: user.first_name 
+                    ? `${user.first_name} ${user.last_name || ''}`.trim()
+                    : user.email,
                 inviterName: inviterName,
                 businessName: business.name,
                 role: user.role,
