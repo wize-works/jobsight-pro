@@ -31,7 +31,7 @@ export async function sendUserInvitation(
             status: "invited",
             business_id: business.id,
             auth_id: `invited_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        };
+        } as UserInsert;
 
         const createdUser = await createUser(newUser);
         if (!createdUser) {
@@ -62,6 +62,9 @@ export async function sendUserInvitation(
 
         // Get current user's name for the inviter
         const supabase = createServerClient();
+        if (!supabase) {
+            throw new Error("Failed to initialize Supabase client");
+        }
         const { data: currentUser } = await supabase
             .from("users")
             .select("first_name, last_name, email")
@@ -70,7 +73,7 @@ export async function sendUserInvitation(
 
         const inviterName = currentUser
             ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim() ||
-              currentUser.email
+            currentUser.email
             : "Team Admin";
 
         // Send the invitation email
@@ -83,7 +86,7 @@ export async function sendUserInvitation(
             react: TeamInvitationEmail({
                 recipientName: name,
                 inviterName: inviterName,
-                businessName: business.name,
+                businessName: business.name ?? "",
                 role: role,
                 invitationUrl: invitationUrl,
                 expirationDate: expirationDate,
@@ -128,6 +131,9 @@ export async function revokeUserInvitation(userId: string) {
     try {
         const { business } = await withBusinessServer();
         const supabase = createServerClient();
+        if (!supabase) {
+            throw new Error("Failed to initialize Supabase client");
+        }
 
         // Update user status to revoked
         const { error } = await supabase
@@ -160,6 +166,9 @@ export async function resendUserInvitation(userId: string) {
     try {
         const { business, userId: currentUserId } = await withBusinessServer();
         const supabase = createServerClient();
+        if (!supabase) {
+            throw new Error("Failed to initialize Supabase client");
+        }
 
         // Get user details
         const { data: user, error: userError } = await supabase
@@ -210,7 +219,7 @@ export async function resendUserInvitation(userId: string) {
 
         const inviterName = currentUser
             ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim() ||
-              currentUser.email
+            currentUser.email
             : "Team Admin";
 
         // Send the invitation email
@@ -225,7 +234,7 @@ export async function resendUserInvitation(userId: string) {
                     ? `${user.first_name} ${user.last_name || ""}`.trim()
                     : user.email,
                 inviterName: inviterName,
-                businessName: business.name,
+                businessName: business.name ?? "",
                 role: user.role,
                 invitationUrl: invitationUrl,
                 expirationDate: expirationDate,
