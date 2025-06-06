@@ -1,3 +1,10 @@
+## [1.28.3](https://github.com/wize-works/jobsight-pro/compare/v1.28.2...v1.28.3) (2025-06-06)
+
+
+### Bug Fixes
+
+* update toast notifications to use error and success variants for better user feedback ([bf4ba5b](https://github.com/wize-works/jobsight-pro/commit/bf4ba5b024d9d793acc6d3850a9386617974d305))
+
 ## [1.28.2](https://github.com/wize-works/jobsight-pro/compare/v1.28.1...v1.28.2) (2025-06-06)
 
 
