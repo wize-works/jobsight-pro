@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/wize-works/jobsight-pro/compare/v1.27.0...v1.28.0) (2025-06-06)
+
+
+### Features
+
+* Add RESEND_API_KEY environment variable to Dockerfile ([8ef1636](https://github.com/wize-works/jobsight-pro/commit/8ef163610aada662618da3cc9981ff528eb299e5))
+
 # [1.27.0](https://github.com/wize-works/jobsight-pro/compare/v1.26.1...v1.27.0) (2025-06-06)
 
 
