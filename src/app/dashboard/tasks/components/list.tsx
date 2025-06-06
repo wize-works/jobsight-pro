@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, SetStateAction } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createTask, updateTask, deleteTask } from "@/app/actions/tasks"
-import { Task, TaskInsert, TaskStatus } from "@/types/tasks"
+import { Task, TaskInsert, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions } from "@/types/tasks"
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
 import toast from "react-hot-toast"
@@ -100,7 +100,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     comparison = (crewMap[a.assigned_to || ""] || "").localeCompare(crewMap[b.assigned_to || ""] || "")
                     break
                 case "status":
-                    comparison = a.status.localeCompare(b.status)
+                    comparison = (a.status || "").localeCompare(b.status || "")
                     break
                 case "priority":
                     const priorityOrder = { high: 0, medium: 1, low: 2 }
@@ -174,7 +174,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
     const handleCreateTask = async (taskData: TaskInsert) => {
         try {
             const newTask = await createTask(taskData)
-            setTasks(prev => [...prev, newTask])
+            setTasks(prev => [...prev, newTask] as Task[])
             setShowAddTaskModal(false)
             toast.success("Task created successfully!")
         } catch (error) {
@@ -382,10 +382,10 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                         <td>{task.assigned_to ? crewMap[task.assigned_to] || "Unknown Crew" : "Unassigned"}</td>
                                         <td>{task.end_date ? formatDate(task.end_date) : "No due date"}</td>
                                         <td>
-                                            <div className={`badge ${getStatusBadgeColor(task.status)}`}>{formatStatus(task.status)}</div>
+                                            {taskStatusOptions.badge(task.status as TaskStatus)}
                                         </td>
                                         <td>
-                                            <div className={`badge ${getPriorityBadgeColor(task.priority)}`}>{formatPriority(task.priority)}</div>
+                                            {taskPriorityOptions.badge(task.priority as TaskPriority)}
                                         </td>
                                         <td>
                                             <div className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                                 <button className="btn btn-ghost btn-xs">
                                                     <i className="fas fa-edit"></i>
                                                 </button>
-                                                <button 
+                                                <button
                                                     className="btn btn-ghost btn-xs text-error"
                                                     onClick={() => handleDeleteTask(task.id)}
                                                 >
