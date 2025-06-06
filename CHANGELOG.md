@@ -1,3 +1,10 @@
+## [1.28.4](https://github.com/wize-works/jobsight-pro/compare/v1.28.3...v1.28.4) (2025-06-06)
+
+
+### Bug Fixes
+
+* ensure user object is valid before accessing properties in UsersPermissionsTab and update email type to non-nullable in Supabase schema ([dbd14a9](https://github.com/wize-works/jobsight-pro/commit/dbd14a990b9cdba3213ec2f1922a78b8d5d4c616))
+
 ## [1.28.3](https://github.com/wize-works/jobsight-pro/compare/v1.28.2...v1.28.3) (2025-06-06)
 
 
