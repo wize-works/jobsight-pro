@@ -18,7 +18,7 @@ export default withAuth(
         return NextResponse.next();
     },
     {
-        publicPaths: ["/public", "/landing", "/pricing", "/register", "/api"],
+        publicPaths: ["/public", "/landing", "/pricing", "/register", "/api", "/onboarding"],
     },
 );
 
