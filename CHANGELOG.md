@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/wize-works/jobsight-pro/compare/v1.26.0...v1.26.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* Update task detail and list components to use new task status and priority options ([603415d](https://github.com/wize-works/jobsight-pro/commit/603415dd903df8180511f17baa64859832342f7d))
+
 # [1.26.0](https://github.com/wize-works/jobsight-pro/compare/v1.25.3...v1.26.0) (2025-06-06)
 
 
