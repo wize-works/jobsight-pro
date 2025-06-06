@@ -1,3 +1,10 @@
+## [1.28.2](https://github.com/wize-works/jobsight-pro/compare/v1.28.1...v1.28.2) (2025-06-06)
+
+
+### Bug Fixes
+
+* add status field to user type in Supabase schema and improve Supabase client initialization error handling ([6c3655e](https://github.com/wize-works/jobsight-pro/commit/6c3655e701a3f0737a929e18e107a53b25ae1289))
+
 ## [1.28.1](https://github.com/wize-works/jobsight-pro/compare/v1.28.0...v1.28.1) (2025-06-06)
 
 
