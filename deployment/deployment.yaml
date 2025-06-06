@@ -75,6 +75,11 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: VAPID_PRIVATE_KEY
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: RESEND_API_KEY
 
           resources:
             requests:
