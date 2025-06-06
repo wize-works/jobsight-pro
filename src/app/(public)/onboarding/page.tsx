@@ -1,367 +1,133 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import Link from "next/link";
-import { createBusiness } from "./actions";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { toast } from "@/hooks/use-toast";
+import { acceptInvitation } from "./actions";
 
-export default function Onboarding() {
-    const { user, isLoading } = useKindeAuth();
+export default function OnboardingPage() {
     const router = useRouter();
-    const [step, setStep] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        businessName: "",
-        businessType: "General Contractor",
-        phoneNumber: "",
-        website: "",
-        address: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        country: "United States",
-    });
+    const searchParams = useSearchParams();
+    const { user, isLoading: isAuthLoading } = useKindeBrowserClient();
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [invitationData, setInvitationData] = useState<any>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    useEffect(() => {
+        const token = searchParams.get("token");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (step < 3) {
-            setStep(step + 1);
+        if (!token) {
+            toast({
+                title: "Invalid Invitation",
+                description: "No invitation token found",
+                variant: "destructive"
+            });
+            router.push("/");
             return;
         }
 
-        if (!user) {
-            toast.error("You must be logged in to complete onboarding");
-            return
-        }
-
-        setIsSubmitting(true);
-
+        // Decode the invitation token
         try {
-            await createBusiness({
-                userId: user.id, // This is our database UUID
-                businessName: formData.businessName,
-                businessType: formData.businessType,
-                phoneNumber: formData.phoneNumber,
-                website: formData.website,
-                address: formData.address,
-                city: formData.city,
-                state: formData.state,
-                zipCode: formData.zipCode,
-                country: formData.country,
+            const decoded = JSON.parse(Buffer.from(token, "base64").toString());
+
+            // Check if token is expired
+            if (new Date(decoded.expiresAt) < new Date()) {
+                toast({
+                    title: "Invitation Expired",
+                    description: "This invitation link has expired. Please request a new one.",
+                    variant: "destructive"
+                });
+                router.push("/");
+                return;
+            }
+
+            setInvitationData(decoded);
+        } catch (error) {
+            toast({
+                title: "Invalid Invitation",
+                description: "Invalid invitation token",
+                variant: "destructive"
             });
-
-            toast.success("Business profile created successfully!");
-            router.push("/dashboard");
-        } catch (error) {
-            console.error("Error creating business:", error);
-            toast.error("Failed to create business profile. Please try again.");
-        } finally {
-            setIsSubmitting(false)
+            router.push("/");
         }
-    }
+    }, [searchParams, router]);
 
-    const handleSkip = async () => {
-        if (!user) {
-            toast.error("You must be logged in to complete onboarding")
-            return
-        }
+    useEffect(() => {
+        const processInvitation = async () => {
+            // Wait for auth to complete and user to be available
+            if (isAuthLoading || !user?.id || !invitationData || isProcessing) {
+                return;
+            }
 
-        setIsSubmitting(true)
+            setIsProcessing(true);
 
-        try {
-            // Create a default business using the user's first name
-            const defaultBusinessName = `${user.given_name}'s Company`
+            try {
+                const result = await acceptInvitation(
+                    invitationData.userId,
+                    user.id,
+                    invitationData.email
+                );
 
-            await createBusiness({
-                userId: user.id, // This is our database UUID
-                businessName: defaultBusinessName,
-                businessType: "General Contractor", // Default type
-                phoneNumber: "",
-                website: "",
-                address: "",
-                city: "",
-                state: "",
-                zipCode: "",
-                country: "United States",
-                email: user.email || "", // Use the user's email as the business email
-            })
+                if (result.success) {
+                    toast({
+                        title: "Welcome!",
+                        description: "Your invitation has been accepted successfully",
+                        variant: "default"
+                    });
+                    router.push("/dashboard");
+                } else {
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to accept invitation",
+                        variant: "destructive"
+                    });
+                    router.push("/");
+                }
+            } catch (error) {
+                console.error("Error processing invitation:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to process invitation",
+                    variant: "destructive"
+                });
+                router.push("/");
+            }
+        };
 
-            toast.success("Quick setup completed! You can update your business details later.")
-            router.push("/dashboard")
-        } catch (error) {
-            console.error("Error creating default business:", error)
-            toast.error("Failed to complete setup. Please try again.")
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
+        processInvitation();
+    }, [user, invitationData, isAuthLoading, isProcessing, router]);
 
-    if (isLoading) {
+    if (isAuthLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
+                <div className="text-center">
+                    <div className="loading loading-spinner loading-lg"></div>
+                    <p className="mt-4">Authenticating...</p>
+                </div>
             </div>
-        )
+        );
     }
 
     if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body">
-                        <h2 className="card-title">Authentication Required</h2>
-                        <p>You need to be logged in to access this page.</p>
-                        <div className="card-actions justify-end">
-                            <LoginLink className="btn btn-primary">
-                                Log In
-                            </LoginLink>
-                        </div>
-                    </div>
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">Complete Your Invitation</h1>
+                    <p className="mb-6">Please sign in to accept your team invitation</p>
+                    <a href="/api/auth/login" className="btn btn-primary">
+                        Sign In
+                    </a>
                 </div>
             </div>
-        )
+        );
     }
 
     return (
-        <main className="min-h-screen bg-base-200 flex items-center justify-center p-4">
-            <div className="card bg-base-100 shadow-xl w-full max-w-3xl">
-                <div className="card-body">
-                    <div className="flex justify-center mb-6">
-                        <Link href="/" className="flex items-center">
-                            <img src="/logo-full.png" alt="JobSight" className="h-12" />
-                        </Link>
-                    </div>
-
-                    <h1 className="text-2xl font-bold text-center mb-6">Complete Your Profile</h1>
-
-                    <ul className="steps steps-horizontal w-full mb-8">
-                        <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Business Info</li>
-                        <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Address</li>
-                        <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Preferences</li>
-                    </ul>
-
-                    <form onSubmit={handleSubmit}>
-                        {step === 1 && (
-                            <div className="space-y-4">
-                                <h2 className="text-xl font-semibold mb-4">Business Information</h2>
-
-                                <div className="form-control w-full">
-                                    <label className="label">
-                                        <span className="label-text">Business Name</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="businessName"
-                                        value={formData.businessName}
-                                        onChange={handleChange}
-                                        className="input w-full"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Business Type</span>
-                                    </label>
-                                    <select
-                                        name="businessType"
-                                        value={formData.businessType}
-                                        onChange={handleChange}
-                                        className="select select-bordered w-full"
-                                        required
-                                    >
-                                        <option>General Contractor</option>
-                                        <option>Specialty Contractor</option>
-                                        <option>Home Builder</option>
-                                        <option>Remodeler</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Phone Number</span>
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        name="phoneNumber"
-                                        value={formData.phoneNumber}
-                                        onChange={handleChange}
-                                        className="input input-bordered"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Website (Optional)</span>
-                                    </label>
-                                    <input
-                                        type="url"
-                                        name="website"
-                                        value={formData.website}
-                                        onChange={handleChange}
-                                        className="input input-bordered"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 2 && (
-                            <div className="space-y-4">
-                                <h2 className="text-xl font-semibold mb-4">Business Address</h2>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Street Address</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        className="input input-bordered"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">City</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        className="input input-bordered"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">State/Province</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="state"
-                                            value={formData.state}
-                                            onChange={handleChange}
-                                            className="input input-bordered"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Zip/Postal Code</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="zipCode"
-                                            value={formData.zipCode}
-                                            onChange={handleChange}
-                                            className="input input-bordered"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text">Country</span>
-                                    </label>
-                                    <select
-                                        name="country"
-                                        value={formData.country}
-                                        onChange={handleChange}
-                                        className="select select-bordered w-full"
-                                        required
-                                    >
-                                        <option>United States</option>
-                                        <option>Canada</option>
-                                        <option>Mexico</option>
-                                        <option>United Kingdom</option>
-                                        <option>Australia</option>
-                                    </select>
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 3 && (
-                            <div className="space-y-4">
-                                <h2 className="text-xl font-semibold mb-4">Preferences</h2>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Enable email notifications</span>
-                                        <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                                    </label>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Enable mobile push notifications</span>
-                                        <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                                    </label>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Share anonymous usage data to help improve JobSight</span>
-                                        <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                                    </label>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer">
-                                        <span className="label-text">Subscribe to newsletter</span>
-                                        <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex justify-between mt-8">
-                            {step > 1 ? (
-                                <button type="button" className="btn btn-outline" onClick={() => setStep(step - 1)}>
-                                    Back
-                                </button>
-                            ) : (
-                                <div></div>
-                            )}
-
-                            <div className="flex gap-2">
-                                <button type="button" className="btn btn-outline" onClick={handleSkip} disabled={isSubmitting}>
-                                    {isSubmitting ? <span className="loading loading-spinner loading-sm"></span> : "Skip for now"}
-                                </button>
-                                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                    {isSubmitting ? (
-                                        <span className="loading loading-spinner loading-sm"></span>
-                                    ) : step < 3 ? (
-                                        "Next"
-                                    ) : (
-                                        "Complete Setup"
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+                <div className="loading loading-spinner loading-lg"></div>
+                <p className="mt-4">Processing your invitation...</p>
             </div>
-        </main>
-    )
+        </div>
+    );
 }
