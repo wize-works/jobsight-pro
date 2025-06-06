@@ -127,28 +127,19 @@ export const Navbar = ({
                         <div className="divider my-1"></div>
 
                         <li>
-                            <Link
-                                href="/dashboard/profile"
-                                className="flex items-center gap-3 py-2"
-                            >
+                            <Link href="/dashboard/profile" className="flex items-center gap-3 py-2" >
                                 <i className="far fa-user w-4"></i>
                                 <span>Profile</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/dashboard/settings"
-                                className="flex items-center gap-3 py-2"
-                            >
+                            <Link href="/dashboard/settings" className="flex items-center gap-3 py-2" >
                                 <i className="far fa-cog w-4"></i>
                                 <span>Settings</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/dashboard/business"
-                                className="flex items-center gap-3 py-2"
-                            >
+                            <Link href="/dashboard/business" className="flex items-center gap-3 py-2" >
                                 <i className="far fa-buildings w-4"></i>
                                 <span>Business Settings</span>
                             </Link>
@@ -157,19 +148,13 @@ export const Navbar = ({
                         <div className="divider my-1"></div>
 
                         <li>
-                            <Link
-                                href="/dashboard/reports"
-                                className="flex items-center gap-3 py-2"
-                            >
+                            <Link href="/dashboard/reports" className="flex items-center gap-3 py-2" >
                                 <i className="far fa-chart-bar w-4"></i>
                                 <span>Reports</span>
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/dashboard/more"
-                                className="flex items-center gap-3 py-2"
-                            >
+                            <Link href="/dashboard/more" className="flex items-center gap-3 py-2">
                                 <i className="far fa-ellipsis-h w-4"></i>
                                 <span>More Tools</span>
                             </Link>
