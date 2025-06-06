@@ -1,3 +1,20 @@
+# [1.26.0](https://github.com/wize-works/jobsight-pro/compare/v1.25.3...v1.26.0) (2025-06-06)
+
+
+### Bug Fixes
+
+* Refactor invoice pages and components for improved structure and readability ([18a1fd6](https://github.com/wize-works/jobsight-pro/commit/18a1fd6ef25cd9ad18522b2a9971ba2d27186846))
+* removed settings ([9fcb840](https://github.com/wize-works/jobsight-pro/commit/9fcb8407f9bb9f0c6988126cd4fd1803ba407a14))
+* removed unwanted links in navbar. ([3fe3dd7](https://github.com/wize-works/jobsight-pro/commit/3fe3dd7af8e51967ab6ef56850075865fd7b53b6))
+* updated task notes and model. ([7df67d1](https://github.com/wize-works/jobsight-pro/commit/7df67d1d72976241f166c1873ef5d039bca39037))
+
+
+### Features
+
+* Add email templates and components for JobSight Pro ([a233d26](https://github.com/wize-works/jobsight-pro/commit/a233d26241cd931fe48e4b2e8a1cc2c3c4c5caec))
+* Enhance invoice management with detailed editing and viewing capabilities ([65861bb](https://github.com/wize-works/jobsight-pro/commit/65861bb34caba5bc5da63e46249dfd4ce69a496a))
+* Implement public layout with theme toggle and footer integration ([d43ddab](https://github.com/wize-works/jobsight-pro/commit/d43ddaba7fc188d13aebc688c6ac0bfb94542de1))
+
 ## [1.25.3](https://github.com/wize-works/jobsight-pro/compare/v1.25.2...v1.25.3) (2025-06-04)
 
 
