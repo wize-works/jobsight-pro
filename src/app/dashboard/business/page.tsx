@@ -15,7 +15,8 @@ function UsersPermissionsTab() {
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
-    const [inviteName, setInviteName] = useState("");
+    const [inviteFirstName, setInviteFirstName] = useState("");
+    const [inviteLastName, setInviteLastName] = useState("");
     const [inviteRole, setInviteRole] = useState<"admin" | "manager" | "member">("member");
     const [inviting, setInviting] = useState(false);
     const { user: currentUser } = useKindeBrowserClient();
@@ -39,7 +40,7 @@ function UsersPermissionsTab() {
     };
 
     const handleInviteUser = async () => {
-        if (!inviteEmail || !inviteName) {
+        if (!inviteEmail || !inviteFirstName) {
             toast({
                 title: "Error",
                 description: "Please fill in all required fields",
@@ -50,13 +51,15 @@ function UsersPermissionsTab() {
 
         setInviting(true);
         try {
-            const result = await sendUserInvitation(inviteEmail, inviteName, inviteRole);
+            const fullName = `${inviteFirstName} ${inviteLastName}`.trim();
+            const result = await sendUserInvitation(inviteEmail, fullName, inviteRole);
             
             if (result.success && result.user) {
                 setUsers(prev => [...prev, result.user]);
                 setShowInviteModal(false);
                 setInviteEmail("");
-                setInviteName("");
+                setInviteFirstName("");
+                setInviteLastName("");
                 setInviteRole("member");
                 toast({
                     title: "Invitation Sent",
@@ -187,11 +190,11 @@ function UsersPermissionsTab() {
                                             <div className="flex items-center gap-3">
                                                 <div className="avatar">
                                                     <div className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
-                                                        {getUserInitials(user.name || user.email || "U")}
+                                                        {getUserInitials(`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || "U")}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold">{user.name || "Unknown"}</div>
+                                                    <div className="font-bold">{`${user.first_name || ''} ${user.last_name || ''}`.trim() || "Unknown"}</div>
                                                     <div className="text-sm opacity-50">
                                                         {user.auth_id === currentUser?.id && "You"}
                                                     </div>
@@ -227,7 +230,7 @@ function UsersPermissionsTab() {
                                                 {user.auth_id !== currentUser?.id && (
                                                     <button 
                                                         className="btn btn-sm btn-ghost text-error"
-                                                        onClick={() => handleRemoveUser(user.id, user.name || user.email || "User", user.status || 'active')}
+                                                        onClick={() => handleRemoveUser(user.id, `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || "User", user.status || 'active')}
                                                         title={user.status === 'invited' ? 'Revoke invitation' : 'Remove user'}
                                                     >
                                                         <i className="fas fa-trash"></i>
@@ -305,17 +308,31 @@ function UsersPermissionsTab() {
                     <div className="modal-box">
                         <h3 className="font-bold text-lg mb-4">Invite New User</h3>
                         
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Full Name *</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="input input-bordered"
-                                value={inviteName}
-                                onChange={(e) => setInviteName(e.target.value)}
-                                placeholder="Enter full name"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">First Name *</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={inviteFirstName}
+                                    onChange={(e) => setInviteFirstName(e.target.value)}
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Last Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={inviteLastName}
+                                    onChange={(e) => setInviteLastName(e.target.value)}
+                                    placeholder="Enter last name"
+                                />
+                            </div>
                         </div>
 
                         <div className="form-control mb-4">
