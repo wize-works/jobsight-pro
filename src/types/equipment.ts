@@ -15,6 +15,7 @@ export type EquipmentWithDetails = Equipment & {
 
 export type EquipmentStatus = "in_use" | "available" | "maintenance" | "repair" | "retired";
 export type EquipmentType = "heavy" | "medium" | "small" | "tool" | "electronic" | "other";
+export type EquipmentCondition = "new" | "good" | "fair" | "poor" | "damaged";
 
 export const equipmentStatusOptions = createOptions<EquipmentStatus>({
     "in_use": { label: "In Use", badge: "badge-primary" },
@@ -31,4 +32,12 @@ export const equipmentTypeOptions = createOptions<EquipmentType>({
     "tool": { label: "Tools", badge: "badge-warning" },
     "electronic": { label: "Electronic Equipment", badge: "badge-info" },
     "other": { label: "Other", badge: "badge-neutral" }
+});
+
+export const equipmentConditionOptions = createOptions<EquipmentCondition>({
+    "new": { label: "New", badge: "badge-success" },
+    "good": { label: "Good", badge: "badge-accent" },
+    "fair": { label: "Fair", badge: "badge-info" },
+    "poor": { label: "Poor", badge: "badge-warning" },
+    "damaged": { label: "Damaged", badge: "badge-error" }
 });

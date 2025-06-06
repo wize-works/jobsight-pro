@@ -3,6 +3,9 @@ import DailyLogComponent from "../components/detail";
 import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
 import { getCrews } from "@/app/actions/crews";
 import { getProjects } from "@/app/actions/projects";
+import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
+import { get } from "http";
+import { getClientById } from "@/app/actions/clients";
 
 export default async function DailyLogPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -14,6 +17,8 @@ export default async function DailyLogPage({ params }: { params: Promise<{ id: s
             getCrews(),
             getProjects()
         ]);
+
+        const crewMembers = await getCrewMembersByCrewId(log?.crew_id || "");
 
         // Make sure we have a valid log with materials and equipment arrays
         if (!log) {
@@ -29,7 +34,7 @@ export default async function DailyLogPage({ params }: { params: Promise<{ id: s
 
         return (
             <Suspense fallback={<div className="loading loading-spinner loading-lg"></div>}>
-                <DailyLogComponent log={safeLog} crews={crews} projects={projects} />
+                <DailyLogComponent log={safeLog} crews={crews} projects={projects} crewMembers={crewMembers} />
             </Suspense>
         );
     } catch (error) {

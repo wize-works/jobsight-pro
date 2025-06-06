@@ -2,17 +2,17 @@
 import { createBusiness } from "@/app/actions/business"
 
 type CreateBusinessParams = {
-  userId: string // This should be the database UUID, not the Kinde ID
-  businessName: string
-  businessType: string
-  phoneNumber?: string
-  website?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  country?: string
-  email?: string
+    userId: string // This should be the database UUID, not the Kinde ID
+    businessName: string
+    businessType: string
+    phoneNumber?: string
+    website?: string
+    address?: string
+    city?: string
+    state?: string
+    zipCode?: string
+    country?: string
+    email?: string
 }
 
 // Re-export the createBusiness function to maintain compatibility

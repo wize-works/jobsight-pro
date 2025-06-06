@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
-import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { LoginLink, RegisterLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
@@ -17,10 +17,6 @@ export default function Home() {
 
     return (
         <main className="min-h-screen flex flex-col lg:flex-row relative">
-            {/* Theme toggle in top right */}
-            <div className="absolute top-4 right-4">
-                <ThemeToggle />
-            </div>
             <section className="bg-base-100 w-full lg:w-1/2 flex flex-col items-center justify-center min-h-screen p-6 text-center">
                 <div className="max-w-md">
                     <div className="mb-3">
@@ -34,9 +30,9 @@ export default function Home() {
 
                     <div className="flex flex-col gap-3">
                         <LoginLink className="btn btn-secondary btn-outline">Sign In</LoginLink>
-                        <Link href="/register" className="btn btn-primary w-full">
+                        <RegisterLink className="btn btn-primary w-full">
                             Get Started
-                        </Link>
+                        </RegisterLink>
                         {/* <Link href="/dashboard" className="btn btn-outline w-full">
                             Go to Dashboard
                         </Link> */}

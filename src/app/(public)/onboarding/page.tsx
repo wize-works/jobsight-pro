@@ -156,7 +156,7 @@ export default function Onboarding() {
                             <div className="space-y-4">
                                 <h2 className="text-xl font-semibold mb-4">Business Information</h2>
 
-                                <div className="form-control">
+                                <div className="form-control w-full">
                                     <label className="label">
                                         <span className="label-text">Business Name</span>
                                     </label>
@@ -165,7 +165,7 @@ export default function Onboarding() {
                                         name="businessName"
                                         value={formData.businessName}
                                         onChange={handleChange}
-                                        className="input input-bordered"
+                                        className="input w-full"
                                         required
                                     />
                                 </div>
