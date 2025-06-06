@@ -5,7 +5,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { updateTask, deleteTask } from "@/app/actions/tasks"
-import { Task } from "@/types/tasks"
+import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskUpdate } from "@/types/tasks"
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
 import toast from "react-hot-toast"
@@ -90,7 +90,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     // Handle task update
     const handleUpdateTask = async (updatedData: Partial<Task>) => {
         try {
-            const updatedTask = await updateTask(task.id, updatedData)
+            const updatedTask = await updateTask(task.id, updatedData as TaskUpdate)
             setTask(updatedTask)
             setIsEditing(false)
             toast.success("Task updated successfully!")
@@ -111,14 +111,14 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                     <Link href="/dashboard/tasks" className="btn btn-ghost">
                         <i className="fas fa-arrow-left mr-2"></i> Back to Tasks
                     </Link>
-                    <button 
-                        className="btn btn-primary" 
+                    <button
+                        className="btn btn-primary"
                         onClick={() => setIsEditing(true)}
                     >
                         <i className="fas fa-edit mr-2"></i> Edit
                     </button>
-                    <button 
-                        className="btn btn-error" 
+                    <button
+                        className="btn btn-error"
                         onClick={handleDeleteTask}
                     >
                         <i className="fas fa-trash mr-2"></i> Delete
@@ -142,8 +142,8 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                                     <label className="label">
                                         <span className="label-text font-medium">Project</span>
                                     </label>
-                                    <Link 
-                                        href={`/dashboard/projects/${task.project_id}`} 
+                                    <Link
+                                        href={`/dashboard/projects/${task.project_id}`}
                                         className="text-lg text-primary hover:underline"
                                     >
                                         {project?.name || "Unknown Project"}
@@ -159,17 +159,13 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                                     <label className="label">
                                         <span className="label-text font-medium">Status</span>
                                     </label>
-                                    <div className={`badge ${getStatusBadgeColor(task.status)} badge-lg`}>
-                                        {formatStatus(task.status)}
-                                    </div>
+                                    {taskStatusOptions.badge(task.status as TaskStatus)}
                                 </div>
                                 <div>
                                     <label className="label">
                                         <span className="label-text font-medium">Priority</span>
                                     </label>
-                                    <div className={`badge ${getPriorityBadgeColor(task.priority)} badge-lg`}>
-                                        {formatPriority(task.priority)}
-                                    </div>
+                                    {taskPriorityOptions.badge(task.priority as TaskPriority)}
                                 </div>
                                 <div>
                                     <label className="label">
@@ -214,22 +210,22 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                         <div className="card-body">
                             <h3 className="card-title text-lg mb-4">Quick Actions</h3>
                             <div className="space-y-2">
-                                <button 
+                                <button
                                     className="btn btn-sm btn-outline w-full"
                                     onClick={() => handleUpdateTask({ status: "in_progress" })}
                                     disabled={task.status === "in_progress"}
                                 >
                                     Start Task
                                 </button>
-                                <button 
+                                <button
                                     className="btn btn-sm btn-success w-full"
                                     onClick={() => handleUpdateTask({ status: "completed", progress: 100 })}
                                     disabled={task.status === "completed"}
                                 >
                                     Mark Complete
                                 </button>
-                                <Link 
-                                    href={`/dashboard/projects/${task.project_id}`} 
+                                <Link
+                                    href={`/dashboard/projects/${task.project_id}`}
                                     className="btn btn-sm btn-ghost w-full"
                                 >
                                     View Project
@@ -281,10 +277,10 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
 
 // Helper function to format date
 function formatDate(dateString: string | number | Date) {
-    const options: Intl.DateTimeFormatOptions = { 
-        year: "numeric", 
-        month: "short", 
-        day: "numeric" 
+    const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
     }
     return new Date(dateString).toLocaleDateString(undefined, options)
 }
