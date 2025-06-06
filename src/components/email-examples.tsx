@@ -337,6 +337,74 @@ export function PasswordResetEmail({
                     <p>Click the button below to create a new password:</p>
                 </div>
             }
+
+
+// Team Invitation Email
+export function TeamInvitationEmail({
+    recipientName,
+    inviterName,
+    businessName,
+    role,
+    invitationUrl,
+    expirationDate
+}: {
+    recipientName: string;
+    inviterName: string;
+    businessName: string;
+    role: string;
+    invitationUrl: string;
+    expirationDate: string;
+}) {
+    return (
+        <EmailTemplate
+            type="welcome"
+            title="You're Invited to Join a Team!"
+            recipientName={recipientName}
+            businessName={businessName}
+            content={
+                <div>
+                    <p>
+                        <strong>{inviterName}</strong> has invited you to join <strong>{businessName}</strong>
+                        on JobSight Pro as a <strong>{role}</strong>.
+                    </p>
+
+                    <EmailSection backgroundColor="#F0EFEC" padding="20px">
+                        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>What You'll Get Access To:</h3>
+                        <ul style={{ paddingLeft: '20px', lineHeight: '1.8', margin: '0' }}>
+                            <li>Project management tools</li>
+                            <li>Daily logging and reporting</li>
+                            <li>Team collaboration features</li>
+                            <li>Mobile access for field work</li>
+                            <li>Real-time notifications</li>
+                        </ul>
+                    </EmailSection>
+
+                    <EmailAlert type="warning">
+                        <strong>⏰ This invitation expires on {expirationDate}</strong>
+                        <br />
+                        Click the button below to accept and create your account.
+                    </EmailAlert>
+                </div>
+            }
+            primaryAction={{
+                text: 'Accept Invitation',
+                url: invitationUrl
+            }}
+            secondaryAction={{
+                text: 'Learn More',
+                url: 'https://pro.jobsight.co/features'
+            }}
+            additionalData={{
+                invitedBy: inviterName,
+                businessName,
+                role,
+                expirationDate
+            }}
+            footerContent="If you're not expecting this invitation, you can safely ignore this email."
+        />
+    );
+}
+
             primaryAction={{
                 text: 'Reset Password',
                 url: resetUrl

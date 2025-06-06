@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { updateBusinessFromForm } from "@/app/actions/business";
-import { getUsers, deleteUser, createUser } from "@/app/actions/users";
+import { getUsers, deleteUser } from "@/app/actions/users";
+import { sendUserInvitation, revokeUserInvitation, resendUserInvitation } from "@/app/actions/user-invitations";
 import { toast } from "@/hooks/use-toast";
 import { User, UserInsert, userRoleOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
@@ -39,56 +40,110 @@ function UsersPermissionsTab() {
 
     const handleInviteUser = async () => {
         if (!inviteEmail || !inviteName) {
-            toast.error("Please fill in all required fields");
+            toast({
+                title: "Error",
+                description: "Please fill in all required fields",
+                variant: "destructive"
+            });
             return;
         }
 
         setInviting(true);
         try {
-            const newUser: UserInsert = {
-                name: inviteName,
-                email: inviteEmail,
-                role: inviteRole,
-                status: "invited",
-                business_id: businessData?.id || "",
-                auth_id: `invited_${Date.now()}`, // Temporary auth_id for invited users
-            };
-
-            const createdUser = await createUser(newUser);
-            if (createdUser) {
-                setUsers(prev => [...prev, createdUser]);
+            const result = await sendUserInvitation(inviteEmail, inviteName, inviteRole);
+            
+            if (result.success && result.user) {
+                setUsers(prev => [...prev, result.user]);
                 setShowInviteModal(false);
                 setInviteEmail("");
                 setInviteName("");
                 setInviteRole("member");
-                toast.success(`Invitation sent to ${inviteEmail}`);
+                toast({
+                    title: "Invitation Sent",
+                    description: `Invitation email sent to ${inviteEmail}`,
+                });
             } else {
-                toast.error("Failed to invite user");
+                toast({
+                    title: "Failed to Send Invitation",
+                    description: result.error || "Failed to invite user",
+                    variant: "destructive"
+                });
             }
         } catch (error) {
             console.error("Error inviting user:", error);
-            toast.error("Failed to invite user");
+            toast({
+                title: "Error",
+                description: "Failed to invite user",
+                variant: "destructive"
+            });
         } finally {
             setInviting(false);
         }
     };
 
-    const handleRemoveUser = async (userId: string, userName: string) => {
+    const handleRemoveUser = async (userId: string, userName: string, userStatus: string) => {
         if (!confirm(`Are you sure you want to remove ${userName} from your business?`)) {
             return;
         }
 
         try {
-            const success = await deleteUser(userId);
+            let success = false;
+            
+            if (userStatus === 'invited') {
+                // Revoke invitation for invited users
+                const result = await revokeUserInvitation(userId);
+                success = result.success;
+            } else {
+                // Delete user for active users
+                success = await deleteUser(userId);
+            }
+            
             if (success) {
                 setUsers(prev => prev.filter(user => user.id !== userId));
-                toast.success(`${userName} has been removed from your business`);
+                toast({
+                    title: "User Removed",
+                    description: `${userName} has been removed from your business`,
+                });
             } else {
-                toast.error("Failed to remove user");
+                toast({
+                    title: "Error",
+                    description: "Failed to remove user",
+                    variant: "destructive"
+                });
             }
         } catch (error) {
             console.error("Error removing user:", error);
-            toast.error("Failed to remove user");
+            toast({
+                title: "Error",
+                description: "Failed to remove user",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleResendInvitation = async (userId: string, userEmail: string) => {
+        try {
+            const result = await resendUserInvitation(userId);
+            
+            if (result.success) {
+                toast({
+                    title: "Invitation Resent",
+                    description: `Invitation email resent to ${userEmail}`,
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: result.error || "Failed to resend invitation",
+                    variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error("Error resending invitation:", error);
+            toast({
+                title: "Error",
+                description: "Failed to resend invitation",
+                variant: "destructive"
+            });
         }
     };
 
@@ -160,10 +215,20 @@ function UsersPermissionsTab() {
                                         </td>
                                         <td>
                                             <div className="flex gap-2">
+                                                {user.status === 'invited' && (
+                                                    <button 
+                                                        className="btn btn-sm btn-ghost text-primary"
+                                                        onClick={() => handleResendInvitation(user.id, user.email)}
+                                                        title="Resend invitation"
+                                                    >
+                                                        <i className="fas fa-paper-plane"></i>
+                                                    </button>
+                                                )}
                                                 {user.auth_id !== currentUser?.id && (
                                                     <button 
                                                         className="btn btn-sm btn-ghost text-error"
-                                                        onClick={() => handleRemoveUser(user.id, user.name || user.email || "User")}
+                                                        onClick={() => handleRemoveUser(user.id, user.name || user.email || "User", user.status || 'active')}
+                                                        title={user.status === 'invited' ? 'Revoke invitation' : 'Remove user'}
                                                     >
                                                         <i className="fas fa-trash"></i>
                                                     </button>
