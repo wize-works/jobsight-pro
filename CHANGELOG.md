@@ -1,3 +1,12 @@
+# [1.30.0](https://github.com/wize-works/jobsight-pro/compare/v1.29.0...v1.30.0) (2025-06-07)
+
+
+### Features
+
+* add Sentry authentication token to Docker build and Kubernetes secret ([3c7de6b](https://github.com/wize-works/jobsight-pro/commit/3c7de6b79119b7b0c771d998de66b5dd25aaaf66))
+* integrate ClarityProvider for enhanced user analytics tracking ([42900a6](https://github.com/wize-works/jobsight-pro/commit/42900a6087322d2ff98526c6af368c6b9ed8a585))
+* integrate Sentry for error tracking and performance monitoring ([f1e6e25](https://github.com/wize-works/jobsight-pro/commit/f1e6e259b10d9557b9128358f07f215839472bed))
+
 # [1.29.0](https://github.com/wize-works/jobsight-pro/compare/v1.28.4...v1.29.0) (2025-06-07)
 
 
