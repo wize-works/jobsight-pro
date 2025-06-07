@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { generateUploadUrl, createMedia } from "@/app/actions/media"
 import { getProjects } from "@/app/actions/projects"
 import { Project } from "@/types/projects"
-import { MediaType } from "@/types/media"
+import { MediaInsert, MediaType } from "@/types/media"
 import { toast } from "@/hooks/use-toast"
 
 interface FileUpload {
@@ -106,7 +106,7 @@ export default function MediaUpload() {
     const uploadSingleFile = async (fileUpload: FileUpload): Promise<boolean> => {
         try {
             const mediaType = getMediaTypeFromFile(fileUpload.file)
-            
+
             // Generate upload URL
             const uploadData = await generateUploadUrl(mediaType, fileUpload.file.name)
             if (!uploadData) {
@@ -114,20 +114,20 @@ export default function MediaUpload() {
             }
 
             // Update file with upload URL
-            setFiles(prev => prev.map(f => 
-                f.id === fileUpload.id 
+            setFiles(prev => prev.map(f =>
+                f.id === fileUpload.id
                     ? { ...f, uploadUrl: uploadData.uploadUrl, url: uploadData.fileUrl, fileName: uploadData.fileName, status: "uploading" }
                     : f
             ))
 
             // Upload to Azure Blob Storage
             const xhr = new XMLHttpRequest()
-            
+
             return new Promise((resolve, reject) => {
                 xhr.upload.addEventListener("progress", (e) => {
                     if (e.lengthComputable) {
                         const progress = Math.round((e.loaded / e.total) * 100)
-                        setFiles(prev => prev.map(f => 
+                        setFiles(prev => prev.map(f =>
                             f.id === fileUpload.id ? { ...f, progress } : f
                         ))
                     }
@@ -140,21 +140,13 @@ export default function MediaUpload() {
                             const mediaRecord = await createMedia({
                                 name: fileUpload.file.name,
                                 type: mediaType,
-                                size: formatFileSize(fileUpload.file.size),
+                                size: fileUpload.file.size,
                                 url: uploadData.fileUrl,
-                                filename: uploadData.fileName,
                                 project_id: selectedProject || null,
-                                business_id: "", // Will be set by the action
-                                id: "",
-                                created_at: null,
-                                created_by: null,
-                                updated_at: null,
-                                updated_by: null,
-                                description: null
-                            })
+                            } as MediaInsert)
 
                             if (mediaRecord) {
-                                setFiles(prev => prev.map(f => 
+                                setFiles(prev => prev.map(f =>
                                     f.id === fileUpload.id ? { ...f, status: "completed", progress: 100 } : f
                                 ))
                                 resolve(true)
@@ -163,13 +155,13 @@ export default function MediaUpload() {
                             }
                         } catch (error) {
                             console.error("Error creating media record:", error)
-                            setFiles(prev => prev.map(f => 
+                            setFiles(prev => prev.map(f =>
                                 f.id === fileUpload.id ? { ...f, status: "error" } : f
                             ))
                             reject(error)
                         }
                     } else {
-                        setFiles(prev => prev.map(f => 
+                        setFiles(prev => prev.map(f =>
                             f.id === fileUpload.id ? { ...f, status: "error" } : f
                         ))
                         reject(new Error(`Upload failed with status ${xhr.status}`))
@@ -177,7 +169,7 @@ export default function MediaUpload() {
                 })
 
                 xhr.addEventListener("error", () => {
-                    setFiles(prev => prev.map(f => 
+                    setFiles(prev => prev.map(f =>
                         f.id === fileUpload.id ? { ...f, status: "error" } : f
                     ))
                     reject(new Error("Upload failed"))
@@ -189,7 +181,7 @@ export default function MediaUpload() {
             })
         } catch (error) {
             console.error("Error uploading file:", error)
-            setFiles(prev => prev.map(f => 
+            setFiles(prev => prev.map(f =>
                 f.id === fileUpload.id ? { ...f, status: "error" } : f
             ))
             return false
@@ -201,10 +193,10 @@ export default function MediaUpload() {
         if (files.length === 0) return
 
         setUploading(true)
-        
+
         try {
             const pendingFiles = files.filter(f => f.status === "pending")
-            
+
             // Upload files sequentially to avoid overwhelming the server
             for (const file of pendingFiles) {
                 await uploadSingleFile(file)
@@ -214,26 +206,24 @@ export default function MediaUpload() {
             const errorCount = files.filter(f => f.status === "error").length
 
             if (completedCount > 0) {
-                toast({
+                toast.success({
                     title: "Upload Complete",
                     description: `${completedCount} file(s) uploaded successfully${errorCount > 0 ? `, ${errorCount} failed` : ""}`
                 })
-                
+
                 // Redirect to media library after successful upload
                 router.push("/dashboard/media")
             } else {
-                toast({
+                toast.error({
                     title: "Upload Failed",
                     description: "No files were uploaded successfully",
-                    variant: "destructive"
-                })
+                });
             }
         } catch (error) {
             console.error("Error during upload:", error)
-            toast({
+            toast.error({
                 title: "Upload Error",
                 description: "An error occurred during upload",
-                variant: "destructive"
             })
         } finally {
             setUploading(false)
@@ -261,7 +251,7 @@ export default function MediaUpload() {
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Upload Media</h1>
-                <button 
+                <button
                     className="btn btn-ghost"
                     onClick={() => router.push("/dashboard/media")}
                 >
@@ -274,11 +264,10 @@ export default function MediaUpload() {
                 <div className="card bg-base-100 shadow-sm">
                     <div className="card-body">
                         <div
-                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                                dragActive 
-                                    ? "border-primary bg-primary/5" 
-                                    : "border-base-300 hover:border-base-400"
-                            }`}
+                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                                ? "border-primary bg-primary/5"
+                                : "border-base-300 hover:border-base-400"
+                                }`}
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
@@ -348,7 +337,7 @@ export default function MediaUpload() {
                                     )}
                                 </button>
                             </div>
-                            
+
                             <div className="space-y-3">
                                 {files.map((fileUpload) => (
                                     <div key={fileUpload.id} className="flex items-center gap-4 p-3 border rounded-lg">

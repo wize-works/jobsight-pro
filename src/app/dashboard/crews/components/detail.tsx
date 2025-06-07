@@ -93,7 +93,7 @@ export default function CrewDetailComponent({
             if (member) {
                 await addCrewMemberToCrew(crew.id, member.id);
 
-                toast({
+                toast.success({
                     title: "Success",
                     description: `Added ${member.name} to the crew.`,
                 });
@@ -120,7 +120,7 @@ export default function CrewDetailComponent({
         try {
             if (linkMember && linkMember.id) {
                 await addCrewMemberToCrew(crew.id, linkMember.id);
-                toast({
+                toast.success({
                     title: "Success",
                     description: `Linked ${linkMember.name} to the crew.`,
                 });
@@ -148,7 +148,7 @@ export default function CrewDetailComponent({
 
         try {
             await createProjectCrew(projectCrewInsert);
-            toast({
+            toast.success({
                 title: "Assignment added",
                 description: `Assignment for crew scheduled from ${newAssignment.startDate} to ${newAssignment.endDate}.`,
             });
@@ -174,7 +174,7 @@ export default function CrewDetailComponent({
 
         await assignCrewLeader(crew.id, crewLeader);
 
-        toast({
+        toast.success({
             title: "Success",
             description: `Assigned ${crewLeader} as the new crew leader.`,
         });
@@ -192,7 +192,7 @@ export default function CrewDetailComponent({
 
         try {
             await updateCrewNotes(crew.id, notes);
-            toast({
+            toast.success({
                 title: "Success",
                 description: "Crew notes updated successfully.",
             });

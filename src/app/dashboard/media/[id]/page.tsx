@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { getMediaById, deleteMedia, updateMedia } from "@/app/actions/media"
 import { getProjects } from "@/app/actions/projects"
-import { Media } from "@/types/media"
+import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
 
@@ -35,10 +35,9 @@ export default function MediaDetail() {
             ])
 
             if (!media) {
-                toast({
+                toast.success({
                     title: "Error",
                     description: "Media item not found",
-                    variant: "destructive"
                 })
                 router.push("/dashboard/media")
                 return
@@ -49,10 +48,9 @@ export default function MediaDetail() {
             setProjects(projectsData)
         } catch (error) {
             console.error("Error loading media:", error)
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to load media item",
-                variant: "destructive"
             })
         } finally {
             setLoading(false)
@@ -65,24 +63,23 @@ export default function MediaDetail() {
         try {
             const updated = await updateMedia(mediaItem.id, {
                 name: editedItem.name || mediaItem.name,
-                description: editedItem.description,
-                project_id: editedItem.project_id
-            })
+                description: editedItem.description ?? null,
+                project_id: editedItem.project_id ?? null
+            } as MediaUpdate)
 
             if (updated) {
                 setMediaItem(updated)
                 setIsEditing(false)
-                toast({
+                toast.success({
                     title: "Success",
                     description: "Media item updated successfully"
                 })
             }
         } catch (error) {
             console.error("Error updating media:", error)
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to update media item",
-                variant: "destructive"
             })
         }
     }
@@ -93,7 +90,7 @@ export default function MediaDetail() {
         try {
             const success = await deleteMedia(mediaItem.id)
             if (success) {
-                toast({
+                toast.success({
                     title: "Success",
                     description: "Media item deleted successfully"
                 })
@@ -101,10 +98,9 @@ export default function MediaDetail() {
             }
         } catch (error) {
             console.error("Error deleting media:", error)
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to delete media item",
-                variant: "destructive"
             })
         }
     }
@@ -170,7 +166,7 @@ export default function MediaDetail() {
                         <i className="fas fa-arrow-left"></i>
                     </Link>
                     <div className="flex items-center gap-3">
-                        {getFileIcon(mediaItem.type)}
+                        {getFileIcon(mediaItem.type || "")}
                         {isEditing ? (
                             <input
                                 type="text"
@@ -230,7 +226,7 @@ export default function MediaDetail() {
                                 {mediaItem.type === "image" ? (
                                     <img
                                         src={mediaItem.url || "/placeholder.svg"}
-                                        alt={mediaItem.name}
+                                        alt={mediaItem.name || ""}
                                         className="max-w-full max-h-[600px] object-contain"
                                     />
                                 ) : mediaItem.type === "video" ? (
@@ -345,7 +341,7 @@ export default function MediaDetail() {
                                         className="btn btn-primary join-item"
                                         onClick={() => {
                                             navigator.clipboard.writeText(mediaItem.url || "")
-                                            toast({
+                                            toast.success({
                                                 title: "Copied",
                                                 description: "URL copied to clipboard"
                                             })

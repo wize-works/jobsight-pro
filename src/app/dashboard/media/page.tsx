@@ -43,10 +43,9 @@ export default function MediaLibrary() {
             setProjects(projectsData)
         } catch (error) {
             console.error("Error loading media data:", error)
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to load media library",
-                variant: "destructive"
             })
         } finally {
             setLoading(false)
@@ -97,16 +96,15 @@ export default function MediaLibrary() {
                 await Promise.all(selectedItems.map(id => deleteMedia(id)))
                 setSelectedItems([])
                 await loadData()
-                toast({
+                toast.success({
                     title: "Success",
                     description: `${selectedItems.length} item(s) deleted successfully`
                 })
             } catch (error) {
                 console.error("Error deleting media:", error)
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to delete media items",
-                    variant: "destructive"
                 })
             }
         }
@@ -118,16 +116,15 @@ export default function MediaLibrary() {
             try {
                 await deleteMedia(id)
                 await loadData()
-                toast({
+                toast.success({
                     title: "Success",
                     description: "Media item deleted successfully"
                 })
             } catch (error) {
                 console.error("Error deleting media:", error)
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to delete media item",
-                    variant: "destructive"
                 })
             }
         }
@@ -268,7 +265,7 @@ export default function MediaLibrary() {
                         >
                             <figure className="relative h-40 bg-base-200">
                                 {item.type === "image" ? (
-                                    <img src={item.url || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
+                                    <img src={item.url || "/placeholder.svg"} alt={item.name ?? ""} className="object-cover w-full h-full" />
                                 ) : (
                                     <div className="flex items-center justify-center w-full h-full">
                                         {item.type === "video" && <i className="fas fa-play-circle text-5xl text-primary"></i>}
@@ -287,7 +284,7 @@ export default function MediaLibrary() {
                             </figure>
                             <div className="card-body p-4">
                                 <h3 className="card-title text-sm font-medium flex items-center">
-                                    {getFileIcon(item.type)}
+                                    {getFileIcon(item.type || "")}
                                     <span className="ml-2 truncate">{item.name}</span>
                                 </h3>
                                 <div className="text-xs text-base-content/70">
@@ -358,7 +355,7 @@ export default function MediaLibrary() {
                                     </td>
                                     <td>
                                         <div className="flex items-center space-x-3">
-                                            <div className="flex-shrink-0">{getFileIcon(item.type)}</div>
+                                            <div className="flex-shrink-0">{getFileIcon(item.type ?? "")}</div>
                                             <div>
                                                 <div className="font-medium">{item.name}</div>
                                                 <div className="text-xs opacity-50">{item.description}</div>
