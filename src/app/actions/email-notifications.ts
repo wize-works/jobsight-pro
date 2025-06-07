@@ -10,7 +10,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendProjectUpdateNotification(
     projectId: string,
-    updateType: "milestone_completed" | "status_change" | "task_assigned" | "deadline_approaching",
+    updateType: 'status_change' | 'new_task' | 'task_assigned' | 'milestone_completed' | 'issue_reported' | 'deadline_approaching' | 'project_completed',
     updateDetails: string,
     updatedBy: string
 ) {
@@ -54,7 +54,7 @@ export async function sendProjectUpdateNotification(
                 return null;
             }
 
-            const recipientName = user.first_name 
+            const recipientName = user.first_name
                 ? `${user.first_name} ${user.last_name || ""}`.trim()
                 : user.email;
 
@@ -93,7 +93,7 @@ export async function sendProjectUpdateNotification(
 
 export async function sendEquipmentAlert(
     equipmentId: string,
-    alertType: "maintenance_due" | "inspection_required" | "malfunction" | "assignment_change",
+    alertType: 'maintenance_due' | 'inspection_required' | 'issue_reported' | 'assigned' | 'assignment_change' | 'malfunction',
     description: string,
     priority: "low" | "medium" | "high" = "medium"
 ) {
@@ -132,7 +132,7 @@ export async function sendEquipmentAlert(
 
         // Send equipment alert emails
         const emailPromises = users.map(async (user) => {
-            const recipientName = user.first_name 
+            const recipientName = user.first_name
                 ? `${user.first_name} ${user.last_name || ""}`.trim()
                 : user.email;
 
