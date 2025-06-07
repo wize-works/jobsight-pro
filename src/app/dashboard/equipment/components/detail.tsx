@@ -15,9 +15,10 @@ import { AssignmentModal } from "./assignment-modal";
 import { UsageModal } from "./usage-modal";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId } from "@/app/actions/media";
+import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
 import { toast } from "sonner";
 import MediaSelector from "@/components/media-selector";
+import { updateEquipment } from "@/app/actions/equipments";
 
 export default function EquipmentDetail({
     equipment,
@@ -49,6 +50,8 @@ export default function EquipmentDetail({
     const [equipmentMedia, setEquipmentMedia] = useState<Media[]>(documents);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+    const [showImageUpload, setShowImageUpload] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
 
     // Handle media linking
     const handleMediaSelect = async (selectedMedia: Media | Media[]) => {
@@ -105,6 +108,72 @@ export default function EquipmentDetail({
             } finally {
                 setIsLoadingMedia(false);
             }
+        }
+    };
+
+    // Handle setting primary image
+    const handleSetPrimaryImage = async (mediaId: string) => {
+        setIsLoadingMedia(true);
+        try {
+            await setEquipmentPrimaryImage(equipment.id, mediaId);
+
+            toast({
+                title: "Success",
+                description: "Primary image updated"
+            });
+
+            // Refresh the page to show updated image
+            window.location.reload();
+        } catch (error) {
+            console.error("Error setting primary image:", error);
+            toast({
+                title: "Error",
+                description: "Failed to set primary image",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoadingMedia(false);
+        }
+    };
+
+    // Handle image upload
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast({
+                title: "Error",
+                description: "Please select an image file",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsUploadingImage(true);
+        try {
+            await uploadEquipmentImage(equipment.id, file);
+
+            toast({
+                title: "Success",
+                description: "Equipment image uploaded successfully"
+            });
+
+            // Refresh media list and page
+            const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+            setEquipmentMedia(updatedMedia);
+            window.location.reload();
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            toast({
+                title: "Error",
+                description: "Failed to upload image",
+                variant: "destructive"
+            });
+        } finally {
+            setIsUploadingImage(false);
+            setShowImageUpload(false);
         }
     };
 
@@ -210,8 +279,30 @@ export default function EquipmentDetail({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-6">
                 <div className="flex flex-col gap-6 col-span-1">
                     <div className="card bg-base-100 shadow-lg">
-                        <figure className="px-4 pt-4">
+                        <figure className="px-4 pt-4 relative">
                             <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-full h-48 object-cover" />
+                            <div className="absolute top-2 right-2">
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={0} role="button" className="btn btn-circle btn-sm btn-ghost bg-black/20 hover:bg-black/40 text-white">
+                                        <i className="fas fa-camera"></i>
+                                    </div>
+                                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                        <li>
+                                            <button 
+                                                onClick={() => setShowImageUpload(true)}
+                                                disabled={isUploadingImage}
+                                            >
+                                                <i className="fas fa-upload mr-2"></i> Upload New Image
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button onClick={() => setShowMediaSelector(true)}>
+                                                <i className="fas fa-images mr-2"></i> Choose from Media
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </figure>
                         <div className="card-body">
                             <h2 className="card-title">Current Status</h2>
@@ -667,6 +758,16 @@ export default function EquipmentDetail({
                                                                         <i className="fas fa-eye mr-2"></i> View
                                                                     </Link>
                                                                 </li>
+                                                                {media.type === "image" && (
+                                                                    <li>
+                                                                        <button 
+                                                                            onClick={() => handleSetPrimaryImage(media.id)}
+                                                                            disabled={isLoadingMedia}
+                                                                        >
+                                                                            <i className="fas fa-star mr-2"></i> Set as Primary
+                                                                        </button>
+                                                                    </li>
+                                                                )}
                                                                 <li>
                                                                     <a href={media.url} download target="_blank" rel="noopener noreferrer">
                                                                         <i className="fas fa-download mr-2"></i> Download
@@ -752,6 +853,42 @@ export default function EquipmentDetail({
                             onClose={() => setShowMediaSelector(false)}
                             initialSelected={[]}
                         />
+                    </div>
+                </div>
+            )}
+
+            {/* Image Upload Modal */}
+            {showImageUpload && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Upload Equipment Image</h3>
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Select an image file</span>
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="file-input file-input-bordered w-full"
+                                disabled={isUploadingImage}
+                            />
+                        </div>
+                        {isUploadingImage && (
+                            <div className="flex justify-center py-4">
+                                <div className="loading loading-spinner loading-md"></div>
+                                <span className="ml-2">Uploading...</span>
+                            </div>
+                        )}
+                        <div className="modal-action">
+                            <button 
+                                className="btn btn-ghost" 
+                                onClick={() => setShowImageUpload(false)}
+                                disabled={isUploadingImage}
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

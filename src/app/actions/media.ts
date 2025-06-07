@@ -210,6 +210,91 @@ export const linkMediaToEquipment = async (mediaId: string, equipmentId: string)
     }
 };
 
+export const setEquipmentPrimaryImage = async (equipmentId: string, mediaId: string): Promise<boolean> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        // Get the media item to get its URL
+        const { data: mediaData } = await fetchByBusiness("media", business.id, "*", {
+            filter: { id: mediaId }
+        });
+
+        if (!mediaData || mediaData.length === 0) {
+            console.error("Media not found");
+            return false;
+        }
+
+        const media = mediaData[0] as unknown as Media;
+
+        // Update equipment with the new image URL
+        const { error } = await updateWithBusinessCheck("equipment", equipmentId, {
+            image_url: media.url
+        }, business.id);
+
+        if (error) {
+            console.error("Error setting equipment primary image:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error setting equipment primary image:", error);
+        return false;
+    }
+};
+
+export const uploadEquipmentImage = async (equipmentId: string, file: File): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl("images", file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: `Primary image for equipment`,
+            type: "image",
+            url: uploadData.fileUrl,
+            file_name: uploadData.fileName,
+            size: file.size
+        };
+
+        const media = await createMedia(mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to equipment
+        await linkMediaToEquipment(media.id, equipmentId);
+
+        // Set as primary image
+        await setEquipmentPrimaryImage(equipmentId, media.id);
+
+        return true;
+    } catch (error) {
+        console.error("Error uploading equipment image:", error);
+        return false;
+    }
+};
+
 export const unlinkMediaFromEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
         const { business } = await withBusinessServer();
