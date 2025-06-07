@@ -158,7 +158,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                                 <span className="font-semibold">Pro Plan</span>
                             </div>
                             <p className="text-sm mb-2">7 days left in trial</p>
-                            <Link href="/dashboard/subscription" className="btn btn-primary btn-sm btn-block">
+                            <Link href="/dashboard/business" className="btn btn-primary btn-sm btn-block">
                                 Upgrade Now
                             </Link>
                         </div>
