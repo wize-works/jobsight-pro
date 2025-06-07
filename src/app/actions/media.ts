@@ -2,7 +2,7 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Media, MediaInsert, MediaType, MediaUpdate } from "@/types/media";
-import { MediaLink } from "@/types/media_links";
+import { MediaLink, MediaLinkInsert } from "@/types/media_links";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -14,6 +14,7 @@ import {
     SASProtocol,
 } from '@azure/storage-blob';
 import { createServerClient } from "@/lib/supabase";
+import { EquipmentUpdate } from "@/types/equipment";
 
 export const getMedias = async (): Promise<Media[]> => {
     const { business } = await withBusinessServer();
@@ -188,13 +189,16 @@ export const linkMediaToEquipment = async (mediaId: string, equipmentId: string)
         }
 
         // Create new link using insertWithBusiness
-        const newLink = {
+        let newLink = {
             media_id: mediaId,
             linked_id: equipmentId,
             linked_type: "equipment"
         };
 
-        const { data, error } = await insertWithBusiness("media_links", newLink, business.id, {
+        newLink = await applyCreated<MediaLink>(newLink);
+
+
+        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, business.id, {
             userId: userId
         });
 
@@ -226,10 +230,12 @@ export const setEquipmentPrimaryImage = async (equipmentId: string, mediaId: str
 
         const media = mediaData[0] as unknown as Media;
 
+        let equipmentUpdate = {
+            image_url: media.url,
+        } as EquipmentUpdate;
+        equipmentUpdate = await applyUpdated<EquipmentUpdate>(equipmentUpdate);
         // Update equipment with the new image URL
-        const { error } = await updateWithBusinessCheck("equipment", equipmentId, {
-            image_url: media.url
-        }, business.id);
+        const { error } = await updateWithBusinessCheck("equipment", equipmentId, equipmentUpdate, business.id);
 
         if (error) {
             console.error("Error setting equipment primary image:", error);
@@ -248,7 +254,7 @@ export const uploadEquipmentImage = async (equipmentId: string, file: File): Pro
         const { business, userId } = await withBusinessServer();
 
         // Generate upload URL
-        const uploadData = await generateUploadUrl("images", file.name);
+        const uploadData = await generateUploadUrl("image", file.name);
         if (!uploadData) {
             throw new Error("Failed to generate upload URL");
         }
@@ -273,8 +279,16 @@ export const uploadEquipmentImage = async (equipmentId: string, file: File): Pro
             description: `Primary image for equipment`,
             type: "image",
             url: uploadData.fileUrl,
-            file_name: uploadData.fileName,
-            size: file.size
+            size: file.size,
+            id: "",
+            business_id: business.id,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
         };
 
         const media = await createMedia(mediaData);

@@ -1,5 +1,8 @@
 "use server";
-
+//
+// Do not use this file
+// This file is replaced by the media action file.
+// 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Document, DocumentInsert, DocumentUpdate } from "@/types/documents";
 import { getUserBusiness } from "@/app/actions/business";

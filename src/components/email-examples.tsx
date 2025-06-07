@@ -126,7 +126,7 @@ export function ProjectUpdateEmail({
 }: {
     recipientName: string;
     projectName: string;
-    updateType: 'status_change' | 'new_task' | 'milestone_completed' | 'issue_reported';
+    updateType: 'status_change' | 'new_task' | 'task_assigned' | 'milestone_completed' | 'issue_reported' | 'deadline_approaching' | 'project_completed';
     updateDetails: string;
     projectUrl: string;
     updatedBy: string;
@@ -187,7 +187,7 @@ export function EquipmentAlertEmail({
 }: {
     recipientName: string;
     equipmentName: string;
-    alertType: 'maintenance_due' | 'inspection_required' | 'issue_reported' | 'assigned';
+    alertType: 'maintenance_due' | 'inspection_required' | 'issue_reported' | 'assigned' | 'assignment_change' | 'malfunction';
     description: string;
     equipmentUrl: string;
     priority?: 'low' | 'medium' | 'high';
