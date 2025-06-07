@@ -763,9 +763,12 @@ export default function EquipmentDetail({
                                                                     </li>
                                                                 )}
                                                                 <li>
-                                                                    <a href={media.url} download target="_blank" rel="noopener noreferrer">
-                                                                        <i className="fas fa-download mr-2"></i> Download
-                                                                    </a>
+                                                                    {media.url && (
+
+                                                                        <a href={media.url || "/placeholder.svg"} download target="_blank" rel="noopener noreferrer">
+                                                                            <i className="fas fa-download mr-2"></i> Download
+                                                                        </a>
+                                                                    )}
                                                                 </li>
                                                                 <li>
                                                                     <button
