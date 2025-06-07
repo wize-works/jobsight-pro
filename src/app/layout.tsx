@@ -6,9 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import Script from "next/script";
 import { Toaster } from "@/components/toaster";
-import Clarity from "@microsoft/clarity";
-
-Clarity.init(process.env.NEXT_PUBLIC_CLARITY_ID || "");
+import { ClarityProvider } from "@/components/clarity-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -105,6 +103,7 @@ export default function RootLayout({
                 />
                 <body className={inter.className}>
                     <ThemeProvider>
+                        <ClarityProvider />
                         {children}
                         <Toaster />
                     </ThemeProvider>
