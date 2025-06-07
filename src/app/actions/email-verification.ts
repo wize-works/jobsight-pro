@@ -4,7 +4,7 @@
 import { createServerClient } from "@/lib/supabase";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { Resend } from "resend";
-import { EmailTemplate } from "@/components/email-template";
+import EmailTemplate from "@/components/email-template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -47,9 +47,7 @@ export async function sendEmailVerification(userId: string) {
             })
         ).toString("base64");
 
-        const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/verify-email?token=${verificationToken}`;
-
-        // Send verification email
+        const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/verify-email?token=${verificationToken}`;        // Send verification email
         const emailResponse = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
             to: user.email,
@@ -57,21 +55,11 @@ export async function sendEmailVerification(userId: string) {
             react: EmailTemplate({
                 type: "notification",
                 title: "Verify Your Email Address",
-                recipientName: user.first_name 
+                recipientName: user.first_name
                     ? `${user.first_name} ${user.last_name || ""}`.trim()
                     : user.email,
-                businessName: business.name,
-                content: (
-                    <div>
-                        <p>
-                            Welcome to JobSight Pro! Please verify your email address to secure your account 
-                            and enable all features.
-                        </p>
-                        <p>
-                            Click the button below to verify your email address:
-                        </p>
-                    </div>
-                ),
+                businessName: business.name ?? undefined,
+                content: "Welcome to JobSight Pro! Please verify your email address to secure your account and enable all features. Click the button below to verify your email address.",
                 primaryAction: {
                     text: "Verify Email",
                     url: verificationUrl,
@@ -109,7 +97,7 @@ export async function sendEmailVerification(userId: string) {
 export async function verifyEmailToken(token: string) {
     try {
         const decoded = JSON.parse(Buffer.from(token, "base64").toString());
-        
+
         // Check if token is expired
         if (new Date(decoded.expiresAt) < new Date()) {
             return {
@@ -126,7 +114,7 @@ export async function verifyEmailToken(token: string) {
         // Verify and update user
         const { data: user, error } = await supabase
             .from("users")
-            .update({ 
+            .update({
                 email_verified: true,
                 status: "active"
             })
