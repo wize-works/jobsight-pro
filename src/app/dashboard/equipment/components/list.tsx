@@ -56,7 +56,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Total Equipments</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value">{equipments.length}</div>
+                        <div className="stat-value text-primary">{equipments.length}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
                             <i className="fas fa-tools fa-lg"></i>
                         </div>
@@ -66,7 +66,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Active Equipments</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value">
+                        <div className="stat-value text-success">
                             {equipments.filter((item) => item.status === "in_use").length}
                         </div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Available Equipments</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value">
+                        <div className="stat-value text-warning">
                             {equipments.filter((item) => item.status === "available").length}
                         </div>
                         <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
@@ -90,7 +90,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Maintenance Due</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value">
+                        <div className="stat-value text-error">
                             {equipments.filter((item) => item.next_maintenance && new Date(item.next_maintenance) <= new Date()).length}
                         </div>
                         <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">

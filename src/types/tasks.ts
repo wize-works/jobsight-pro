@@ -11,10 +11,11 @@ export type TaskWithDetails = Task & {
     client_name?: string;
 };
 
-export type TaskStatus = "not_started" | "in_progress" | "completed" | "on_hold" | "cancelled";
-export type TaskPriority = "low" | "medium" | "high" | "urgent";
+export type TaskStatus = "all" | "not_started" | "in_progress" | "completed" | "on_hold" | "cancelled";
+export type TaskPriority = "all" | "low" | "medium" | "high" | "urgent";
 
 export const taskStatusOptions = createOptions<TaskStatus>({
+    all: { label: "All Status", badge: "badge-neutral" },
     not_started: { label: "Not Started", badge: "badge-secondary" },
     in_progress: { label: "In Progress", badge: "badge-warning" },
     completed: { label: "Completed", badge: "badge-success" },
@@ -23,6 +24,7 @@ export const taskStatusOptions = createOptions<TaskStatus>({
 });
 
 export const taskPriorityOptions = createOptions<TaskPriority>({
+    all: { label: "All Priorities", badge: "badge-neutral" },
     low: { label: "Low", badge: "badge-secondary" },
     medium: { label: "Medium", badge: "badge-warning" },
     high: { label: "High", badge: "badge-danger" },

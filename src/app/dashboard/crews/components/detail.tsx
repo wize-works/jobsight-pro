@@ -346,7 +346,7 @@ export default function CrewDetailComponent({
                         </div>
                     </div>
                     <div className="order-2">
-                        <div className="tabs tabs-boxed mb-6">
+                        <div className="tabs tabs-box mb-6">
                             <a className={`tab ${activeTab === "members" ? "tab-active" : ""}`} onClick={() => setActiveTab("members")}>
                                 Members
                             </a>

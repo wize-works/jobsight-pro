@@ -95,7 +95,7 @@ export default function ProfilePage() {
                 </button>
             </div>
 
-            <div className="tabs tabs-boxed mb-6">
+            <div className="tabs tabs-box mb-6">
                 <a className={`tab ${activeTab === "profile" ? "tab-active" : ""}`} onClick={() => setActiveTab("profile")}>
                     Personal Info
                 </a>

@@ -811,7 +811,7 @@ export default function ProjectDetailPage() {
                 </div>
             </div>
 
-            <div className="tabs tabs-boxed mb-6">
+            <div className="tabs tabs-box mb-6">
                 <a className={`tab ${activeTab === "overview" ? "tab-active" : ""}`} onClick={() => setActiveTab("overview")}>
                     Overview
                 </a>
