@@ -25,3 +25,17 @@ export const userStatusOptions = createOptions<UserStatus>({
     invited: { label: "Invited", badge: "badge-warning" },
     suspended: { label: "Suspended", badge: "badge-error" }
 });
+
+export interface User {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    auth_id: string | null;
+    role: "admin" | "manager" | "member";
+    status: "active" | "invited" | "inactive" | "revoked" | "email_failed";
+    email_verified: boolean;
+    business_id: string;
+    created_at: string;
+    updated_at: string;
+}
