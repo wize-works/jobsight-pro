@@ -1,108 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getMedias, searchMedias, deleteMedia } from "@/app/actions/media"
+import { getProjects } from "@/app/actions/projects"
+import { Media } from "@/types/media"
+import { Project } from "@/types/projects"
+import { toast } from "@/hooks/use-toast"
+import Link from "next/link"
 
-// Mock data for media items
-const mockMediaItems = [
-    {
-        id: "media1",
-        name: "Site Overview.jpg",
-        type: "image",
-        size: "2.4 MB",
-        project: "Main Street Project",
-        uploadedBy: "John Doe",
-        uploadedAt: "2025-05-10T14:30:00",
-        url: "/placeholder.svg?key=9yucx",
-        tags: ["site", "overview"],
-    },
-    {
-        id: "media2",
-        name: "Foundation Plan.pdf",
-        type: "document",
-        size: "1.8 MB",
-        project: "Riverside Apartments",
-        uploadedBy: "Sarah Johnson",
-        uploadedAt: "2025-05-09T10:15:00",
-        url: "/placeholder.svg?key=5y1vc",
-        tags: ["plan", "foundation"],
-    },
-    {
-        id: "media3",
-        name: "Equipment Inspection.mp4",
-        type: "video",
-        size: "8.7 MB",
-        project: "Downtown Project",
-        uploadedBy: "Mike Wilson",
-        uploadedAt: "2025-05-08T16:45:00",
-        url: "/placeholder.svg?key=alfgl",
-        tags: ["equipment", "inspection", "video"],
-    },
-    {
-        id: "media4",
-        name: "Client Meeting Notes.docx",
-        type: "document",
-        size: "0.5 MB",
-        project: "Johnson Residence",
-        uploadedBy: "Emily Clark",
-        uploadedAt: "2025-05-07T09:30:00",
-        url: "/placeholder.svg?key=c321h",
-        tags: ["meeting", "notes", "client"],
-    },
-    {
-        id: "media5",
-        name: "Concrete Pour.jpg",
-        type: "image",
-        size: "3.2 MB",
-        project: "Main Street Project",
-        uploadedBy: "John Doe",
-        uploadedAt: "2025-05-06T11:20:00",
-        url: "/placeholder.svg?key=jf0e0",
-        tags: ["concrete", "pour"],
-    },
-    {
-        id: "media6",
-        name: "Safety Briefing.mp4",
-        type: "video",
-        size: "12.5 MB",
-        project: "All Projects",
-        uploadedBy: "Sarah Johnson",
-        uploadedAt: "2025-05-05T08:00:00",
-        url: "/placeholder.svg?key=tkegz",
-        tags: ["safety", "briefing", "training"],
-    },
-    {
-        id: "media7",
-        name: "Electrical Layout.pdf",
-        type: "document",
-        size: "2.1 MB",
-        project: "Riverside Apartments",
-        uploadedBy: "Mike Wilson",
-        uploadedAt: "2025-05-04T14:10:00",
-        url: "/electrical-blueprint.png",
-        tags: ["electrical", "layout", "plan"],
-    },
-    {
-        id: "media8",
-        name: "Progress Report.xlsx",
-        type: "document",
-        size: "0.8 MB",
-        project: "Downtown Project",
-        uploadedBy: "Emily Clark",
-        uploadedAt: "2025-05-03T16:30:00",
-        url: "/spreadsheet-icon.png",
-        tags: ["report", "progress"],
-    },
-]
-
-// Mock data for projects (for filtering)
-const mockProjects = [
-    { id: "project1", name: "Main Street Project" },
-    { id: "project2", name: "Riverside Apartments" },
-    { id: "project3", name: "Downtown Project" },
-    { id: "project4", name: "Johnson Residence" },
-]
-
-// Mock data for media types (for filtering)
+// Media types for filtering
 const mediaTypes = [
     { id: "image", name: "Images" },
     { id: "video", name: "Videos" },
@@ -117,18 +23,60 @@ export default function MediaLibrary() {
     const [selectedType, setSelectedType] = useState<string | null>(null)
     const [selectedItems, setSelectedItems] = useState<string[]>([])
     const [showUploadModal, setShowUploadModal] = useState(false)
+    const [mediaItems, setMediaItems] = useState<Media[]>([])
+    const [projects, setProjects] = useState<Project[]>([])
+    const [loading, setLoading] = useState(true)
 
-    // Filter media items based on search query, project, and type
-    const filteredMedia = mockMediaItems.filter((item) => {
-        const matchesSearch =
-            searchQuery === "" ||
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    // Load data on component mount
+    useEffect(() => {
+        loadData()
+    }, [])
 
-        const matchesProject = selectedProject === null || item.project === selectedProject
+    const loadData = async () => {
+        try {
+            setLoading(true)
+            const [mediaData, projectsData] = await Promise.all([
+                getMedias(),
+                getProjects()
+            ])
+            setMediaItems(mediaData)
+            setProjects(projectsData)
+        } catch (error) {
+            console.error("Error loading media data:", error)
+            toast({
+                title: "Error",
+                description: "Failed to load media library",
+                variant: "destructive"
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Handle search
+    useEffect(() => {
+        const handleSearch = async () => {
+            if (searchQuery.trim()) {
+                try {
+                    const results = await searchMedias(searchQuery)
+                    setMediaItems(results)
+                } catch (error) {
+                    console.error("Error searching media:", error)
+                }
+            } else {
+                loadData()
+            }
+        }
+
+        const debounceTimer = setTimeout(handleSearch, 300)
+        return () => clearTimeout(debounceTimer)
+    }, [searchQuery])
+
+    // Filter media items based on project and type
+    const filteredMedia = mediaItems.filter((item) => {
+        const matchesProject = selectedProject === null || item.project_id === selectedProject
         const matchesType = selectedType === null || item.type === selectedType
-
-        return matchesSearch && matchesProject && matchesType
+        return matchesProject && matchesType
     })
 
     // Toggle selection of an item
@@ -140,8 +88,54 @@ export default function MediaLibrary() {
         }
     }
 
+    // Handle bulk delete
+    const handleBulkDelete = async () => {
+        if (selectedItems.length === 0) return
+
+        if (confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) {
+            try {
+                await Promise.all(selectedItems.map(id => deleteMedia(id)))
+                setSelectedItems([])
+                await loadData()
+                toast({
+                    title: "Success",
+                    description: `${selectedItems.length} item(s) deleted successfully`
+                })
+            } catch (error) {
+                console.error("Error deleting media:", error)
+                toast({
+                    title: "Error",
+                    description: "Failed to delete media items",
+                    variant: "destructive"
+                })
+            }
+        }
+    }
+
+    // Handle single item delete
+    const handleSingleDelete = async (id: string) => {
+        if (confirm("Are you sure you want to delete this item?")) {
+            try {
+                await deleteMedia(id)
+                await loadData()
+                toast({
+                    title: "Success",
+                    description: "Media item deleted successfully"
+                })
+            } catch (error) {
+                console.error("Error deleting media:", error)
+                toast({
+                    title: "Error",
+                    description: "Failed to delete media item",
+                    variant: "destructive"
+                })
+            }
+        }
+    }
+
     // Format date for display
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return "Unknown"
         const date = new Date(dateString)
         return date.toLocaleDateString("en-US", {
             year: "numeric",
@@ -166,14 +160,29 @@ export default function MediaLibrary() {
         }
     }
 
+    // Get project name by ID
+    const getProjectName = (projectId: string | null) => {
+        if (!projectId) return "No Project"
+        const project = projects.find(p => p.id === projectId)
+        return project?.name || "Unknown Project"
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="loading loading-spinner loading-lg"></div>
+            </div>
+        )
+    }
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold">Media Library</h1>
                 <div className="flex gap-2">
-                    <button className="btn btn-primary" onClick={() => setShowUploadModal(true)}>
+                    <Link href="/dashboard/media/upload" className="btn btn-primary">
                         <i className="fas fa-upload mr-2"></i> Upload
-                    </button>
+                    </Link>
                     {selectedItems.length > 0 && (
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn">
@@ -181,19 +190,9 @@ export default function MediaLibrary() {
                             </div>
                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                 <li>
-                                    <a>Download</a>
-                                </li>
-                                <li>
-                                    <a>Share</a>
-                                </li>
-                                <li>
-                                    <a>Move</a>
-                                </li>
-                                <li>
-                                    <a>Tag</a>
-                                </li>
-                                <li>
-                                    <a className="text-error">Delete</a>
+                                    <button onClick={handleBulkDelete} className="text-error">
+                                        Delete Selected
+                                    </button>
                                 </li>
                             </ul>
                         </div>
@@ -226,8 +225,8 @@ export default function MediaLibrary() {
                             onChange={(e) => setSelectedProject(e.target.value || null)}
                         >
                             <option value="">All Projects</option>
-                            {mockProjects.map((project) => (
-                                <option key={project.id} value={project.name}>
+                            {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
                                     {project.name}
                                 </option>
                             ))}
@@ -292,9 +291,9 @@ export default function MediaLibrary() {
                                     <span className="ml-2 truncate">{item.name}</span>
                                 </h3>
                                 <div className="text-xs text-base-content/70">
-                                    <p>{item.project}</p>
-                                    <p>Uploaded {formatDate(item.uploadedAt)}</p>
-                                    <p>{item.size}</p>
+                                    <p>{getProjectName(item.project_id)}</p>
+                                    <p>Uploaded {formatDate(item.created_at)}</p>
+                                    <p>{item.size || "Unknown size"}</p>
                                 </div>
                                 <div className="card-actions justify-end mt-2">
                                     <div className="dropdown dropdown-end">
@@ -303,25 +302,15 @@ export default function MediaLibrary() {
                                         </div>
                                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                             <li>
-                                                <a>Preview</a>
+                                                <Link href={`/dashboard/media/${item.id}`}>Preview</Link>
                                             </li>
                                             <li>
-                                                <a>Download</a>
+                                                <a href={item.url} download target="_blank" rel="noopener noreferrer">Download</a>
                                             </li>
                                             <li>
-                                                <a>Share</a>
-                                            </li>
-                                            <li>
-                                                <a>Rename</a>
-                                            </li>
-                                            <li>
-                                                <a>Move</a>
-                                            </li>
-                                            <li>
-                                                <a>Tag</a>
-                                            </li>
-                                            <li>
-                                                <a className="text-error">Delete</a>
+                                                <button onClick={() => handleSingleDelete(item.id)} className="text-error">
+                                                    Delete
+                                                </button>
                                             </li>
                                         </ul>
                                     </div>
@@ -352,7 +341,6 @@ export default function MediaLibrary() {
                                 <th>Name</th>
                                 <th>Project</th>
                                 <th>Size</th>
-                                <th>Uploaded By</th>
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -373,14 +361,13 @@ export default function MediaLibrary() {
                                             <div className="flex-shrink-0">{getFileIcon(item.type)}</div>
                                             <div>
                                                 <div className="font-medium">{item.name}</div>
-                                                <div className="text-xs opacity-50">{item.tags.map((tag) => `#${tag}`).join(", ")}</div>
+                                                <div className="text-xs opacity-50">{item.description}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{item.project}</td>
-                                    <td>{item.size}</td>
-                                    <td>{item.uploadedBy}</td>
-                                    <td>{formatDate(item.uploadedAt)}</td>
+                                    <td>{getProjectName(item.project_id)}</td>
+                                    <td>{item.size || "Unknown"}</td>
+                                    <td>{formatDate(item.created_at)}</td>
                                     <td>
                                         <div className="dropdown dropdown-end">
                                             <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
@@ -388,25 +375,15 @@ export default function MediaLibrary() {
                                             </div>
                                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                 <li>
-                                                    <a>Preview</a>
+                                                    <Link href={`/dashboard/media/${item.id}`}>Preview</Link>
                                                 </li>
                                                 <li>
-                                                    <a>Download</a>
+                                                    <a href={item.url} download target="_blank" rel="noopener noreferrer">Download</a>
                                                 </li>
                                                 <li>
-                                                    <a>Share</a>
-                                                </li>
-                                                <li>
-                                                    <a>Rename</a>
-                                                </li>
-                                                <li>
-                                                    <a>Move</a>
-                                                </li>
-                                                <li>
-                                                    <a>Tag</a>
-                                                </li>
-                                                <li>
-                                                    <a className="text-error">Delete</a>
+                                                    <button onClick={() => handleSingleDelete(item.id)} className="text-error">
+                                                        Delete
+                                                    </button>
                                                 </li>
                                             </ul>
                                         </div>
@@ -418,47 +395,13 @@ export default function MediaLibrary() {
                 </div>
             )}
 
-            {/* Upload Modal */}
-            {showUploadModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">Upload Media</h3>
-                        <div className="py-4">
-                            <div className="border-2 border-dashed border-base-300 rounded-lg p-8 text-center">
-                                <i className="fas fa-cloud-upload-alt text-4xl text-base-content/50 mb-4"></i>
-                                <p className="mb-2">Drag and drop files here, or click to browse</p>
-                                <p className="text-xs text-base-content/70 mb-4">Supports images, videos, documents, and audio files</p>
-                                <input type="file" className="file-input file-input-bordered w-full max-w-xs" multiple />
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text">Project</span>
-                                </label>
-                                <select className="select select-bordered w-full">
-                                    <option disabled selected>
-                                        Select a project
-                                    </option>
-                                    {mockProjects.map((project) => (
-                                        <option key={project.id}>{project.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text">Tags</span>
-                                </label>
-                                <input type="text" placeholder="Add tags separated by commas" className="input input-bordered w-full" />
-                            </div>
-                        </div>
-                        <div className="modal-action">
-                            <button className="btn" onClick={() => setShowUploadModal(false)}>
-                                Cancel
-                            </button>
-                            <button className="btn btn-primary">Upload</button>
-                        </div>
-                    </div>
+            {filteredMedia.length === 0 && !loading && (
+                <div className="text-center py-12">
+                    <i className="fas fa-file text-4xl text-base-content/30 mb-4"></i>
+                    <p className="text-base-content/70">No media files found</p>
+                    <Link href="/dashboard/media/upload" className="btn btn-primary mt-4">
+                        Upload First File
+                    </Link>
                 </div>
             )}
         </div>

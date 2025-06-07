@@ -127,23 +127,6 @@ export default function EditInvoiceForm({
 
             await upsertInvoiceItems(items);
 
-
-
-            // In a real app, this would send the data to the server via an action
-            console.log({
-                id: invoiceId,
-                clientId: client,
-                projectId: project,
-                issueDate,
-                dueDate,
-                items,
-                notes,
-                taxRate,
-                subtotal,
-                tax,
-                total,
-            });
-
             // For now, just redirect back to the invoice detail page
             router.push(`/dashboard/invoices/${invoiceId}`);
         } catch (error) {
@@ -154,11 +137,6 @@ export default function EditInvoiceForm({
 
     const isPaid = invoice.status === "paid";
 
-    // Debug logging to understand what's happening
-    console.log("Invoice status:", invoice.status);
-    console.log("isPaid:", isPaid);
-    console.log("Invoice object:", invoice);
-
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -166,7 +144,7 @@ export default function EditInvoiceForm({
                     <Link href={`/dashboard/invoices/${invoiceId}`} className="btn btn-ghost btn-sm">
                         <i className="fas fa-arrow-left"></i>
                     </Link>
-                    <h1 className="text-2xl font-bold">Edit Invoice {invoiceId}</h1>
+                    <h1 className="text-2xl font-bold">Edit Invoice {invoice.invoice_number} {invoiceStatusOptions.badge(status as InvoiceStatus)}</h1>
                 </div>
             </div>
 
@@ -410,7 +388,7 @@ export default function EditInvoiceForm({
                                     />
                                 </div>
 
-                                <div className="form-control">
+                                <div className="form-control mb-4">
                                     <label className="label">
                                         <span className="label-text">Tax Rate (%)</span>
                                     </label>
@@ -426,13 +404,14 @@ export default function EditInvoiceForm({
                                     />
                                 </div>
 
-                                <div className="form-control">
+                                <div className="form-control w-full">
                                     <label className="label">
                                         <span className="label-text">Status</span>
                                     </label>
                                     {invoiceStatusOptions.select(
                                         status,
                                         (value) => setStatus(value as InvoiceStatus),
+                                        "select select-bordered w-full"
                                     )}
                                 </div>
                             </div>

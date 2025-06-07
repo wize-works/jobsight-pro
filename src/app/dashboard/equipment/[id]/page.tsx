@@ -23,7 +23,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
         getEquipmentUsagesWithDetailsByEquipmentId(id),
         getEquipmentAssignmentsByEquipmentId(id),
         getEquipmentSpecificationsByEquipmentId(id),
-        getMediaByEquipmentId(id, "documents"),
+        getMediaByEquipmentId(id, ""),
     ]);
     return (
         <EquipmentDetail

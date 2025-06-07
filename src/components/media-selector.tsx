@@ -1,53 +1,18 @@
+
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-
-// Mock data for media items
-const mockMediaItems = [
-  {
-    id: "media1",
-    name: "Site Overview.jpg",
-    type: "image",
-    url: "/placeholder.svg?key=fyrxg",
-  },
-  {
-    id: "media2",
-    name: "Foundation Plan.pdf",
-    type: "document",
-    url: "/placeholder.svg?key=2pakh",
-  },
-  {
-    id: "media3",
-    name: "Equipment Inspection.mp4",
-    type: "video",
-    url: "/placeholder.svg?key=7jbro",
-  },
-  {
-    id: "media4",
-    name: "Client Meeting Notes.docx",
-    type: "document",
-    url: "/placeholder.svg?key=vz4dz",
-  },
-  {
-    id: "media5",
-    name: "Concrete Pour.jpg",
-    type: "image",
-    url: "/placeholder.svg?key=eoq87",
-  },
-  {
-    id: "media6",
-    name: "Safety Briefing.mp4",
-    type: "video",
-    url: "/placeholder.svg?key=irpuc",
-  },
-]
+import { getMedias, searchMedias } from "@/app/actions/media"
+import { Media } from "@/types/media"
 
 interface MediaSelectorProps {
   multiple?: boolean
-  onSelect: (selectedMedia: any | any[]) => void
+  onSelect: (selectedMedia: Media | Media[]) => void
   onClose: () => void
   initialSelected?: string[]
+  projectId?: string
+  mediaType?: string
 }
 
 export default function MediaSelector({
@@ -55,14 +20,59 @@ export default function MediaSelector({
   onSelect,
   onClose,
   initialSelected = [],
+  projectId,
+  mediaType,
 }: MediaSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedItems, setSelectedItems] = useState<string[]>(initialSelected)
+  const [mediaItems, setMediaItems] = useState<Media[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Filter media items based on search query
-  const filteredMedia = mockMediaItems.filter((item) => {
-    return searchQuery === "" || item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  })
+  // Load media items on component mount
+  useEffect(() => {
+    loadMediaItems()
+  }, [])
+
+  // Handle search
+  useEffect(() => {
+    const handleSearch = async () => {
+      if (searchQuery.trim()) {
+        try {
+          const results = await searchMedias(searchQuery)
+          setMediaItems(filterMedia(results))
+        } catch (error) {
+          console.error("Error searching media:", error)
+        }
+      } else {
+        loadMediaItems()
+      }
+    }
+
+    const debounceTimer = setTimeout(handleSearch, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery])
+
+  const loadMediaItems = async () => {
+    try {
+      setLoading(true)
+      const data = await getMedias()
+      setMediaItems(filterMedia(data))
+    } catch (error) {
+      console.error("Error loading media:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter media based on props
+  const filterMedia = (items: Media[]) => {
+    return items.filter(item => {
+      // Don't filter by project when selecting for equipment
+      if (projectId && !mediaType && item.project_id !== projectId) return false
+      if (mediaType && item.type !== mediaType) return false
+      return true
+    })
+  }
 
   // Toggle selection of an item
   const toggleSelection = (id: string) => {
@@ -96,13 +106,31 @@ export default function MediaSelector({
   // Handle selection confirmation
   const handleConfirm = () => {
     if (multiple) {
-      const selectedMedia = mockMediaItems.filter((item) => selectedItems.includes(item.id))
+      const selectedMedia = mediaItems.filter((item) => selectedItems.includes(item.id))
       onSelect(selectedMedia)
     } else {
-      const selectedMedia = mockMediaItems.find((item) => item.id === selectedItems[0])
-      onSelect(selectedMedia)
+      const selectedMedia = mediaItems.find((item) => item.id === selectedItems[0])
+      if (selectedMedia) {
+        onSelect(selectedMedia)
+      }
     }
     onClose()
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-base-100 rounded-lg shadow-lg p-4 max-h-[80vh] flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold">Select Media</h3>
+          <button className="btn btn-sm btn-ghost" onClick={onClose}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -130,14 +158,14 @@ export default function MediaSelector({
       </div>
 
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm">{filteredMedia.length} items</span>
+        <span className="text-sm">{mediaItems.length} items</span>
         <Link href="/dashboard/media/upload" className="text-sm text-primary">
           Upload New
         </Link>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto flex-1">
-        {filteredMedia.map((item) => (
+        {mediaItems.map((item) => (
           <div
             key={item.id}
             className={`card bg-base-200 cursor-pointer hover:bg-base-300 transition-colors ${
@@ -166,11 +194,22 @@ export default function MediaSelector({
         ))}
       </div>
 
+      {mediaItems.length === 0 && (
+        <div className="text-center py-8">
+          <i className="fas fa-file text-3xl text-base-content/30 mb-2"></i>
+          <p className="text-base-content/70">No media files found</p>
+        </div>
+      )}
+
       <div className="flex justify-end gap-2 mt-4">
         <button className="btn btn-ghost btn-sm" onClick={onClose}>
           Cancel
         </button>
-        <button className="btn btn-primary btn-sm" onClick={handleConfirm} disabled={selectedItems.length === 0}>
+        <button 
+          className="btn btn-primary btn-sm" 
+          onClick={handleConfirm} 
+          disabled={selectedItems.length === 0}
+        >
           {multiple ? `Select (${selectedItems.length})` : "Select"}
         </button>
       </div>

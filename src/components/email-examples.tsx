@@ -325,16 +325,20 @@ export function PasswordResetEmail({
             recipientName={recipientName}
             content={
                 <div>
-                    <p>We received a request to reset your JobSight Pro password.</p>
+                    <p>
+                        We received a request to reset your password for your JobSight Pro account.
+                        If you didn't make this request, you can safely ignore this email.
+                    </p>
 
                     <EmailAlert type="warning">
-                        <strong>⏰ Security Notice:</strong>
+                        <strong>⏰ This reset link expires in {expirationTime}</strong>
                         <br />
-                        This password reset link will expire in {expirationTime}.
-                        If you didn't request this reset, please ignore this email.
+                        For your security, this link can only be used once.
                     </EmailAlert>
 
-                    <p>Click the button below to create a new password:</p>
+                    <p>
+                        Click the button below to create a new password:
+                    </p>
                 </div>
             }
             primaryAction={{
@@ -345,7 +349,12 @@ export function PasswordResetEmail({
                 text: 'Contact Support',
                 url: 'mailto:support@jobsight.co'
             }}
-            footerContent="If you're having trouble accessing your account, our support team is here to help."
+            additionalData={{
+                expirationTime,
+                requestTime: new Date().toLocaleString(),
+                securityTip: "Never share your password or reset links with others"
+            }}
+            footerContent="If you continue to have trouble accessing your account, please contact our support team."
         />
     );
 }

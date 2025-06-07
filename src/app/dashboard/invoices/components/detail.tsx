@@ -6,6 +6,8 @@ import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from
 import { withBusiness } from "@/lib/auth/with-business";
 import { useBusiness } from "@/hooks/use-business";
 import { toast } from "@/hooks/use-toast";
+import ModalSend from "./modal-send";
+import ModalPayment from "./modal-payment";
 async function downloadPdfFromUrl(url: string, filename: string) {
     try {
         // Call our API route to generate the PDF
@@ -55,10 +57,6 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     const [showSendModal, setShowSendModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-    if (business === null) {
-        return <div className="text-center text-red-500">Business not found. Please select a business to view invoices.</div>;
-    }
-
     const getPdf = async () => {
         toast.info("This feature is under development. Please check back later.");
         // try {
@@ -100,60 +98,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     const tax = subtotal * taxRate;
 
     // Calculate total
-    const total = subtotal + tax; async function handleSendInvoice(formData: FormData): Promise<void> {
-        try {
-            const recipientEmail = formData.get('email') as string;
-            const subject = formData.get('subject') as string;
-            const message = formData.get('message') as string;
-            const attachPDF = formData.get('attachPDF') === 'on';
-
-            if (!recipientEmail) {
-                toast.error("Please enter a recipient email address.");
-                return;
-            }
-
-            if (!business) {
-                toast.error("Business information is not available. Please select a business.");
-                return;
-            }
-
-            // Send email via our API
-            const response = await fetch('/api/send-invoice', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    recipientEmail,
-                    recipientName: invoice.billing_address.attention || invoice.billing_address.name,
-                    subject,
-                    message,
-                    invoiceData: invoice,
-                    businessInfo: {
-                        name: business.name,
-                        address: `${business.address || ''}, ${business.city || ''}, ${business.state || ''} ${business.zip || ''}`.trim(),
-                        phone: business.phone,
-                        email: business.email
-                    },
-                    attachPDF
-                }),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to send invoice');
-            }
-
-            // Close the modal after sending
-            setShowSendModal(false);
-            toast.success("Invoice sent successfully!");
-
-        } catch (error) {
-            console.error("Error sending invoice:", error);
-            toast.error(error instanceof Error ? error.message : "Failed to send invoice. Please try again later.");
-        }
-    }
+    const total = subtotal + tax;
 
     return (
         <div>
@@ -171,6 +116,13 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     </p>
                 </div>
                 <div className="flex gap-2">
+                    {invoice.status === "draft" ? (
+                        <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="btn btn-primary btn-sm">
+                            <i className="fas fa-edit mr-2"></i> Edit Invoice
+                        </Link>
+                    ) : (
+                        <></>
+                    )}
                     <Link href={`/printables/invoices/${invoice.id}`} className="btn btn-outline btn-sm" target="_blank">
                         <i className="fas fa-print mr-2"></i> Print
                     </Link>
@@ -335,134 +287,17 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                     </p>
                 </div>
             </div>            {/* Send Invoice Modal */}
-            {showSendModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Send Invoice</h3>
-                        <form action={handleSendInvoice}>
-                            <div className="form-control mb-4">
-                                <label className="label">
-                                    <span className="label-text">Recipient Email</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className="input input-bordered"
-                                    placeholder="Enter email address"
-                                    defaultValue={invoice.client?.contact_email || ""}
-                                    required
-                                />
-                            </div>
-                            <div className="form-control mb-4">
-                                <label className="label">
-                                    <span className="label-text">Subject</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="subject"
-                                    className="input input-bordered"
-                                    defaultValue={`Invoice ${invoice.invoice_number} from ${business.name || "JobSight Technologies Partner"}`}
-                                />
-                            </div>
-                            <div className="form-control mb-4">
-                                <label className="label">
-                                    <span className="label-text">Message</span>
-                                </label>
-                                <textarea
-                                    name="message"
-                                    className="textarea textarea-bordered"
-                                    rows={5}
-                                    defaultValue={`Dear ${invoice.billing_address.attention || invoice.billing_address.name},
-
-Please find attached invoice ${invoice.invoice_number} for the ${invoice.project?.name || "work"} project in the amount of ${formatCurrency(
-                                        total,
-                                    )}.
-
-Payment is due by ${formatDate(invoice.due_date)}.
-
-Thank you for your business.
-
-Best regards,
-
-${business.name || "JobSight Technologies Partner"}
-
-by JobSight Technologies`}
-                                ></textarea>
-                            </div>
-                            <div className="form-control mb-4">
-                                <label className="label cursor-pointer justify-start gap-2">
-                                    <input type="checkbox" name="attachPDF" className="checkbox" defaultChecked />
-                                    <span className="label-text">Attach PDF copy of invoice</span>
-                                </label>
-                            </div>
-                            <div className="modal-action">
-                                <button type="button" className="btn" onClick={() => setShowSendModal(false)}>
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn btn-primary" >
-                                    Send Invoice
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            {showSendModal && business && (
+                <ModalSend
+                    invoice={invoice}
+                    business={business}
+                    onClose={() => setShowSendModal(false)} />
             )}
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Record Payment</h3>
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Payment Date</span>
-                            </label>
-                            <input
-                                type="date"
-                                className="input input-bordered"
-                                defaultValue={new Date().toISOString().split("T")[0]}
-                            />
-                        </div>
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Payment Method</span>
-                            </label>
-                            <select className="select select-bordered w-full">
-                                <option>Credit Card</option>
-                                <option>Bank Transfer</option>
-                                <option>Check</option>
-                                <option>Cash</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Amount</span>
-                            </label>
-                            <input type="number" className="input input-bordered" defaultValue={total} />
-                        </div>
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Reference Number</span>
-                            </label>
-                            <input type="text" className="input input-bordered" placeholder="e.g., Check #, Transaction ID" />
-                        </div>
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Notes</span>
-                            </label>
-                            <textarea className="textarea textarea-bordered" placeholder="Add payment notes"></textarea>
-                        </div>
-                        <div className="modal-action">
-                            <button className="btn" onClick={() => setShowPaymentModal(false)}>
-                                Cancel
-                            </button>
-                            <button className="btn btn-success">
-                                Record Payment
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ModalPayment total={0} onClose={() => setShowPaymentModal(false)}
+                />
             )}
         </div>
     );
