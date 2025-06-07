@@ -67,7 +67,8 @@ export default function MediaSelector({
   // Filter media based on props
   const filterMedia = (items: Media[]) => {
     return items.filter(item => {
-      if (projectId && item.project_id !== projectId) return false
+      // Don't filter by project when selecting for equipment
+      if (projectId && !mediaType && item.project_id !== projectId) return false
       if (mediaType && item.type !== mediaType) return false
       return true
     })

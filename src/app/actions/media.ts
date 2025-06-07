@@ -13,6 +13,7 @@ import {
     BlobSASPermissions,
     SASProtocol,
 } from '@azure/storage-blob';
+import { createServerClient } from "@/lib/supabase/server";
 
 export const getMedias = async (): Promise<Media[]> => {
     const { business } = await withBusinessServer();
@@ -167,6 +168,84 @@ export const getMediaByProjectId = async (projectId: string, type: string): Prom
 
     return data as unknown as Media[];
 }
+
+export const linkMediaToEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+        const supabase = createServerClient();
+        if (!supabase) {
+            throw new Error("Failed to initialize Supabase client");
+        }
+
+        // Check if link already exists
+        const { data: existingLink } = await supabase
+            .from("media_links")
+            .select("id")
+            .eq("business_id", business.id)
+            .eq("media_id", mediaId)
+            .eq("linked_id", equipmentId)
+            .eq("linked_type", "equipment")
+            .single();
+
+        if (existingLink) {
+            console.log("Media already linked to equipment");
+            return true;
+        }
+
+        // Create new link
+        const { error } = await supabase
+            .from("media_links")
+            .insert({
+                id: crypto.randomUUID(),
+                business_id: business.id,
+                media_id: mediaId,
+                linked_id: equipmentId,
+                linked_type: "equipment",
+                created_by: userId,
+                updated_by: userId,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+
+        if (error) {
+            console.error("Error linking media to equipment:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking media to equipment:", error);
+        return false;
+    }
+};
+
+export const unlinkMediaFromEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
+    try {
+        const { business } = await withBusinessServer();
+        const supabase = createServerClient();
+        if (!supabase) {
+            throw new Error("Failed to initialize Supabase client");
+        }
+
+        const { error } = await supabase
+            .from("media_links")
+            .delete()
+            .eq("business_id", business.id)
+            .eq("media_id", mediaId)
+            .eq("linked_id", equipmentId)
+            .eq("linked_type", "equipment");
+
+        if (error) {
+            console.error("Error unlinking media from equipment:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error unlinking media from equipment:", error);
+        return false;
+    }
+};
 
 const account = process.env.AZURE_STORAGE_ACCOUNT;
 const accountKey = process.env.AZURE_STORAGE_KEY;

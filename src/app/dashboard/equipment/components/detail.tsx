@@ -15,6 +15,9 @@ import { AssignmentModal } from "./assignment-modal";
 import { UsageModal } from "./usage-modal";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
+import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId } from "@/app/actions/media";
+import { toast } from "sonner";
+import { MediaSelector } from "@/components/media-selector";
 
 export default function EquipmentDetail({
     equipment,
@@ -43,6 +46,67 @@ export default function EquipmentDetail({
     const [selectedUsage, setSelectedUsage] = useState<EquipmentUsage | undefined>();
     const [selectedAssignment, setSelectedAssignment] = useState<EquipmentAssignment | undefined>();
     const [location, setLocation] = useState<string>(equipment.location || "");
+    const [equipmentMedia, setEquipmentMedia] = useState<Media[]>(documents);
+    const [showMediaSelector, setShowMediaSelector] = useState(false);
+    const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+
+    // Handle media linking
+    const handleMediaSelect = async (selectedMedia: Media | Media[]) => {
+        setIsLoadingMedia(true);
+        try {
+            const mediaArray = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
+
+            for (const media of mediaArray) {
+                await linkMediaToEquipment(media.id, equipment.id);
+            }
+
+            // Refresh media list
+            const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+            setEquipmentMedia(updatedMedia);
+
+            toast({
+                title: "Success",
+                description: `${mediaArray.length} media item(s) linked to equipment`
+            });
+        } catch (error) {
+            console.error("Error linking media:", error);
+            toast({
+                title: "Error",
+                description: "Failed to link media to equipment",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoadingMedia(false);
+        }
+    };
+
+    // Handle media unlinking
+    const handleMediaUnlink = async (mediaId: string) => {
+        if (confirm("Are you sure you want to remove this media from the equipment?")) {
+            setIsLoadingMedia(true);
+            try {
+                await unlinkMediaFromEquipment(mediaId, equipment.id);
+
+                // Refresh media list
+                const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+                setEquipmentMedia(updatedMedia);
+
+                toast({
+                    title: "Success",
+                    description: "Media removed from equipment"
+                });
+            } catch (error) {
+                console.error("Error unlinking media:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to remove media from equipment",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsLoadingMedia(false);
+            }
+        }
+    };
 
     const handleAddMaintenance = async (maintenance: EquipmentMaintenance) => {
         // If we're editing, update the existing record
@@ -113,6 +177,10 @@ export default function EquipmentDetail({
         setSelectedAssignment(assignment);
         setShowAssignmentModal(true);
     };
+
+    const handleLocationUpdate = async () => {
+
+    }
 
     return (
         <div>
@@ -260,7 +328,9 @@ export default function EquipmentDetail({
                         <button className={`tab ${activeTab === "usage" ? "tab-active" : ""}`} onClick={() => setActiveTab("usage")}>Usage History</button>
                         <button className={`tab ${activeTab === "assignments" ? "tab-active" : ""}`} onClick={() => setActiveTab("assignments")}>Assignments</button>
                         <button className={`tab ${activeTab === "cost" ? "tab-active" : ""}`} onClick={() => setActiveTab("cost")}>Cost Analysis</button>
+                        <button className={`tab ${activeTab === "media" ? "tab-active" : ""}`} onClick={() => setActiveTab("media")}>Media</button>
                     </div>
+                    
                     <div className="card bg-base-100 shadow-lg">
                         {/* Tab content */}
                         {activeTab === "details" && (
@@ -542,9 +612,149 @@ export default function EquipmentDetail({
                                 </div>
                             </div>
                         )}
+
+                        {/* Media Tab */}
+                        {activeTab === "media" && (
+                            <div className="card bg-base-100 shadow-sm">
+                                <div className="card-body">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-semibold">Equipment Media</h3>
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="btn btn-sm btn-outline"
+                                                onClick={() => setShowMediaSelector(true)}
+                                                disabled={isLoadingMedia}
+                                            >
+                                                <i className="fas fa-link mr-2"></i> Link Existing
+                                            </button>
+                                            <Link href="/dashboard/media/upload" className="btn btn-sm btn-primary">
+                                                <i className="fas fa-upload mr-2"></i> Upload New
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    {isLoadingMedia && (
+                                        <div className="flex justify-center py-4">
+                                            <div className="loading loading-spinner loading-md"></div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {equipmentMedia.map((media) => (
+                                            <div key={media.id} className="card bg-base-200 shadow-sm">
+                                                <figure className="relative h-32 bg-base-300">
+                                                    {media.type === "image" ? (
+                                                        <img 
+                                                            src={media.url || "/placeholder.svg"} 
+                                                            alt={media.name} 
+                                                            className="object-cover w-full h-full" 
+                                                        />
+                                                    ) : (
+                                                        <div className="flex items-center justify-center w-full h-full">
+                                                            {media.type === "video" && <i className="fas fa-play-circle text-3xl text-primary"></i>}
+                                                            {media.type === "document" && <i className="fas fa-file-alt text-3xl text-secondary"></i>}
+                                                            {media.type === "audio" && <i className="fas fa-volume-up text-3xl text-info"></i>}
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute top-2 right-2">
+                                                        <div className="dropdown dropdown-end">
+                                                            <div tabIndex={0} role="button" className="btn btn-ghost btn-xs btn-circle">
+                                                                <i className="fas fa-ellipsis-v"></i>
+                                                            </div>
+                                                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                                                <li>
+                                                                    <Link href={`/dashboard/media/${media.id}`}>
+                                                                        <i className="fas fa-eye mr-2"></i> View
+                                                                    </Link>
+                                                                </li>
+                                                                <li>
+                                                                    <a href={media.url} download target="_blank" rel="noopener noreferrer">
+                                                                        <i className="fas fa-download mr-2"></i> Download
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <button 
+                                                                        onClick={() => handleMediaUnlink(media.id)}
+                                                                        className="text-error"
+                                                                        disabled={isLoadingMedia}
+                                                                    >
+                                                                        <i className="fas fa-unlink mr-2"></i> Remove
+                                                                    </button>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </figure>
+                                                <div className="card-body p-3">
+                                                    <h4 className="card-title text-sm truncate">{media.name}</h4>
+                                                    <div className="text-xs text-base-content/70">
+                                                        <p>Type: {media.type}</p>
+                                                        <p>Size: {media.size || "Unknown"}</p>
+                                                        <p>Added: {new Date(media.created_at || "").toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {equipmentMedia.length === 0 && !isLoadingMedia && (
+                                        <div className="text-center py-8">
+                                            <i className="fas fa-images text-3xl text-base-content/30 mb-2"></i>
+                                            <p className="text-base-content/70">No media files linked to this equipment</p>
+                                            <div className="flex justify-center gap-2 mt-4">
+                                                <button
+                                                    className="btn btn-sm btn-outline"
+                                                    onClick={() => setShowMediaSelector(true)}
+                                                >
+                                                    Link Existing Media
+                                                </button>
+                                                <Link href="/dashboard/media/upload" className="btn btn-sm btn-primary">
+                                                    Upload New Media
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Usage Modal */}
+            {showUsageModal && (
+                <UsageModal
+                    equipmentId={equipment.id}
+                    usage={selectedUsage}
+                    onClose={() => {
+                        setShowUsageModal(false);
+                        setSelectedUsage(undefined);
+                    }}
+                    onSave={(usage) => {
+                        if (selectedUsage) {
+                            setUsageList(usageList.map(m => m.id === usage.id ? usage : m));
+                        } else {
+                            setUsageList([...usageList, usage]);
+                        }
+                        setShowUsageModal(false);
+                        setSelectedUsage(undefined);
+                    }}
+                />
+            )}
+
+            {/* Media Selector Modal */}
+            {showMediaSelector && (
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-4xl">
+                        <MediaSelector
+                            multiple={true}
+                            onSelect={handleMediaSelect}
+                            onClose={() => setShowMediaSelector(false)}
+                            initialSelected={[]}
+                        />
+                    </div>
+                </div>
+            )}
         </div >
     );
 }
