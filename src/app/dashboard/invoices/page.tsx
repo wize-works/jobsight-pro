@@ -1,6 +1,7 @@
 import { getInvoices, getInvoicesWithClient } from '@/app/actions/invoices';
 import InvoicesList from './components/list';
 import { Suspense } from 'react';
+import Link from 'next/link';
 
 export default async function InvoicesPage() {
     // Fetch invoices data on the server
@@ -14,10 +15,10 @@ export default async function InvoicesPage() {
                     <p className="text-sm text-base-content/50">Manage your invoices efficiently</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <button className="btn btn-primary">
+                    <Link href={"/dashbaord/invoices/new"} className="btn btn-primary">
                         <i className="fal fa-plus fa-fw mr-2"></i>
                         New Invoice
-                    </button>
+                    </Link>
                 </div>
             </div>
 

@@ -2,7 +2,6 @@
 
 import { getSyncQueue, removeFromSyncQueue, addToSyncQueue } from "./storage";
 import { syncQueueToServer } from "./client-actions";
-import { useBusiness } from "@/hooks/use-business";
 
 export interface SyncStatus {
     isOnline: boolean;
@@ -36,15 +35,16 @@ class SyncManager {
         window.addEventListener("offline", () => {
             this.updateStatus({ isOnline: false, isSyncing: false });
         });
-    }
-
-    private async loadQueueCount() {
+    } private async loadQueueCount() {
         try {
             // Get business ID from context or storage
             const businessId = localStorage.getItem("currentBusinessId");
             if (businessId) {
                 const queue = await getSyncQueue(businessId);
                 this.updateStatus({ queueCount: queue.length });
+            } else {
+                // No business ID available - set queue count to 0
+                this.updateStatus({ queueCount: 0 });
             }
         } catch (error) {
             console.error("Failed to load queue count:", error);
@@ -66,22 +66,23 @@ class SyncManager {
                 this.listeners.splice(index, 1);
             }
         };
-    }
-
-    public async syncWhenOnline() {
+    } public async syncWhenOnline() {
         if (typeof window === 'undefined' || !navigator.onLine || this.status.isSyncing) return;
 
         this.updateStatus({ isSyncing: true, syncError: undefined });
 
         try {
             let businessId = localStorage.getItem("currentBusinessId");
+
             if (!businessId) {
-                // Try to get business ID from context
-                const { business } = useBusiness();
-                businessId = business?.id || "";
-            }
-            if (!businessId) {
-                throw new Error("No business ID found");
+                // Handle missing business ID gracefully - this is a valid state
+                // User might not be logged in or business context not set yet
+                this.updateStatus({
+                    isSyncing: false,
+                    queueCount: 0,
+                    syncError: undefined,
+                });
+                return;
             }
 
             const queue = await getSyncQueue(businessId);
