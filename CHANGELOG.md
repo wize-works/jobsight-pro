@@ -1,3 +1,10 @@
+## [1.31.5](https://github.com/wize-works/jobsight-pro/compare/v1.31.4...v1.31.5) (2025-06-07)
+
+
+### Bug Fixes
+
+* Remove loading component and mock projects page implementation ([9049729](https://github.com/wize-works/jobsight-pro/commit/90497299963192bec01479f68ee17e424eee940f))
+
 ## [1.31.4](https://github.com/wize-works/jobsight-pro/compare/v1.31.3...v1.31.4) (2025-06-07)
 
 
