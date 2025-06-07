@@ -127,7 +127,15 @@ export const getMediaByEquipmentId = async (equipmentId: string, type: string): 
         return [];
     }
 
-    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id);
+    if (!linkData || linkData.length === 0) {
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+    if (mediaIds.length === 0) {
+        return [];
+    }
 
     const { data, error } = await fetchByBusiness("media", business.id, "*", {
         filter: { id: { in: mediaIds }, type: type },
@@ -155,7 +163,15 @@ export const getMediaByProjectId = async (projectId: string, type: string): Prom
         return [];
     }
 
-    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id);
+    if (!linkData || linkData.length === 0) {
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+    if (mediaIds.length === 0) {
+        return [];
+    }
 
     const { data, error } = await fetchByBusiness("media", business.id, "*", {
         filter: { id: { in: mediaIds }, type: type },

@@ -130,30 +130,35 @@ export const getEquipmentUsagesWithDetailsByEquipmentId = async (id: string): Pr
     const businessAuth = await withBusinessServer();
     const usages = await getEquipmentUsagesByEquipmentId(id);
 
+    if (!usages || usages.length === 0) {
+        return [];
+    }
+
     const projectIds = usages.map(usage => usage.project_id).filter(Boolean);
-
-    const { data: projectData, error: projectError } = await fetchByBusiness("projects", businessAuth.business.id, "*", {
-        filter: { id: { in: projectIds } },
-    });
-
     const crewIds = usages.map(usage => usage.crew_id).filter(Boolean);
 
-    const { data: crewData, error: crewError } = await fetchByBusiness("crews", businessAuth.business.id, "*", {
-        filter: { id: { in: crewIds } },
-    });
+    let projectData: any[] = [];
+    if (projectIds.length > 0) {
+        const { data: projects, error: projectError } = await fetchByBusiness("projects", businessAuth.business.id, "*", {
+            filter: { id: { in: projectIds } },
+        });
+        projectData = projects || [];
+    }
 
-    let crews: any[] = [];
+    let crewData: any[] = [];
+    if (crewIds.length > 0) {
+        const { data: crews, error: crewError } = await fetchByBusiness("crews", businessAuth.business.id, "*", {
+            filter: { id: { in: crewIds } },
+        });
+        crewData = crews || [];
+    } let crews: any[] = [];
     if (Array.isArray(crewData)) {
         crews = crewData;
-    } else {
-        crews = [];
     }
 
     let projects: any[] = [];
     if (Array.isArray(projectData)) {
         projects = projectData;
-    } else {
-        projects = [];
     }
 
     const useagesWithProjectNames = usages.map(usage => {

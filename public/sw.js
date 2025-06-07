@@ -3,213 +3,244 @@ const OFFLINE_URL = '/dashboard';
 
 // Critical resources to cache for offline functionality
 const STATIC_CACHE_URLS = [
-  '/',
-  '/dashboard',
-  '/dashboard/daily-logs',
-  '/dashboard/projects',
-  '/dashboard/crews',
-  '/dashboard/equipment',
-  '/manifest.json',
-  '/favicon.ico',
-  '/logo.png'
+    '/',
+    '/dashboard',
+    '/dashboard/daily-logs',
+    '/dashboard/projects',
+    '/dashboard/crews',
+    '/dashboard/equipment',
+    '/manifest.json',
+    '/favicon.ico',
+    '/logo.png'
 ];
 
 // Install event - cache critical resources
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching critical resources');
-        return cache.addAll(STATIC_CACHE_URLS);
-      })
-      .then(() => {
-        console.log('Service Worker: Skip waiting');
-        return self.skipWaiting();
-      })
-  );
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Service Worker: Caching critical resources');
+                return cache.addAll(STATIC_CACHE_URLS);
+            })
+            .then(() => {
+                console.log('Service Worker: Skip waiting');
+                return self.skipWaiting();
+            })
+    );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              console.log('Service Worker: Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('Service Worker: Claiming clients');
-        return self.clients.claim();
-      })
-  );
+    event.waitUntil(
+        caches.keys()
+            .then((cacheNames) => {
+                return Promise.all(
+                    cacheNames.map((cacheName) => {
+                        if (cacheName !== CACHE_NAME) {
+                            console.log('Service Worker: Deleting old cache:', cacheName);
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+            .then(() => {
+                console.log('Service Worker: Claiming clients');
+                return self.clients.claim();
+            })
+    );
 });
 
 // Fetch event - network first with cache fallback
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') return;
 
-  // Skip external requests
-  if (!event.request.url.startsWith(self.location.origin)) return;
+    // Skip external requests
+    if (!event.request.url.startsWith(self.location.origin)) return;
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // If we got a valid response, clone and cache it
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
-            }
-            // If no cache match, return offline page for navigation requests
-            if (event.request.mode === 'navigate') {
-              return caches.match(OFFLINE_URL);
-            }
-            // For other requests, return a generic offline response
-            return new Response('Offline', { 
-              status: 503, 
-              statusText: 'Service Unavailable' 
-            });
-          });
-      })
-  );
+    event.respondWith(
+        fetch(event.request)
+            .then((response) => {
+                // If we got a valid response, clone and cache it
+                if (response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME)
+                        .then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                }
+                return response;
+            })
+            .catch(() => {
+                // Network failed, try cache
+                return caches.match(event.request)
+                    .then((response) => {
+                        if (response) {
+                            return response;
+                        }
+                        // If no cache match, return offline page for navigation requests
+                        if (event.request.mode === 'navigate') {
+                            return caches.match(OFFLINE_URL);
+                        }
+                        // For other requests, return a generic offline response
+                        return new Response('Offline', {
+                            status: 503,
+                            statusText: 'Service Unavailable'
+                        });
+                    });
+            })
+    );
 });
 
 // Background sync for offline data
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(
-      // Handle queued data when back online
-      syncOfflineData()
-    );
-  }
+    console.log('Service Worker: Sync event received:', event.tag);
+
+    if (event.tag === 'background-sync') {
+        event.waitUntil(
+            // Handle queued data when back online
+            syncOfflineData().catch(error => {
+                console.error('Service Worker: Sync failed:', error);
+            })
+        );
+    }
 });
 
 async function syncOfflineData() {
-  console.log('Service Worker: Starting offline data sync');
+    console.log('Service Worker: Starting offline data sync');
 
-  try {
-    // Open IndexedDB
-    const dbRequest = indexedDB.open('jobsight-offline', 1);
-    
-    const db = await new Promise((resolve, reject) => {
-      dbRequest.onsuccess = () => resolve(dbRequest.result);
-      dbRequest.onerror = () => reject(dbRequest.error);
-    });
+    try {
+        // Open IndexedDB with error handling
+        const dbRequest = indexedDB.open('jobsight-offline', 1);
 
-    // Get all pending sync items
-    const transaction = db.transaction(['syncQueue'], 'readonly');
-    const store = transaction.objectStore('syncQueue');
-    const getAllRequest = store.getAll();
-    
-    const syncItems = await new Promise((resolve, reject) => {
-      getAllRequest.onsuccess = () => resolve(getAllRequest.result);
-      getAllRequest.onerror = () => reject(getAllRequest.error);
-    });
+        // Add error handling for database initialization
+        dbRequest.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('syncQueue')) {
+                db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
+            }
+        };
 
-    console.log(`Service Worker: Found ${syncItems.length} items to sync`);
+        const db = await new Promise((resolve, reject) => {
+            dbRequest.onsuccess = () => resolve(dbRequest.result);
+            dbRequest.onerror = () => reject(dbRequest.error);
+        });
 
-    // Send sync items to the main application
-    const clients = await self.clients.matchAll();
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'SYNC_REQUIRED',
-        items: syncItems
-      });
-    });
+        // Check if object store exists before attempting transaction
+        if (!db.objectStoreNames.contains('syncQueue')) {
+            console.log('Service Worker: syncQueue store not found, skipping sync');
+            return;
+        }
 
-  } catch (error) {
-    console.error('Service Worker: Failed to sync offline data:', error);
-  }
+        // Get all pending sync items with error handling
+        const transaction = db.transaction(['syncQueue'], 'readonly');
+        const store = transaction.objectStore('syncQueue');
+        const getAllRequest = store.getAll();
+
+        const syncItems = await new Promise((resolve, reject) => {
+            getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+            getAllRequest.onerror = () => reject(getAllRequest.error);
+        });
+
+        console.log(`Service Worker: Found ${syncItems.length} items to sync`);
+
+        // Send sync items to the main application
+        const clients = await self.clients.matchAll();
+        if (clients.length > 0) {
+            clients.forEach(client => {
+                try {
+                    client.postMessage({
+                        type: 'SYNC_REQUIRED',
+                        items: syncItems
+                    });
+                } catch (error) {
+                    console.error('Service Worker: Failed to send message to client:', error);
+                }
+            });
+        } else {
+            console.log('Service Worker: No clients available for sync');
+        }
+
+    } catch (error) {
+        console.error('Service Worker: Failed to sync offline data:', error);
+    }
 }
 
 // Push notification handling
-self.addEventListener('push', function(event) {
-  console.log('Push event received');
-  
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'New notification from JobSight',
-      icon: data.icon || '/favicon-196x196.png',
-      badge: data.badge || '/favicon-96x96.png',
-      vibrate: [200, 100, 200],
-      data: {
-        url: data.url || '/dashboard'
-      },
-      actions: [
-        {
-          action: 'view',
-          title: 'View',
-          icon: '/favicon-32x32.png'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ],
-      requireInteraction: true,
-      tag: data.tag || 'default'
-    };
+self.addEventListener('push', function (event) {
+    console.log('Push event received');
 
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'JobSight', options)
-    );
-  }
+    if (event.data) {
+        const data = event.data.json();
+        const options = {
+            body: data.body || 'New notification from JobSight',
+            icon: data.icon || '/favicon-196x196.png',
+            badge: data.badge || '/favicon-96x96.png',
+            vibrate: [200, 100, 200],
+            data: {
+                url: data.url || '/dashboard'
+            },
+            actions: [
+                {
+                    action: 'view',
+                    title: 'View',
+                    icon: '/favicon-32x32.png'
+                },
+                {
+                    action: 'dismiss',
+                    title: 'Dismiss'
+                }
+            ],
+            requireInteraction: true,
+            tag: data.tag || 'default'
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(data.title || 'JobSight', options)
+        );
+    }
 });
 
 // Notification click handling
-self.addEventListener('notificationclick', function(event) {
-  console.log('Notification clicked');
-  event.notification.close();
+self.addEventListener('notificationclick', function (event) {
+    console.log('Notification clicked');
+    event.notification.close();
 
-  if (event.action === 'dismiss') {
-    return;
-  }
+    if (event.action === 'dismiss') {
+        return;
+    }
 
-  const urlToOpen = event.notification.data?.url || '/dashboard';
+    const urlToOpen = event.notification.data?.url || '/dashboard';
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // Check if there's already a window open with the target URL
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        const clientUrl = new URL(client.url);
-        const targetUrl = new URL(urlToOpen, location.origin);
-        
-        if (clientUrl.pathname === targetUrl.pathname && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      
-      // If no matching window, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+            // Check if there's already a window open with the target URL
+            for (let i = 0; i < clientList.length; i++) {
+                const client = clientList[i];
+                const clientUrl = new URL(client.url);
+                const targetUrl = new URL(urlToOpen, location.origin);
+
+                if (clientUrl.pathname === targetUrl.pathname && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+
+            // If no matching window, open a new one
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
+    );
 });
 
 // Handle service worker updates
-self.addEventListener('message', function(event) {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+self.addEventListener('message', function (event) {
+    console.log('Service Worker: Message received:', event.data);
+
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+        // Don't return true - this was causing the async response error
+    }
+
+    // Explicitly don't return true to avoid the "asynchronous response" error
 });
