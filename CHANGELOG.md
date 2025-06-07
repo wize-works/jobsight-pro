@@ -1,3 +1,10 @@
+## [1.31.1](https://github.com/wize-works/jobsight-pro/compare/v1.31.0...v1.31.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* Refactor document actions: mark documents.ts as deprecated and update email notification types ([463fc00](https://github.com/wize-works/jobsight-pro/commit/463fc00f5980f2cb8c0832f4c6d1480215b7af07))
+
 # [1.31.0](https://github.com/wize-works/jobsight-pro/compare/v1.30.0...v1.31.0) (2025-06-07)
 
 
