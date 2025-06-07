@@ -13,6 +13,7 @@
         "@hookform/resolvers": "latest",
         "@kinde-oss/kinde-auth-nextjs": "latest",
         "@microsoft/clarity": "^1.0.0",
+        "@sentry/nextjs": "^9.27.0",
         "@supabase/supabase-js": "latest",
         "@tailwindcss/postcss": "^4.0.14",
         "@types/jsonwebtoken": "^9.0.9",
