@@ -1,3 +1,10 @@
+## [1.31.3](https://github.com/wize-works/jobsight-pro/compare/v1.31.2...v1.31.3) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update toast notifications to use success and error variants across multiple components ([0849521](https://github.com/wize-works/jobsight-pro/commit/084952137f02e632066cdb280882937f9ab8804a))
+
 ## [1.31.2](https://github.com/wize-works/jobsight-pro/compare/v1.31.1...v1.31.2) (2025-06-07)
 
 
