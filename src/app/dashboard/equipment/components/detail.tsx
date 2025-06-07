@@ -17,7 +17,7 @@ import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId } from "@/app/actions/media";
 import { toast } from "sonner";
-import { MediaSelector } from "@/components/media-selector";
+import MediaSelector from "@/components/media-selector";
 
 export default function EquipmentDetail({
     equipment,

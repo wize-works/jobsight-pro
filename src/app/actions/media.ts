@@ -13,7 +13,7 @@ import {
     BlobSASPermissions,
     SASProtocol,
 } from '@azure/storage-blob';
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerClient } from "@/lib/supabase";
 
 export const getMedias = async (): Promise<Media[]> => {
     const { business } = await withBusinessServer();
@@ -172,40 +172,31 @@ export const getMediaByProjectId = async (projectId: string, type: string): Prom
 export const linkMediaToEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
         const { business, userId } = await withBusinessServer();
-        const supabase = createServerClient();
-        if (!supabase) {
-            throw new Error("Failed to initialize Supabase client");
-        }
 
         // Check if link already exists
-        const { data: existingLink } = await supabase
-            .from("media_links")
-            .select("id")
-            .eq("business_id", business.id)
-            .eq("media_id", mediaId)
-            .eq("linked_id", equipmentId)
-            .eq("linked_type", "equipment")
-            .single();
+        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: equipmentId,
+                linked_type: "equipment"
+            }
+        });
 
-        if (existingLink) {
+        if (existingLinks && existingLinks.length > 0) {
             console.log("Media already linked to equipment");
             return true;
         }
 
-        // Create new link
-        const { error } = await supabase
-            .from("media_links")
-            .insert({
-                id: crypto.randomUUID(),
-                business_id: business.id,
-                media_id: mediaId,
-                linked_id: equipmentId,
-                linked_type: "equipment",
-                created_by: userId,
-                updated_by: userId,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            });
+        // Create new link using insertWithBusiness
+        const newLink = {
+            media_id: mediaId,
+            linked_id: equipmentId,
+            linked_type: "equipment"
+        };
+
+        const { data, error } = await insertWithBusiness("media_links", newLink, business.id, {
+            userId: userId
+        });
 
         if (error) {
             console.error("Error linking media to equipment:", error);
@@ -222,18 +213,23 @@ export const linkMediaToEquipment = async (mediaId: string, equipmentId: string)
 export const unlinkMediaFromEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
         const { business } = await withBusinessServer();
-        const supabase = createServerClient();
-        if (!supabase) {
-            throw new Error("Failed to initialize Supabase client");
+
+        // Find the link to delete
+        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: equipmentId,
+                linked_type: "equipment"
+            }
+        });
+
+        if (!existingLinks || existingLinks.length === 0) {
+            console.log("No media link found to remove");
+            return true;
         }
 
-        const { error } = await supabase
-            .from("media_links")
-            .delete()
-            .eq("business_id", business.id)
-            .eq("media_id", mediaId)
-            .eq("linked_id", equipmentId)
-            .eq("linked_type", "equipment");
+        // Delete the link using deleteWithBusinessCheck
+        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, business.id);
 
         if (error) {
             console.error("Error unlinking media from equipment:", error);
