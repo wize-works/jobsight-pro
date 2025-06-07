@@ -1,3 +1,10 @@
+## [1.31.6](https://github.com/wize-works/jobsight-pro/compare/v1.31.5...v1.31.6) (2025-06-07)
+
+
+### Bug Fixes
+
+* Add placeholder for media download link when URL is unavailable ([bef42dd](https://github.com/wize-works/jobsight-pro/commit/bef42dd3359c2c761e1ca368a7f82bfeb0742108))
+
 ## [1.31.5](https://github.com/wize-works/jobsight-pro/compare/v1.31.4...v1.31.5) (2025-06-07)
 
 
