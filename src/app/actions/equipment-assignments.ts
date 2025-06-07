@@ -120,26 +120,40 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
         return [] as EquipmentAssignment[];
     }
 
-    const crewIds = (assignData as unknown as EquipmentAssignment[])?.map((assignment) => assignment.crew_id) || [];
+    if (!assignData || assignData.length === 0) {
+        return [] as EquipmentAssignment[];
+    }
 
-    const { data: crewData } = await fetchByBusiness("crews", business.id, "*", {
-        filter: { id: { in: crewIds } },
-        orderBy: { column: "name", ascending: true },
-    });
+    const crewIds = (assignData as unknown as EquipmentAssignment[])?.map((assignment) => assignment.crew_id).filter(Boolean) || [];
 
-    const { data: projectData } = await fetchByBusiness("project_crews", business.id, "*", {
-        filter: { crew_id: { in: crewIds } },
-        orderBy: { column: "start_date", ascending: true },
-    });
+    let crewData: any[] = [];
+    if (crewIds.length > 0) {
+        const { data: crews } = await fetchByBusiness("crews", business.id, "*", {
+            filter: { id: { in: crewIds } },
+            orderBy: { column: "name", ascending: true },
+        });
+        crewData = crews || [];
+    }
 
-    const projectIds = (projectData as unknown as ProjectCrew[])?.map((project) => project.project_id) || [];
+    let projectData: any[] = [];
+    if (crewIds.length > 0) {
+        const { data: projects } = await fetchByBusiness("project_crews", business.id, "*", {
+            filter: { crew_id: { in: crewIds } },
+            orderBy: { column: "start_date", ascending: true },
+        });
+        projectData = projects || [];
+    }
 
-    const { data: projectDetails } = await fetchByBusiness("projects", business.id, "*", {
-        filter: { id: { in: projectIds } },
-        orderBy: { column: "start_date", ascending: true },
-    });
+    const projectIds = (projectData as unknown as ProjectCrew[])?.map((project) => project.project_id).filter(Boolean) || [];
 
-    const data = (assignData as unknown as EquipmentAssignment[]).map((assignment) => {
+    let projectDetails: any[] = [];
+    if (projectIds.length > 0) {
+        const { data: projects } = await fetchByBusiness("projects", business.id, "*", {
+            filter: { id: { in: projectIds } },
+            orderBy: { column: "start_date", ascending: true },
+        });
+        projectDetails = projects || [];
+    } const data = (assignData as unknown as EquipmentAssignment[]).map((assignment) => {
         const crew = (crewData as unknown as Crew[])?.find((crew) => crew.id === assignment.crew_id);
         const projectCrew = (projectData as unknown as ProjectCrew[])?.find((pc) => pc.crew_id === assignment.crew_id);
         const project = (projectDetails as unknown as Project[])?.find((proj) => proj.id === projectCrew?.project_id);
@@ -151,9 +165,5 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
         };
     });
 
-    if (data && data.length > 0) {
-        return data as unknown as EquipmentAssignment[];
-    }
-
-    return [] as EquipmentAssignment[];
+    return data as unknown as EquipmentAssignment[];
 };

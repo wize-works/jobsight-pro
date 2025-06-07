@@ -17,7 +17,6 @@ import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
 import MediaSelector from "@/components/media-selector";
-import { updateEquipment } from "@/app/actions/equipments";
 import { toast } from "@/hooks/use-toast";
 
 export default function EquipmentDetail({
