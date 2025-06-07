@@ -543,7 +543,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         <IssuesTab issues={issues} setIssues={setIssues} modalHandler={setIssueModalOpen} />
                     )}
                     {activeTab === "documents" && (
-                        <MediaTab documents={documents} />
+                        <MediaTab projectId={project.id} />
                     )}
                 </div>
 

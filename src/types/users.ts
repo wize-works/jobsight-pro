@@ -12,7 +12,7 @@ export function getUserFullName(user: { first_name?: string | null; last_name?: 
 }
 
 export type UserRole = "admin" | "manager" | "member";
-export type UserStatus = "active" | "invited" | "suspended";
+export type UserStatus = "active" | "invited" | "inactive" | "revoked" | "email_failed" | "suspended";
 
 export const userRoleOptions = createOptions<UserRole>({
     admin: { label: "Admin", badge: "badge-primary" },
@@ -23,19 +23,8 @@ export const userRoleOptions = createOptions<UserRole>({
 export const userStatusOptions = createOptions<UserStatus>({
     active: { label: "Active", badge: "badge-success" },
     invited: { label: "Invited", badge: "badge-warning" },
-    suspended: { label: "Suspended", badge: "badge-error" }
+    suspended: { label: "Suspended", badge: "badge-error" },
+    inactive: { label: "Inactive", badge: "badge-secondary" },
+    revoked: { label: "Revoked", badge: "badge-error" },
+    email_failed: { label: "Email Failed", badge: "badge-error" }
 });
-
-export interface User {
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-    auth_id: string | null;
-    role: "admin" | "manager" | "member";
-    status: "active" | "invited" | "inactive" | "revoked" | "email_failed";
-    email_verified: boolean;
-    business_id: string;
-    created_at: string;
-    updated_at: string;
-}
