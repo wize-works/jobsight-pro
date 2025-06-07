@@ -1,3 +1,10 @@
+## [1.31.4](https://github.com/wize-works/jobsight-pro/compare/v1.31.3...v1.31.4) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update ProjectDetail and MediaTab components to pass projectId and enhance media loading logic ([a14947a](https://github.com/wize-works/jobsight-pro/commit/a14947a971a2b041ee2ae8eb5bbb0aaf5f823589))
+
 ## [1.31.3](https://github.com/wize-works/jobsight-pro/compare/v1.31.2...v1.31.3) (2025-06-07)
 
 
