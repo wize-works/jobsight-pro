@@ -1,3 +1,15 @@
+# [1.29.0](https://github.com/wize-works/jobsight-pro/compare/v1.28.4...v1.29.0) (2025-06-07)
+
+
+### Bug Fixes
+
+* enhance user interface in UsersPermissionsTab and Navbar for improved layout and accessibility ([94b4aba](https://github.com/wize-works/jobsight-pro/commit/94b4abad09a26b7218d25956a7727a96511207d8))
+
+
+### Features
+
+* enhance task management with new user permissions and kanban board ([193b263](https://github.com/wize-works/jobsight-pro/commit/193b26319affb05a4c63cef1c151f3cabd1325bc))
+
 ## [1.28.4](https://github.com/wize-works/jobsight-pro/compare/v1.28.3...v1.28.4) (2025-06-06)
 
 
