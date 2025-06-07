@@ -1,3 +1,10 @@
+## [1.31.2](https://github.com/wize-works/jobsight-pro/compare/v1.31.1...v1.31.2) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update email verification logic and streamline email content ([50ee3ca](https://github.com/wize-works/jobsight-pro/commit/50ee3ca6cc0aa3b9659b8a00d40270198f5e0191))
+
 ## [1.31.1](https://github.com/wize-works/jobsight-pro/compare/v1.31.0...v1.31.1) (2025-06-07)
 
 
