@@ -1,3 +1,10 @@
+# [1.31.0](https://github.com/wize-works/jobsight-pro/compare/v1.30.0...v1.31.0) (2025-06-07)
+
+
+### Features
+
+* enhance invoice management with new modals for sending and recording payments, improve invoice status handling, and refactor sync logic ([c1b1ea0](https://github.com/wize-works/jobsight-pro/commit/c1b1ea00b7f92d8ec47d94de799ffaeea23bb92a))
+
 # [1.30.0](https://github.com/wize-works/jobsight-pro/compare/v1.29.0...v1.30.0) (2025-06-07)
 
 
