@@ -57,7 +57,7 @@ export default function UsersPermissionsTab() {
                 setInviteFirstName("");
                 setInviteLastName("");
                 setInviteRole("member");
-                toast({
+                toast.success({
                     title: "Invitation Sent",
                     description: `Invitation email sent to ${inviteEmail}`,
                 });
@@ -97,7 +97,7 @@ export default function UsersPermissionsTab() {
 
             if (success) {
                 setUsers(prev => prev.filter(user => user.id !== userId));
-                toast({
+                toast.success({
                     title: "User Removed",
                     description: `${userName} has been removed from your business`,
                 });

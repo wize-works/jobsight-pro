@@ -16,9 +16,9 @@ import { UsageModal } from "./usage-modal";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
-import { toast } from "sonner";
 import MediaSelector from "@/components/media-selector";
 import { updateEquipment } from "@/app/actions/equipments";
+import { toast } from "@/hooks/use-toast";
 
 export default function EquipmentDetail({
     equipment,
@@ -67,16 +67,15 @@ export default function EquipmentDetail({
             const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
             setEquipmentMedia(updatedMedia);
 
-            toast({
+            toast.success({
                 title: "Success",
                 description: `${mediaArray.length} media item(s) linked to equipment`
             });
         } catch (error) {
             console.error("Error linking media:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to link media to equipment",
-                variant: "destructive"
             });
         } finally {
             setIsLoadingMedia(false);
@@ -94,16 +93,15 @@ export default function EquipmentDetail({
                 const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
                 setEquipmentMedia(updatedMedia);
 
-                toast({
+                toast.success({
                     title: "Success",
                     description: "Media removed from equipment"
                 });
             } catch (error) {
                 console.error("Error unlinking media:", error);
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to remove media from equipment",
-                    variant: "destructive"
                 });
             } finally {
                 setIsLoadingMedia(false);
@@ -117,7 +115,7 @@ export default function EquipmentDetail({
         try {
             await setEquipmentPrimaryImage(equipment.id, mediaId);
 
-            toast({
+            toast.success({
                 title: "Success",
                 description: "Primary image updated"
             });
@@ -126,10 +124,9 @@ export default function EquipmentDetail({
             window.location.reload();
         } catch (error) {
             console.error("Error setting primary image:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to set primary image",
-                variant: "destructive"
             });
         } finally {
             setIsLoadingMedia(false);
@@ -143,10 +140,9 @@ export default function EquipmentDetail({
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Please select an image file",
-                variant: "destructive"
             });
             return;
         }
@@ -155,7 +151,7 @@ export default function EquipmentDetail({
         try {
             await uploadEquipmentImage(equipment.id, file);
 
-            toast({
+            toast.success({
                 title: "Success",
                 description: "Equipment image uploaded successfully"
             });
@@ -166,10 +162,9 @@ export default function EquipmentDetail({
             window.location.reload();
         } catch (error) {
             console.error("Error uploading image:", error);
-            toast({
+            toast.error({
                 title: "Error",
                 description: "Failed to upload image",
-                variant: "destructive"
             });
         } finally {
             setIsUploadingImage(false);
@@ -288,7 +283,7 @@ export default function EquipmentDetail({
                                     </div>
                                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                         <li>
-                                            <button 
+                                            <button
                                                 onClick={() => setShowImageUpload(true)}
                                                 disabled={isUploadingImage}
                                             >
@@ -421,7 +416,7 @@ export default function EquipmentDetail({
                         <button className={`tab ${activeTab === "cost" ? "tab-active" : ""}`} onClick={() => setActiveTab("cost")}>Cost Analysis</button>
                         <button className={`tab ${activeTab === "media" ? "tab-active" : ""}`} onClick={() => setActiveTab("media")}>Media</button>
                     </div>
-                    
+
                     <div className="card bg-base-100 shadow-lg">
                         {/* Tab content */}
                         {activeTab === "details" && (
@@ -735,10 +730,10 @@ export default function EquipmentDetail({
                                             <div key={media.id} className="card bg-base-200 shadow-sm">
                                                 <figure className="relative h-32 bg-base-300">
                                                     {media.type === "image" ? (
-                                                        <img 
-                                                            src={media.url || "/placeholder.svg"} 
-                                                            alt={media.name} 
-                                                            className="object-cover w-full h-full" 
+                                                        <img
+                                                            src={media.url || "/placeholder.svg"}
+                                                            alt={media.name ?? ""}
+                                                            className="object-cover w-full h-full"
                                                         />
                                                     ) : (
                                                         <div className="flex items-center justify-center w-full h-full">
@@ -760,7 +755,7 @@ export default function EquipmentDetail({
                                                                 </li>
                                                                 {media.type === "image" && (
                                                                     <li>
-                                                                        <button 
+                                                                        <button
                                                                             onClick={() => handleSetPrimaryImage(media.id)}
                                                                             disabled={isLoadingMedia}
                                                                         >
@@ -774,7 +769,7 @@ export default function EquipmentDetail({
                                                                     </a>
                                                                 </li>
                                                                 <li>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => handleMediaUnlink(media.id)}
                                                                         className="text-error"
                                                                         disabled={isLoadingMedia}
@@ -825,7 +820,6 @@ export default function EquipmentDetail({
             {/* Usage Modal */}
             {showUsageModal && (
                 <UsageModal
-                    equipmentId={equipment.id}
                     usage={selectedUsage}
                     onClose={() => {
                         setShowUsageModal(false);
@@ -881,8 +875,8 @@ export default function EquipmentDetail({
                             </div>
                         )}
                         <div className="modal-action">
-                            <button 
-                                className="btn btn-ghost" 
+                            <button
+                                className="btn btn-ghost"
                                 onClick={() => setShowImageUpload(false)}
                                 disabled={isUploadingImage}
                             >

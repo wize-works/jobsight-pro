@@ -36,7 +36,7 @@ export default function NewDailyLogPage() {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
         console.log(values)
-        toast({
+        toast.success({
             title: "You submitted the following values:",
             description: (
                 <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4 font-mono text-white">
