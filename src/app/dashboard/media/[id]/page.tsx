@@ -1,60 +1,116 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { getMediaById, deleteMedia, updateMedia } from "@/app/actions/media"
+import { getProjects } from "@/app/actions/projects"
+import { Media } from "@/types/media"
+import { Project } from "@/types/projects"
+import { toast } from "@/hooks/use-toast"
 
-// Mock data for a single media item
-const mockMediaItem = {
-    id: "media1",
-    name: "Site Overview.jpg",
-    type: "image",
-    size: "2.4 MB",
-    project: "Main Street Project",
-    uploadedBy: "John Doe",
-    uploadedAt: "2025-05-10T14:30:00",
-    url: "/placeholder.svg?key=alucj",
-    tags: ["site", "overview"],
-    description: "Aerial view of the Main Street Project construction site showing current progress.",
-    metadata: {
-        dimensions: "3840 x 2160",
-        device: "DJI Mavic Air 2",
-        location: "123 Main St, Anytown, USA",
-        coordinates: "40.7128° N, 74.0060° W",
-    },
-}
+export default function MediaDetail() {
+    const params = useParams()
+    const router = useRouter()
+    const mediaId = params.id as string
 
-// Mock data for related media
-const mockRelatedMedia = [
-    {
-        id: "media5",
-        name: "Concrete Pour.jpg",
-        type: "image",
-        url: "/placeholder.svg?key=5lhd9",
-    },
-    {
-        id: "media2",
-        name: "Foundation Plan.pdf",
-        type: "document",
-        url: "/placeholder.svg?key=69yfj",
-    },
-    {
-        id: "media3",
-        name: "Equipment Inspection.mp4",
-        type: "video",
-        url: "/placeholder.svg?key=ku0og",
-    },
-]
-
-export default function MediaDetail({ params }: { params: Promise<{ id: string }> }) {
+    const [mediaItem, setMediaItem] = useState<Media | null>(null)
+    const [projects, setProjects] = useState<Project[]>([])
+    const [loading, setLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
-    const [editedItem, setEditedItem] = useState({ ...mockMediaItem })
+    const [editedItem, setEditedItem] = useState<Partial<Media>>({})
 
-    // Format date for display
-    const formatDate = (dateString: string) => {
+    useEffect(() => {
+        loadData()
+    }, [mediaId])
+
+    const loadData = async () => {
+        try {
+            setLoading(true)
+            const [media, projectsData] = await Promise.all([
+                getMediaById(mediaId),
+                getProjects()
+            ])
+
+            if (!media) {
+                toast({
+                    title: "Error",
+                    description: "Media item not found",
+                    variant: "destructive"
+                })
+                router.push("/dashboard/media")
+                return
+            }
+
+            setMediaItem(media)
+            setEditedItem(media)
+            setProjects(projectsData)
+        } catch (error) {
+            console.error("Error loading media:", error)
+            toast({
+                title: "Error",
+                description: "Failed to load media item",
+                variant: "destructive"
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSave = async () => {
+        if (!mediaItem) return
+
+        try {
+            const updated = await updateMedia(mediaItem.id, {
+                name: editedItem.name || mediaItem.name,
+                description: editedItem.description,
+                project_id: editedItem.project_id
+            })
+
+            if (updated) {
+                setMediaItem(updated)
+                setIsEditing(false)
+                toast({
+                    title: "Success",
+                    description: "Media item updated successfully"
+                })
+            }
+        } catch (error) {
+            console.error("Error updating media:", error)
+            toast({
+                title: "Error",
+                description: "Failed to update media item",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleDelete = async () => {
+        if (!mediaItem) return
+
+        try {
+            const success = await deleteMedia(mediaItem.id)
+            if (success) {
+                toast({
+                    title: "Success",
+                    description: "Media item deleted successfully"
+                })
+                router.push("/dashboard/media")
+            }
+        } catch (error) {
+            console.error("Error deleting media:", error)
+            toast({
+                title: "Error",
+                description: "Failed to delete media item",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return "Unknown"
         const date = new Date(dateString)
         return date.toLocaleDateString("en-US", {
             year: "numeric",
@@ -65,7 +121,12 @@ export default function MediaDetail({ params }: { params: Promise<{ id: string }
         })
     }
 
-    // Get icon for file type
+    const getProjectName = (projectId: string | null) => {
+        if (!projectId) return "No Project"
+        const project = projects.find(p => p.id === projectId)
+        return project?.name || "Unknown Project"
+    }
+
     const getFileIcon = (type: string) => {
         switch (type) {
             case "image":
@@ -81,53 +142,82 @@ export default function MediaDetail({ params }: { params: Promise<{ id: string }
         }
     }
 
-    // Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        // In a real app, you would save the changes to the server here
-        setIsEditing(false)
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="loading loading-spinner loading-lg"></div>
+            </div>
+        )
+    }
+
+    if (!mediaItem) {
+        return (
+            <div className="text-center py-12">
+                <i className="fas fa-exclamation-triangle text-4xl text-warning mb-4"></i>
+                <p className="text-lg">Media item not found</p>
+                <Link href="/dashboard/media" className="btn btn-primary mt-4">
+                    Back to Media Library
+                </Link>
+            </div>
+        )
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard/media" className="btn btn-ghost btn-sm">
+                    <Link href="/dashboard/media" className="btn btn-ghost btn-circle">
                         <i className="fas fa-arrow-left"></i>
                     </Link>
-                    <h1 className="text-2xl font-bold">{mockMediaItem.name}</h1>
+                    <div className="flex items-center gap-3">
+                        {getFileIcon(mediaItem.type)}
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editedItem.name || ""}
+                                onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
+                                className="input input-bordered text-2xl font-bold"
+                            />
+                        ) : (
+                            <h1 className="text-2xl font-bold">{mediaItem.name}</h1>
+                        )}
+                    </div>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
-                        <i className="fas fa-print mr-2"></i> Print
-                    </button>
-                    <button className="btn btn-outline btn-sm" onClick={() => setShowShareModal(true)}>
-                        <i className="fas fa-share-alt mr-2"></i> Share
-                    </button>
-                    <button className="btn btn-outline btn-sm">
-                        <i className="fas fa-download mr-2"></i> Download
-                    </button>
-                    <div className="dropdown dropdown-end">
-                        <div tabIndex={0} role="button" className="btn btn-sm">
-                            <i className="fas fa-ellipsis-v"></i>
-                        </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                            <li>
-                                <a onClick={() => setIsEditing(true)}>Edit</a>
-                            </li>
-                            <li>
-                                <a>Move</a>
-                            </li>
-                            <li>
-                                <a>Duplicate</a>
-                            </li>
-                            <li>
-                                <a className="text-error" onClick={() => setShowDeleteModal(true)}>
-                                    Delete
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    {isEditing ? (
+                        <>
+                            <button className="btn btn-ghost" onClick={() => {
+                                setIsEditing(false)
+                                setEditedItem(mediaItem)
+                            }}>
+                                Cancel
+                            </button>
+                            <button className="btn btn-primary" onClick={handleSave}>
+                                Save
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button className="btn btn-ghost" onClick={() => setIsEditing(true)}>
+                                <i className="fas fa-edit mr-2"></i> Edit
+                            </button>
+                            <a
+                                href={mediaItem.url}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-ghost"
+                            >
+                                <i className="fas fa-download mr-2"></i> Download
+                            </a>
+                            <button className="btn btn-ghost" onClick={() => setShowShareModal(true)}>
+                                <i className="fas fa-share mr-2"></i> Share
+                            </button>
+                            <button className="btn btn-error" onClick={() => setShowDeleteModal(true)}>
+                                <i className="fas fa-trash mr-2"></i> Delete
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -137,28 +227,35 @@ export default function MediaDetail({ params }: { params: Promise<{ id: string }
                     <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
                             <div className="bg-base-200 rounded-lg flex items-center justify-center min-h-[400px]">
-                                {mockMediaItem.type === "image" ? (
+                                {mediaItem.type === "image" ? (
                                     <img
-                                        src={mockMediaItem.url || "/placeholder.svg"}
-                                        alt={mockMediaItem.name}
+                                        src={mediaItem.url || "/placeholder.svg"}
+                                        alt={mediaItem.name}
                                         className="max-w-full max-h-[600px] object-contain"
                                     />
-                                ) : mockMediaItem.type === "video" ? (
+                                ) : mediaItem.type === "video" ? (
                                     <div className="text-center">
                                         <i className="fas fa-play-circle text-6xl text-primary mb-4"></i>
                                         <p>Video preview not available</p>
-                                        <button className="btn btn-primary mt-4">Play Video</button>
+                                        <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-4">
+                                            Open Video
+                                        </a>
                                     </div>
-                                ) : mockMediaItem.type === "document" ? (
+                                ) : mediaItem.type === "document" ? (
                                     <div className="text-center">
                                         <i className="fas fa-file-alt text-6xl text-secondary mb-4"></i>
                                         <p>Document preview not available</p>
-                                        <button className="btn btn-secondary mt-4">Open Document</button>
+                                        <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary mt-4">
+                                            Open Document
+                                        </a>
                                     </div>
                                 ) : (
                                     <div className="text-center">
-                                        <i className="fas fa-file text-6xl text-base-content/50 mb-4"></i>
-                                        <p>Preview not available</p>
+                                        <i className="fas fa-volume-up text-6xl text-info mb-4"></i>
+                                        <p>Audio preview not available</p>
+                                        <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-info mt-4">
+                                            Play Audio
+                                        </a>
                                     </div>
                                 )}
                             </div>
@@ -168,191 +265,59 @@ export default function MediaDetail({ params }: { params: Promise<{ id: string }
 
                 {/* Media details */}
                 <div>
-                    {isEditing ? (
-                        <div className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <h2 className="card-title">Edit Media</h2>
-                                <form onSubmit={handleSubmit}>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Name</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered"
-                                            value={editedItem.name}
-                                            onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
-                                        />
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Project</span>
-                                        </label>
-                                        <select
-                                            className="select select-bordered"
-                                            value={editedItem.project}
-                                            onChange={(e) => setEditedItem({ ...editedItem, project: e.target.value })}
-                                        >
-                                            <option>Main Street Project</option>
-                                            <option>Riverside Apartments</option>
-                                            <option>Downtown Project</option>
-                                            <option>Johnson Residence</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Description</span>
-                                        </label>
-                                        <textarea
-                                            className="textarea textarea-bordered"
-                                            rows={3}
-                                            value={editedItem.description}
-                                            onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
-                                        ></textarea>
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Tags</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered"
-                                            value={editedItem.tags.join(", ")}
-                                            onChange={(e) =>
-                                                setEditedItem({
-                                                    ...editedItem,
-                                                    tags: e.target.value.split(",").map((tag) => tag.trim()),
-                                                })
-                                            }
-                                        />
-                                        <label className="label">
-                                            <span className="label-text-alt">Separate tags with commas</span>
-                                        </label>
-                                    </div>
-
-                                    <div className="form-control mt-4">
-                                        <button type="submit" className="btn btn-primary">
-                                            Save Changes
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-ghost mt-2"
-                                            onClick={() => {
-                                                setEditedItem({ ...mockMediaItem })
-                                                setIsEditing(false)
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <h2 className="card-title">Details</h2>
-                                <div className="overflow-x-auto">
-                                    <table className="table">
-                                        <tbody>
-                                            <tr>
-                                                <td className="font-medium">Type</td>
-                                                <td className="flex items-center">
-                                                    {getFileIcon(mockMediaItem.type)}
-                                                    <span className="ml-2 capitalize">{mockMediaItem.type}</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td className="font-medium">Size</td>
-                                                <td>{mockMediaItem.size}</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="font-medium">Project</td>
-                                                <td>
-                                                    <Link href={`/dashboard/projects/project1`} className="link link-primary">
-                                                        {mockMediaItem.project}
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td className="font-medium">Uploaded By</td>
-                                                <td>{mockMediaItem.uploadedBy}</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="font-medium">Upload Date</td>
-                                                <td>{formatDate(mockMediaItem.uploadedAt)}</td>
-                                            </tr>
-                                            {mockMediaItem.metadata.dimensions && (
-                                                <tr>
-                                                    <td className="font-medium">Dimensions</td>
-                                                    <td>{mockMediaItem.metadata.dimensions}</td>
-                                                </tr>
-                                            )}
-                                            {mockMediaItem.metadata.device && (
-                                                <tr>
-                                                    <td className="font-medium">Device</td>
-                                                    <td>{mockMediaItem.metadata.device}</td>
-                                                </tr>
-                                            )}
-                                            {mockMediaItem.metadata.location && (
-                                                <tr>
-                                                    <td className="font-medium">Location</td>
-                                                    <td>{mockMediaItem.metadata.location}</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div className="mt-4">
-                                    <h3 className="font-medium mb-2">Description</h3>
-                                    <p className="text-sm">{mockMediaItem.description}</p>
-                                </div>
-
-                                <div className="mt-4">
-                                    <h3 className="font-medium mb-2">Tags</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {mockMediaItem.tags.map((tag, index) => (
-                                            <span key={index} className="badge badge-outline">
-                                                #{tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Related media */}
-                    <div className="card bg-base-100 shadow-sm mt-6">
+                    <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
-                            <h2 className="card-title text-lg">Related Media</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {mockRelatedMedia.map((item) => (
-                                    <Link
-                                        href={`/dashboard/media/${item.id}`}
-                                        key={item.id}
-                                        className="card bg-base-200 hover:bg-base-300 transition-colors"
-                                    >
-                                        <figure className="h-24">
-                                            {item.type === "image" ? (
-                                                <img
-                                                    src={item.url || "/placeholder.svg"}
-                                                    alt={item.name}
-                                                    className="object-cover w-full h-full"
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-center w-full h-full">{getFileIcon(item.type)}</div>
-                                            )}
-                                        </figure>
-                                        <div className="card-body p-2">
-                                            <p className="text-xs truncate">{item.name}</p>
-                                        </div>
-                                    </Link>
-                                ))}
+                            <h3 className="card-title text-lg mb-4">Details</h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-medium text-base-content/70">Description</label>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={editedItem.description || ""}
+                                            onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+                                            className="textarea textarea-bordered w-full mt-1"
+                                            rows={3}
+                                        />
+                                    ) : (
+                                        <p className="mt-1">{mediaItem.description || "No description"}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-medium text-base-content/70">Project</label>
+                                    {isEditing ? (
+                                        <select
+                                            value={editedItem.project_id || ""}
+                                            onChange={(e) => setEditedItem({ ...editedItem, project_id: e.target.value || null })}
+                                            className="select select-bordered w-full mt-1"
+                                        >
+                                            <option value="">No Project</option>
+                                            {projects.map((project) => (
+                                                <option key={project.id} value={project.id}>
+                                                    {project.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <p className="mt-1">{getProjectName(mediaItem.project_id)}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-medium text-base-content/70">Type</label>
+                                    <p className="mt-1 capitalize">{mediaItem.type}</p>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-medium text-base-content/70">Size</label>
+                                    <p className="mt-1">{mediaItem.size || "Unknown"}</p>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-medium text-base-content/70">Uploaded</label>
+                                    <p className="mt-1">{formatDate(mediaItem.created_at)}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -367,95 +332,54 @@ export default function MediaDetail({ params }: { params: Promise<{ id: string }
                         <div className="py-4">
                             <div className="form-control">
                                 <label className="label">
-                                    <span className="label-text">Share Link</span>
+                                    <span className="label-text">Share URL</span>
                                 </label>
-                                <div className="input-group">
+                                <div className="join">
                                     <input
                                         type="text"
-                                        className="input input-bordered flex-1"
-                                        value={`https://jobsight.app/share/media/${mockMediaItem.id}`}
+                                        value={mediaItem.url}
                                         readOnly
+                                        className="input input-bordered join-item flex-1"
                                     />
-                                    <button className="btn btn-square">
-                                        <i className="fas fa-copy"></i>
+                                    <button
+                                        className="btn btn-primary join-item"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(mediaItem.url || "")
+                                            toast({
+                                                title: "Copied",
+                                                description: "URL copied to clipboard"
+                                            })
+                                        }}
+                                    >
+                                        Copy
                                     </button>
                                 </div>
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text">Share with Team Members</span>
-                                </label>
-                                <select className="select select-bordered w-full">
-                                    <option disabled selected>
-                                        Select team members
-                                    </option>
-                                    <option>John Doe</option>
-                                    <option>Sarah Johnson</option>
-                                    <option>Mike Wilson</option>
-                                    <option>Emily Clark</option>
-                                </select>
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text">Permission Level</span>
-                                </label>
-                                <select className="select select-bordered w-full">
-                                    <option>View only</option>
-                                    <option>View and comment</option>
-                                    <option>Edit</option>
-                                    <option>Full access</option>
-                                </select>
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label cursor-pointer justify-start gap-2">
-                                    <input type="checkbox" className="checkbox checkbox-sm" />
-                                    <span className="label-text">Allow download</span>
-                                </label>
-                            </div>
-
-                            <div className="divider">Or share via</div>
-
-                            <div className="flex justify-center gap-4">
-                                <button className="btn btn-circle btn-outline">
-                                    <i className="fab fa-facebook-f"></i>
-                                </button>
-                                <button className="btn btn-circle btn-outline">
-                                    <i className="fab fa-twitter"></i>
-                                </button>
-                                <button className="btn btn-circle btn-outline">
-                                    <i className="fab fa-linkedin-in"></i>
-                                </button>
-                                <button className="btn btn-circle btn-outline">
-                                    <i className="fas fa-envelope"></i>
-                                </button>
                             </div>
                         </div>
                         <div className="modal-action">
                             <button className="btn" onClick={() => setShowShareModal(false)}>
-                                Cancel
+                                Close
                             </button>
-                            <button className="btn btn-primary">Share</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
+            {/* Delete Modal */}
             {showDeleteModal && (
                 <div className="modal modal-open">
                     <div className="modal-box">
                         <h3 className="font-bold text-lg">Delete Media</h3>
                         <p className="py-4">
-                            Are you sure you want to delete "{mockMediaItem.name}"? This action cannot be undone.
+                            Are you sure you want to delete "{mediaItem.name}"? This action cannot be undone.
                         </p>
                         <div className="modal-action">
                             <button className="btn" onClick={() => setShowDeleteModal(false)}>
                                 Cancel
                             </button>
-                            <button className="btn btn-error">Delete</button>
+                            <button className="btn btn-error" onClick={handleDelete}>
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>
