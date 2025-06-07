@@ -104,9 +104,9 @@ export default function CrewsList() {
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Total Crews</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value text-3xl text-primary">{crews.length}</div>
+                        <div className="stat-value text-primary">{crews.length}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-users fa-xl text-primary"></i>
+                            <i className="far fa-users fa-lg text-primary"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All crews in the system</div>
@@ -115,9 +115,9 @@ export default function CrewsList() {
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Total Members</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value text-3xl text-secondary">{crews.reduce((total, crew) => total + crew.member_count, 0)}</div>
+                        <div className="stat-value text-secondary">{crews.reduce((total, crew) => total + crew.member_count, 0)}</div>
                         <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-users fa-xl text-secondary"></i>
+                            <i className="far fa-users fa-lg text-secondary"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Total crew members across all crews</div>
@@ -126,9 +126,9 @@ export default function CrewsList() {
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Active Crews</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value text-3xl text-accent">{crews.filter(crew => crew.status === "active").length}</div>
+                        <div className="stat-value text-accent">{crews.filter(crew => crew.status === "active").length}</div>
                         <div className="stat-icon text-accent bg-accent/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-users fa-xl text-accent"></i>
+                            <i className="far fa-users fa-lg text-accent"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Currently working</div>
@@ -136,9 +136,9 @@ export default function CrewsList() {
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Available Crews</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value text-3xl text-success">{crews.filter(crew => crew.status === "available").length}</div>
+                        <div className="stat-value text-success">{crews.filter(crew => crew.status === "available").length}</div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-users fa-xl text-success"></i>
+                            <i className="far fa-users fa-lg text-success"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Ready for new projects</div>
@@ -148,18 +148,16 @@ export default function CrewsList() {
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                            <label className="input input-bordered input-secondary flex items-center gap-2">
-                                <i className="fas fa-search"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search clients..."
-                                    className="grow"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </label>
-                        </div>
+                        <label className="input input-bordered input-secondary flex items-center gap-2">
+                            <i className="fas fa-search"></i>
+                            <input
+                                type="text"
+                                placeholder="Search clients..."
+                                className="grow"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </label>
                         {crewStatusOptions.select(
                             statusFilter as CrewStatus | null | undefined,
                             (value) => setStatusFilter(value as CrewStatus | "all")

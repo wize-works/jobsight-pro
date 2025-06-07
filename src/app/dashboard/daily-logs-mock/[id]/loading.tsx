@@ -18,7 +18,7 @@ export default function DailyLogDetailLoading() {
             </div>
 
             {/* Tabs */}
-            <div role="tablist" className="tabs tabs-boxed mb-6">
+            <div role="tablist" className="tabs tabs-box mb-6">
                 {[...Array(5)].map((_, i) => (
                     <div key={i} className="h-10 bg-base-300 rounded w-24 animate-pulse mx-1"></div>
                 ))}

@@ -131,7 +131,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Tabs */}
-            <div className="tabs tabs-boxed mb-6">
+            <div className="tabs tabs-box mb-6">
                 <button
                     className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("overview")}

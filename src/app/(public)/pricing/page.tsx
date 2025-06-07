@@ -86,7 +86,7 @@ export default function Pricing() {
                     </p>
 
                     <div className="flex justify-center mb-8">
-                        <div className="tabs tabs-boxed">
+                        <div className="tabs tabs-box">
                             <a className="tab tab-active">Monthly</a>
                             <a className="tab">Annual (Save 15%)</a>
                         </div>
