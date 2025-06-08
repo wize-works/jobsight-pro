@@ -527,3 +527,31 @@ export const getAvailableCrews = async (): Promise<CrewWithMemberInfo[]> => {
 
     return crewWithMembers;
 }
+
+export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate): Promise<CrewMember | null> => {
+    const { business } = await withBusinessServer();
+
+    crewMember = await applyUpdated<CrewMemberUpdate>(crewMember);
+
+    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, business.id);
+
+    if (error) {
+        console.error("Error updating crew member:", error);
+        return null;
+    }
+
+    return data as unknown as CrewMember;
+}
+
+export const deleteCrewMember = async (id: string): Promise<boolean> => {
+    const { business } = await withBusinessServer();
+
+    const { error } = await deleteWithBusinessCheck("crew_members", id, business.id);
+
+    if (error) {
+        console.error("Error deleting crew member:", error);
+        return false;
+    }
+
+    return true;
+}
