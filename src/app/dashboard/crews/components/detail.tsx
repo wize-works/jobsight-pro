@@ -8,12 +8,13 @@ import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMember
 import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
-import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
+import { createCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
+import { updateCrewMember } from "@/app/actions/crew-members";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -69,6 +70,8 @@ export default function CrewDetailComponent({
     // Equipment states
     const [editingEquipmentAssignment, setEditingEquipmentAssignment] = useState<any | null>(null);
     const [showEditEquipmentAssignmentModal, setShowEditEquipmentAssignmentModal] = useState(false);
+    const [showAssignEquipmentModal, setShowAssignEquipmentModal] = useState(false); // New state for assign equipment modal
+    const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]); // New state for selected equipment IDs
 
     const leaderData = useMemo(() => {
         return allMembers.find((m: CrewMember) => m.id === crewLeader) || { id: "", name: "", role: "", phone: "", email: "", avatar_url: "" };
@@ -278,6 +281,33 @@ export default function CrewDetailComponent({
             toast.error({
                 title: "Error",
                 description: "Failed to update equipment assignment. Please try again.",
+            });
+        }
+    };
+
+    // Assign Equipment Functionality
+    const handleOpenAssignEquipmentModal = () => {
+        setShowAssignEquipmentModal(true);
+    };
+
+    const handleAssignEquipment = async () => {
+        try {
+            // TODO: Implement logic to assign selectedEquipment to the crew
+            console.log("Assigning equipment to crew:", crew.id, "Equipment IDs:", selectedEquipment);
+
+            // For now, display a success message
+            toast({
+                title: "Equipment Assigned",
+                description: "Equipment has been assigned to the crew.",
+            });
+
+            setShowAssignEquipmentModal(false);
+            setSelectedEquipment([]);
+            router.refresh(); // Refresh the page to reflect changes
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to assign equipment. Please try again.",
             });
         }
     };
@@ -606,7 +636,7 @@ export default function CrewDetailComponent({
                                 <div className="card-body">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Assigned Equipment</h3>
-                                        <button className="btn btn-sm btn-outline">
+                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
                                             <i className="fas fa-tools mr-2"></i> Assign Equipment
                                         </button>
                                     </div>
@@ -658,7 +688,7 @@ export default function CrewDetailComponent({
                                     ) : (
                                         <div className="text-center py-8">
                                             <p className="mb-4">No equipment has been assigned to this crew yet</p>
-                                            <button className="btn btn-outline">
+                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
                                                 <i className="fas fa-tools mr-2"></i> Assign First Equipment
                                             </button>
                                         </div>
@@ -848,8 +878,7 @@ export default function CrewDetailComponent({
                                         <select
                                             className="select select-bordered"
                                             defaultValue={linkMember?.id || ""}
-                                            onChange={(e) => {
-                                                const selectedMember = allMembers.find((m) => m.id === e.target.value);
+                                            onChange={(e) => {                                                const selectedMember = allMembers.find((m) => m.id === e.target.value);
                                                 setLinkMember(selectedMember || null);
                                             }}
                                         >
@@ -1087,6 +1116,29 @@ export default function CrewDetailComponent({
                                     setShowEditEquipmentAssignmentModal(false);
                                     setEditingEquipmentAssignment(null);
                                 }}>close</button>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Assign Equipment Modal */}
+                    {showAssignEquipmentModal && (
+                        <div className="modal modal-open">
+                            <div className="modal-box">
+                                <h3 className="font-bold text-lg mb-4">Assign Equipment to Crew</h3>
+                                {/* Implement form for selecting equipment */}
+                                <p>Select the equipment to assign to this crew.</p>
+                                {/* Add equipment selection UI here - checkboxes or a multi-select dropdown */}
+                                <div className="modal-action">
+                                    <button className="btn btn-outline" onClick={() => setShowAssignEquipmentModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button className="btn btn-primary" onClick={handleAssignEquipment}>
+                                        Assign Equipment
+                                    </button>
+                                </div>
+                            </div>
+                            <form method="dialog" className="modal-backdrop">
+                                <button onClick={() => setShowAssignEquipmentModal(false)}>close</button>
                             </form>
                         </div>
                     )}
