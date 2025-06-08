@@ -8,13 +8,12 @@ import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMember
 import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
-import { createCrewMember } from "@/app/actions/crew-members";
+import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
-import { updateCrewMember } from "@/app/actions/crew-members";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -250,18 +249,20 @@ export default function CrewDetailComponent({
     };
 
     const handleDeleteEquipmentAssignment = async (assignmentId: string) => {
-        try {
-            await deleteEquipmentAssignment(assignmentId);
-            toast({
-                title: "Success",
-                description: "Equipment assignment deleted successfully.",
-            });
-            router.refresh();
-        } catch (error) {
-            toast.error({
-                title: "Error",
-                description: "Failed to delete equipment assignment. Please try again.",
-            });
+        if (window.confirm("Are you sure you want to delete this equipment assignment?")) {
+            try {
+                await deleteEquipmentAssignment(assignmentId);
+                toast({
+                    title: "Success",
+                    description: "Equipment assignment deleted successfully.",
+                });
+                router.refresh();
+            } catch (error) {
+                toast.error({
+                    title: "Error",
+                    description: "Failed to delete equipment assignment. Please try again.",
+                });
+            }
         }
     };
 
@@ -527,11 +528,13 @@ export default function CrewDetailComponent({
                                                                     >
                                                                         <i className="fas fa-edit fa-xl"></i>
                                                                     </button>
-                                                                    <button 
+                                                                    <button
                                                                         className="btn btn-ghost btn-xs text-error"
                                                                         onClick={() => {
-                                                                            // TODO: Implement remove member functionality
-                                                                            console.log("Remove member:", member.id, "from crew:", crew.id);
+                                                                            if (window.confirm("Are you sure you want to remove this member from the crew?")) {
+                                                                                // TODO: Implement remove member functionality
+                                                                                console.log("Remove member:", member.id, "from crew:", crew.id);
+                                                                            }
                                                                         }}
                                                                     >
                                                                         <i className="fas fa-trash fa-xl"></i>
@@ -594,25 +597,25 @@ export default function CrewDetailComponent({
                                                             <td>{item.hours}</td>
                                                             <td>
                                                                 <div className="flex gap-2">
-                                                                    <button 
-                                                        className="btn btn-ghost btn-xs"
-                                                        onClick={() => {
-                                                            // TODO: Implement edit assignment functionality
-                                                            console.log("Edit assignment:", item.id);
-                                                        }}
-                                                    >
-                                                        <i className="fas fa-edit fa-xl"></i>
-                                                    </button>
-                                                    <button 
-                                                        className="btn btn-ghost btn-xs text-error"
-                                                        onClick={() => {
-                                                            // TODO: Implement delete assignment functionality
-                                                            console.log("Delete assignment:", item.id);
-                                                        }}
-                                                    >
-                                                        <i className="fas fa-trash fa-xl"></i>
-                                                    </button>
-                                                </div>
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs"
+                                                                        onClick={() => {
+                                                                            // TODO: Implement edit assignment functionality
+                                                                            console.log("Edit assignment:", item.id);
+                                                                        }}
+                                                                    >
+                                                                        <i className="fas fa-edit fa-xl"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs text-error"
+                                                                        onClick={() => {
+                                                                            // TODO: Implement delete assignment functionality
+                                                                            console.log("Delete assignment:", item.id);
+                                                                        }}
+                                                                    >
+                                                                        <i className="fas fa-trash fa-xl"></i>
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -666,19 +669,19 @@ export default function CrewDetailComponent({
                                                             <td>{item.assigned_date}</td>
                                                             <td>
                                                                 <div className="flex gap-2">
-                                                                    <button 
-                                                        className="btn btn-ghost btn-xs"
-                                                        onClick={() => handleEditEquipmentAssignment(item)}
-                                                    >
-                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
-                                                    </button>
-                                                    <button 
-                                                        className="btn btn-ghost btn-xs text-error"
-                                                        onClick={() => handleDeleteEquipmentAssignment(item.id)}
-                                                    >
-                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
-                                                    </button>
-                                                </div>
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs"
+                                                                        onClick={() => handleEditEquipmentAssignment(item)}
+                                                                    >
+                                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs text-error"
+                                                                        onClick={() => handleDeleteEquipmentAssignment(item.id)}
+                                                                    >
+                                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -870,7 +873,7 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Link Crew Member</h3>
-                                <form className="space-y-4">
+                                <form className="space-y4">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Crew Members</span>
