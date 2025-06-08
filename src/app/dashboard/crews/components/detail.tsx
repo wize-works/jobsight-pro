@@ -11,6 +11,7 @@ import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
 import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew } from "@/app/actions/project-crews";
+import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
 import { set } from "zod";
