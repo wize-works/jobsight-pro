@@ -67,6 +67,10 @@ export default function CrewDetailComponent({
     const [editingMember, setEditingMember] = useState<CrewMember | null>(null);
     const [showEditMemberModal, setShowEditMemberModal] = useState(false);
 
+    // Equipment states
+    const [editingEquipmentAssignment, setEditingEquipmentAssignment] = useState<any | null>(null);
+    const [showEditEquipmentAssignmentModal, setShowEditEquipmentAssignmentModal] = useState(false);
+
     const leaderData = useMemo(() => {
         return allMembers.find((m: CrewMember) => m.id === crewLeader) || { id: "", name: "", role: "", phone: "", email: "", avatar_url: "" };
     }, [allMembers, crewLeader]);
@@ -236,6 +240,48 @@ export default function CrewDetailComponent({
             });
         }
     }
+
+    // Equipment Handlers
+    const handleEditEquipmentAssignment = (assignment: any) => {
+        setEditingEquipmentAssignment(assignment);
+        setShowEditEquipmentAssignmentModal(true);
+    };
+
+    const handleDeleteEquipmentAssignment = async (assignmentId: string) => {
+        try {
+            await deleteEquipmentAssignment(assignmentId);
+            toast({
+                title: "Success",
+                description: "Equipment assignment deleted successfully.",
+            });
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to delete equipment assignment. Please try again.",
+            });
+        }
+    };
+
+    const handleUpdateEquipmentAssignment = async () => {
+        if (!editingEquipmentAssignment) return;
+
+        try {
+            await updateEquipmentAssignment(editingEquipmentAssignment.id, editingEquipmentAssignment);
+            toast({
+                title: "Success",
+                description: "Equipment assignment updated successfully.",
+            });
+            setShowEditEquipmentAssignmentModal(false);
+            setEditingEquipmentAssignment(null);
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to update equipment assignment. Please try again.",
+            });
+        }
+    };
 
     return (
         <div>
@@ -573,13 +619,19 @@ export default function CrewDetailComponent({
                                                             <td>{item.assigned_date}</td>
                                                             <td>
                                                                 <div className="flex gap-2">
-                                                                    <button className="btn btn-ghost btn-xs">
-                                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
-                                                                    </button>
-                                                                    <button className="btn btn-ghost btn-xs text-error">
-                                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
-                                                                    </button>
-                                                                </div>
+                                                                    <button 
+                                                        className="btn btn-ghost btn-xs"
+                                                        onClick={() => handleEditEquipmentAssignment(item)}
+                                                    >
+                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
+                                                    </button>
+                                                    <button 
+                                                        className="btn btn-ghost btn-xs text-error"
+                                                        onClick={() => handleDeleteEquipmentAssignment(item.id)}
+                                                    >
+                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
+                                                    </button>
+                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -971,6 +1023,52 @@ export default function CrewDetailComponent({
                                 <button onClick={() => {
                                     setShowEditMemberModal(false);
                                     setEditingMember(null);
+                                }}>close</button>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Edit Equipment Assignment Modal */}
+                    {showEditEquipmentAssignmentModal && editingEquipmentAssignment && (
+                        <div className="modal modal-open">
+                            <div className="modal-box">
+                                <h3 className="font-bold text-lg mb-4">Edit Equipment Assignment</h3>
+                                <form className="space-y-4">
+                                    {/* Add form fields for editing equipment assignment */}
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text">Status</span>
+                                        </label>
+                                        <select
+                                            className="select select-bordered"
+                                            value={editingEquipmentAssignment.status}
+                                            onChange={(e) => setEditingEquipmentAssignment({ ...editingEquipmentAssignment, status: e.target.value })}
+                                        >
+                                            <option value="functional">Functional</option>
+                                            <option value="needs_repair">Needs Repair</option>
+                                        </select>
+                                    </div>
+                                    {/* Add other relevant fields for editing */}
+                                </form>
+                                <div className="modal-action">
+                                    <button className="btn btn-primary" onClick={handleUpdateEquipmentAssignment}>
+                                        <i className="fas fa-save mr-2"></i> Update Assignment
+                                    </button>
+                                    <button
+                                        className="btn"
+                                        onClick={() => {
+                                            setShowEditEquipmentAssignmentModal(false);
+                                            setEditingEquipmentAssignment(null);
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                            <form method="dialog" className="modal-backdrop">
+                                <button onClick={() => {
+                                    setShowEditEquipmentAssignmentModal(false);
+                                    setEditingEquipmentAssignment(null);
                                 }}>close</button>
                             </form>
                         </div>
