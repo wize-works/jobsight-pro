@@ -8,9 +8,9 @@ import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMember
 import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
-import { createCrewMember } from "@/app/actions/crew-members";
+import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
-import { createProjectCrew, updateCrewMember } from "@/app/actions/project-crews";
+import { createProjectCrew } from "@/app/actions/project-crews";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
 import { set } from "zod";
@@ -862,7 +862,7 @@ export default function CrewDetailComponent({
                                             className="textarea textarea-bordered"
                                             value={newAssignment.notes}
                                             onChange={e => setNewAssignment({ ...newAssignment, notes: e.target.value })}
-                                            placeholder="Assignment notes                                        />
+                                            placeholder="Assignment notes"                                        />
                                     </div>
                                 </form>
                                 <div className="modal-action">
