@@ -1128,20 +1128,110 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Assign Equipment to Crew</h3>
-                                {/* Implement form for selecting equipment */}
-                                <p>Select the equipment to assign to this crew.</p>
-                                {/* Add equipment selection UI here - checkboxes or a multi-select dropdown */}
+                                <form className="space-y-4">
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text">Select Equipment</span>
+                                        </label>
+                                        <select
+                                            className="select select-bordered w-full"
+                                            value=""
+                                            onChange={(e) => {
+                                                const equipmentId = e.target.value;
+                                                if (equipmentId && !selectedEquipment.includes(equipmentId)) {
+                                                    setSelectedEquipment([...selectedEquipment, equipmentId]);
+                                                }
+                                                e.target.value = ""; // Reset selection
+                                            }}
+                                        >
+                                            <option value="">Choose equipment to add</option>
+                                            {/* TODO: Replace with actual available equipment */}
+                                            <option value="eq1">Excavator - CAT 320</option>
+                                            <option value="eq2">Bulldozer - D6T</option>
+                                            <option value="eq3">Crane - Grove RT9130E</option>
+                                            <option value="eq4">Concrete Mixer - Volvo FM</option>
+                                            <option value="eq5">Compactor - Caterpillar CS56B</option>
+                                        </select>
+                                    </div>
+                                    
+                                    {/* Selected Equipment List */}
+                                    {selectedEquipment.length > 0 && (
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text">Selected Equipment ({selectedEquipment.length})</span>
+                                            </label>
+                                            <div className="space-y-2">
+                                                {selectedEquipment.map((equipmentId, index) => (
+                                                    <div key={index} className="flex items-center justify-between bg-base-200 p-2 rounded">
+                                                        <span>Equipment ID: {equipmentId}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-ghost btn-xs text-error"
+                                                            onClick={() => {
+                                                                setSelectedEquipment(selectedEquipment.filter(id => id !== equipmentId));
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text">Assignment Start Date</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            className="input input-bordered w-full"
+                                            defaultValue={new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text">Assignment End Date (Optional)</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            className="input input-bordered w-full"
+                                        />
+                                    </div>
+
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text">Notes</span>
+                                        </label>
+                                        <textarea
+                                            className="textarea textarea-bordered"
+                                            placeholder="Add any notes about this equipment assignment..."
+                                            rows={3}
+                                        ></textarea>
+                                    </div>
+                                </form>
                                 <div className="modal-action">
-                                    <button className="btn btn-outline" onClick={() => setShowAssignEquipmentModal(false)}>
+                                    <button className="btn btn-outline" onClick={() => {
+                                        setShowAssignEquipmentModal(false);
+                                        setSelectedEquipment([]);
+                                    }}>
                                         Cancel
                                     </button>
-                                    <button className="btn btn-primary" onClick={handleAssignEquipment}>
-                                        Assign Equipment
+                                    <button 
+                                        className="btn btn-primary" 
+                                        onClick={handleAssignEquipment}
+                                        disabled={selectedEquipment.length === 0}
+                                    >
+                                        Assign Equipment ({selectedEquipment.length})
                                     </button>
                                 </div>
                             </div>
                             <form method="dialog" className="modal-backdrop">
-                                <button onClick={() => setShowAssignEquipmentModal(false)}>close</button>
+                                <button onClick={() => {
+                                    setShowAssignEquipmentModal(false);
+                                    setSelectedEquipment([]);
+                                }}>close</button>
                             </form>
                         </div>
                     )}
