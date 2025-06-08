@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CrewWithDetails } from "@/types/crews";
-import type { CrewMember, CrewMemberInsert } from "@/types/crew-members";
+import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
 import type { Equipment } from "@/types/equipment";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
@@ -74,8 +74,6 @@ export default function CrewDetailComponent({
             experience: newMember.experience,
             phone: newMember.phone,
             email: newMember.email,
-            status: "active",
-            notes: "",
             avatar_url: newMember.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
         } as CrewMemberInsert;
 
@@ -648,7 +646,7 @@ export default function CrewDetailComponent({
                                         </label>
                                         <input
                                             type="text"
-                                            className="input input-bordered"
+                                            className="input input-bordered input-secondary w-full"
                                             value={newMember.name}
                                             onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
                                             placeholder="Enter full name"
@@ -658,13 +656,11 @@ export default function CrewDetailComponent({
                                         <label className="label">
                                             <span className="label-text">Role</span>
                                         </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered"
-                                            value={newMember.role}
-                                            onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-                                            placeholder="e.g. Foreman, Carpenter, Electrician"
-                                        />
+                                        {crewMemberRoleOptions.select(
+                                            newMember.role as CrewMemberRole,
+                                            (role) => setNewMember({ ...newMember, role }),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
@@ -672,7 +668,7 @@ export default function CrewDetailComponent({
                                         </label>
                                         <input
                                             type="number"
-                                            className="input input-bordered"
+                                            className="input input-bordered input-secondary w-full"
                                             value={newMember.experience}
                                             onChange={(e) => setNewMember({ ...newMember, experience: Number(e.target.value) })}
                                             placeholder="e.g. 5 years"
@@ -684,7 +680,7 @@ export default function CrewDetailComponent({
                                         </label>
                                         <input
                                             type="tel"
-                                            className="input input-bordered"
+                                            className="input input-bordered input-secondary w-full"
                                             value={newMember.phone}
                                             onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
                                             placeholder="Phone number"
@@ -696,7 +692,7 @@ export default function CrewDetailComponent({
                                         </label>
                                         <input
                                             type="email"
-                                            className="input input-bordered"
+                                            className="input input-bordered input-secondary w-full"
                                             value={newMember.email}
                                             onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
                                             placeholder="Email address"
@@ -708,7 +704,7 @@ export default function CrewDetailComponent({
                                         </label>
                                         <input
                                             type="email"
-                                            className="input input-bordered"
+                                            className="input input-bordered input-secondary w-full"
                                             value={newMember.avatar_url || ""}
                                             onChange={(e) => setNewMember({ ...newMember, avatar_url: e.target.value })}
                                             placeholder="Avatar image URL"
