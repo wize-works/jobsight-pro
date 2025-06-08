@@ -14,7 +14,6 @@ import { createProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
-import { set } from "zod";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -498,7 +497,13 @@ export default function CrewDetailComponent({
                                                                     >
                                                                         <i className="fas fa-edit fa-xl"></i>
                                                                     </button>
-                                                                    <button className="btn btn-ghost btn-xs text-error">
+                                                                    <button 
+                                                                        className="btn btn-ghost btn-xs text-error"
+                                                                        onClick={() => {
+                                                                            // TODO: Implement remove member functionality
+                                                                            console.log("Remove member:", member.id, "from crew:", crew.id);
+                                                                        }}
+                                                                    >
                                                                         <i className="fas fa-trash fa-xl"></i>
                                                                     </button>
                                                                 </div>
@@ -559,13 +564,25 @@ export default function CrewDetailComponent({
                                                             <td>{item.hours}</td>
                                                             <td>
                                                                 <div className="flex gap-2">
-                                                                    <button className="btn btn-ghost btn-xs">
-                                                                        <i className="fas fa-edit fa-xl"></i>
-                                                                    </button>
-                                                                    <button className="btn btn-ghost btn-xs text-error">
-                                                                        <i className="fas fa-trash fa-xl"></i>
-                                                                    </button>
-                                                                </div>
+                                                                    <button 
+                                                        className="btn btn-ghost btn-xs"
+                                                        onClick={() => {
+                                                            // TODO: Implement edit assignment functionality
+                                                            console.log("Edit assignment:", item.id);
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-edit fa-xl"></i>
+                                                    </button>
+                                                    <button 
+                                                        className="btn btn-ghost btn-xs text-error"
+                                                        onClick={() => {
+                                                            // TODO: Implement delete assignment functionality
+                                                            console.log("Delete assignment:", item.id);
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-trash fa-xl"></i>
+                                                    </button>
+                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}
