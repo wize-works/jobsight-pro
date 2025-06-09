@@ -79,27 +79,18 @@ jobs:
             --build-arg KINDE_POST_LOGOUT_REDIRECT_URL=${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }} \
             --build-arg KIDNE_REDIRECT_URI=${{ secrets.KIDNE_REDIRECT_URI }} \
             --build-arg KINDE_POST_LOGIN_REDIRECT_URL=${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }} \
-
             --build-arg OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} \
-
             --build-arg NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }} \
-
             --build-arg SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
             --build-arg SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
-
             --build-arg NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }} \
             --build-arg VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }} \
-
             --build-arg AZURE_STORAGE_ACCOUNT=${{ secrets.AZURE_STORAGE_ACCOUNT }} \
             --build-arg AZURE_STORAGE_KEY=${{ secrets.AZURE_STORAGE_KEY }} \
             --build-arg AZURE_STORAGE_ENDPOINT=${{ secrets.AZURE_STORAGE_ENDPOINT }} \
-
             --build-arg NEXT_PUBLIC_CLARITY_ID=${{ secrets.NEXT_PUBLIC_CLARITY_ID }} \
-
             --build-arg RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
-
             --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
-
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.version=${{ needs.release.outputs.version }} \
             -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} \
@@ -162,25 +153,17 @@ jobs:
             --from-literal=KINDE_POST_LOGOUT_REDIRECT_URL="${KINDE_POST_LOGOUT_REDIRECT_URL}" \
             --from-literal=KIDNE_REDIRECT_URI="${KIDNE_REDIRECT_URI}" \
             --from-literal=KINDE_POST_LOGIN_REDIRECT_URL="${KINDE_POST_LOGIN_REDIRECT_URL}" \
-
             --from-literal=OPENWEATHER_API_KEY="${OPENWEATHER_API_KEY}" \
-
             --from-literal=NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}" \
-
             --from-literal=SUPABASE_URL="${SUPABASE_URL}" \
             --from-literal=SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}" \
-
             --from-literal=NEXT_PUBLIC_VAPID_PUBLIC_KEY="${NEXT_PUBLIC_VAPID_PUBLIC_KEY}" \
             --from-literal=VAPID_PRIVATE_KEY="${VAPID_PRIVATE_KEY}" \
-
             --from-literal=AZURE_STORAGE_ACCOUNT="${AZURE_STORAGE_ACCOUNT}" \
             --from-literal=AZURE_STORAGE_KEY="${AZURE_STORAGE_KEY}" \
             --from-literal=AZURE_STORAGE_ENDPOINT="${AZURE_STORAGE_ENDPOINT}" \
-
             --from-literal=NEXT_PUBLIC_CLARITY_ID="${NEXT_PUBLIC_CLARITY_ID}" \
-
             --from-literal=RESEND_API_KEY="${RESEND_API_KEY}" \
-
             --from-literal=SENTRY_AUTH_TOKEN="${SENTRY_AUTH_TOKEN}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -211,25 +194,17 @@ jobs:
           KINDE_POST_LOGOUT_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }}
           KIDNE_REDIRECT_URI: ${{ secrets.KIDNE_REDIRECT_URI }}
           KINDE_POST_LOGIN_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }}
-
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
-
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
           AZURE_STORAGE_ENDPOINT: ${{ secrets.AZURE_STORAGE_ENDPOINT }}
-
           NEXT_PUBLIC_CLARITY_ID: ${{ secrets.NEXT_PUBLIC_CLARITY_ID }}
-
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to AKS
