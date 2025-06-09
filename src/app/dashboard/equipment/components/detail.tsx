@@ -358,7 +358,7 @@ export default function EquipmentDetail({
                             <div className="mb-1 flex justify-end gap-2">
                                 {location && location !== "No location assigned" && (
                                     <>
-                                        <Link href={`https://maps.apple.com/?q=${location}`} className="btn btn-accent btn-xs">
+                                        {/* <Link href={`https://maps.apple.com/?q=${location}`} className="btn btn-accent btn-xs">
                                             <i className="fab fa-apple fa-lg"></i> View on Map
                                         </Link>
                                         <Link href={`https://google.com/maps/place/${location}`} className="btn btn-accent btn-xs">
@@ -376,7 +376,7 @@ export default function EquipmentDetail({
                                             className="btn btn-accent btn-xs"
                                         >
                                             <i className="fas fa-map fa-lg"></i> View on Map
-                                        </Link>
+                                        </Link> */}
                                     </>
                                 )}
                             </div>
