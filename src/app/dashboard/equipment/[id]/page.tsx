@@ -70,17 +70,14 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
         }
 
         return (
-            <div>
-                Equipment
-            </div>
-            // <EquipmentDetail
-            //     equipment={equipment}
-            //     maintenances={maintenances}
-            //     usages={usages}
-            //     assignments={assignments}
-            //     specifications={specifications}
-            //     documents={documents}
-            // />
+            <EquipmentDetail
+                equipment={equipment}
+                maintenances={maintenances}
+                usages={usages}
+                assignments={assignments}
+                specifications={specifications}
+                documents={documents}
+            />
         );
     } catch (error) {
         console.error("Equipment detail page error:", error);
