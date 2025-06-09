@@ -1,3 +1,10 @@
+## [1.31.14](https://github.com/wize-works/jobsight-pro/compare/v1.31.13...v1.31.14) (2025-06-09)
+
+
+### Bug Fixes
+
+* Comment out dashboard routes in service worker and restore EquipmentDetail component rendering ([05742e1](https://github.com/wize-works/jobsight-pro/commit/05742e1076f90096800cfd58103b8bcf671f7e9a))
+
 ## [1.31.13](https://github.com/wize-works/jobsight-pro/compare/v1.31.12...v1.31.13) (2025-06-09)
 
 
