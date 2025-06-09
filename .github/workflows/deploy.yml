@@ -77,7 +77,7 @@ jobs:
             --build-arg KINDE_SITE_URL=${{ secrets.KINDE_SITE_URL }} \
             --build-arg KINDE_LOGOUT_REDIRECT_URI=${{ secrets.KINDE_LOGOUT_REDIRECT_URI }} \
             --build-arg KINDE_POST_LOGOUT_REDIRECT_URL=${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }} \
-            --build-arg KIDNE_REDIRECT_URI=${{ secrets.KIDNE_REDIRECT_URI }} \
+            --build-arg KINDE_REDIRECT_URI=${{ secrets.KINDE_REDIRECT_URI }} \
             --build-arg KINDE_POST_LOGIN_REDIRECT_URL=${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }} \
             --build-arg OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} \
             --build-arg NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }} \
@@ -144,7 +144,7 @@ jobs:
             --from-literal=KINDE_SITE_URL="${{ secrets.KINDE_SITE_URL }}" \
             --from-literal=KINDE_LOGOUT_REDIRECT_URI="${{ secrets.KINDE_LOGOUT_REDIRECT_URI }}" \
             --from-literal=KINDE_POST_LOGOUT_REDIRECT_URL="${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }}" \
-            --from-literal=KIDNE_REDIRECT_URI="${{ secrets.KIDNE_REDIRECT_URI }}" \
+            --from-literal=KINDE_REDIRECT_URI="${{ secrets.KINDE_REDIRECT_URI }}" \
             --from-literal=KINDE_POST_LOGIN_REDIRECT_URL="${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }}" \
             --from-literal=OPENWEATHER_API_KEY="${{ secrets.OPENWEATHER_API_KEY }}" \
             --from-literal=NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" \
