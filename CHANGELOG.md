@@ -1,3 +1,10 @@
+## [1.31.12](https://github.com/wize-works/jobsight-pro/compare/v1.31.11...v1.31.12) (2025-06-09)
+
+
+### Bug Fixes
+
+* Implement code changes to enhance functionality and improve performance ([3df8e95](https://github.com/wize-works/jobsight-pro/commit/3df8e95174d1869e073fc1bac44c7bd2134bcdef))
+
 ## [1.31.11](https://github.com/wize-works/jobsight-pro/compare/v1.31.10...v1.31.11) (2025-06-09)
 
 
