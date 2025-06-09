@@ -749,7 +749,7 @@ export default function EquipmentDetail({
                                     )}
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        {equipmentMedia.map((media) => (
+                                        {/* {equipmentMedia.map((media) => (
                                             <div key={media.id} className="card bg-base-200 shadow-sm">
                                                 <figure className="relative h-32 bg-base-300">
                                                     {media.type === "image" ? (
@@ -816,7 +816,7 @@ export default function EquipmentDetail({
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                        ))} */}
                                     </div>
 
                                     {equipmentMedia.length === 0 && !isLoadingMedia && (
