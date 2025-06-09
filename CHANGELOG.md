@@ -1,3 +1,10 @@
+## [1.31.10](https://github.com/wize-works/jobsight-pro/compare/v1.31.9...v1.31.10) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out document rendering logic in EquipmentDetail component for debugging ([991f373](https://github.com/wize-works/jobsight-pro/commit/991f37377600c9c6c5e08eb23df19b760c3413cd))
+
 ## [1.31.9](https://github.com/wize-works/jobsight-pro/compare/v1.31.8...v1.31.9) (2025-06-09)
 
 
