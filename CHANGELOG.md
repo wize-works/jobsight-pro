@@ -1,3 +1,10 @@
+## [1.31.25](https://github.com/wize-works/jobsight-pro/compare/v1.31.24...v1.31.25) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct KINDE_LOGOUT_REDIRECT_URL to KINDE_LOGOUT_REDIRECT_URI in deployment configuration ([207f08e](https://github.com/wize-works/jobsight-pro/commit/207f08e5d4963d1017c981ab5de4ed317ef842ad))
+
 ## [1.31.24](https://github.com/wize-works/jobsight-pro/compare/v1.31.23...v1.31.24) (2025-06-09)
 
 
