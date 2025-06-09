@@ -290,7 +290,13 @@ export default function EquipmentDetail({
                 <div className="flex flex-col gap-6 col-span-1">
                     <div className="card bg-base-100 shadow-lg">
                         <figure className="px-4 pt-4 relative">
-                            <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-full h-48 object-cover" />
+                            {equipment.image_url ? (
+                                <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-full h-48 object-cover" />
+                            ) : (
+                                <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl">
+                                    <i className="fas fa-camera fa-3x text-gray-400"></i>
+                                </div>
+                            )}
                             <div className="absolute top-2 right-2">
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={0} role="button" className="btn btn-circle btn-sm btn-ghost bg-black/20 hover:bg-black/40 text-white">
