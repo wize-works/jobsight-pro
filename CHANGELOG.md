@@ -1,3 +1,10 @@
+## [1.31.17](https://github.com/wize-works/jobsight-pro/compare/v1.31.16...v1.31.17) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update Dockerfile to set ownership for image cache directory ([0ae5deb](https://github.com/wize-works/jobsight-pro/commit/0ae5debdd36931b7a21fdac6b744ad5255f8ed03))
+
 ## [1.31.16](https://github.com/wize-works/jobsight-pro/compare/v1.31.15...v1.31.16) (2025-06-09)
 
 
