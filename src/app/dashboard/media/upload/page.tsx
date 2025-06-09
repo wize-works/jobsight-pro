@@ -43,10 +43,10 @@ export default function MediaUpload() {
     // Determine media type from file
     const getMediaTypeFromFile = (file: File): MediaType => {
         const mimeType = file.type
-        if (mimeType.startsWith("image/")) return "image"
-        if (mimeType.startsWith("video/")) return "video"
-        if (mimeType.startsWith("audio/")) return "audio"
-        return "document"
+        if (mimeType.startsWith("images/")) return "images"
+        if (mimeType.startsWith("videos/")) return "videos"
+        if (mimeType.startsWith("audios/")) return "audios"
+        return "documents"
     }
 
     // Format file size
@@ -234,13 +234,13 @@ export default function MediaUpload() {
     const getFileIcon = (file: File) => {
         const type = getMediaTypeFromFile(file)
         switch (type) {
-            case "image":
+            case "images":
                 return <i className="fas fa-image text-accent"></i>
-            case "video":
+            case "videos":
                 return <i className="fas fa-video text-primary"></i>
-            case "document":
+            case "documents":
                 return <i className="fas fa-file-alt text-secondary"></i>
-            case "audio":
+            case "audios":
                 return <i className="fas fa-volume-up text-info"></i>
             default:
                 return <i className="fas fa-file text-base-content"></i>
