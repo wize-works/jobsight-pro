@@ -1,3 +1,10 @@
+## [1.31.15](https://github.com/wize-works/jobsight-pro/compare/v1.31.14...v1.31.15) (2025-06-09)
+
+
+### Bug Fixes
+
+* Refactor EquipmentDetailPage to streamline data fetching and improve error handling; update EquipmentDetail props type ([59fc76e](https://github.com/wize-works/jobsight-pro/commit/59fc76e1007b09e37ce36bb8b3fb183c86eada34))
+
 ## [1.31.14](https://github.com/wize-works/jobsight-pro/compare/v1.31.13...v1.31.14) (2025-06-09)
 
 
