@@ -1,3 +1,10 @@
+## [1.31.23](https://github.com/wize-works/jobsight-pro/compare/v1.31.22...v1.31.23) (2025-06-09)
+
+
+### Bug Fixes
+
+* Add environment variables for Kinde and other services in AKS deployment ([bf49b19](https://github.com/wize-works/jobsight-pro/commit/bf49b19e1cb2b00672bbbf77a5e45ce64f7d48bb))
+
 ## [1.31.22](https://github.com/wize-works/jobsight-pro/compare/v1.31.21...v1.31.22) (2025-06-09)
 
 
