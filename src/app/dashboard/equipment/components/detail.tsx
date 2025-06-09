@@ -20,7 +20,7 @@ import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
 
 interface EquipmentDetailProps {
-    equipment: EquipmentWithDetails;
+    equipment: Equipment;
     maintenances: EquipmentMaintenance[];
     usages: EquipmentUsageWithDetails[];
     assignments: EquipmentAssignmentWithDetails[];
@@ -332,7 +332,7 @@ export default function EquipmentDetail({
                             </div>
                             <div className="mb-1 flex justify-between">
                                 <span>Assigned To:</span>
-                                <span>{equipment.assigned_to || "Unassigned"}</span>
+                                {/* <span>{equipment. || "Unassigned"}</span> */}
                             </div>
                             <div className="mb-1 flex justify-between">
                                 <span>Next Maintenance:</span>
