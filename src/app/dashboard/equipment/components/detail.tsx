@@ -7,7 +7,7 @@ import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipmen
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { setEquipmentLocation } from "@/app/actions/equipments";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Media } from "@/types/media";
 import { MaintenanceModal } from "./modal-maintenance";
@@ -19,6 +19,15 @@ import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, 
 import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
 
+interface EquipmentDetailProps {
+    equipment: EquipmentWithDetails;
+    maintenances: EquipmentMaintenance[];
+    usages: EquipmentUsageWithDetails[];
+    assignments: EquipmentAssignmentWithDetails[];
+    specifications: EquipmentSpecification[];
+    documents: Media[];
+}
+
 export default function EquipmentDetail({
     equipment,
     maintenances,
@@ -26,14 +35,13 @@ export default function EquipmentDetail({
     assignments,
     specifications,
     documents,
-}: {
-    equipment: EquipmentWithDetails;
-    maintenances: EquipmentMaintenance[];
-    usages: EquipmentUsageWithDetails[];
-    assignments: EquipmentAssignmentWithDetails[];
-    specifications: EquipmentSpecification[];
-    documents: Media[];
-}) {
+}: EquipmentDetailProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }
+        , []);
+    const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("details");
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
     const [showUsageModal, setShowUsageModal] = useState(false);
@@ -243,6 +251,14 @@ export default function EquipmentDetail({
 
     const handleLocationUpdate = async () => {
 
+    }
+
+    if (!mounted) {
+        return (
+            <div className="p-8 text-center">
+                <div className="loading loading-spinner loading-lg"></div>
+            </div>
+        );
     }
 
     return (
