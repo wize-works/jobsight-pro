@@ -1,3 +1,11 @@
+## [1.31.24](https://github.com/wize-works/jobsight-pro/compare/v1.31.23...v1.31.24) (2025-06-09)
+
+
+### Bug Fixes
+
+* Remove Doppler secrets loading from AKS deployment workflow ([b226c3b](https://github.com/wize-works/jobsight-pro/commit/b226c3b8ce855b97ca4446580b774e466116cec5))
+* Update AKS deployment workflow to use secrets for environment variables ([ce6de18](https://github.com/wize-works/jobsight-pro/commit/ce6de18bfb52b9134f2c1427dd0b8b5c1531c1d7))
+
 ## [1.31.23](https://github.com/wize-works/jobsight-pro/compare/v1.31.22...v1.31.23) (2025-06-09)
 
 
