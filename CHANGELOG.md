@@ -1,3 +1,10 @@
+## [1.31.19](https://github.com/wize-works/jobsight-pro/compare/v1.31.18...v1.31.19) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update deployment configuration to use Kubernetes secrets for sensitive environment variables ([d50f134](https://github.com/wize-works/jobsight-pro/commit/d50f1341f1772442dbf9ef7e81cef9c090743f44))
+
 ## [1.31.18](https://github.com/wize-works/jobsight-pro/compare/v1.31.17...v1.31.18) (2025-06-09)
 
 
