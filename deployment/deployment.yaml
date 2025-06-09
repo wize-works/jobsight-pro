@@ -55,11 +55,11 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: KINDE_SITE_URL
-            - name: KINDE_LOGOUT_REDIRECT_URL
+            - name: KINDE_LOGOUT_REDIRECT_URI
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
-                  key: KINDE_LOGOUT_REDIRECT_URL
+                  key: KINDE_LOGOUT_REDIRECT_URI
             - name: KINDE_POST_LOGOUT_REDIRECT_URL
               valueFrom:
                 secretKeyRef:
