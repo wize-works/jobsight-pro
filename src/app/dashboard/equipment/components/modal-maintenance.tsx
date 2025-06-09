@@ -51,6 +51,7 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
             technician,
             cost: cost ? parseFloat(cost) : 0,
             notes,
+            maintenance_status: status,
             ...(maintenance?.id && { id: maintenance.id }) // Include ID if editing
         } as EquipmentMaintenance;
 
@@ -77,10 +78,10 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
             <form method="dialog" className="modal-box space-y-4" onSubmit={handleSubmit}>
                 <h3 className="font-bold text-lg">{maintenance ? 'Edit' : 'Add'} Maintenance</h3>
                 <div className="form-control">
-                    <label className="label w-full">
+                    <label className="label">
                         <span className="label-text">Maintenance Type</span>
                     </label>
-                    {maintenanceTypeOptions.select(maintenanceType as EquipmentMaintenanceType, setMaintenanceType)}
+                    {maintenanceTypeOptions.select(maintenanceType as EquipmentMaintenanceType, (value) => setMaintenanceType(value), "w-full")}
                 </div>
                 <div className="form-control">
                     <label className="label">
@@ -145,15 +146,7 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
                     <label className="label">
                         <span className="label-text">Status</span>
                     </label>
-                    {maintenanceStatusOptions.select(
-                        status as EquipmentMaintenanceStatus,
-                        (value) => {
-                            if (maintenance) {
-                                maintenance.maintenance_status = value;
-                            }
-                            setStatus(value);
-                        }
-                    )}
+                    {maintenanceStatusOptions.select(status as EquipmentMaintenanceStatus, (value) => setStatus(value), "w-full")}
                 </div>
                 <div className="modal-action">
                     <button type="submit" className="btn btn-primary">{maintenance ? 'Update' : 'Save'}</button>

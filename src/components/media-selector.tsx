@@ -119,7 +119,7 @@ export default function MediaSelector({
 
     if (loading) {
         return (
-            <div className="bg-base-100 rounded-lg shadow-lg p-4 max-h-[80vh] flex flex-col">
+            <div className="p-4 max-h-[80vh] flex flex-col">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold">Select Media</h3>
                     <button className="btn btn-sm btn-ghost" onClick={onClose}>
@@ -134,7 +134,7 @@ export default function MediaSelector({
     }
 
     return (
-        <div className="bg-base-100 rounded-lg shadow-lg p-4 max-h-[80vh] flex flex-col">
+        <div className="p-4 max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">Select Media</h3>
                 <button className="btn btn-sm btn-ghost" onClick={onClose}>
@@ -142,19 +142,17 @@ export default function MediaSelector({
                 </button>
             </div>
 
-            <div className="form-control mb-4">
-                <div className="input-group">
-                    <input
-                        type="text"
-                        placeholder="Search files..."
-                        className="input input-bordered w-full"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <button className="btn btn-square">
-                        <i className="fas fa-search"></i>
-                    </button>
-                </div>
+            <div className="join join-horizontal w-full mb-4">
+                <input
+                    type="text"
+                    placeholder="Search files..."
+                    className="input input-bordered w-full join-item"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button className="btn btn-square join-item">
+                    <i className="fas fa-search"></i>
+                </button>
             </div>
 
             <div className="flex justify-between items-center mb-2">

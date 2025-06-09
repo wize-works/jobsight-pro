@@ -25,9 +25,8 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
-
-    const [crew, setCrew] = useState('');
-    const [project, setProject] = useState('');
+    const [crew, setCrew] = useState(assignment?.crew_id || '');
+    const [project, setProject] = useState(assignment?.project_id || '');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [status, setStatus] = useState<EquipmentAssignmentStatus>('available');
@@ -128,12 +127,12 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         <span className="label-text">Crew</span>
                     </label>
                     {loadingData ? (
-                        <select className="select select-bordered w-full" disabled>
+                        <select className="select select-bordered select-secondary w-full" disabled>
                             <option>Loading crews...</option>
                         </select>
                     ) : (
                         <select
-                            className="select select-bordered w-full"
+                            className="select select-bordered select-secondary w-full"
                             value={crew}
                             onChange={(e) => setCrew(e.target.value)}
                             required
@@ -152,12 +151,12 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         <span className="label-text">Project</span>
                     </label>
                     {loadingData ? (
-                        <select className="select select-bordered w-full" disabled>
+                        <select className="select select-bordered select-secondary w-full" disabled>
                             <option>Loading projects...</option>
                         </select>
                     ) : (
                         <select
-                            className="select select-bordered w-full"
+                            className="select select-bordered select-secondary w-full"
                             value={project}
                             onChange={(e) => setProject(e.target.value)}
                             required
@@ -178,7 +177,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         </label>
                         <input
                             type="date"
-                            className="input input-bordered w-full"
+                            className="input input-bordered input-secondary w-full"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                             required
@@ -190,7 +189,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         </label>
                         <input
                             type="date"
-                            className="input input-bordered w-full"
+                            className="input input-bordered input-secondary w-full"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                             required
@@ -202,7 +201,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         <span className="label-text">Notes</span>
                     </label>
                     <textarea
-                        className="textarea textarea-bordered w-full"
+                        className="textarea textarea-bordered textarea-secondary w-full"
                         value={notes}
                         placeholder="Enter any additional notes"
                         onChange={(e) => setNotes(e.target.value)}
@@ -218,11 +217,12 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                             if (assignment) {
                                 assignment.status = value;
                             }
-                        }
+                        },
+                        "select select-bordered select-secondary w-full"
                     )}
                 </div>
                 <div className="modal-action">
-                    {assignment && (
+                    {assignment?.id && (
                         <button
                             type="button"
                             className="btn btn-error"
@@ -247,7 +247,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                     </button>
                     <button
                         type="button"
-                        className="btn"
+                        className="btn btn-outline"
                         onClick={onClose}
                         disabled={loading}
                     >

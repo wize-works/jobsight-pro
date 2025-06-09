@@ -12,6 +12,7 @@ export type EquipmentAssignmentWithDetails = EquipmentAssignment & {
 
 export type EquipmentAssignmentWithEquipmentDetails = EquipmentAssignment & {
     equipment_name?: string | null;
+    equipment_model?: string | null;
     equipment_type?: string | null;
     equipment_status?: string | null;
 };

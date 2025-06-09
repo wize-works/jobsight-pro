@@ -72,11 +72,11 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
         return (
             <EquipmentDetail
                 equipment={equipment}
-                maintenances={maintenances as unknown as EquipmentMaintenance[] || []}
-                usages={usages as unknown as EquipmentUsage[] || []}
-                assignments={assignments as unknown as EquipmentAssignment[] || []}
-                specifications={specifications as unknown as EquipmentSpecification[] || []}
-                documents={documents as unknown as Media[] || []}
+                maintenances={maintenances}
+                usages={usages}
+                assignments={assignments}
+                specifications={specifications}
+                documents={documents}
             />
         );
     } catch (error) {

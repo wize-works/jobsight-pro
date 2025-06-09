@@ -381,10 +381,11 @@ export const getCrewEquipment = async (crewId: string): Promise<EquipmentAssignm
             equipment_name: equipment?.name || "No Equipment",
             equipment_id: equipment?.id || null,
             equipment_type: equipment?.type || "Unknown",
+            equipment_model: equipment?.model || "Unknown",
             assigned_date: assignment?.start_date + " - " + assignment?.end_date || "No Dates",
         };
     }) as EquipmentAssignmentWithEquipmentDetails[];
-
+    console.log("Equipment assignments for crew:", equipmentAssignments);
     return equipmentAssignments;
 };
 
@@ -526,4 +527,32 @@ export const getAvailableCrews = async (): Promise<CrewWithMemberInfo[]> => {
     });
 
     return crewWithMembers;
+}
+
+export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate): Promise<CrewMember | null> => {
+    const { business } = await withBusinessServer();
+
+    crewMember = await applyUpdated<CrewMemberUpdate>(crewMember);
+
+    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, business.id);
+
+    if (error) {
+        console.error("Error updating crew member:", error);
+        return null;
+    }
+
+    return data as unknown as CrewMember;
+}
+
+export const deleteCrewMember = async (id: string): Promise<boolean> => {
+    const { business } = await withBusinessServer();
+
+    const { error } = await deleteWithBusinessCheck("crew_members", id, business.id);
+
+    if (error) {
+        console.error("Error deleting crew member:", error);
+        return false;
+    }
+
+    return true;
 }
