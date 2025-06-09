@@ -1,3 +1,10 @@
+## [1.31.21](https://github.com/wize-works/jobsight-pro/compare/v1.31.20...v1.31.21) (2025-06-09)
+
+
+### Bug Fixes
+
+* Remove redundant environment variables from AKS deployment workflow ([7c29ec8](https://github.com/wize-works/jobsight-pro/commit/7c29ec872b1a174ef16685c197374371d503807f))
+
 ## [1.31.20](https://github.com/wize-works/jobsight-pro/compare/v1.31.19...v1.31.20) (2025-06-09)
 
 
