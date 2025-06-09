@@ -166,6 +166,28 @@ jobs:
             --from-literal=RESEND_API_KEY="${RESEND_API_KEY}" \
             --from-literal=SENTRY_AUTH_TOKEN="${SENTRY_AUTH_TOKEN}" \
             --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          KINDE_CLIENT_ID: ${{ secrets.KINDE_CLIENT_ID }}
+          KINDE_CLIENT_SECRET: ${{ secrets.KINDE_CLIENT_SECRET }}
+          KINDE_ISSUER_URL: ${{ secrets.KINDE_ISSUER_URL }}
+          KINDE_DOMAIN: ${{ secrets.KINDE_DOMAIN }}
+          KINDE_SITE_URL: ${{ secrets.KINDE_SITE_URL }}
+          KINDE_LOGOUT_REDIRECT_URI: ${{ secrets.KINDE_LOGOUT_REDIRECT_URI }}
+          KINDE_POST_LOGOUT_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }}
+          KIDNE_REDIRECT_URI: ${{ secrets.KIDNE_REDIRECT_URI }}
+          KINDE_POST_LOGIN_REDIRECT_URL: ${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          AZURE_STORAGE_ENDPOINT: ${{ secrets.AZURE_STORAGE_ENDPOINT }}
+          NEXT_PUBLIC_CLARITY_ID: ${{ secrets.NEXT_PUBLIC_CLARITY_ID }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Convert kubeconfig to use Azure CLI token
         run: kubelogin convert-kubeconfig -l azurecli
