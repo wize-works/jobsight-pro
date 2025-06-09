@@ -12,61 +12,26 @@ import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const id = (await params).id;
+    const { id } = await params;
 
     try {
-        console.log("Fetching equipment by ID:", id);
-        const equipment = await getEquipmentById(id);
+
+        const [equipment, maintenances, usages, assignments, specifications, documents] = await Promise.all([
+            getEquipmentById(id),
+            getEquipmentMaintenancesByEquipmentId(id),
+            getEquipmentUsagesWithDetailsByEquipmentId(id),
+            getEquipmentAssignmentsByEquipmentId(id),
+            getEquipmentSpecificationsByEquipmentId(id),
+            getMediaByEquipmentId(id, "")
+        ]);
+
         if (!equipment) {
-            return <div className="p-8 text-center">Equipment not found.</div>;
-        }
-        console.log("Equipment found:", equipment.name);
-
-        // Fetch all related records with individual error handling
-        let maintenances: EquipmentMaintenance[] = [];
-        let usages: any[] = [];
-        let assignments: any[] = [];
-        let specifications: EquipmentSpecification[] = [];
-        let documents: any[] = [];
-
-        try {
-            console.log("Fetching maintenances...");
-            maintenances = await getEquipmentMaintenancesByEquipmentId(id);
-            console.log("Maintenances fetched:", maintenances.length);
-        } catch (error) {
-            console.error("Error fetching maintenances:", error);
-        }
-
-        try {
-            console.log("Fetching usages...");
-            usages = await getEquipmentUsagesWithDetailsByEquipmentId(id);
-            console.log("Usages fetched:", usages.length);
-        } catch (error) {
-            console.error("Error fetching usages:", error);
-        }
-
-        try {
-            console.log("Fetching assignments...");
-            assignments = await getEquipmentAssignmentsByEquipmentId(id);
-            console.log("Assignments fetched:", assignments.length);
-        } catch (error) {
-            console.error("Error fetching assignments:", error);
-        }
-
-        try {
-            console.log("Fetching specifications...");
-            specifications = await getEquipmentSpecificationsByEquipmentId(id);
-            console.log("Specifications fetched:", specifications.length);
-        } catch (error) {
-            console.error("Error fetching specifications:", error);
-        }
-
-        try {
-            console.log("Fetching documents...");
-            documents = await getMediaByEquipmentId(id, "");
-            console.log("Documents fetched:", documents.length);
-        } catch (error) {
-            console.error("Error fetching documents:", error);
+            return (
+                <div className="p-8 text-center">
+                    <h2 className="text-xl font-bold text-red-500 mb-4">Equipment Not Found</h2>
+                    <p className="text-gray-600">The requested equipment could not be found.</p>
+                </div>
+            );
         }
 
         return (
