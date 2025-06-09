@@ -7,6 +7,7 @@ import { createEquipmentUsage, updateEquipmentUsage } from '@/app/actions/equipm
 import { getProjects } from '@/app/actions/projects';
 import { getCrewsWithDetails } from '@/app/actions/crews';
 import { toast } from '@/hooks/use-toast';
+import { set } from 'date-fns';
 
 interface UsageModalProps {
     usage?: EquipmentUsage;
@@ -18,6 +19,7 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
+    const [loading, setLoading] = useState(true);
 
     // Form state
     const [projectId, setProjectId] = useState<string | null>(null);
@@ -45,6 +47,8 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
             } catch (error) {
                 console.error('Error fetching data:', error);
                 toast.error('Error loading project and crew data');
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -65,6 +69,7 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setLoading(true);
 
         try {
             const data = {
@@ -136,9 +141,10 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                             <span className="label-text">Project</span>
                         </label>
                         <select
-                            className="select select-bordered w-full"
+                            className="select select-bordered select-secondary w-full"
                             value={projectId || ''}
                             onChange={(e) => setProjectId(e.target.value || null)}
+                            disabled={loading}
                         >
                             <option value="">Select Project</option>
                             {projects.map((project) => (
@@ -154,9 +160,10 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                             <span className="label-text">Crew</span>
                         </label>
                         <select
-                            className="select select-bordered w-full"
+                            className="select select-bordered select-secondary w-full"
                             value={crewId || ''}
                             onChange={(e) => setCrewId(e.target.value || null)}
+                            disabled={loading}
                         >
                             <option value="">Select Crew</option>
                             {crews.map((crew) => (
@@ -174,9 +181,10 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                             </label>
                             <input
                                 type="date"
-                                className="input input-bordered"
+                                className="input input-bordered input-secondary"
                                 value={startDate}
                                 onChange={(e) => setstartDate(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
 
@@ -186,48 +194,53 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                             </label>
                             <input
                                 type="date"
-                                className="input input-bordered"
+                                className="input input-bordered input-secondary"
                                 value={endDate}
                                 onChange={(e) => setendDate(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
                     </div>
 
-                    <div className="form-control mb-4">
-                        <label className="label w-full">
-                            <span className="label-text">Hours Used</span>
-                        </label>
-                        <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            className="input input-bordered w-full"
-                            placeholder="Enter hours"
-                            value={hoursUsed}
-                            onChange={(e) => setHoursUsed(Number(e.target.value))}
-                        />
-                    </div>
+                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                        <div className="form-control mb-4">
+                            <label className="label w-full">
+                                <span className="label-text">Hours Used</span>
+                            </label>
+                            <input
+                                type="number"
+                                step="0.25"
+                                min="0"
+                                className="input input-bordered input-secondary w-full"
+                                placeholder="Enter hours"
+                                value={hoursUsed}
+                                onChange={(e) => setHoursUsed(Number(e.target.value))}
+                                disabled={loading}
+                            />
+                        </div>
 
-                    <div className="form-control mb-4">
-                        <label className="label w-full">
-                            <span className="label-text">Fuel Consumed</span>
-                        </label>
-                        <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            className="input input-bordered w-full"
-                            placeholder="Enter fuel consumed (optional)"
-                            value={fuelConsumed || 0}
-                            onChange={(e) => setFuelConsumed(Number(e.target.value))}
-                        />
+                        <div className="form-control mb-4">
+                            <label className="label w-full">
+                                <span className="label-text">Fuel Consumed</span>
+                            </label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                className="input input-bordered input-secondary w-full"
+                                placeholder="Enter fuel consumed (optional)"
+                                value={fuelConsumed || 0}
+                                onChange={(e) => setFuelConsumed(Number(e.target.value))}
+                                disabled={loading}
+                            />
+                        </div>
                     </div>
 
                     <div className="modal-action">
                         <button
                             type="submit"
                             className="btn btn-primary"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || loading}
                         >
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
@@ -235,7 +248,7 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                             type="button"
                             className="btn"
                             onClick={onClose}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || loading}
                         >
                             Cancel
                         </button>

@@ -7,18 +7,22 @@ import type { ProjectCrew } from "@/types/project-crews";
 import type { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import Link from "next/link";
+import { getEquipments } from "@/app/actions/equipments";
 
 export default async function CrewPage({ params }: { params: Promise<{ id: string }> }) {
     const crewId = (await params).id;
 
-    // Fetch the crew data
-    const crew = await getCrewWithDetailsById(crewId);
-    const members = await getCrewMembersByCrewId(crewId);
-    const allMembers = await getCrewMembers();
-    const schedule = await getCrewScheduleCurrent(crewId);
-    const history = await getCrewScheduleHistory(crewId);
-    const equipment = await getCrewEquipment(crewId);
-    const projects = await getProjects();
+
+    const [crew, members, allMembers, schedule, history, equipment, projects, allEquipment] = await Promise.all([
+        getCrewWithDetailsById(crewId),
+        getCrewMembersByCrewId(crewId),
+        getCrewMembers(),
+        getCrewSchedule(crewId),
+        getCrewScheduleHistory(crewId),
+        getCrewEquipment(crewId),
+        getProjects(),
+        getEquipments()
+    ]);
 
     if (!crew) {
         return (
@@ -39,12 +43,13 @@ export default async function CrewPage({ params }: { params: Promise<{ id: strin
             </div>
             <CrewDetailComponent
                 crew={crew}
-                members={members as unknown as CrewMember[]}
-                allMembers={allMembers as unknown as CrewMember[]}
-                schedule={schedule as unknown as ProjectCrew[]}
-                history={history as unknown as ProjectCrew[]}
-                equipment={equipment as unknown as Equipment[]}
-                projects={projects as unknown as Project[]}
+                members={members}
+                allMembers={allMembers}
+                schedule={schedule}
+                history={history}
+                equipment={equipment}
+                projects={projects}
+                allEquipment={allEquipment}
             />
         </div>
     );

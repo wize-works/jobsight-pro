@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
-import type { Equipment } from "@/types/equipment";
+import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
 import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
@@ -14,6 +14,9 @@ import { createProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project } from "@/types/projects";
 import { ProjectCrewInsert } from "@/types/project-crews";
+import { Equipment } from "@/types/equipment";
+import { create } from "domain";
+import { AssignmentModal } from "../../equipment/components/modal-assignment";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -27,8 +30,9 @@ interface CrewDetailProps {
     allMembers?: CrewMember[];
     schedule?: any[];
     history?: any[];
-    equipment?: Equipment[];
+    equipment?: EquipmentAssignmentWithEquipmentDetails[];
     projects?: Project[];
+    allEquipment?: Equipment[];
 }
 
 export default function CrewDetailComponent({
@@ -39,7 +43,14 @@ export default function CrewDetailComponent({
     history = [],
     equipment = [],
     projects = [],
-}: CrewDetailProps & { projects?: { id: string; name: string }[] }) {
+    allEquipment = [],
+}: CrewDetailProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("members");
     const [crewLeader, setCrewLeader] = useState(crew.leader_id || "");
@@ -291,27 +302,12 @@ export default function CrewDetailComponent({
         setShowAssignEquipmentModal(true);
     };
 
-    const handleAssignEquipment = async () => {
-        try {
-            // TODO: Implement logic to assign selectedEquipment to the crew
-            console.log("Assigning equipment to crew:", crew.id, "Equipment IDs:", selectedEquipment);
-
-            // For now, display a success message
-            toast({
-                title: "Equipment Assigned",
-                description: "Equipment has been assigned to the crew.",
-            });
-
-            setShowAssignEquipmentModal(false);
-            setSelectedEquipment([]);
-            router.refresh(); // Refresh the page to reflect changes
-        } catch (error) {
-            toast.error({
-                title: "Error",
-                description: "Failed to assign equipment. Please try again.",
-            });
-        }
-    };
+    // Don't render until component is mounted to prevent hydration issues
+    if (!mounted) {
+        return (
+            <div className="loading loading-spinner loading-lg"></div>
+        );
+    }
 
     return (
         <div>
@@ -662,9 +658,7 @@ export default function CrewDetailComponent({
                                                             <td>{item.equipment_name}</td>
                                                             <td>{item.equipment_type}</td>
                                                             <td>
-                                                                <div className={`badge ${item.status === 'functional' ? 'badge-success' : 'badge-warning'}`}>
-                                                                    {item.status}
-                                                                </div>
+                                                                {assignmentStatusOptions.badge(item.status as EquipmentAssignmentStatus)}
                                                             </td>
                                                             <td>{item.assigned_date}</td>
                                                             <td>
@@ -881,7 +875,8 @@ export default function CrewDetailComponent({
                                         <select
                                             className="select select-bordered"
                                             defaultValue={linkMember?.id || ""}
-                                            onChange={(e) => {                                                const selectedMember = allMembers.find((m) => m.id === e.target.value);
+                                            onChange={(e) => {
+                                                const selectedMember = allMembers.find((m) => m.id === e.target.value);
                                                 setLinkMember(selectedMember || null);
                                             }}
                                         >
@@ -964,7 +959,7 @@ export default function CrewDetailComponent({
                                             className="textarea textarea-bordered"
                                             value={newAssignment.notes}
                                             onChange={e => setNewAssignment({ ...newAssignment, notes: e.target.value })}
-                                            placeholder="Assignment notes"                                        />
+                                            placeholder="Assignment notes" />
                                     </div>
                                 </form>
                                 <div className="modal-action">
@@ -1011,7 +1006,7 @@ export default function CrewDetailComponent({
                                         <input
                                             type="text"
                                             className="input input-bordered"
-                                            value={editingMember.role}
+                                            value={editingMember.role ?? ""}
                                             onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}
                                             placeholder="e.g. Foreman, Electrician, etc."
                                         />
@@ -1023,7 +1018,7 @@ export default function CrewDetailComponent({
                                         <input
                                             type="number"
                                             className="input input-bordered"
-                                            value={editingMember.experience}
+                                            value={editingMember.experience ?? ""}
                                             onChange={(e) => setEditingMember({ ...editingMember, experience: parseInt(e.target.value) || 0 })}
                                             min="0"
                                         />
@@ -1035,7 +1030,7 @@ export default function CrewDetailComponent({
                                         <input
                                             type="tel"
                                             className="input input-bordered"
-                                            value={editingMember.phone}
+                                            value={editingMember.phone ?? ""}
                                             onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })}
                                             placeholder="Phone number"
                                         />
@@ -1047,7 +1042,7 @@ export default function CrewDetailComponent({
                                         <input
                                             type="email"
                                             className="input input-bordered"
-                                            value={editingMember.email}
+                                            value={editingMember.email ?? ""}
                                             onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
                                             placeholder="Email address"
                                         />
@@ -1057,8 +1052,8 @@ export default function CrewDetailComponent({
                                     <button className="btn btn-primary" onClick={handleUpdateMember}>
                                         <i className="fas fa-save mr-2"></i> Update Member
                                     </button>
-                                    <button 
-                                        className="btn" 
+                                    <button
+                                        className="btn"
                                         onClick={() => {
                                             setShowEditMemberModal(false);
                                             setEditingMember(null);
@@ -1088,14 +1083,11 @@ export default function CrewDetailComponent({
                                         <label className="label">
                                             <span className="label-text">Status</span>
                                         </label>
-                                        <select
-                                            className="select select-bordered"
-                                            value={editingEquipmentAssignment.status}
-                                            onChange={(e) => setEditingEquipmentAssignment({ ...editingEquipmentAssignment, status: e.target.value })}
-                                        >
-                                            <option value="functional">Functional</option>
-                                            <option value="needs_repair">Needs Repair</option>
-                                        </select>
+                                        {assignmentStatusOptions.select(
+                                            editingEquipmentAssignment.status,
+                                            (status) => setEditingEquipmentAssignment({ ...editingEquipmentAssignment, status }),
+                                            "select-bordered w-full"
+                                        )}
                                     </div>
                                     {/* Add other relevant fields for editing */}
                                 </form>
@@ -1125,115 +1117,9 @@ export default function CrewDetailComponent({
 
                     {/* Assign Equipment Modal */}
                     {showAssignEquipmentModal && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Assign Equipment to Crew</h3>
-                                <form className="space-y-4">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Select Equipment</span>
-                                        </label>
-                                        <select
-                                            className="select select-bordered w-full"
-                                            value=""
-                                            onChange={(e) => {
-                                                const equipmentId = e.target.value;
-                                                if (equipmentId && !selectedEquipment.includes(equipmentId)) {
-                                                    setSelectedEquipment([...selectedEquipment, equipmentId]);
-                                                }
-                                                e.target.value = ""; // Reset selection
-                                            }}
-                                        >
-                                            <option value="">Choose equipment to add</option>
-                                            {/* TODO: Replace with actual available equipment */}
-                                            <option value="eq1">Excavator - CAT 320</option>
-                                            <option value="eq2">Bulldozer - D6T</option>
-                                            <option value="eq3">Crane - Grove RT9130E</option>
-                                            <option value="eq4">Concrete Mixer - Volvo FM</option>
-                                            <option value="eq5">Compactor - Caterpillar CS56B</option>
-                                        </select>
-                                    </div>
-                                    
-                                    {/* Selected Equipment List */}
-                                    {selectedEquipment.length > 0 && (
-                                        <div className="form-control">
-                                            <label className="label">
-                                                <span className="label-text">Selected Equipment ({selectedEquipment.length})</span>
-                                            </label>
-                                            <div className="space-y-2">
-                                                {selectedEquipment.map((equipmentId, index) => (
-                                                    <div key={index} className="flex items-center justify-between bg-base-200 p-2 rounded">
-                                                        <span>Equipment ID: {equipmentId}</span>
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-ghost btn-xs text-error"
-                                                            onClick={() => {
-                                                                setSelectedEquipment(selectedEquipment.filter(id => id !== equipmentId));
-                                                            }}
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Assignment Start Date</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="input input-bordered w-full"
-                                            defaultValue={new Date().toISOString().split('T')[0]}
-                                        />
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Assignment End Date (Optional)</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="input input-bordered w-full"
-                                        />
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Notes</span>
-                                        </label>
-                                        <textarea
-                                            className="textarea textarea-bordered"
-                                            placeholder="Add any notes about this equipment assignment..."
-                                            rows={3}
-                                        ></textarea>
-                                    </div>
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-outline" onClick={() => {
-                                        setShowAssignEquipmentModal(false);
-                                        setSelectedEquipment([]);
-                                    }}>
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        className="btn btn-primary" 
-                                        onClick={handleAssignEquipment}
-                                        disabled={selectedEquipment.length === 0}
-                                    >
-                                        Assign Equipment ({selectedEquipment.length})
-                                    </button>
-                                </div>
-                            </div>
-                            <form method="dialog" className="modal-backdrop">
-                                <button onClick={() => {
-                                    setShowAssignEquipmentModal(false);
-                                    setSelectedEquipment([]);
-                                }}>close</button>
-                            </form>
-                        </div>
+                        <AssignmentModal assignment={{ crew_id: crew.id } as EquipmentAssignment} onClose={() => setShowAssignEquipmentModal(false)} onSave={function (assignment: EquipmentAssignment): void {
+                            throw new Error("Function not implemented.");
+                        }} />
                     )}
                 </div>
             </div>

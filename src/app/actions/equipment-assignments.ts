@@ -112,19 +112,19 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
 
     const { data: assignData, error: assignError } = await fetchByBusiness("equipment_assignments", business.id, "*", {
         filter: { equipment_id: id },
-        orderBy: { column: "id", ascending: true },
+        orderBy: { column: "start_date", ascending: true },
     });
 
     if (assignError) {
         console.error("Error fetching equipment assignment by ID:", assignError);
-        return [] as EquipmentAssignment[];
+        return [];
     }
 
     if (!assignData || assignData.length === 0) {
-        return [] as EquipmentAssignment[];
+        return [];
     }
 
-    const crewIds = (assignData as unknown as EquipmentAssignment[])?.map((assignment) => assignment.crew_id).filter(Boolean) || [];
+    const crewIds = assignData?.map((assignment) => assignment.crew_id).filter(Boolean) || [];
 
     let crewData: any[] = [];
     if (crewIds.length > 0) {
@@ -153,10 +153,10 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
             orderBy: { column: "start_date", ascending: true },
         });
         projectDetails = projects || [];
-    } const data = (assignData as unknown as EquipmentAssignment[]).map((assignment) => {
-        const crew = (crewData as unknown as Crew[])?.find((crew) => crew.id === assignment.crew_id);
-        const projectCrew = (projectData as unknown as ProjectCrew[])?.find((pc) => pc.crew_id === assignment.crew_id);
-        const project = (projectDetails as unknown as Project[])?.find((proj) => proj.id === projectCrew?.project_id);
+    } const data = assignData.map((assignment) => {
+        const crew = crewData?.find((crew) => crew.id === assignment.crew_id);
+        const projectCrew = projectData?.find((pc) => pc.crew_id === assignment.crew_id);
+        const project = projectDetails?.find((proj) => proj.id === assignment.project_id);
 
         return {
             ...assignment,

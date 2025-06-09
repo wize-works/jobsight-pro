@@ -10,9 +10,9 @@ import { setEquipmentLocation } from "@/app/actions/equipments";
 import { useState } from "react";
 import Link from "next/link";
 import { Media } from "@/types/media";
-import { MaintenanceModal } from "./maintenance-modal";
-import { AssignmentModal } from "./assignment-modal";
-import { UsageModal } from "./usage-modal";
+import { MaintenanceModal } from "./modal-maintenance";
+import { AssignmentModal } from "./modal-assignment";
+import { UsageModal } from "./modal-usage";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
@@ -257,10 +257,10 @@ export default function EquipmentDetail({
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Link href={`/dashboard/equipment/${equipment.id}/edit`} className="btn btn-primary btn-sm">
+                    <Link href={`/dashboard/equipment/${equipment.id}/edit`} className="btn btn-primary">
                         <i className="fas fa-edit"></i> Edit
                     </Link>
-                    <button className="btn btn-error btn-sm" onClick={() => {
+                    <button className="btn btn-error hidden" onClick={() => {
                         // Handle delete action here
                         if (confirm("Are you sure you want to delete this equipment?")) {
                             // Call delete function
@@ -319,8 +319,10 @@ export default function EquipmentDetail({
 
                             <div className="mb-1 flex justify-between">
                                 <span>Location:</span>
-                                <div>
-                                    <span className="badge badge-primary mr-2">{location || "No location assigned"}</span>
+                                <div className="flex items-center gap-2 ml-2">
+                                    <div className="rounded-lg bg-primary/50 p-2 flex items-center gap-2">
+                                        <span className="">{location || "No location assigned"}</span>
+                                    </div>
 
                                     <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
                                         const { latitude, longitude } = position.coords;
@@ -389,9 +391,9 @@ export default function EquipmentDetail({
                             <div className="divider"></div>
 
                             <h2 className="card-title">Documents</h2>
-                            {documents && documents.length > 0 ? (
+                            {documents && documents.filter((doc) => doc.type === "document").length > 0 ? (
                                 <ul className="list-disc pl-5">
-                                    {documents.map((doc, index) => (
+                                    {documents.filter((doc) => doc.type === "document").map((doc, index) => (
                                         <li key={index} className="mb-1">
                                             <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                                                 {doc.name}
@@ -501,20 +503,20 @@ export default function EquipmentDetail({
                                                 <td>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            className="btn btn-sm btn-secondary"
+                                                            className="btn btn-sm btn-ghost"
                                                             onClick={() => handleEditMaintenance(m)}
                                                         >
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
-                                                            className="btn btn-sm btn-error"
+                                                            className="btn btn-sm btn-ghost"
                                                             onClick={() => {
                                                                 if (confirm("Are you sure you want to delete this maintenance record?")) {
                                                                     setMaintenanceList(maintenanceList.filter((item) => item.id !== m.id));
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="fas fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -571,20 +573,20 @@ export default function EquipmentDetail({
                                                 <td>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            className="btn btn-sm btn-secondary"
+                                                            className="btn btn-sm btn-ghost"
                                                             onClick={() => handleEditUsage(u)}
                                                         >
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
-                                                            className="btn btn-sm btn-error"
+                                                            className="btn btn-sm btn-ghost"
                                                             onClick={() => {
                                                                 if (confirm("Are you sure you want to delete this usage record?")) {
                                                                     setUsageList(usageList.filter((item) => item.id !== u.id));
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="fas fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -637,20 +639,20 @@ export default function EquipmentDetail({
                                                 <td>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            className="btn btn-sm btn-secondary"
+                                                            className="btn btn-ghost btn-sm"
                                                             onClick={() => handleEditAssignment(a)}
                                                         >
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
-                                                            className="btn btn-sm btn-error"
+                                                            className="btn btn-ghost btn-sm"
                                                             onClick={() => {
                                                                 if (confirm("Are you sure you want to delete this assignment record?")) {
                                                                     setAssignmentList(assignmentList.filter((item) => item.id !== a.id));
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="fas fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>

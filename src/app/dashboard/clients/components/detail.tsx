@@ -379,7 +379,7 @@ export default function ClientDetailComponent({
                 </div>
             </div>
 
-            <div role="tablist" className="tabs tabs-sm tabs-box mb-6 bg-base-100 p-1 rounded-lg">
+            <div role="tablist" className="tabs tabs-box mb-6">
                 <a
                     role="tab"
                     className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}

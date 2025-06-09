@@ -136,9 +136,14 @@ export const getMediaByEquipmentId = async (equipmentId: string, type: string): 
     if (mediaIds.length === 0) {
         return [];
     }
+    // Build filter object dynamically
+    const filter: any = { id: { in: mediaIds } };
+    if (type && type.trim() !== "") {
+        filter.type = type;
+    }
 
     const { data, error } = await fetchByBusiness("media", business.id, "*", {
-        filter: { id: { in: mediaIds }, type: type },
+        filter,
         orderBy: { column: "created_at", ascending: false },
     });
 
@@ -270,7 +275,7 @@ export const uploadEquipmentImage = async (equipmentId: string, file: File): Pro
         const { business, userId } = await withBusinessServer();
 
         // Generate upload URL
-        const uploadData = await generateUploadUrl("image", file.name);
+        const uploadData = await generateUploadUrl("images", file.name);
         if (!uploadData) {
             throw new Error("Failed to generate upload URL");
         }
