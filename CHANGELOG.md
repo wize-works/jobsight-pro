@@ -1,3 +1,10 @@
+## [1.31.18](https://github.com/wize-works/jobsight-pro/compare/v1.31.17...v1.31.18) (2025-06-09)
+
+
+### Bug Fixes
+
+* Move USER appuser command to maintain non-root user context in Dockerfile ([1df9c7b](https://github.com/wize-works/jobsight-pro/commit/1df9c7b5601235836eace6e1f6b0aea46be683ea))
+
 ## [1.31.17](https://github.com/wize-works/jobsight-pro/compare/v1.31.16...v1.31.17) (2025-06-09)
 
 
