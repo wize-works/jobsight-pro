@@ -1,3 +1,10 @@
+## [1.31.26](https://github.com/wize-works/jobsight-pro/compare/v1.31.25...v1.31.26) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct KIDNE_REDIRECT_URI to KINDE_REDIRECT_URI in deployment workflow ([a97a292](https://github.com/wize-works/jobsight-pro/commit/a97a2922a993ac6ea23fcc8de1568b177a553c1e))
+
 ## [1.31.25](https://github.com/wize-works/jobsight-pro/compare/v1.31.24...v1.31.25) (2025-06-09)
 
 
