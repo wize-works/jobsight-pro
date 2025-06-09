@@ -1,3 +1,11 @@
+## [1.31.8](https://github.com/wize-works/jobsight-pro/compare/v1.31.7...v1.31.8) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out media mapping in EquipmentDetail component for debugging ([0cb7773](https://github.com/wize-works/jobsight-pro/commit/0cb777361702e03e8f18eb6849f767d7863522ad))
+* improve image handling in EquipmentDetail component with fallback UI ([9318257](https://github.com/wize-works/jobsight-pro/commit/9318257f31f7509cef64fff935a09d1dccaaf52a))
+
 ## [1.31.7](https://github.com/wize-works/jobsight-pro/compare/v1.31.6...v1.31.7) (2025-06-09)
 
 
