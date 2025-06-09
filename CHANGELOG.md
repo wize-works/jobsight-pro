@@ -1,3 +1,10 @@
+## [1.31.11](https://github.com/wize-works/jobsight-pro/compare/v1.31.10...v1.31.11) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out map links in EquipmentDetail component for debugging ([a3b640c](https://github.com/wize-works/jobsight-pro/commit/a3b640cf0b35395c0a3c6a701d9ff6db3d7f7b73))
+
 ## [1.31.10](https://github.com/wize-works/jobsight-pro/compare/v1.31.9...v1.31.10) (2025-06-09)
 
 
