@@ -1,3 +1,10 @@
+## [1.31.20](https://github.com/wize-works/jobsight-pro/compare/v1.31.19...v1.31.20) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update Docker image tagging to include latest version alongside specific version ([bef4e4a](https://github.com/wize-works/jobsight-pro/commit/bef4e4af67f5bc9fda4838f206729b76d0f91460))
+
 ## [1.31.19](https://github.com/wize-works/jobsight-pro/compare/v1.31.18...v1.31.19) (2025-06-09)
 
 
