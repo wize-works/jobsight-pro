@@ -33,7 +33,6 @@ FROM node:22-slim
 
 # Create a non-root user (Debian style)
 RUN addgroup app && adduser --disabled-password --gecos "" --ingroup app appuser
-USER appuser
 
 WORKDIR /app
 
@@ -47,6 +46,7 @@ LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 COPY --from=builder /app .
 
 RUN mkdir -p .next/cache/images && chown -R appuser:app .next
+USER appuser
 
 # Runtime envs come from Kubernetes
 EXPOSE 3000
