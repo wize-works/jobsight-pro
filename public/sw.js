@@ -4,11 +4,11 @@ const OFFLINE_URL = '/dashboard';
 // Critical resources to cache for offline functionality
 const STATIC_CACHE_URLS = [
     '/',
-    '/dashboard',
-    '/dashboard/daily-logs',
-    '/dashboard/projects',
-    '/dashboard/crews',
-    '/dashboard/equipment',
+    // '/dashboard',
+    // '/dashboard/daily-logs',
+    // '/dashboard/projects',
+    // '/dashboard/crews',
+    // '/dashboard/equipment',
     '/manifest.json',
     '/favicon.ico',
     '/logo.png'
@@ -52,45 +52,52 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - network first with cache fallback
 self.addEventListener('fetch', (event) => {
-    // Skip non-GET requests
-    if (event.request.method !== 'GET') return;
+    const { request } = event;
 
-    // Skip external requests
-    if (!event.request.url.startsWith(self.location.origin)) return;
+    // Skip non-GET requests or non-same-origin
+    if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
+
+    // Skip Next.js build artifacts or server-rendered HTML
+    if (
+        request.url.includes('/_next/') ||              // React build chunks
+        request.url.includes('__nextjs') ||             // Edge middleware internals
+        request.headers.get('accept')?.includes('text/html') // SSR pages
+    ) {
+        return; // Let browser handle
+    }
 
     event.respondWith(
-        fetch(event.request)
+        fetch(request)
             .then((response) => {
-                // If we got a valid response, clone and cache it
+                // Clone & store in cache only if it's successful
                 if (response.status === 200) {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME)
-                        .then((cache) => {
-                            cache.put(event.request, responseClone);
-                        });
+                    const clonedResponse = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, clonedResponse);
+                    });
                 }
                 return response;
             })
             .catch(() => {
-                // Network failed, try cache
-                return caches.match(event.request)
-                    .then((response) => {
-                        if (response) {
-                            return response;
-                        }
-                        // If no cache match, return offline page for navigation requests
-                        if (event.request.mode === 'navigate') {
-                            return caches.match(OFFLINE_URL);
-                        }
-                        // For other requests, return a generic offline response
-                        return new Response('Offline', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
+                // Offline fallback for static files
+                return caches.match(request).then((cachedResponse) => {
+                    if (cachedResponse) return cachedResponse;
+
+                    // Offline navigation fallback
+                    if (request.mode === 'navigate') {
+                        return caches.match(OFFLINE_URL);
+                    }
+
+                    // Last resort
+                    return new Response('Offline', {
+                        status: 503,
+                        statusText: 'Service Unavailable',
                     });
+                });
             })
     );
 });
+
 
 // Background sync for offline data
 self.addEventListener('sync', (event) => {
