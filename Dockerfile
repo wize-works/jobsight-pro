@@ -18,7 +18,7 @@ COPY . .
 
 # Optional env vars just for build (placeholders)
 ENV KINDE_ISSUER_URL=https://placeholder
-ENV KINDE_CLIENT_ID=1234567890abcdef
+ENV KINDE_CLIENT_ID=placeholder
 ENV KINDE_CLIENT_SECRET=placeholder
 ENV AZURE_STORAGE_ACCOUNT=placeholder
 ENV AZURE_STORAGE_KEY=placeholder
