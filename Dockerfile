@@ -46,6 +46,8 @@ LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 # Copy full contents from builder
 COPY --from=builder /app .
 
+RUN mkdir -p .next/cache/images
+
 # Runtime envs come from Kubernetes
 EXPOSE 3000
 
