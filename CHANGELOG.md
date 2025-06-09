@@ -1,3 +1,10 @@
+## [1.31.13](https://github.com/wize-works/jobsight-pro/compare/v1.31.12...v1.31.13) (2025-06-09)
+
+
+### Bug Fixes
+
+* Refactor code structure for improved readability and maintainability ([995aa2c](https://github.com/wize-works/jobsight-pro/commit/995aa2c055b189fee1b2bb11185250492cf66440))
+
 ## [1.31.12](https://github.com/wize-works/jobsight-pro/compare/v1.31.11...v1.31.12) (2025-06-09)
 
 
