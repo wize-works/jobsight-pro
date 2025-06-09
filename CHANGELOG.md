@@ -1,3 +1,10 @@
+## [1.31.7](https://github.com/wize-works/jobsight-pro/compare/v1.31.6...v1.31.7) (2025-06-09)
+
+
+### Bug Fixes
+
+* correct media type identifiers in file upload component ([9c01fc1](https://github.com/wize-works/jobsight-pro/commit/9c01fc19f9ed0f2b9e63f4dca4fd77be7cf98dbf))
+
 ## [1.31.6](https://github.com/wize-works/jobsight-pro/compare/v1.31.5...v1.31.6) (2025-06-07)
 
 
