@@ -29,42 +29,76 @@ spec:
             - name: ENVIRONMENT
               value: "production"
 
-            # ✅ Non-sensitive values
-            - name: KINDE_CLIENT_ID
-              value: "${KINDE_CLIENT_ID}"
-            - name: KINDE_ISSUER_URL
-              value: "${KINDE_ISSUER_URL}"
-            - name: KINDE_DOMAIN
-              value: "${KINDE_DOMAIN}"
-            - name: KINDE_SITE_URL
-              value: "${KINDE_SITE_URL}"
-            - name: KINDE_LOGOUT_REDIRECT_URI
-              value: "${KINDE_LOGOUT_REDIRECT_URI}"
-            - name: KINDE_POST_LOGOUT_REDIRECT_URL
-              value: "${KINDE_POST_LOGOUT_REDIRECT_URL}"
-            - name: KIDNE_REDIRECT_URI
-              value: "${KIDNE_REDIRECT_URI}"
-            - name: KINDE_POST_LOGIN_REDIRECT_URL
-              value: "${KINDE_POST_LOGIN_REDIRECT_URL}"
-            - name: SUPABASE_URL
-              value: "${SUPABASE_URL}"
-
             # 🔐 Sensitive values from Kubernetes Secret
+            - name: KINDE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_CLIENT_ID
             - name: KINDE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: KINDE_CLIENT_SECRET
-            - name: SUPABASE_SERVICE_ROLE_KEY
+            - name: KINDE_ISSUER_URL
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
-                  key: SUPABASE_SERVICE_ROLE_KEY
+                  key: KINDE_ISSUER_URL
+            - name: KINDE_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_DOMAIN
+            - name: KINDE_SITE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_SITE_URL
+            - name: KINDE_LOGOUT_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_LOGOUT_REDIRECT_URL
+            - name: KINDE_POST_LOGOUT_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_POST_LOGOUT_REDIRECT_URL
+            - name: KINDE_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_REDIRECT_URL
+            - name: KINDE_POST_LOGIN_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: KINDE_POST_LOGIN_REDIRECT_URL
+            
             - name: OPENWEATHER_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: OPENWEATHER_API_KEY
+
+            - name: NEXT_PUBLIC_APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_APP_URL
+
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: SUPABASE_URL
+            - name: SUPABASE_SERVICE_ROLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: SUPABASE_SERVICE_ROLE_KEY
+
             - name: NEXT_PUBLIC_VAPID_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
@@ -75,11 +109,40 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: VAPID_PRIVATE_KEY
+                  
+            - name: AZURE_STORAGE_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: AZURE_STORAGE_ACCOUNT
+            - name: AZURE_STORAGE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: AZURE_STORAGE_KEY
+            - name: AZURE_STORAGE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: AZURE_STORAGE_ENDPOINT
+
+            - name: NEXT_PUBLIC_CLARITY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_CLARITY_ID
+
             - name: RESEND_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: RESEND_API_KEY
+
+            - name: SENTRY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: SENTRY_AUTH_TOKEN
 
           resources:
             requests:
