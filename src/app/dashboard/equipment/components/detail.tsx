@@ -415,13 +415,13 @@ export default function EquipmentDetail({
                             <h2 className="card-title">Documents</h2>
                             {documents && documents.filter((doc) => doc.type === "document").length > 0 ? (
                                 <ul className="list-disc pl-5">
-                                    {documents.filter((doc) => doc.type === "document").map((doc, index) => (
+                                    {/* {documents.filter((doc) => doc.type === "document").map((doc, index) => (
                                         <li key={index} className="mb-1">
                                             <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                                                 {doc.name}
                                             </a>
                                         </li>
-                                    ))}
+                                    ))} */}
                                 </ul>
                             ) : (
                                 <div className="text-gray-500">No documents available.</div>
