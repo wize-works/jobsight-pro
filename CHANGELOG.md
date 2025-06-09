@@ -1,3 +1,10 @@
+## [1.31.16](https://github.com/wize-works/jobsight-pro/compare/v1.31.15...v1.31.16) (2025-06-09)
+
+
+### Bug Fixes
+
+* Create directory for Next.js image cache in Dockerfile ([11e1c8e](https://github.com/wize-works/jobsight-pro/commit/11e1c8e187e55da8823e443d9876fa809ada4853))
+
 ## [1.31.15](https://github.com/wize-works/jobsight-pro/compare/v1.31.14...v1.31.15) (2025-06-09)
 
 
