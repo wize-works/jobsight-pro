@@ -6,22 +6,23 @@ import {
     LogoutLink,
     useKindeBrowserClient,
 } from "@kinde-oss/kinde-auth-nextjs";
+import { User } from "@/types/users";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
-    userAvatarUrl?: string;
+    userData: User | null;
     isLoadingUser?: boolean;
 };
 
 export const Navbar = ({
     sidebarCollapsed,
     setSidebarCollapsed,
-    userAvatarUrl,
+    userData,
     isLoadingUser = false,
 }: NavbarProps) => {
     const isMobile = useIsMobile();
-    const { user } = useKindeBrowserClient();
+    const { user: kindeUser } = useKindeBrowserClient();
 
     const handleSidebarToggle = () => {
         localStorage.setItem(
@@ -32,8 +33,27 @@ export const Navbar = ({
     };
 
     const getUserInitials = () => {
-        if (!user?.given_name && !user?.family_name) return "U";
-        return `${user?.given_name?.[0] || ""}${user?.family_name?.[0] || ""}`.toUpperCase();
+        if (userData?.first_name || userData?.last_name) {
+            return `${userData.first_name?.[0] || ""}${userData.last_name?.[0] || ""}`.toUpperCase();
+        }
+        if (kindeUser?.given_name || kindeUser?.family_name) {
+            return `${kindeUser.given_name?.[0] || ""}${kindeUser.family_name?.[0] || ""}`.toUpperCase();
+        }
+        return "U";
+    };
+
+    const getUserDisplayName = () => {
+        if (userData?.first_name || userData?.last_name) {
+            return `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+        }
+        if (kindeUser?.given_name || kindeUser?.family_name) {
+            return `${kindeUser.given_name || ""} ${kindeUser.family_name || ""}`.trim();
+        }
+        return "User";
+    };
+
+    const getUserEmail = () => {
+        return userData?.email || kindeUser?.email || "user@example.com";
     };
 
     return (
@@ -70,10 +90,10 @@ export const Navbar = ({
                             <div className="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
                                 {isLoadingUser ? (
                                     <span className="loading loading-spinner loading-xs"></span>
-                                ) : userAvatarUrl || user?.picture ? (
+                                ) : userData?.avatar_url ? (
                                     <img
-                                        alt={user?.given_name || "User avatar"}
-                                        src={userAvatarUrl || user?.picture || ""}
+                                        alt={getUserDisplayName()}
+                                        src={userData.avatar_url}
                                         className="w-full h-full rounded-full object-cover"
                                     />
                                 ) : (
@@ -86,16 +106,14 @@ export const Navbar = ({
                                 {isLoadingUser ? (
                                     <div className="h-4 bg-base-300 rounded animate-pulse w-24"></div>
                                 ) : (
-                                    user?.given_name
-                                        ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                        : "User"
+                                    getUserDisplayName()
                                 )}
                             </div>
                             <div className="text-xs text-base-content/60">
                                 {isLoadingUser ? (
                                     <div className="h-3 bg-base-300 rounded animate-pulse w-32 mt-1"></div>
                                 ) : (
-                                    user?.email || "user@example.com"
+                                    getUserEmail()
                                 )}
                             </div>
                         </div>
@@ -113,13 +131,10 @@ export const Navbar = ({
                                     <div className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
                                         {isLoadingUser ? (
                                             <span className="loading loading-spinner loading-sm"></span>
-                                        ) : userAvatarUrl || user?.picture ? (
+                                        ) : userData?.avatar_url ? (
                                             <img
-                                                alt={
-                                                    user?.given_name ||
-                                                    "User avatar"
-                                                }
-                                                src={userAvatarUrl || user?.picture || ""}
+                                                alt={getUserDisplayName()}
+                                                src={userData.avatar_url}
                                                 className="w-full h-full rounded-full object-cover"
                                             />
                                         ) : (
@@ -132,16 +147,14 @@ export const Navbar = ({
                                         {isLoadingUser ? (
                                             <div className="h-4 bg-base-300 rounded animate-pulse w-24"></div>
                                         ) : (
-                                            user?.given_name
-                                                ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                                : "User"
+                                            getUserDisplayName()
                                         )}
                                     </div>
                                     <div className="text-xs text-base-content/60 truncate mt-1">
                                         {isLoadingUser ? (
                                             <div className="h-3 bg-base-300 rounded animate-pulse w-32"></div>
                                         ) : (
-                                            user?.email || "user@example.com"
+                                            getUserEmail()
                                         )}
                                     </div>
                                 </div>

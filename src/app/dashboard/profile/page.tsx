@@ -85,17 +85,7 @@ export default function ProfilePage() {
     // Load user data when component mounts
     useEffect(() => {
         if (user && !isLoading) {
-            setProfileForm({
-                firstName: user.given_name || "",
-                lastName: user.family_name || "",
-                email: user.email || "",
-                phone: "",
-                jobTitle: "",
-                language: "English",
-                timeZone: "Pacific Time (PT)",
-            });
-
-            // Load current user data from database
+            // Load current user data from database first
             loadCurrentUser();
         }
     }, [user, isLoading]);
@@ -108,13 +98,27 @@ export default function ProfilePage() {
             if (dbUser) {
                 setCurrentUser(dbUser);
                 setAvatarUrl(dbUser.avatar_url);
-                // Update profile form with database data
-                setProfileForm(prev => ({
-                    ...prev,
-                    firstName: dbUser.first_name || prev.firstName,
-                    lastName: dbUser.last_name || prev.lastName,
-                    phone: dbUser.phone || prev.phone,
-                }));
+                // Set profile form from database data, fallback to Kinde only if db data is empty
+                setProfileForm({
+                    firstName: dbUser.first_name || user.given_name || "",
+                    lastName: dbUser.last_name || user.family_name || "",
+                    email: dbUser.email || user.email || "",
+                    phone: dbUser.phone || "",
+                    jobTitle: "", // This should come from database or be empty
+                    language: "English", // This should come from database or default
+                    timeZone: "Pacific Time (PT)", // This should come from database or default
+                });
+            } else {
+                // Only use Kinde data if no database user exists (shouldn't happen in normal flow)
+                setProfileForm({
+                    firstName: user.given_name || "",
+                    lastName: user.family_name || "",
+                    email: user.email || "",
+                    phone: "",
+                    jobTitle: "",
+                    language: "English",
+                    timeZone: "Pacific Time (PT)",
+                });
             }
         } catch (error) {
             console.error("Error loading user data:", error);
@@ -285,15 +289,15 @@ export default function ProfilePage() {
                                 {/* Avatar Section */}
                                     <div className="flex items-center space-x-6 mb-8">
                                         <div className="relative">
-                                            {avatarUrl || user?.picture ? (
+                                            {avatarUrl ? (
                                                 <img
-                                                    src={avatarUrl || user?.picture || ""}
+                                                    src={avatarUrl}
                                                     alt="Profile"
                                                     className="w-24 h-24 rounded-full object-cover border-4 border-base-300"
                                                 />
                                             ) : (
                                                 <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center text-2xl font-bold border-4 border-base-300">
-                                                    {user?.given_name?.[0] || currentUser?.first_name?.[0] || "U"}
+                                                    {currentUser?.first_name?.[0] || user?.given_name?.[0] || "U"}
                                                 </div>
                                             )}
                                             <button 

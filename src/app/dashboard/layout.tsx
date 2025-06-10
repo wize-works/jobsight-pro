@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type React from "react";
 import { Navbar } from "./navbar";
 import { Sidebar } from "./sidebar";
@@ -14,10 +14,13 @@ import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { getUserById } from "@/app/actions/users";
+import { User } from "@/types/users";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, isLoading } = useKindeAuth();
-    const userData = getUserById(user?.id || "");
+    const { user, isLoading: isKindeLoading } = useKindeAuth();
+    const [userData, setUserData] = useState<User | null>(null);
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    
     const storedSidebarCollapsed =
         typeof window !== "undefined"
             ? localStorage.getItem("sidebarCollapsed")
@@ -28,6 +31,29 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     const isMobile = useIsMobile();
     const pathname = usePathname();
 
+    // Load user data from database using Kinde auth_id
+    useEffect(() => {
+        const loadUserData = async () => {
+            if (!user?.id || isKindeLoading) {
+                setIsLoadingUser(isKindeLoading);
+                return;
+            }
+
+            setIsLoadingUser(true);
+            try {
+                const dbUser = await getUserById(user.id);
+                setUserData(dbUser);
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                setUserData(null);
+            } finally {
+                setIsLoadingUser(false);
+            }
+        };
+
+        loadUserData();
+    }, [user?.id, isKindeLoading]);
+
     return (
         <div className="drawer lg:drawer-open">
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
@@ -35,8 +61,8 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Navbar
                     setSidebarCollapsed={setSidebarCollapsed}
                     sidebarCollapsed={sidebarCollapsed}
-                    userAvatarUrl={userData?.avatar_url}
-                    isLoadingUser={isLoading}
+                    userData={userData}
+                    isLoadingUser={isLoadingUser}
                 />
                 <BusinessProvider>
                     <OfflineIndicator />
