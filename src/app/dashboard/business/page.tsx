@@ -12,6 +12,7 @@ import PushManager from "@/components/push-manager";
 import { getProjects } from "@/app/actions/projects";
 import { getEquipments } from "@/app/actions/equipments";
 import UsersPermissionsTab from "./components/tab-users";
+import { TabSubscription } from "./components/tab-subscription";
 
 
 export default function BusinessPage() {
@@ -315,14 +316,7 @@ export default function BusinessPage() {
 
             {activeTab === "users" && <UsersPermissionsTab />}
 
-            {activeTab === "subscription" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <h2 className="card-title text-xl mb-4">Subscription Details</h2>
-                        {/* Subscription content... */}
-                    </div>
-                </div>
-            )}
+            {activeTab === "subscription" && <TabSubscription />}
         </div>
     )
 }
