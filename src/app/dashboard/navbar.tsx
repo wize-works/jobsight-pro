@@ -11,12 +11,14 @@ type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
     userAvatarUrl?: string;
+    isLoadingUser?: boolean;
 };
 
 export const Navbar = ({
     sidebarCollapsed,
     setSidebarCollapsed,
     userAvatarUrl,
+    isLoadingUser = false,
 }: NavbarProps) => {
     const isMobile = useIsMobile();
     const { user } = useKindeBrowserClient();
@@ -66,7 +68,9 @@ export const Navbar = ({
                     >
                         <div className="avatar">
                             <div className="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
-                                {userAvatarUrl || user?.picture ? (
+                                {isLoadingUser ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : userAvatarUrl || user?.picture ? (
                                     <img
                                         alt={user?.given_name || "User avatar"}
                                         src={userAvatarUrl || user?.picture || ""}
@@ -79,12 +83,20 @@ export const Navbar = ({
                         </div>
                         <div className="hidden md:block text-left">
                             <div className="text-sm font-medium">
-                                {user?.given_name
-                                    ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                    : "User"}
+                                {isLoadingUser ? (
+                                    <div className="h-4 bg-base-300 rounded animate-pulse w-24"></div>
+                                ) : (
+                                    user?.given_name
+                                        ? `${user.given_name} ${user?.family_name || ""}`.trim()
+                                        : "User"
+                                )}
                             </div>
                             <div className="text-xs text-base-content/60">
-                                {user?.email || "user@example.com"}
+                                {isLoadingUser ? (
+                                    <div className="h-3 bg-base-300 rounded animate-pulse w-32 mt-1"></div>
+                                ) : (
+                                    user?.email || "user@example.com"
+                                )}
                             </div>
                         </div>
                         <i className="far fa-chevron-down text-xs"></i>
@@ -99,7 +111,9 @@ export const Navbar = ({
                             <div className="flex items-center gap-3">
                                 <div className="avatar">
                                     <div className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
-                                        {userAvatarUrl || user?.picture ? (
+                                        {isLoadingUser ? (
+                                            <span className="loading loading-spinner loading-sm"></span>
+                                        ) : userAvatarUrl || user?.picture ? (
                                             <img
                                                 alt={
                                                     user?.given_name ||
@@ -115,12 +129,20 @@ export const Navbar = ({
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="font-medium text-sm truncate">
-                                        {user?.given_name
-                                            ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                            : "User"}
+                                        {isLoadingUser ? (
+                                            <div className="h-4 bg-base-300 rounded animate-pulse w-24"></div>
+                                        ) : (
+                                            user?.given_name
+                                                ? `${user.given_name} ${user?.family_name || ""}`.trim()
+                                                : "User"
+                                        )}
                                     </div>
-                                    <div className="text-xs text-base-content/60 truncate">
-                                        {user?.email || "user@example.com"}
+                                    <div className="text-xs text-base-content/60 truncate mt-1">
+                                        {isLoadingUser ? (
+                                            <div className="h-3 bg-base-300 rounded animate-pulse w-32"></div>
+                                        ) : (
+                                            user?.email || "user@example.com"
+                                        )}
                                     </div>
                                 </div>
                             </div>

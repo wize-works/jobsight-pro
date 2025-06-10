@@ -32,6 +32,8 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Navbar
                     setSidebarCollapsed={setSidebarCollapsed}
                     sidebarCollapsed={sidebarCollapsed}
+                    userAvatarUrl={currentUser?.avatar_url}
+                    isLoadingUser={isLoadingUser}
                 />
                 <BusinessProvider>
                     <OfflineIndicator />
