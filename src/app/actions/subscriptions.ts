@@ -64,8 +64,8 @@ export async function createSubscription(
   planId: string,
   billingInterval: BillingInterval,
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { business, userId } = await withBusinessServer();
+    try {
+        const { business, userId } = await withBusinessServer();
 
     // Check if there's already an active subscription
     const existingSubscription = await getCurrentSubscription();

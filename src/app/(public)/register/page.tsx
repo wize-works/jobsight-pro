@@ -77,19 +77,12 @@ export default function RegisterPage() {
         };
 
         const checkExistingBusiness = async () => {
-            if (user?.id && isAuthenticated) {
+            if (user?.id && isAuthenticated && !invitationData) {
                 try {
-                    // Assuming you have a function to get user's business
-                    // const businessResponse = await getUserBusiness(user.id);
-                    const businessResponse = null; // Placeholder, replace with your actual API call
-
-                    // If user already has a business, redirect to dashboard
-                    if (businessResponse && 'id' in businessResponse) {
-                        router.push('/dashboard');
-                        return;
-                    }
+                    // For now, skip business check to avoid redirect loop
+                    // This will be handled by the dashboard's business check
+                    console.log('User authenticated, proceeding with registration flow');
                 } catch (error) {
-                    // User doesn't have business yet, continue with registration flow
                     console.log('User needs to complete registration');
                 }
             }
@@ -196,7 +189,8 @@ export default function RegisterPage() {
         setRegistrationStep("processing");
     };
 
-    if (isAuthLoading) {
+    // Show loading only if auth is actually loading and we don't have user data yet
+    if (isAuthLoading && !user) {
         console.log("Auth is loading, showing loading state");
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -507,9 +501,9 @@ export default function RegisterPage() {
         );
     }
 
-    // If user is authenticated but we're still loading business check
-    if (isAuthLoading) {
-        console.log("Auth is loading, showing loading state");
+    // If user is authenticated and we're processing registration
+    if (user && isProcessing) {
+        console.log("User authenticated, processing registration");
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
