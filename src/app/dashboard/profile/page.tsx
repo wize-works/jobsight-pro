@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -39,7 +40,6 @@ interface UserProfile {
 
 export default function ProfilePage() {
     const { user, isLoading } = useKindeAuth();
-    const [activeTab, setActiveTab] = useState("profile");
     const [isSaving, setIsSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -246,8 +246,9 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
+        <div className="max-w-6xl mx-auto space-y-8">
+            {/* Header */}
+            <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Profile Settings</h1>
                 {hasUnsavedChanges && (
                     <button
@@ -261,538 +262,512 @@ export default function ProfilePage() {
                 )}
             </div>
 
-            <div className="tabs tabs-boxed mb-6 bg-base-100 p-1">
-                <a
-                    className={`tab ${activeTab === "profile" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("profile")}
-                >
-                    <i className="fas fa-user mr-2"></i>
-                    Personal Info
-                </a>
-                <a
-                    className={`tab ${activeTab === "account" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("account")}
-                >
-                    <i className="fas fa-cog mr-2"></i>
-                    Account Settings
-                </a>
-                <a
-                    className={`tab ${activeTab === "notifications" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("notifications")}
-                >
-                    <i className="fas fa-bell mr-2"></i>
-                    Notifications
-                </a>
-            </div>
-
-            {activeTab === "profile" && (
-                <div className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                        <div className="flex flex-col lg:flex-row gap-8">
-                            <div className="lg:w-1/3 flex flex-col items-center">
-                                {/* Avatar Section */}
-                                <div className="flex items-center space-x-6 mb-8">
-                                    <div className="relative">
-                                        {avatarUrl ? (
-                                            <div className="avatar">
-                                                <div className="w-24 rounded-full">
-                                                    <img
-                                                        src={avatarUrl}
-                                                        alt="Profile"
-                                                        className=""
-                                                    />
-                                                </div>
+            {/* Profile Photo & Personal Information */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        <div className="lg:w-1/3 flex flex-col items-center">
+                            {/* Avatar Section */}
+                            <div className="flex items-center space-x-6 mb-8">
+                                <div className="relative">
+                                    {avatarUrl ? (
+                                        <div className="avatar">
+                                            <div className="w-24 rounded-full">
+                                                <img
+                                                    src={avatarUrl}
+                                                    alt="Profile"
+                                                    className=""
+                                                />
                                             </div>
+                                        </div>
+                                    ) : (
+                                        <div className="avatar avatar-placeholder">
+                                            <div className="bg-neutral text-neutral-content w-12 rounded-full">
+                                                <i className="fas fa-user"></i>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={triggerFileInput}
+                                        disabled={isUploadingAvatar}
+                                        className="btn btn-primary btn-circle absolute bottom-0 right-0"
+                                    >
+                                        {isUploadingAvatar ? (
+                                            <i className="fas fa-spinner fa-spin text-sm"></i>
                                         ) : (
-                                            <div className="avatar avatar-placeholder">
-                                                <div className="bg-neutral text-neutral-content w-12 rounded-full">
-                                                    <i className="fas fa-user"></i>
-                                                </div>
-                                            </div>
+                                            <i className="fas fa-camera text-sm"></i>
                                         )}
-                                        <button
-                                            onClick={triggerFileInput}
-                                            disabled={isUploadingAvatar}
-                                            className="btn btn-primary btn-circle absolute bottom-0 right-0"
-                                        >
-                                            {isUploadingAvatar ? (
-                                                <i className="fas fa-spinner fa-spin text-sm"></i>
-                                            ) : (
-                                                <i className="fas fa-camera text-sm"></i>
-                                            )}
-                                        </button>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleAvatarUpload}
-                                            className="hidden"
-                                        />
-                                    </div>
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarUpload}
+                                        className="hidden"
+                                    />
+                                </div>
 
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-2">
-                                            Profile Photo
-                                        </h3>
-                                        <p className="text-base-content/70 text-sm mb-4">
-                                            Update your profile photo to help
-                                            others recognize you. Max file size:
-                                            5MB.
-                                        </p>
-                                        <button
-                                            onClick={triggerFileInput}
-                                            disabled={isUploadingAvatar}
-                                            className="btn btn-outline btn-sm"
-                                        >
-                                            {isUploadingAvatar ? (
-                                                <>
-                                                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                                                    Uploading...
-                                                </>
-                                            ) : (
-                                                "Change Photo"
-                                            )}
-                                        </button>
-                                    </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">
+                                        Profile Photo
+                                    </h3>
+                                    <p className="text-base-content/70 text-sm mb-4">
+                                        Update your profile photo to help
+                                        others recognize you. Max file size:
+                                        5MB.
+                                    </p>
+                                    <button
+                                        onClick={triggerFileInput}
+                                        disabled={isUploadingAvatar}
+                                        className="btn btn-outline btn-sm"
+                                    >
+                                        {isUploadingAvatar ? (
+                                            <>
+                                                <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            "Change Photo"
+                                        )}
+                                    </button>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="lg:w-2/3">
-                                <h2 className="text-xl font-semibold mb-6">
-                                    Personal Information
-                                </h2>
+                        <div className="lg:w-2/3">
+                            <h2 className="text-xl font-semibold mb-6">
+                                Personal Information
+                            </h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text font-medium">
-                                                First Name
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered focus:input-primary"
-                                            value={profileForm.firstName}
-                                            onChange={(e) =>
-                                                handleProfileChange(
-                                                    "firstName",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Enter your first name"
-                                        />
-                                    </div>
-
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text font-medium">
-                                                Last Name
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered focus:input-primary"
-                                            value={profileForm.lastName}
-                                            onChange={(e) =>
-                                                handleProfileChange(
-                                                    "lastName",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Enter your last name"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-control mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="form-control">
                                     <label className="label">
                                         <span className="label-text font-medium">
-                                            Email
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        className="input input-bordered"
-                                        value={profileForm.email}
-                                        disabled
-                                    />
-                                    <label className="label">
-                                        <span className="label-text-alt text-warning">
-                                            <i className="fas fa-info-circle mr-1"></i>
-                                            Email cannot be changed directly.
-                                            Contact support for assistance.
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div className="form-control mt-6">
-                                    <label className="label">
-                                        <span className="label-text font-medium">
-                                            Phone Number
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        className="input input-bordered focus:input-primary"
-                                        value={profileForm.phone}
-                                        onChange={(e) =>
-                                            handleProfileChange(
-                                                "phone",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="(555) 123-4567"
-                                    />
-                                </div>
-
-                                <div className="form-control mt-6">
-                                    <label className="label">
-                                        <span className="label-text font-medium">
-                                            Job Title
+                                            First Name
                                         </span>
                                     </label>
                                     <input
                                         type="text"
                                         className="input input-bordered focus:input-primary"
-                                        value={profileForm.jobTitle}
+                                        value={profileForm.firstName}
                                         onChange={(e) =>
                                             handleProfileChange(
-                                                "jobTitle",
+                                                "firstName",
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="e.g., Project Manager"
+                                        placeholder="Enter your first name"
+                                    />
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">
+                                            Last Name
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered focus:input-primary"
+                                        value={profileForm.lastName}
+                                        onChange={(e) =>
+                                            handleProfileChange(
+                                                "lastName",
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="Enter your last name"
                                     />
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {activeTab === "account" && (
-                <div className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                        <h2 className="text-xl font-semibold mb-6">
-                            Account Settings
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="form-control">
+                            <div className="form-control mt-6">
                                 <label className="label">
                                     <span className="label-text font-medium">
-                                        Language
+                                        Email
                                     </span>
                                 </label>
-                                <select
-                                    className="select select-bordered focus:select-primary w-full"
-                                    value={profileForm.language}
+                                <input
+                                    type="email"
+                                    className="input input-bordered"
+                                    value={profileForm.email}
+                                    disabled
+                                />
+                                <label className="label">
+                                    <span className="label-text-alt text-warning">
+                                        <i className="fas fa-info-circle mr-1"></i>
+                                        Email cannot be changed directly.
+                                        Contact support for assistance.
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div className="form-control mt-6">
+                                <label className="label">
+                                    <span className="label-text font-medium">
+                                        Phone Number
+                                    </span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    className="input input-bordered focus:input-primary"
+                                    value={profileForm.phone}
                                     onChange={(e) =>
                                         handleProfileChange(
-                                            "language",
+                                            "phone",
                                             e.target.value,
                                         )
                                     }
-                                >
-                                    <option>English</option>
-                                    <option>Spanish</option>
-                                    <option>French</option>
-                                </select>
+                                    placeholder="(555) 123-4567"
+                                />
                             </div>
 
-                            <div className="form-control">
+                            <div className="form-control mt-6">
                                 <label className="label">
                                     <span className="label-text font-medium">
-                                        Time Zone
+                                        Job Title
                                     </span>
                                 </label>
-                                <select
-                                    className="select select-bordered focus:select-primary w-full"
-                                    value={profileForm.timeZone}
+                                <input
+                                    type="text"
+                                    className="input input-bordered focus:input-primary"
+                                    value={profileForm.jobTitle}
                                     onChange={(e) =>
                                         handleProfileChange(
-                                            "timeZone",
+                                            "jobTitle",
                                             e.target.value,
                                         )
                                     }
-                                >
-                                    <option>Pacific Time (PT)</option>
-                                    <option>Mountain Time (MT)</option>
-                                    <option>Central Time (CT)</option>
-                                    <option>Eastern Time (ET)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        
-
-                        <div className="divider mt-8"></div>
-
-                        <h3 className="text-lg font-semibold mb-4 text-error">
-                            Danger Zone
-                        </h3>
-
-                        <div className="alert alert-error shadow-lg">
-                            <div>
-                                <i className="fas fa-exclamation-triangle"></i>
-                                <div>
-                                    <h4 className="font-bold">
-                                        Delete Account
-                                    </h4>
-                                    <div className="text-xs">
-                                        Once you delete your account, there is
-                                        no going back. Please be certain.
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-none">
-                                <button className="btn btn-sm btn-error">
-                                    Delete
-                                </button>
+                                    placeholder="e.g., Project Manager"
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
 
-            {activeTab === "notifications" && (
-                <div className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                        <h2 className="text-xl font-semibold mb-6">
-                            Notification Preferences
-                        </h2>
+            {/* Account Settings */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                    <h2 className="text-xl font-semibold mb-6">
+                        Account Settings
+                    </h2>
 
-                        {notificationsLoading ? (
-                            <div className="flex justify-center py-8">
-                                <span className="loading loading-spinner loading-lg"></span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text font-medium">
+                                    Language
+                                </span>
+                            </label>
+                            <select
+                                className="select select-bordered focus:select-primary w-full"
+                                value={profileForm.language}
+                                onChange={(e) =>
+                                    handleProfileChange(
+                                        "language",
+                                        e.target.value,
+                                    )
+                                }
+                            >
+                                <option>English</option>
+                                <option>Spanish</option>
+                                <option>French</option>
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text font-medium">
+                                    Time Zone
+                                </span>
+                            </label>
+                            <select
+                                className="select select-bordered focus:select-primary w-full"
+                                value={profileForm.timeZone}
+                                onChange={(e) =>
+                                    handleProfileChange(
+                                        "timeZone",
+                                        e.target.value,
+                                    )
+                                }
+                            >
+                                <option>Pacific Time (PT)</option>
+                                <option>Mountain Time (MT)</option>
+                                <option>Central Time (CT)</option>
+                                <option>Eastern Time (ET)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Notification Preferences */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                    <h2 className="text-xl font-semibold mb-6">
+                        Notification Preferences
+                    </h2>
+
+                    {notificationsLoading ? (
+                        <div className="flex justify-center py-8">
+                            <span className="loading loading-spinner loading-lg"></span>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-6 mb-8">
+                                <div className="form-control">
+                                    <label className="label cursor-pointer justify-start gap-4">
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-primary"
+                                            checked={
+                                                notificationPreferences.email
+                                            }
+                                            onChange={(e) =>
+                                                handleNotificationChange(
+                                                    "general",
+                                                    "email",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-medium">
+                                                Email Notifications
+                                            </div>
+                                            <div className="text-sm text-base-content/70">
+                                                Receive email notifications
+                                                for important updates
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label cursor-pointer justify-start gap-4">
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-primary"
+                                            checked={
+                                                notificationPreferences.push
+                                            }
+                                            onChange={(e) =>
+                                                handleNotificationChange(
+                                                    "general",
+                                                    "push",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-medium">
+                                                Push Notifications
+                                            </div>
+                                            <div className="text-sm text-base-content/70">
+                                                Receive push notifications
+                                                on your device
+                                            </div>
+                                        </div>
+                                    </label>
+                                    {notificationPreferences.push && (
+                                        <div className="ml-16 mt-2">
+                                            <PushManager />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label cursor-pointer justify-start gap-4">
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-primary"
+                                            checked={
+                                                notificationPreferences.inApp
+                                            }
+                                            onChange={(e) =>
+                                                handleNotificationChange(
+                                                    "general",
+                                                    "inApp",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-medium">
+                                                In-App Notifications
+                                            </div>
+                                            <div className="text-sm text-base-content/70">
+                                                Receive notifications within
+                                                the application
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                        ) : (
-                            <>
-                                <div className="space-y-6">
-                                    <div className="form-control">
-                                        <label className="label cursor-pointer justify-start gap-4">
-                                            <input
-                                                type="checkbox"
-                                                className="toggle toggle-primary"
-                                                checked={
-                                                    notificationPreferences.email
-                                                }
-                                                onChange={(e) =>
-                                                    handleNotificationChange(
-                                                        "general",
-                                                        "email",
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                            />
-                                            <div className="flex-1">
-                                                <div className="font-medium">
-                                                    Email Notifications
-                                                </div>
-                                                <div className="text-sm text-base-content/70">
-                                                    Receive email notifications
-                                                    for important updates
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
 
-                                    <div className="form-control">
-                                        <label className="label cursor-pointer justify-start gap-4">
-                                            <input
-                                                type="checkbox"
-                                                className="toggle toggle-primary"
-                                                checked={
-                                                    notificationPreferences.push
-                                                }
-                                                onChange={(e) =>
-                                                    handleNotificationChange(
-                                                        "general",
-                                                        "push",
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                            />
-                                            <div className="flex-1">
-                                                <div className="font-medium">
-                                                    Push Notifications
-                                                </div>
-                                                <div className="text-sm text-base-content/70">
-                                                    Receive push notifications
-                                                    on your device
-                                                </div>
-                                            </div>
-                                        </label>
-                                        {notificationPreferences.push && (
-                                            <div className="ml-16 mt-2">
-                                                <PushManager />
-                                            </div>
-                                        )}
-                                    </div>
+                            <div className="divider"></div>
 
-                                    <div className="form-control">
-                                        <label className="label cursor-pointer justify-start gap-4">
-                                            <input
-                                                type="checkbox"
-                                                className="toggle toggle-primary"
-                                                checked={
-                                                    notificationPreferences.inApp
-                                                }
-                                                onChange={(e) =>
-                                                    handleNotificationChange(
-                                                        "general",
-                                                        "inApp",
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                            />
-                                            <div className="flex-1">
-                                                <div className="font-medium">
-                                                    In-App Notifications
-                                                </div>
-                                                <div className="text-sm text-base-content/70">
-                                                    Receive notifications within
-                                                    the application
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-semibold">
+                                    Notification Types
+                                </h3>
+                                <div className="text-sm text-base-content/70">
+                                    Configure which types of notifications
+                                    you want to receive
                                 </div>
+                            </div>
 
-                                <div className="divider mt-8"></div>
-
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-lg font-semibold">
-                                        Notification Types
-                                    </h3>
-                                    <div className="text-sm text-base-content/70">
-                                        Configure which types of notifications
-                                        you want to receive
-                                    </div>
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="table table-zebra">
-                                        <thead>
-                                            <tr>
-                                                <th className="font-semibold">
-                                                    Notification Type
-                                                </th>
-                                                <th className="text-center">
-                                                    Email
-                                                </th>
-                                                <th className="text-center">
-                                                    Push
-                                                </th>
-                                                <th className="text-center">
-                                                    In-App
-                                                </th>
-                                                <th className="text-center">
-                                                    Test
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(
-                                                Object.entries(
-                                                    notificationPreferences.types,
-                                                ) as [NotificationType, any][]
-                                            ).map(([key, value]) => (
-                                                <tr key={key}>
-                                                    <td className="font-medium">
-                                                        {key
-                                                            .replace(
-                                                                /([A-Z])/g,
-                                                                " $1",
+                            <div className="overflow-x-auto">
+                                <table className="table table-zebra">
+                                    <thead>
+                                        <tr>
+                                            <th className="font-semibold">
+                                                Notification Type
+                                            </th>
+                                            <th className="text-center">
+                                                Email
+                                            </th>
+                                            <th className="text-center">
+                                                Push
+                                            </th>
+                                            <th className="text-center">
+                                                In-App
+                                            </th>
+                                            <th className="text-center">
+                                                Test
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(
+                                            Object.entries(
+                                                notificationPreferences.types,
+                                            ) as [NotificationType, any][]
+                                        ).map(([key, value]) => (
+                                            <tr key={key}>
+                                                <td className="font-medium">
+                                                    {key
+                                                        .replace(
+                                                            /([A-Z])/g,
+                                                            " $1",
+                                                        )
+                                                        .trim()}
+                                                </td>
+                                                <td className="text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox checkbox-primary"
+                                                        checked={
+                                                            value.email &&
+                                                            notificationPreferences.email
+                                                        }
+                                                        disabled={
+                                                            !notificationPreferences.email
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleNotificationChange(
+                                                                key,
+                                                                "email",
+                                                                e.target
+                                                                    .checked,
                                                             )
-                                                            .trim()}
-                                                    </td>
-                                                    <td className="text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="checkbox checkbox-primary"
-                                                            checked={
-                                                                value.email &&
-                                                                notificationPreferences.email
-                                                            }
-                                                            disabled={
-                                                                !notificationPreferences.email
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleNotificationChange(
-                                                                    key,
-                                                                    "email",
-                                                                    e.target
-                                                                        .checked,
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td className="text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="checkbox checkbox-primary"
-                                                            checked={
-                                                                value.push &&
-                                                                notificationPreferences.push
-                                                            }
-                                                            disabled={
-                                                                !notificationPreferences.push
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleNotificationChange(
-                                                                    key,
-                                                                    "push",
-                                                                    e.target
-                                                                        .checked,
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td className="text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="checkbox checkbox-primary"
-                                                            checked={
-                                                                value.inApp &&
-                                                                notificationPreferences.inApp
-                                                            }
-                                                            disabled={
-                                                                !notificationPreferences.inApp
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleNotificationChange(
-                                                                    key,
-                                                                    "inApp",
-                                                                    e.target
-                                                                        .checked,
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td className="text-center">
-                                                        <button
-                                                            className="btn btn-xs btn-ghost tooltip"
-                                                            data-tip="Send test notification"
-                                                            onClick={() =>
-                                                                sendTestNotification(
-                                                                    key as NotificationType,
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="fas fa-paper-plane"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                                        }
+                                                    />
+                                                </td>
+                                                <td className="text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox checkbox-primary"
+                                                        checked={
+                                                            value.push &&
+                                                            notificationPreferences.push
+                                                        }
+                                                        disabled={
+                                                            !notificationPreferences.push
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleNotificationChange(
+                                                                key,
+                                                                "push",
+                                                                e.target
+                                                                    .checked,
+                                                            )
+                                                        }
+                                                    />
+                                                </td>
+                                                <td className="text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox checkbox-primary"
+                                                        checked={
+                                                            value.inApp &&
+                                                            notificationPreferences.inApp
+                                                        }
+                                                        disabled={
+                                                            !notificationPreferences.inApp
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleNotificationChange(
+                                                                key,
+                                                                "inApp",
+                                                                e.target
+                                                                    .checked,
+                                                            )
+                                                        }
+                                                    />
+                                                </td>
+                                                <td className="text-center">
+                                                    <button
+                                                        className="btn btn-xs btn-ghost tooltip"
+                                                        data-tip="Send test notification"
+                                                        onClick={() =>
+                                                            sendTestNotification(
+                                                                key as NotificationType,
+                                                            )
+                                                        }
+                                                    >
+                                                        <i className="fas fa-paper-plane"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                    <h3 className="text-lg font-semibold mb-4 text-error">
+                        Danger Zone
+                    </h3>
+
+                    <div className="alert alert-error shadow-lg">
+                        <div>
+                            <i className="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <h4 className="font-bold">
+                                    Delete Account
+                                </h4>
+                                <div className="text-xs">
+                                    Once you delete your account, there is
+                                    no going back. Please be certain.
                                 </div>
-                            </>
-                        )}
+                            </div>
+                        </div>
+                        <div className="flex-none">
+                            <button className="btn btn-sm btn-error">
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
