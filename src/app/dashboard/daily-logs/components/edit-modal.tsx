@@ -549,7 +549,7 @@ export default function EditModal({
                                         <span>No materials added yet. Click "Add Material" to track materials used in this log.</span>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         {materials.map((material, index) => (
                                             <div key={material.id} className="card bg-base-100 border border-base-300 shadow-sm">
                                                 <div className="card-body p-4">
@@ -567,7 +567,7 @@ export default function EditModal({
                                                         </button>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="form-control">
                                                             <label className="label">
                                                                 <span className="label-text font-medium">Material Name</span>
@@ -598,7 +598,7 @@ export default function EditModal({
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="form-control">
                                                             <label className="label">
                                                                 <span className="label-text font-medium">Quantity</span>
@@ -669,7 +669,7 @@ export default function EditModal({
                                         <span>No equipment added yet. Click "Add Equipment" to track equipment used in this log.</span>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         {equipment.map((equip, index) => (
                                             <div key={equip.id} className="card bg-base-100 border border-base-300 shadow-sm">
                                                 <div className="card-body p-4">
@@ -687,7 +687,7 @@ export default function EditModal({
                                                         </button>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="form-control">
                                                             <label className="label">
                                                                 <span className="label-text font-medium">Equipment Name</span>
@@ -727,7 +727,7 @@ export default function EditModal({
 
                         {/* Notes Tab */}
                         {activeTab === "notes" && (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
                                     <h3 className="text-lg font-semibold text-base-content mb-2">Additional Notes</h3>
                                     <p className="text-sm text-base-content/70">Add any additional observations, comments, or important details</p>

@@ -21,7 +21,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
 
     return (
         <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-title">Total Invoices</div>
                     <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
             </div>
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body p-2">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="form-control w-full md:w-1/3">
                             <input
                                 type="text"
@@ -104,7 +104,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                 </div>
             </div>
             {viewType === "grid" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
 
                     {invoices.map((invoice) => (
                         <InvoiceCard key={invoice.id} invoice={invoice} />

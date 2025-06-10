@@ -41,7 +41,7 @@ export default function NewDailyLogLoading() {
                         <div className="h-6 bg-base-300 rounded w-40 animate-pulse mb-2"></div>
                         <div className="divider my-2"></div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[...Array(4)].map((_, i) => (
                                 <div key={i}>
                                     <div className="h-4 bg-base-300 rounded w-24 animate-pulse mb-2"></div>

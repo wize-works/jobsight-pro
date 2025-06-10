@@ -67,7 +67,7 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
                     <p className="text-xs text-base-content/70 mb-2 line-clamp-2">{task.description}</p>
                 )}
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-6 text-xs">
                     <div className="flex justify-between items-center">
                         <span className="text-base-content/60">Project:</span>
                         <Link
@@ -210,7 +210,7 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
                                 No tasks
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-6">
                                 {tasks.map((task) => (
                                     <TaskCard
                                         key={task.id}
@@ -274,7 +274,7 @@ export default function KanbanPage({ tasks = [], projects = [], crews = [] }: Ka
                         </div>
                     </div>
 
-                    <div className="flex gap-4 overflow-x-auto pb-4">
+                    <div className="flex gap-6 overflow-x-auto pb-4">
                         {columns.map((column) => (
                             <KanbanColumn
                                 key={column.status}

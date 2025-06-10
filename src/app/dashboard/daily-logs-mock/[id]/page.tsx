@@ -195,7 +195,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                                 <h2 className="card-title">Weather Conditions</h2>
                                 <div className="divider my-2"></div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                     <div className="text-center">
                                         <i className="fas fa-sun text-3xl text-warning mb-2"></i>
                                         <p className="font-semibold">{log.weather.condition}</p>
@@ -275,7 +275,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                                 <div className="divider my-2"></div>
 
                                 {log.visitors.length > 0 ? (
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-6">
                                         {log.visitors.map((visitor, index) => (
                                             <li key={index} className="flex justify-between">
                                                 <div>
@@ -426,7 +426,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                                 <h2 className="card-title">Productivity</h2>
                                 <div className="divider my-2"></div>
 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-6">
                                     <div>
                                         <div className="flex justify-between mb-1">
                                             <span>Foundation Work</span>
@@ -548,7 +548,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                                 <h2 className="card-title">Material Cost Breakdown</h2>
                                 <div className="divider my-2"></div>
 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-6">
                                     {log.materials.map((material, index) => (
                                         <div key={index}>
                                             <div className="flex justify-between mb-1">
@@ -577,7 +577,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                                 <h2 className="card-title">Equipment Hours</h2>
                                 <div className="divider my-2"></div>
 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-6">
                                     {log.equipment.map((equipment, index) => (
                                         <div key={index}>
                                             <div className="flex justify-between mb-1">
@@ -617,7 +617,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                             </h2>
                             <div className="divider my-2"></div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
                                     <h3 className="font-semibold">Incidents</h3>
                                     <p>{log.safety.incidents}</p>
@@ -649,7 +649,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                             </h2>
                             <div className="divider my-2"></div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
                                     <h3 className="font-semibold">Quality Inspections</h3>
                                     <p>{log.quality.inspections}</p>
@@ -677,7 +677,7 @@ export default function DailyLogDetailPage({ params }: { params: Promise<{ id: s
                             <div className="divider my-2"></div>
 
                             {log.delays.description ? (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
                                         <h3 className="font-semibold">Description</h3>
                                         <p>{log.delays.description}</p>

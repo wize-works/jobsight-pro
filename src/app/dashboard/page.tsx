@@ -102,7 +102,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="card bg-base-100 shadow-sm">
                     <div className="card-body p-4">
                         <div className="flex justify-between items-center">
@@ -213,7 +213,7 @@ export default function Dashboard() {
                             </Link>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div className="flex gap-3">
                                 <div className="avatar">
                                     <div className="w-10 rounded-full">

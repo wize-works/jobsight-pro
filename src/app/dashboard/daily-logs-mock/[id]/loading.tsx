@@ -55,7 +55,7 @@ export default function DailyLogDetailLoading() {
                             <div className="h-6 bg-base-300 rounded w-40 animate-pulse mb-2"></div>
                             <div className="divider my-2"></div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                 {[...Array(4)].map((_, i) => (
                                     <div key={i} className="flex flex-col items-center">
                                         <div className="h-12 w-12 bg-base-300 rounded-full animate-pulse mb-2"></div>
@@ -91,7 +91,7 @@ export default function DailyLogDetailLoading() {
                             <div className="h-5 bg-base-300 rounded w-full animate-pulse mb-2"></div>
 
                             <div className="h-5 bg-base-300 rounded w-32 animate-pulse mt-4 mb-2"></div>
-                            <div className="space-y-2">
+                            <div className="space-y-6">
                                 {[...Array(5)].map((_, i) => (
                                     <div key={i} className="h-4 bg-base-300 rounded w-full animate-pulse"></div>
                                 ))}
@@ -104,7 +104,7 @@ export default function DailyLogDetailLoading() {
                             <div className="h-6 bg-base-300 rounded w-40 animate-pulse mb-2"></div>
                             <div className="divider my-2"></div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-6">
                                 {[...Array(2)].map((_, i) => (
                                     <div key={i} className="flex justify-between">
                                         <div className="h-10 bg-base-300 rounded w-32 animate-pulse"></div>

@@ -73,7 +73,7 @@ export default function IntegrationsSettingsClient() {
     return (
         <div>
             {/* ...existing JSX from the original file, except for getSupabaseBrowserClient usage... */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/settings" className="btn btn-ghost btn-sm">
                         <i className="fas fa-arrow-left"></i>

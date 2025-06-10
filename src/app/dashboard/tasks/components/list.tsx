@@ -172,7 +172,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
 
     return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold">Task Management</h1>
                     <p className="text-base-content/70">Manage and track all tasks across your projects</p>
@@ -182,7 +182,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-figure text-primary">
                         <div className="bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
@@ -227,7 +227,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
 
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="form-control grow">
                             <div className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>

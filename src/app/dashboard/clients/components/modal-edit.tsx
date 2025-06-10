@@ -50,7 +50,7 @@ export default function ClientEditForm({ client, onClose, onSubmit }: { client: 
                 <h2 className="text-xl font-bold mb-4">Client Information</h2>
                 {error && <div className="text-error">{error}</div>}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="form-control">
                     <label className="label">Business Name</label>
                     <input
@@ -131,7 +131,7 @@ export default function ClientEditForm({ client, onClose, onSubmit }: { client: 
                         onChange={handleChange}
                     />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-6 col-span-2">
                     <div className="form-control col-span-6">
                         <label className="label">Address</label>
                         <input
@@ -169,7 +169,7 @@ export default function ClientEditForm({ client, onClose, onSubmit }: { client: 
                         />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 col-span-2">
                     <div className="form-control">
                         <label className="label">Website</label>
                         <input

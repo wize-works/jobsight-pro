@@ -400,7 +400,7 @@ export default function CrewDetailComponent({
                     <div className="order-1 md:order-1">
                         <div className="card bg-base-100 shadow-sm">
                             <div className="card-body">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
                                         <h3 className="font-semibold mb-2">Specialty</h3>
                                         <p>{crew.specialty || "General Construction"}</p>
@@ -772,7 +772,7 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Add New Crew Member</h3>
-                                <form className="space-y-4">
+                                <form className="space-y-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Name</span>
@@ -913,7 +913,7 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Add Crew Assignment</h3>
-                                <form className="space-y-4">
+                                <form className="space-y-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Project</span>
@@ -986,7 +986,7 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Edit Crew Member</h3>
-                                <form className="space-y-4">
+                                <form className="space-y-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Name</span>
@@ -1077,7 +1077,7 @@ export default function CrewDetailComponent({
                         <div className="modal modal-open">
                             <div className="modal-box">
                                 <h3 className="font-bold text-lg mb-4">Edit Equipment Assignment</h3>
-                                <form className="space-y-4">
+                                <form className="space-y-6">
                                     {/* Add form fields for editing equipment assignment */}
                                     <div className="form-control">
                                         <label className="label">

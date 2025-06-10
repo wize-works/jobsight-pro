@@ -38,12 +38,12 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="card bg-base-100 shadow-sm animate-pulse">
                                 <div className="card-body">
-                                    <div className="flex items-center justify-between space-x-2">
+                                    <div className="flex items-center justify-between space-x-6">
                                         <div className="skeleton h-5 w-32"></div>
                                         <div className="skeleton h-4 w-20"></div>
                                     </div>
                                     <div className="skeleton h-3 w-40 mt-2"></div>
-                                    <div className="flex justify-end space-x-2 mt-4">
+                                    <div className="flex justify-end space-x-6 mt-4">
                                         <div className="skeleton h-8 w-16"></div>
                                         <div className="skeleton h-8 w-20"></div>
                                     </div>
@@ -61,12 +61,12 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="card bg-base-100 shadow-sm animate-pulse">
                                 <div className="card-body">
-                                    <div className="flex items-center justify-between space-x-2">
+                                    <div className="flex items-center justify-between space-x-6">
                                         <div className="skeleton h-5 w-32"></div>
                                         <div className="skeleton h-4 w-20"></div>
                                     </div>
                                     <div className="skeleton h-3 w-40 mt-2"></div>
-                                    <div className="flex justify-end space-x-2 mt-4">
+                                    <div className="flex justify-end space-x-6 mt-4">
                                         <div className="skeleton h-8 w-16"></div>
                                         <div className="skeleton h-8 w-20"></div>
                                     </div>
@@ -97,14 +97,14 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         {crews.map((crew) => (
                             <div key={crew.id} className="card bg-base-100 shadow-sm flex justify-between">
                                 <div className="card-body">
-                                    <div className="flex items-center justify-between space-x-2">
+                                    <div className="flex items-center justify-between space-x-6">
                                         <div className="text-lg font-semibold">{crew.name}</div>
                                         <div className="badge badge-outline">{crew.member_count} members</div>
                                     </div>
                                     <div className="text-sm text-base-content/70">
                                         {!crew.leader_name ? "No leader assigned" : `Led by ${crew.leader_name}`}
                                     </div>
-                                    <div className="flex justify-end space-x-2">
+                                    <div className="flex justify-end space-x-6">
                                         <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                             <i className="fas fa-eye"></i>
                                             View
@@ -131,14 +131,14 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         {availableCrews.map((crew) => (
                             <div key={crew.id} className="card bg-base-100 shadow-sm flex justify-between">
                                 <div className="card-body">
-                                    <div className="flex items-center justify-between space-x-2">
+                                    <div className="flex items-center justify-between space-x-6">
                                         <div className="text-lg font-semibold">{crew.name}</div>
                                         <div className="badge badge-outline">{crew.member_count} members</div>
                                     </div>
                                     <div className="text-sm text-base-content/70">
                                         {!crew.leader_name ? "No leader assigned" : `Led by ${crew.leader_name}`}
                                     </div>
-                                    <div className="flex justify-end space-x-2">
+                                    <div className="flex justify-end space-x-6">
                                         <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                             <i className="fas fa-eye"></i>
                                             View

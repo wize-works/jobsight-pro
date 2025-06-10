@@ -38,7 +38,7 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
     return (
         <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Total Logs</div>
                     <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
 
             {/* Filters */}
             <div className="bg-base-100 p-4 rounded-lg shadow mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="form-control">
                         <select
                             className="select select-bordered w-full"
@@ -156,7 +156,7 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
                                     <span className="badge badge-secondary">{new Date(log.date).toLocaleDateString()}</span>
                                     <span className="badge badge-info ml-2">Hours: {log.hours_worked || 0}</span>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <h3 className="font-semibold">Work Completed</h3>
                                         {log.work_completed}

@@ -174,7 +174,7 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                         </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-6 mb-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Start Date</span>
@@ -202,7 +202,7 @@ export const UsageModal = ({ usage, onClose, onSave }: UsageModalProps) => {
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                    <div className='grid grid-cols-2 gap-6 mb-4'>
                         <div className="form-control mb-4">
                             <label className="label w-full">
                                 <span className="label-text">Hours Used</span>

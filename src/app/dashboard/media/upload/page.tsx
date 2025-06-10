@@ -338,9 +338,9 @@ export default function MediaUpload() {
                                 </button>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-6">
                                 {files.map((fileUpload) => (
-                                    <div key={fileUpload.id} className="flex items-center gap-4 p-3 border rounded-lg">
+                                    <div key={fileUpload.id} className="flex items-center gap-6 p-3 border rounded-lg">
                                         <div className="flex-shrink-0">
                                             {getFileIcon(fileUpload.file)}
                                         </div>

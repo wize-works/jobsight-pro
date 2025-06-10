@@ -91,7 +91,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
 
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="flex-1">
                             <label className="input input-bordered input-secondary flex items-center gap-2">
                                 <i className="fas fa-search"></i>
@@ -125,7 +125,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
             </div>
 
             {viewType === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCrews.map((crew) => (
                         <div key={crew.id}>
                             <CrewCard
@@ -185,7 +185,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
                     <div className="modal-box">
                         <h3 className="font-bold text-lg mb-4">Add New Crew</h3>
 
-                        <form className="space-y-4">
+                        <form className="space-y-6">
                             <div className="form-control w-full">
                                 <label className="label">
                                     <span className="label-text">Crew Name</span>

@@ -69,7 +69,7 @@ export function Toaster() {
 
                 return (
                     <div key={id} className={`alert ${alertClass} relative overflow-hidden`}>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-6">
                             {variant === "info" && <i className="fas fa-info-circle text-2xl shrink-0" />}
                             {variant === "success" && <i className="fas fa-check-circle text-2xl shrink-0" />}
                             {variant === "warning" && <i className="fas fa-exclamation-triangle text-2xl shrink-0" />}

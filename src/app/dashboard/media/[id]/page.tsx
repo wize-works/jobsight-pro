@@ -265,7 +265,7 @@ export default function MediaDetail() {
                         <div className="card-body">
                             <h3 className="card-title text-lg mb-4">Details</h3>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
                                     <label className="text-sm font-medium text-base-content/70">Description</label>
                                     {isEditing ? (

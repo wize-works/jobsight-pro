@@ -131,7 +131,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                     <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
                             <h2 className="card-title mb-4">Task Information</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="label">
                                         <span className="label-text font-medium">Task Name</span>
@@ -209,7 +209,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                     <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
                             <h3 className="card-title text-lg mb-4">Quick Actions</h3>
-                            <div className="space-y-2">
+                            <div className="space-y-6">
                                 <button
                                     className="btn btn-sm btn-outline w-full"
                                     onClick={() => handleUpdateTask({ status: "in_progress" })}
@@ -238,7 +238,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                         <div className="card bg-base-100 shadow-sm">
                             <div className="card-body">
                                 <h3 className="card-title text-lg mb-4">Task Details</h3>
-                                <div className="space-y-2 text-sm">
+                                <div className="space-y-6 text-sm">
                                     <div>
                                         <span className="text-base-content/70">Created:</span>
                                         <div>{formatDate(task.created_at)}</div>

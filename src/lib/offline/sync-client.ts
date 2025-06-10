@@ -22,6 +22,7 @@ class SyncManager {
     constructor() {
         if (typeof window !== 'undefined') {
             this.setupEventListeners();
+            this.setupServiceWorkerListeners();
             this.loadQueueCount();
         }
     }
@@ -35,6 +36,27 @@ class SyncManager {
         window.addEventListener("offline", () => {
             this.updateStatus({ isOnline: false, isSyncing: false });
         });
+    }
+
+    private setupServiceWorkerListeners() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                const { type, items, error } = event.data;
+                
+                switch (type) {
+                    case 'SYNC_REQUIRED':
+                        console.log('Service Worker requested sync for', items?.length || 0, 'items');
+                        this.syncWhenOnline();
+                        break;
+                    case 'SYNC_FAILED':
+                        this.updateStatus({ 
+                            syncError: `Background sync failed: ${error}`,
+                            isSyncing: false 
+                        });
+                        break;
+                }
+            });
+        }
     } private async loadQueueCount() {
         try {
             // Get business ID from context or storage

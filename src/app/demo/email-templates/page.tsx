@@ -172,7 +172,7 @@ export default function EmailTemplateDemo() {
                             <div className="card-body">
                                 <h2 className="card-title text-lg mb-4">📋 Templates</h2>
 
-                                <div className="space-y-2">
+                                <div className="space-y-6">
                                     {Object.entries(templates).map(([key, template]) => (
                                         <button
                                             key={key}
@@ -207,7 +207,7 @@ export default function EmailTemplateDemo() {
 
                                 <div className="divider"></div>
 
-                                <div className="text-xs text-base-content/60 space-y-2">
+                                <div className="text-xs text-base-content/60 space-y-6">
                                     <p><strong>📚 Features:</strong></p>
                                     <ul className="list-disc list-inside space-y-1 text-xs">
                                         <li>Brand consistent colors</li>
@@ -282,8 +282,8 @@ export default function EmailTemplateDemo() {
                                     <div
                                         id="email-preview"
                                         className={`border border-base-300 rounded-lg overflow-hidden bg-white transition-all duration-300 ${viewMode === 'mobile'
-                                                ? 'max-w-sm mx-auto'
-                                                : 'w-full'
+                                            ? 'max-w-sm mx-auto'
+                                            : 'w-full'
                                             }`}
                                         style={{
                                             maxHeight: '80vh',
@@ -328,7 +328,7 @@ export default function EmailTemplateDemo() {
 
                             <div className="mt-6">
                                 <h3 className="font-semibold text-lg mb-3">📋 Available Components</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="card bg-base-200 shadow-sm">
                                         <div className="card-body py-4">
                                             <h4 className="font-semibold">EmailTemplate</h4>

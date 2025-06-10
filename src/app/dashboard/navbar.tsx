@@ -6,18 +6,23 @@ import {
     LogoutLink,
     useKindeBrowserClient,
 } from "@kinde-oss/kinde-auth-nextjs";
+import { User } from "@/types/users";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+    userData: User | null;
+    isLoadingUser?: boolean;
 };
 
 export const Navbar = ({
     sidebarCollapsed,
     setSidebarCollapsed,
+    userData,
+    isLoadingUser = false,
 }: NavbarProps) => {
     const isMobile = useIsMobile();
-    const { user } = useKindeBrowserClient();
+    const { user: kindeUser } = useKindeBrowserClient();
 
     const handleSidebarToggle = () => {
         localStorage.setItem(
@@ -28,8 +33,27 @@ export const Navbar = ({
     };
 
     const getUserInitials = () => {
-        if (!user?.given_name && !user?.family_name) return "U";
-        return `${user?.given_name?.[0] || ""}${user?.family_name?.[0] || ""}`.toUpperCase();
+        if (userData?.first_name || userData?.last_name) {
+            return `${userData.first_name?.[0] || ""}${userData.last_name?.[0] || ""}`.toUpperCase();
+        }
+        if (kindeUser?.given_name || kindeUser?.family_name) {
+            return `${kindeUser.given_name?.[0] || ""}${kindeUser.family_name?.[0] || ""}`.toUpperCase();
+        }
+        return "U";
+    };
+
+    const getUserDisplayName = () => {
+        if (userData?.first_name || userData?.last_name) {
+            return `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+        }
+        if (kindeUser?.given_name || kindeUser?.family_name) {
+            return `${kindeUser.given_name || ""} ${kindeUser.family_name || ""}`.trim();
+        }
+        return "User";
+    };
+
+    const getUserEmail = () => {
+        return userData?.email || kindeUser?.email || "user@example.com";
     };
 
     return (
@@ -63,12 +87,14 @@ export const Navbar = ({
                         className="btn btn-ghost flex items-center gap-2 hover:bg-base-200 transition-colors"
                     >
                         <div className="avatar">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
-                                {user?.picture ? (
+                            <div className="w-12 mask mask-circle">
+                                {isLoadingUser ? (
+                                    <span className="skeleton h-16 w-16 shrink-0"></span>
+                                ) : userData?.avatar_url ? (
                                     <img
-                                        alt={user?.given_name || "User avatar"}
-                                        src={user.picture}
-                                        className="w-full h-full rounded-full object-cover"
+                                        alt={getUserDisplayName()}
+                                        src={userData.avatar_url}
+                                        className=""
                                     />
                                 ) : (
                                     getUserInitials()
@@ -77,12 +103,18 @@ export const Navbar = ({
                         </div>
                         <div className="hidden md:block text-left">
                             <div className="text-sm font-medium">
-                                {user?.given_name
-                                    ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                    : "User"}
+                                {isLoadingUser ? (
+                                    <div className="h-4 bg-base-300 rounded animate-pulse w-24"></div>
+                                ) : (
+                                    getUserDisplayName()
+                                )}
                             </div>
                             <div className="text-xs text-base-content/60">
-                                {user?.email || "user@example.com"}
+                                {isLoadingUser ? (
+                                    <div className="h-3 bg-base-300 rounded animate-pulse w-32 mt-1"></div>
+                                ) : (
+                                    getUserEmail()
+                                )}
                             </div>
                         </div>
                         <i className="far fa-chevron-down text-xs"></i>
@@ -92,54 +124,21 @@ export const Navbar = ({
                         tabIndex={0}
                         className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-base-100 rounded-box w-64 border border-base-200"
                     >
-                        {/* User info header */}
-                        <li className="menu-title px-4 py-2">
-                            <div className="flex items-center gap-3">
-                                <div className="avatar">
-                                    <div className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
-                                        {user?.picture ? (
-                                            <img
-                                                alt={
-                                                    user?.given_name ||
-                                                    "User avatar"
-                                                }
-                                                src={user.picture}
-                                                className="w-full h-full rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            getUserInitials()
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="font-medium text-sm truncate">
-                                        {user?.given_name
-                                            ? `${user.given_name} ${user?.family_name || ""}`.trim()
-                                            : "User"}
-                                    </div>
-                                    <div className="text-xs text-base-content/60 truncate">
-                                        {user?.email || "user@example.com"}
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-
-                        <div className="divider my-1"></div>
-
                         <li>
-                            <Link href="/dashboard/profile" className="flex items-center gap-3 py-2" >
+                            <Link
+                                href="/dashboard/profile"
+                                className="flex items-center gap-3 py-2"
+                            >
                                 <i className="far fa-user w-4"></i>
                                 <span>Profile</span>
                             </Link>
                         </li>
+                        
                         <li>
-                            <Link href="/dashboard/settings" className="flex items-center gap-3 py-2" >
-                                <i className="far fa-cog w-4"></i>
-                                <span>Settings</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/dashboard/business" className="flex items-center gap-3 py-2" >
+                            <Link
+                                href="/dashboard/business"
+                                className="flex items-center gap-3 py-2"
+                            >
                                 <i className="far fa-buildings w-4"></i>
                                 <span>Business Settings</span>
                             </Link>
@@ -148,13 +147,19 @@ export const Navbar = ({
                         <div className="divider my-1"></div>
 
                         <li>
-                            <Link href="/dashboard/reports" className="flex items-center gap-3 py-2" >
+                            <Link
+                                href="/dashboard/reports"
+                                className="flex items-center gap-3 py-2"
+                            >
                                 <i className="far fa-chart-bar w-4"></i>
                                 <span>Reports</span>
                             </Link>
                         </li>
                         <li>
-                            <Link href="/dashboard/more" className="flex items-center gap-3 py-2">
+                            <Link
+                                href="/dashboard/more"
+                                className="flex items-center gap-3 py-2"
+                            >
                                 <i className="far fa-ellipsis-h w-4"></i>
                                 <span>More Tools</span>
                             </Link>

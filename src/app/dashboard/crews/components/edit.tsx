@@ -47,8 +47,8 @@ export default function CrewEditForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col space-y-4 col-span-2">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col space-y-6 col-span-2">
                 <div className="card bg-base-100 shadow-xl p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold mb-4">Crew Information</h2>
@@ -59,7 +59,7 @@ export default function CrewEditForm({
                             </button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
                             <div className="form-control">
                                 <label className="label">Crew Name</label>
@@ -110,7 +110,7 @@ export default function CrewEditForm({
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-2 gap-6 mt-4">
                     </div>
                 </div>
 

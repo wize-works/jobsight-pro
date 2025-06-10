@@ -64,7 +64,7 @@ export default function InitializeDatabaseClient() {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/settings/integrations" className="btn btn-ghost btn-sm">
                         <i className="fas fa-arrow-left"></i>
@@ -88,9 +88,9 @@ export default function InitializeDatabaseClient() {
                     </div>
 
                     {!isInitializing && !isComplete && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <p>The following operations will be performed:</p>
-                            <ul className="list-disc list-inside space-y-2 ml-4">
+                            <ul className="list-disc list-inside space-y-6 ml-4">
                                 <li>Create the JobSight schema</li>
                                 <li>Create tables for organizations, users, clients, projects, tasks, etc.</li>
                                 <li>Set up row-level security policies</li>
@@ -122,7 +122,7 @@ export default function InitializeDatabaseClient() {
                     )}
 
                     {isInitializing && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div className="flex justify-between mb-2">
                                 <span>{status}</span>
                                 <span>{progress}%</span>
@@ -146,7 +146,7 @@ export default function InitializeDatabaseClient() {
                             </div>
 
                             <h3 className="text-lg font-semibold mt-4">Next Steps</h3>
-                            <ul className="list-disc list-inside space-y-2 ml-4">
+                            <ul className="list-disc list-inside space-y-6 ml-4">
                                 <li>Configure your application to use Supabase for data storage</li>
                                 <li>Set up authentication integration</li>
                                 <li>Configure storage for media files</li>

@@ -75,7 +75,7 @@ export const MaintenanceModal = ({ maintenance, onClose, onSave }: MaintenanceMo
 
     return (
         <dialog id="maintenance-modal" className="modal modal-open">
-            <form method="dialog" className="modal-box space-y-4" onSubmit={handleSubmit}>
+            <form method="dialog" className="modal-box space-y-6" onSubmit={handleSubmit}>
                 <h3 className="font-bold text-lg">{maintenance ? 'Edit' : 'Add'} Maintenance</h3>
                 <div className="form-control">
                     <label className="label">

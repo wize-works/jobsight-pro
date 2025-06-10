@@ -51,7 +51,7 @@ export default function MediaDetailLoading() {
                     <div className="card bg-base-100 shadow-sm mt-6">
                         <div className="card-body">
                             <div className="h-7 w-32 bg-base-300 animate-pulse rounded mb-4"></div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="card bg-base-300 animate-pulse h-40"></div>
                                 ))}

@@ -93,6 +93,25 @@ export const updateUser = async (id: string, user: UserUpdate): Promise<User | n
     }
 }
 
+export const updateUserByAuthId = async (authId: string, user: UserUpdate): Promise<User | null> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        // First get the user by auth_id to get their database ID
+        const currentUser = await getUserById(authId);
+        if (!currentUser) {
+            console.error("User not found with auth_id:", authId);
+            return null;
+        }
+
+        // Now update using the database ID
+        return await updateUser(currentUser.id, user);
+    } catch (err) {
+        console.error("Error in updateUserByAuthId:", err);
+        return null;
+    }
+}
+
 export const deleteUser = async (id: string): Promise<boolean> => {
     try {
         const { business } = await withBusinessServer();

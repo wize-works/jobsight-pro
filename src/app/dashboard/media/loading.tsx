@@ -7,7 +7,7 @@ export default function MediaLibraryLoading() {
             </div>
 
             <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-6">
                     <div className="h-12 w-full bg-base-300 animate-pulse rounded"></div>
                     <div className="flex gap-2">
                         <div className="h-12 w-40 bg-base-300 animate-pulse rounded"></div>
@@ -17,7 +17,7 @@ export default function MediaLibraryLoading() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (
                     <div key={i} className="card bg-base-100 shadow-sm">
                         <div className="h-40 bg-base-300 animate-pulse"></div>

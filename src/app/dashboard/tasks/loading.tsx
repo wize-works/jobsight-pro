@@ -9,7 +9,7 @@ export default function TasksLoading() {
                 <div className="h-10 bg-base-300 rounded w-40"></div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 {[...Array(4)].map((_, i) => (
                     <div key={i} className="stat bg-base-100 shadow-sm">
                         <div className="h-6 bg-base-300 rounded w-24 mb-2"></div>
@@ -22,7 +22,7 @@ export default function TasksLoading() {
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body">
                     <div className="h-6 bg-base-300 rounded w-24 mb-4"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         {[...Array(5)].map((_, i) => (
                             <div key={i} className="h-10 bg-base-300 rounded"></div>
                         ))}

@@ -98,7 +98,7 @@ export default function DatabaseTableViewer({ tableName, schema = "jobsight" }: 
     const totalPages = Math.ceil(totalCount / pageSize)
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h3 className="font-semibold text-lg">
                     {schema}.{tableName}

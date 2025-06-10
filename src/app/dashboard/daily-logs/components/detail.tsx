@@ -47,7 +47,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
         <div className="min-h-screen bg-base-200">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                     <Link href="/dashboard/daily-logs" className="btn btn-ghost btn-sm">
                         <i className="far fa-arrow-left"></i>
                     </Link>
@@ -119,7 +119,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Work Summary</h3>
                                     <div className="divider my-2" />
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         <div>
                                             <h4 className="font-semibold mb-2">Work Completed</h4>
                                             <p className="text-sm">{currentLog.work_completed || "No work completed information provided."}</p>
@@ -132,7 +132,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
 
                                         <div>
                                             <h4 className="font-semibold mb-2">Delays & Issues</h4>
-                                            <div className="grid grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-3 gap-6">
                                                 <div>
                                                     <span className="font-medium">Description:</span>
                                                     <p>{currentLog.delays || "No delays reported"}</p>
@@ -161,7 +161,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Weather Conditions</h3>
                                     <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-6">
                                             <div className="text-center">
                                                 <i className="far fa-sun text-3xl text-yellow-500"></i>
                                                 <p className="font-medium">Sunny</p>
@@ -194,7 +194,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Project Information</h3>
                                     <div className="divider my-2" />
-                                    <div className="space-y-2">
+                                    <div className="space-y-6">
                                         <div><span className="font-medium">Client:</span> <a href={`/dashboard/clients/${log.client.id}`}>{log.client.name}</a></div>
                                         <div><span className="font-medium">Project:</span> <a href={`/dashboard/projects/${log.project.id}`}>{currentLog.project?.name}</a></div>
                                         <div><span className="font-medium">Date:</span> {format(new Date(currentLog.date), "M/d/yyyy")}</div>
@@ -207,7 +207,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Crew Information</h3>
                                     <div className="divider my-2" />
-                                    <div className="space-y-3">
+                                    <div className="space-y-6">
                                         <div className="text-lg font-medium">Crew: {currentLog.crew?.name || "Unknown"}</div>
                                         <div>
                                             <span className="font-medium">Crew Members</span>
@@ -229,7 +229,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Hours Summary</h3>
                                     <div className="divider my-2" />
-                                    <div className="space-y-2">
+                                    <div className="space-y-6">
                                         <div className="flex justify-between align-top">
                                             <span>Start Time</span>
                                             <span className="text-2xl">{currentLog.start_time}</span>
@@ -260,7 +260,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 <div className="card-body">
                                     <h3 className="card-title">Site Visitors</h3>
                                     <div className="divider my-2" />
-                                    <div className="space-y-2">
+                                    <div className="space-y-6">
                                         <div className="flex justify-between">
                                             <div>
                                                 <p className="font-medium">Robert Chen</p>
@@ -304,7 +304,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                         <div className="card bg-base-100 shadow">
                             <div className="card-body">
                                 <h3 className="card-title">Photos</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="relative group">
                                         <img src="/concrete-pouring.png" alt="East wing foundation pour" className="w-full h-48 object-cover rounded" />
                                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-end">
