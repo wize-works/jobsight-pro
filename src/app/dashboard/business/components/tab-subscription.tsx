@@ -39,8 +39,8 @@ export const TabSubscription = () => {
       const result = await createSubscription(planId, billingInterval);
       
       if (result.success) {
-        await loadData(); // Refresh data
-        // Show success message
+        await loadData();
+        // Show success toast
         const toast = document.createElement('div');
         toast.className = 'toast toast-top toast-end';
         toast.innerHTML = `
@@ -51,7 +51,7 @@ export const TabSubscription = () => {
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
       } else {
-        // Show error message
+        // Show error toast
         const toast = document.createElement('div');
         toast.className = 'toast toast-top toast-end';
         toast.innerHTML = `
@@ -79,24 +79,12 @@ export const TabSubscription = () => {
       const result = await cancelSubscription();
       
       if (result.success) {
-        await loadData(); // Refresh data
-        // Show success message
+        await loadData();
         const toast = document.createElement('div');
         toast.className = 'toast toast-top toast-end';
         toast.innerHTML = `
           <div class="alert alert-success">
             <span>Subscription canceled successfully!</span>
-          </div>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-      } else {
-        // Show error message
-        const toast = document.createElement('div');
-        toast.className = 'toast toast-top toast-end';
-        toast.innerHTML = `
-          <div class="alert alert-error">
-            <span>Error: ${result.error}</span>
           </div>
         `;
         document.body.appendChild(toast);
@@ -119,126 +107,133 @@ export const TabSubscription = () => {
   }
 
   const currentPlan = plans.find(plan => plan.id === currentSubscription?.plan_id);
+  const getPrice = (plan: SubscriptionPlan) => billingInterval === 'monthly' ? plan.monthly_price : plan.annual_price;
 
   return (
-    <div className="space-y-6">
-      {/* Current Subscription */}
-      <div className="card bg-base-100 shadow-sm border border-base-200">
-        <div className="card-body">
-          <h3 className="card-title text-lg">Current Subscription</h3>
-          {currentSubscription && currentPlan ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xl font-bold">{currentPlan.name}</div>
-                  <div className="text-sm text-base-content/60">
-                    ${billingInterval === 'monthly' ? currentPlan.monthly_price : currentPlan.annual_price}
-                    /{billingInterval === 'monthly' ? 'month' : 'year'}
-                  </div>
-                </div>
-                <div className="badge badge-success">{currentSubscription.status}</div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="text-sm"><strong>Users included:</strong> {currentPlan.included_users}</div>
-                <div className="text-sm"><strong>Started:</strong> {currentSubscription.start_date ? new Date(currentSubscription.start_date).toLocaleDateString() : 'N/A'}</div>
-              </div>
-
-              <div className="flex gap-2">
-                <button 
-                  className="btn btn-error btn-sm"
-                  onClick={handleCancelSubscription}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Processing...' : 'Cancel Subscription'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-base-content/60">
-              No active subscription. Choose a plan below to get started.
-            </div>
-          )}
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
+        <p className="text-base-content/70 max-w-2xl mx-auto">
+          Select the plan that fits your business needs. You can upgrade or downgrade at any time.
+        </p>
       </div>
 
-      {/* Billing Interval Toggle */}
-      <div className="flex justify-center">
-        <div className="join">
+      {/* Current Subscription Status */}
+      {currentSubscription && currentPlan && (
+        <div className="alert alert-success">
+          <i className="fas fa-check-circle"></i>
+          <div>
+            <div className="font-medium">Active Subscription: {currentPlan.name}</div>
+            <div className="text-sm">
+              ${getPrice(currentPlan)}/{billingInterval === 'monthly' ? 'month' : 'year'} • 
+              Started {new Date(currentSubscription.start_date || '').toLocaleDateString()}
+            </div>
+          </div>
           <button 
-            className={`btn join-item ${billingInterval === 'monthly' ? 'btn-active' : ''}`}
+            className="btn btn-sm btn-outline btn-error"
+            onClick={handleCancelSubscription}
+            disabled={isUpdating}
+          >
+            Cancel Plan
+          </button>
+        </div>
+      )}
+
+      {/* Billing Toggle */}
+      <div className="flex justify-center mb-8">
+        <div className="tabs tabs-boxed">
+          <a 
+            className={`tab ${billingInterval === 'monthly' ? 'tab-active' : ''}`}
             onClick={() => setBillingInterval('monthly')}
           >
             Monthly
-          </button>
-          <button 
-            className={`btn join-item ${billingInterval === 'annual' ? 'btn-active' : ''}`}
+          </a>
+          <a 
+            className={`tab ${billingInterval === 'annual' ? 'tab-active' : ''}`}
             onClick={() => setBillingInterval('annual')}
           >
-            Annual
-            <span className="badge badge-success ml-2">Save 17%</span>
-          </button>
+            Annual 
+            <span className="badge badge-success ml-2 text-xs">Save 17%</span>
+          </a>
         </div>
       </div>
 
-      {/* Subscription Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Pricing Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((plan) => {
-          const price = billingInterval === 'monthly' ? plan.monthly_price : plan.annual_price;
+          const price = getPrice(plan);
           const isCurrentPlan = currentSubscription?.plan_id === plan.id;
           const isPopular = plan.id === 'pro';
           
           return (
             <div 
               key={plan.id} 
-              className={`card bg-base-100 shadow-sm border-2 ${
-                isCurrentPlan ? 'border-primary' : 'border-base-200'
-              } ${isPopular ? 'border-accent' : ''}`}
+              className={`card bg-base-100 shadow-xl relative ${
+                isCurrentPlan ? 'ring-2 ring-primary' : ''
+              } ${isPopular ? 'border-accent border-2' : ''}`}
             >
               {isPopular && (
-                <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                   Most Popular
                 </div>
               )}
               
               <div className="card-body">
-                <h3 className="card-title justify-between">
-                  {plan.name}
-                  {isCurrentPlan && <span className="badge badge-primary">Current</span>}
-                </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="card-title text-2xl">{plan.name}</h2>
+                  {isCurrentPlan && (
+                    <span className="badge badge-primary">Current</span>
+                  )}
+                </div>
                 
-                <div className="text-3xl font-bold">
-                  ${price}
-                  <span className="text-sm font-normal text-base-content/60">
-                    /{billingInterval === 'monthly' ? 'mo' : 'yr'}
+                <div className="text-center my-4">
+                  <span className="text-4xl font-bold">${price}</span>
+                  <span className="text-base-content/70">
+                    /{billingInterval === 'monthly' ? 'month' : 'year'}
                   </span>
                 </div>
 
-                <div className="space-y-2 my-4">
-                  {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <i className="fas fa-check text-success text-sm"></i>
-                      <span className="text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
+                <div className="divider"></div>
 
-                <div className="card-actions justify-end mt-auto">
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <i className="fas fa-check text-success mt-1 mr-3 text-sm"></i>
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {plan.ai_addon_available && (
+                  <div className="bg-base-200 p-3 rounded-lg mb-4 text-sm">
+                    <p className="font-semibold">AI Add-on Available</p>
+                    <p>+${plan.ai_addon_price}/month</p>
+                  </div>
+                )}
+
+                <div className="card-actions justify-center mt-auto">
                   {isCurrentPlan ? (
-                    <button className="btn btn-outline w-full" disabled>
+                    <button className="btn btn-outline btn-block" disabled>
                       Current Plan
                     </button>
                   ) : (
                     <button 
-                      className={`btn w-full ${
+                      className={`btn btn-block ${
                         plan.id === 'starter' ? 'btn-outline' : 
                         isPopular ? 'btn-accent' : 'btn-primary'
                       }`}
                       onClick={() => handlePlanChange(plan.id)}
                       disabled={isUpdating}
                     >
-                      {isUpdating ? 'Processing...' : 
-                       currentSubscription ? 'Switch to This Plan' : 'Get Started'}
+                      {isUpdating ? (
+                        <>
+                          <span className="loading loading-spinner loading-sm"></span>
+                          Processing...
+                        </>
+                      ) : (
+                        currentSubscription ? `Switch to ${plan.name}` : `Choose ${plan.name}`
+                      )}
                     </button>
                   )}
                 </div>
@@ -248,18 +243,50 @@ export const TabSubscription = () => {
         })}
       </div>
 
-      {/* Additional Info */}
-      <div className="card bg-base-100 shadow-sm border border-base-200">
-        <div className="card-body">
-          <h3 className="card-title text-lg">Need More Users?</h3>
-          <p className="text-sm text-base-content/60">
-            Additional users can be added to Pro and Business plans. Extra users are charged at:
-          </p>
-          <ul className="list-disc list-inside text-sm space-y-1 ml-4">
-            <li>Pro: $5/user/month</li>
-            <li>Business: $3/user/month</li>
-            <li>Enterprise: Unlimited users included</li>
-          </ul>
+      {/* FAQ Section */}
+      <div className="max-w-3xl mx-auto">
+        <h3 className="text-2xl font-bold text-center mb-6">Frequently Asked Questions</h3>
+        
+        <div className="space-y-4">
+          <div className="collapse collapse-plus bg-base-200">
+            <input type="radio" name="subscription-accordion" defaultChecked />
+            <div className="collapse-title text-lg font-medium">
+              Can I change plans later?
+            </div>
+            <div className="collapse-content">
+              <p>
+                Yes, you can upgrade or downgrade your plan at any time. Upgrades take effect immediately, 
+                while downgrades take effect at the end of your billing cycle.
+              </p>
+            </div>
+          </div>
+
+          <div className="collapse collapse-plus bg-base-200">
+            <input type="radio" name="subscription-accordion" />
+            <div className="collapse-title text-lg font-medium">
+              What happens to my data if I downgrade?
+            </div>
+            <div className="collapse-content">
+              <p>
+                Your data is always preserved. If you exceed the limits of your new plan, 
+                you'll be prompted to upgrade or archive some projects/users.
+              </p>
+            </div>
+          </div>
+
+          <div className="collapse collapse-plus bg-base-200">
+            <input type="radio" name="subscription-accordion" />
+            <div className="collapse-title text-lg font-medium">
+              How do additional users work on Pro and Business plans?
+            </div>
+            <div className="collapse-content">
+              <p>
+                Pro plans include 10 users, with additional users at $5/month each. 
+                Business plans include 50 users, with additional users at $3/month each. 
+                Enterprise includes unlimited users.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
