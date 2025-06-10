@@ -1,3 +1,11 @@
+## [1.31.28](https://github.com/wize-works/jobsight-pro/compare/v1.31.27...v1.31.28) (2025-06-10)
+
+
+### Bug Fixes
+
+* Adjust spacing in sidebar menu for improved layout consistency ([e1e28fa](https://github.com/wize-works/jobsight-pro/commit/e1e28faa779715984e08a9204c423aafe3d949dd))
+* user profile alignment ([3b99074](https://github.com/wize-works/jobsight-pro/commit/3b990747b4d5bf978963f73bb215d18fdb52ad40))
+
 ## [1.31.27](https://github.com/wize-works/jobsight-pro/compare/v1.31.26...v1.31.27) (2025-06-09)
 
 
