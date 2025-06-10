@@ -73,7 +73,8 @@ export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; 
         // Update user record with new avatar URL
         let userUpdate: UserUpdate = {
             avatar_url: uploadData.fileUrl,
-        };
+        } as UserUpdate;
+
         userUpdate = await applyUpdated<UserUpdate>(userUpdate);
 
         const updatedUser = await updateUser(currentUser.id, userUpdate);
@@ -81,9 +82,9 @@ export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; 
             return { success: false, error: "Failed to update user profile" };
         }
 
-        return { 
-            success: true, 
-            avatarUrl: uploadData.fileUrl 
+        return {
+            success: true,
+            avatarUrl: uploadData.fileUrl
         };
 
     } catch (error) {
