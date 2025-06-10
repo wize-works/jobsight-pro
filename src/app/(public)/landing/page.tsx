@@ -30,9 +30,9 @@ export default function Home() {
 
                     <div className="flex flex-col gap-3">
                         <LoginLink className="btn btn-secondary btn-outline">Sign In</LoginLink>
-                        <RegisterLink className="btn btn-primary w-full">
+                        <Link href="/register" className="btn btn-primary w-full">
                             Get Started
-                        </RegisterLink>
+                        </Link>
                         {/* <Link href="/dashboard" className="btn btn-outline w-full">
                             Go to Dashboard
                         </Link> */}

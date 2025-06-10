@@ -1,4 +1,3 @@
-
 'use server';
 
 import { withBusinessServer } from '@/lib/auth/with-business-server';
@@ -48,6 +47,7 @@ export async function createSubscription(
     planId: string,
     billingInterval: BillingInterval
 ): Promise<{ success: boolean; error?: string }> {
+<<<<<<< HEAD
     try {
         const { business, userId } = await withBusinessServer();
 
