@@ -13,11 +13,14 @@ import { getProjects } from "@/app/actions/projects";
 import { getEquipments } from "@/app/actions/equipments";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
+import { getCurrentSubscription } from "@/app/actions/subscriptions";
+import { BusinessSubscription } from "@/types/subscription";
 
 
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile");
     const { businessData, loading, error, refreshBusiness } = useBusiness();
+    const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userCount, setUserCount] = useState(0);
     const [projectCount, setProjectCount] = useState(0);
@@ -30,9 +33,11 @@ export default function BusinessPage() {
                 const users = await getUsers();
                 const projects = await getProjects();
                 const equipment = await getEquipments();
+                const businessSubscription = await getCurrentSubscription();
                 setUserCount(users.length);
                 setProjectCount(projects.length);
                 setEquipmentCount(equipment.length);
+                setSubscription(businessSubscription);
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
@@ -115,7 +120,7 @@ export default function BusinessPage() {
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title text-lg">Subscription</div>
                     <div className="flex items-center justify-between">
-                        <div className="stat-value text-info">Free</div>
+                        <div className="stat-value text-info">{subscription?.plan_id}</div>
                         <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
                             <i className="fas fa-credit-card fa-lg"></i>
                         </div>
