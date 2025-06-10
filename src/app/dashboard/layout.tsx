@@ -20,7 +20,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading: isKindeLoading } = useKindeAuth();
     const [userData, setUserData] = useState<User | null>(null);
     const [isLoadingUser, setIsLoadingUser] = useState(true);
-    
+
     const storedSidebarCollapsed =
         typeof window !== "undefined"
             ? localStorage.getItem("sidebarCollapsed")
@@ -35,7 +35,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const loadUserData = async () => {
             if (!user?.id || isKindeLoading) {
-                setIsLoadingUser(isKindeLoading);
+                setIsLoadingUser(Boolean(isKindeLoading));
                 return;
             }
 
