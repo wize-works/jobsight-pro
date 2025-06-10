@@ -13,10 +13,9 @@ export async function getCurrentSubscription(): Promise<BusinessSubscription | n
   const result = await fetchByBusiness<BusinessSubscription>(
     'business_subscriptions',
     business.id,
+    "*",
     {
-      columns: '*',
       filters: [{ column: 'status', operator: 'eq', value: 'active' }],
-      single: true
     }
   );
   
@@ -43,7 +42,7 @@ export async function createSubscription(
   billingInterval: BillingInterval
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { business, user } = await withBusinessServer();
+    const { business, userId } = await withBusinessServer();
     
     // Check if there's already an active subscription
     const existingSubscription = await getCurrentSubscription();
