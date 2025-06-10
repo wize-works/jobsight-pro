@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,8 +14,8 @@ import Image from "next/image";
 export default function RegisterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, isLoading: isAuthLoading } = useKindeBrowserClient();
-    
+    const { user, isLoading: isAuthLoading, isAuthenticated } = useKindeBrowserClient();
+
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<string>("");
     const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
@@ -78,8 +77,29 @@ export default function RegisterPage() {
                 console.error("Error loading plans:", error);
             }
         };
+
+        const checkExistingBusiness = async () => {
+            if (user?.id && isAuthenticated) {
+                try {
+                    // Assuming you have a function to get user's business
+                    // const businessResponse = await getUserBusiness(user.id);
+                    const businessResponse = null; // Placeholder, replace with your actual API call
+
+                    // If user already has a business, redirect to dashboard
+                    if (businessResponse && 'id' in businessResponse) {
+                        router.push('/dashboard');
+                        return;
+                    }
+                } catch (error) {
+                    // User doesn't have business yet, continue with registration flow
+                    console.log('User needs to complete registration');
+                }
+            }
+        };
+
         loadPlans();
-    }, []);
+        checkExistingBusiness();
+    }, [user, isAuthenticated, router]);
 
     // Handle post-auth processing
     useEffect(() => {
@@ -238,13 +258,13 @@ export default function RegisterPage() {
 
                     <div className="flex justify-center mb-8">
                         <div className="tabs tabs-boxed">
-                            <button 
+                            <button
                                 className={`tab ${billingInterval === 'monthly' ? 'tab-active' : ''}`}
                                 onClick={() => setBillingInterval('monthly')}
                             >
                                 Monthly
                             </button>
-                            <button 
+                            <button
                                 className={`tab ${billingInterval === 'annual' ? 'tab-active' : ''}`}
                                 onClick={() => setBillingInterval('annual')}
                             >
@@ -280,7 +300,7 @@ export default function RegisterPage() {
                                         ))}
                                     </ul>
 
-                                    <button 
+                                    <button
                                         onClick={() => handlePlanSelect(plan.id)}
                                         className="btn btn-primary btn-block"
                                     >
@@ -424,7 +444,7 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div className="card-actions justify-between pt-4">
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => setRegistrationStep("plan_selection")}
                                         className="btn btn-ghost"
@@ -450,6 +470,50 @@ export default function RegisterPage() {
                 <div className="text-center">
                     <div className="loading loading-spinner loading-lg"></div>
                     <p className="mt-4">Setting up your business...</p>
+                </div>
+            </div>
+        );
+    }
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                    <div className="text-center mb-8">
+                        <Image
+                            src="/logo-full.png"
+                            alt="JobSight Pro"
+                            width={200}
+                            height={60}
+                            className="mx-auto mb-4"
+                        />
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                            Welcome to JobSight Pro
+                        </h1>
+                        <p className="text-gray-600">
+                            Sign in or create an account to get started
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <LoginLink className="btn btn-primary w-full">
+                            Sign In
+                        </LoginLink>
+                        <RegisterLink className="btn btn-outline w-full">
+                            Create Account
+                        </RegisterLink>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If user is authenticated but we're still loading business check
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
+                    <div className="loading loading-spinner loading-lg mx-auto mb-4"></div>
+                    <p className="text-gray-600">Setting up your account...</p>
                 </div>
             </div>
         );
