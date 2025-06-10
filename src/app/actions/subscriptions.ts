@@ -14,6 +14,7 @@ export async function getCurrentSubscription(): Promise<BusinessSubscription | n
     'business_subscriptions',
     business.id,
     {
+      columns: '*',
       filters: [{ column: 'status', operator: 'eq', value: 'active' }],
       single: true
     }
