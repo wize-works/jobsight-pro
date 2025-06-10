@@ -37,6 +37,8 @@ interface OfflineDB extends DBSchema {
             data: any;
             timestamp: number;
             businessId: string;
+            version: number;
+            checksum?: string;
         };
         indexes: {
             table: string;
@@ -162,6 +164,8 @@ export async function cacheData(
             data: item,
             timestamp: Date.now(),
             businessId,
+            version: item.version || 1,
+            checksum: generateChecksum(item),
         };
         await tx.store.add(cacheEntry);
     }
@@ -181,6 +185,18 @@ export async function getCachedData(
     return entries
         .filter(entry => entry.businessId === businessId)
         .map(entry => entry.data);
+}
+
+function generateChecksum(data: any): string {
+    // Simple checksum generation - could use crypto.subtle.digest for better hashing
+    const str = JSON.stringify(data, Object.keys(data).sort());
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(36);
 }
 
 export async function clearOldCache(maxAge: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {

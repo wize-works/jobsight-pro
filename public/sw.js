@@ -105,9 +105,17 @@ self.addEventListener('sync', (event) => {
 
     if (event.tag === 'background-sync') {
         event.waitUntil(
-            // Handle queued data when back online
             syncOfflineData().catch(error => {
                 console.error('Service Worker: Sync failed:', error);
+                // Notify clients of sync failure
+                self.clients.matchAll().then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({
+                            type: 'SYNC_FAILED',
+                            error: error.message
+                        });
+                    });
+                });
             })
         );
     }
