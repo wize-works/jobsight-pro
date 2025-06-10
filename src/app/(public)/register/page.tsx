@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { toast } from "@/hooks/use-toast";
-import { getSubscriptionPlans } from "@/app/actions/subscriptions";
+import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscriptions";
 import { createBusiness } from "@/app/actions/business";
 import { acceptInvitation } from "../onboarding/actions";
 import type { SubscriptionPlan } from "@/types/subscription";
@@ -44,9 +45,10 @@ export default function RegisterPage() {
             try {
                 const decoded = JSON.parse(Buffer.from(token, "base64").toString());
                 if (new Date(decoded.expiresAt) < new Date()) {
-                    toast.warning({
+                    toast({
                         title: "Invitation Expired",
                         description: "This invitation link has expired. Please request a new one.",
+                        variant: "destructive",
                     });
                     router.push("/");
                     return;
@@ -54,14 +56,16 @@ export default function RegisterPage() {
                 setInvitationData(decoded);
                 setRegistrationStep("processing"); // Skip plan selection for invitations
             } catch (error) {
-                toast.error({
+                toast({
                     title: "Invalid Invitation",
                     description: "Invalid invitation token",
+                    variant: "destructive",
                 });
                 router.push("/");
             }
         } else if (planParam) {
             setSelectedPlan(planParam);
+            setRegistrationStep("business_setup");
         }
     }, [searchParams, router]);
 
@@ -76,21 +80,8 @@ export default function RegisterPage() {
             }
         };
 
-        const checkExistingBusiness = async () => {
-            if (user?.id && isAuthenticated && !invitationData) {
-                try {
-                    // For now, skip business check to avoid redirect loop
-                    // This will be handled by the dashboard's business check
-                    console.log('User authenticated, proceeding with registration flow');
-                } catch (error) {
-                    console.log('User needs to complete registration');
-                }
-            }
-        };
-
         loadPlans();
-        checkExistingBusiness();
-    }, [user, isAuthenticated, router]);
+    }, []);
 
     // Handle post-auth processing
     useEffect(() => {
@@ -108,31 +99,34 @@ export default function RegisterPage() {
                     );
 
                     if (result.success) {
-                        toast.success({
+                        toast({
                             title: "Welcome!",
                             description: "Your invitation has been accepted successfully",
                         });
                         router.push("/dashboard");
                     } else {
-                        toast.error({
+                        toast({
                             title: "Error",
                             description: result.error || "Failed to accept invitation",
+                            variant: "destructive",
                         });
                         router.push("/");
                     }
                 } catch (error) {
                     console.error("Error processing invitation:", error);
-                    toast.error({
+                    toast({
                         title: "Error",
                         description: "Failed to process invitation",
+                        variant: "destructive",
                     });
                     router.push("/");
                 }
-            } else if (registrationStep === "processing" && selectedPlan && businessForm.businessName) {
+                setIsProcessing(false);
+            } else if (isAuthenticated && registrationStep === "processing" && selectedPlan && businessForm.businessName) {
                 // Handle business creation
                 setIsProcessing(true);
                 try {
-                    const result = await createBusiness({
+                    const businessResult = await createBusiness({
                         userId: user.id,
                         businessName: businessForm.businessName,
                         businessType: businessForm.businessType,
@@ -145,24 +139,36 @@ export default function RegisterPage() {
                         country: businessForm.country,
                     });
 
-                    if (result.success) {
-                        // TODO: Create subscription with selected plan
-                        toast({
-                            title: "Welcome to JobSight Pro!",
-                            description: "Your business has been set up successfully",
-                        });
-                        router.push("/dashboard");
+                    if (businessResult.success) {
+                        // Create subscription with selected plan
+                        const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
+                        
+                        if (subscriptionResult.success) {
+                            toast({
+                                title: "Welcome to JobSight Pro!",
+                                description: "Your business has been set up successfully",
+                            });
+                            router.push("/dashboard");
+                        } else {
+                            toast({
+                                title: "Business Created",
+                                description: "Business created but subscription setup failed. You can set this up later.",
+                            });
+                            router.push("/dashboard");
+                        }
                     } else {
-                        toast.error({
+                        toast({
                             title: "Error",
-                            description: result.error || "Failed to create business",
+                            description: businessResult.error || "Failed to create business",
+                            variant: "destructive",
                         });
                     }
                 } catch (error) {
                     console.error("Error creating business:", error);
-                    toast.error({
+                    toast({
                         title: "Error",
                         description: "Failed to create business",
+                        variant: "destructive",
                     });
                 }
                 setIsProcessing(false);
@@ -170,7 +176,7 @@ export default function RegisterPage() {
         };
 
         processRegistration();
-    }, [user, invitationData, isAuthLoading, isProcessing, registrationStep, selectedPlan, businessForm, router]);
+    }, [user, invitationData, isAuthLoading, isProcessing, registrationStep, selectedPlan, businessForm, router, isAuthenticated, billingInterval]);
 
     const handlePlanSelect = (planId: string) => {
         setSelectedPlan(planId);
@@ -180,9 +186,10 @@ export default function RegisterPage() {
     const handleBusinessFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!businessForm.businessName.trim()) {
-            toast.error({
+            toast({
                 title: "Business Name Required",
                 description: "Please enter your business name",
+                variant: "destructive",
             });
             return;
         }
@@ -191,7 +198,6 @@ export default function RegisterPage() {
 
     // Show loading only if auth is actually loading and we don't have user data yet
     if (isAuthLoading && !user) {
-        console.log("Auth is loading, showing loading state");
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -202,9 +208,8 @@ export default function RegisterPage() {
         );
     }
 
-    // Show invitation processing for invited users
-    if (invitationData && !user) {
-        console.log("Invitation data found, showing invitation processing state");
+    // Show invitation processing for invited users who aren't authenticated
+    if (invitationData && !isAuthenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-base-200">
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
@@ -223,21 +228,22 @@ export default function RegisterPage() {
         );
     }
 
-    if (invitationData && isProcessing) {
-        console.log("Processing invitation, showing loading state");
+    // Show processing state for both invitation and business setup
+    if (isProcessing) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="loading loading-spinner loading-lg"></div>
-                    <p className="mt-4">Processing your invitation...</p>
+                    <p className="mt-4">
+                        {invitationData ? "Processing your invitation..." : "Setting up your business..."}
+                    </p>
                 </div>
             </div>
         );
     }
 
-    // Show plan selection step
-    if (!user && registrationStep === "plan_selection") {
-        console.log("Showing plan selection step");
+    // Show plan selection step (for non-authenticated users or those who haven't selected a plan)
+    if (!isAuthenticated && registrationStep === "plan_selection") {
         return (
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4">
@@ -313,8 +319,7 @@ export default function RegisterPage() {
     }
 
     // Show business setup step
-    if (!user && registrationStep === "business_setup") {
-        console.log("Showing business setup step");
+    if (!isAuthenticated && registrationStep === "business_setup") {
         return (
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4 max-w-2xl">
@@ -455,64 +460,41 @@ export default function RegisterPage() {
         );
     }
 
-    // Show processing state
-    if (registrationStep === "processing") {
-        console.log("Processing registration, showing loading state");
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="loading loading-spinner loading-lg"></div>
-                    <p className="mt-4">Setting up your business...</p>
-                </div>
-            </div>
-        );
-    }
-    if (!isAuthenticated) {
-        console.log("User not authenticated, showing login/register options");
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-                    <div className="text-center mb-8">
-                        <Image
-                            src="/logo-full.png"
-                            alt="JobSight Pro"
-                            width={200}
-                            height={60}
-                            className="mx-auto mb-4"
-                        />
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                            Welcome to JobSight Pro
-                        </h1>
-                        <p className="text-gray-600">
-                            Sign in or create an account to get started
-                        </p>
-                    </div>
-
-                    <div className="space-y-4">
-                        <LoginLink className="btn btn-primary w-full">
-                            Sign In
-                        </LoginLink>
-                        <RegisterLink className="btn btn-outline w-full">
-                            Create Account
-                        </RegisterLink>
-                    </div>
-                </div>
-            </div>
-        );
+    // If user is authenticated but hasn't completed setup, redirect to dashboard
+    if (isAuthenticated && !invitationData) {
+        router.push("/dashboard");
+        return null;
     }
 
-    // If user is authenticated and we're processing registration
-    if (user && isProcessing) {
-        console.log("User authenticated, processing registration");
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
-                    <div className="loading loading-spinner loading-lg mx-auto mb-4"></div>
-                    <p className="text-gray-600">Setting up your account...</p>
+    // Default fallback
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                <div className="text-center mb-8">
+                    <Image
+                        src="/logo-full.png"
+                        alt="JobSight Pro"
+                        width={200}
+                        height={60}
+                        className="mx-auto mb-4"
+                    />
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                        Welcome to JobSight Pro
+                    </h1>
+                    <p className="text-gray-600">
+                        Sign in or create an account to get started
+                    </p>
+                </div>
+
+                <div className="space-y-4">
+                    <LoginLink className="btn btn-primary w-full">
+                        Sign In
+                    </LoginLink>
+                    <RegisterLink className="btn btn-outline w-full">
+                        Create Account
+                    </RegisterLink>
                 </div>
             </div>
-        );
-    }
-
-    return null;
+        </div>
+    );
 }
