@@ -524,46 +524,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <div className="divider mt-8"></div>
-
-                        <h3 className="text-lg font-semibold mb-6">Security</h3>
-
-                        <div className="space-y-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text font-medium">
-                                        Password
-                                    </span>
-                                </label>
-                                <button className="btn btn-outline max-w-xs">
-                                    <i className="fas fa-key mr-2"></i>
-                                    Change Password
-                                </button>
-                                <label className="label">
-                                    <span className="label-text-alt">
-                                        Managed through your authentication
-                                        provider
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text font-medium">
-                                        Two-Factor Authentication
-                                    </span>
-                                </label>
-                                <div className="flex items-center gap-4">
-                                    <button className="btn btn-outline">
-                                        <i className="fas fa-shield-alt mr-2"></i>
-                                        Enable 2FA
-                                    </button>
-                                    <div className="badge badge-warning">
-                                        Not enabled
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
 
                         <div className="divider mt-8"></div>
 
