@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/wize-works/jobsight-pro/compare/v1.32.0...v1.32.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* correct type assertion for userUpdate and format return statement in uploadUserAvatar function ([b3dc574](https://github.com/wize-works/jobsight-pro/commit/b3dc574d5d47a8eff10bd40705c7861f8fc6eb93))
+
 # [1.32.0](https://github.com/wize-works/jobsight-pro/compare/v1.31.28...v1.32.0) (2025-06-10)
 
 
