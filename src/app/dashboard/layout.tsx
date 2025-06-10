@@ -12,9 +12,12 @@ import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { getUserById } from "@/app/actions/users";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
-    // Check local storage for sidebarCollapsed value
+    const { user, isLoading } = useKindeAuth();
+    const userData = getUserById(user?.id || "");
     const storedSidebarCollapsed =
         typeof window !== "undefined"
             ? localStorage.getItem("sidebarCollapsed")
@@ -32,8 +35,8 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Navbar
                     setSidebarCollapsed={setSidebarCollapsed}
                     sidebarCollapsed={sidebarCollapsed}
-                    userAvatarUrl={currentUser?.avatar_url}
-                    isLoadingUser={isLoadingUser}
+                    userAvatarUrl={userData?.avatar_url}
+                    isLoadingUser={isLoading}
                 />
                 <BusinessProvider>
                     <OfflineIndicator />
