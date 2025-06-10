@@ -31,7 +31,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     )}
                 </div>
 
-                <ul className="menu menu-md space-y-6 w-full">
+                <ul className="menu menu-md space-y-2 w-full">
                     <li className="">
                         <Link href="/dashboard" className="flex items-center min-h-8 p-1">
                             <i className="far fa-tachometer-alt fa-fw fa-lg"></i>
