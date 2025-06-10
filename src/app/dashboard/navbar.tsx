@@ -133,15 +133,7 @@ export const Navbar = ({
                                 <span>Profile</span>
                             </Link>
                         </li>
-                        <li>
-                            <Link
-                                href="/dashboard/settings"
-                                className="flex items-center gap-3 py-2"
-                            >
-                                <i className="far fa-cog w-4"></i>
-                                <span>Settings</span>
-                            </Link>
-                        </li>
+                        
                         <li>
                             <Link
                                 href="/dashboard/business"
