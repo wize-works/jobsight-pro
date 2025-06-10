@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { useState, useEffect } from "react";
 import PushManager from "@/components/push-manager";
 import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "@/hooks/use-toast";
+import { uploadUserAvatar } from "@/app/actions/user-avatar";
+import { getUserById } from "@/app/actions/users";
 
 type NotificationType =
     | "projectUpdates"
@@ -40,6 +42,10 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("profile");
     const [isSaving, setIsSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Profile form state
     const [profileForm, setProfileForm] = useState<UserProfile>({
@@ -76,9 +82,9 @@ export default function ProfilePage() {
         userId: user?.id || "",
     });
 
-    // Initialize form data when user loads
+    // Load user data when component mounts
     useEffect(() => {
-        if (user) {
+        if (user && !isLoading) {
             setProfileForm({
                 firstName: user.given_name || "",
                 lastName: user.family_name || "",
@@ -88,8 +94,32 @@ export default function ProfilePage() {
                 language: "English",
                 timeZone: "Pacific Time (PT)",
             });
+
+            // Load current user data from database
+            loadCurrentUser();
         }
-    }, [user]);
+    }, [user, isLoading]);
+
+    const loadCurrentUser = async () => {
+        if (!user?.id) return;
+
+        try {
+            const dbUser = await getUserById(user.id);
+            if (dbUser) {
+                setCurrentUser(dbUser);
+                setAvatarUrl(dbUser.avatar_url);
+                // Update profile form with database data
+                setProfileForm(prev => ({
+                    ...prev,
+                    firstName: dbUser.first_name || prev.firstName,
+                    lastName: dbUser.last_name || prev.lastName,
+                    phone: dbUser.phone || prev.phone,
+                }));
+            }
+        } catch (error) {
+            console.error("Error loading user data:", error);
+        }
+    };
 
     // Initialize notification preferences
     useEffect(() => {
@@ -107,24 +137,60 @@ export default function ProfilePage() {
         setHasUnsavedChanges(true);
     };
 
-    // Save profile changes
     const handleSaveProfile = async () => {
-        if (!user?.id) return;
-
         setIsSaving(true);
-        try {
-            // In a real app, you'd save to your database
-            // For now, we'll simulate the API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setIsSaving(false);
+        setHasUnsavedChanges(false);
+        toast({
+            title: "Profile saved",
+            description: "Your profile has been updated successfully.",
+        });
+    };
 
-            setHasUnsavedChanges(false);
-            toast.success("Profile updated successfully!");
+    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingAvatar(true);
+
+        try {
+            const result = await uploadUserAvatar(file);
+
+            if (result.success && result.avatarUrl) {
+                setAvatarUrl(result.avatarUrl);
+                toast({
+                    title: "Avatar updated",
+                    description: "Your profile picture has been updated successfully.",
+                });
+                // Reload user data to get the latest info
+                await loadCurrentUser();
+            } else {
+                toast({
+                    title: "Upload failed",
+                    description: result.error || "Failed to upload avatar",
+                    variant: "destructive",
+                });
+            }
         } catch (error) {
-            console.error("Error saving profile:", error);
-            toast.error("Failed to save profile. Please try again.");
+            console.error("Error uploading avatar:", error);
+            toast({
+                title: "Upload failed",
+                description: "An unexpected error occurred while uploading your avatar.",
+                variant: "destructive",
+            });
         } finally {
-            setIsSaving(false);
+            setIsUploadingAvatar(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
     };
 
     // Handle notification preference changes
@@ -161,12 +227,6 @@ export default function ProfilePage() {
             console.error("Error updating notification preferences:", error);
             toast.error("Failed to update notification preferences");
         }
-    };
-
-    // Handle photo upload
-    const handlePhotoUpload = () => {
-        // In a real app, you'd implement file upload
-        toast.info("Photo upload feature coming soon!");
     };
 
     if (isLoading) {
@@ -222,31 +282,64 @@ export default function ProfilePage() {
                     <div className="card-body">
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="lg:w-1/3 flex flex-col items-center">
-                                <div className="avatar">
-                                    <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                                        <img
-                                            src={
-                                                user?.picture ||
-                                                "/placeholder-user.jpg"
-                                            }
-                                            alt="Profile"
-                                            className="object-cover"
-                                        />
+                                {/* Avatar Section */}
+                                    <div className="flex items-center space-x-6 mb-8">
+                                        <div className="relative">
+                                            {avatarUrl || user?.picture ? (
+                                                <img
+                                                    src={avatarUrl || user?.picture || ""}
+                                                    alt="Profile"
+                                                    className="w-24 h-24 rounded-full object-cover border-4 border-base-300"
+                                                />
+                                            ) : (
+                                                <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center text-2xl font-bold border-4 border-base-300">
+                                                    {user?.given_name?.[0] || currentUser?.first_name?.[0] || "U"}
+                                                </div>
+                                            )}
+                                            <button 
+                                                onClick={triggerFileInput}
+                                                disabled={isUploadingAvatar}
+                                                className="absolute bottom-0 right-0 bg-primary text-primary-content p-2 rounded-full hover:bg-primary-focus transition-colors disabled:opacity-50"
+                                            >
+                                                {isUploadingAvatar ? (
+                                                    <i className="fas fa-spinner fa-spin text-sm"></i>
+                                                ) : (
+                                                    <i className="fas fa-camera text-sm"></i>
+                                                )}
+                                            </button>
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleAvatarUpload}
+                                                className="hidden"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <h3 className="text-lg font-semibold mb-2">
+                                                Profile Photo
+                                            </h3>
+                                            <p className="text-base-content/70 text-sm mb-4">
+                                                Update your profile photo to help others
+                                                recognize you. Max file size: 5MB.
+                                            </p>
+                                            <button 
+                                                onClick={triggerFileInput}
+                                                disabled={isUploadingAvatar}
+                                                className="btn btn-outline btn-sm"
+                                            >
+                                                {isUploadingAvatar ? (
+                                                    <>
+                                                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                        Uploading...
+                                                    </>
+                                                ) : (
+                                                    "Change Photo"
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="mt-4 space-y-2 w-full max-w-xs">
-                                    <button
-                                        className="btn btn-outline btn-sm w-full"
-                                        onClick={handlePhotoUpload}
-                                    >
-                                        <i className="fas fa-upload mr-2"></i>
-                                        Upload Photo
-                                    </button>
-                                    <button className="btn btn-ghost btn-sm text-error w-full">
-                                        <i className="fas fa-trash mr-2"></i>
-                                        Remove
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="lg:w-2/3">

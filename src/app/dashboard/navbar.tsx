@@ -10,11 +10,13 @@ import {
 type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+    userAvatarUrl?: string;
 };
 
 export const Navbar = ({
     sidebarCollapsed,
     setSidebarCollapsed,
+    userAvatarUrl,
 }: NavbarProps) => {
     const isMobile = useIsMobile();
     const { user } = useKindeBrowserClient();
@@ -64,10 +66,10 @@ export const Navbar = ({
                     >
                         <div className="avatar">
                             <div className="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-sm font-medium">
-                                {user?.picture ? (
+                                {userAvatarUrl || user?.picture ? (
                                     <img
                                         alt={user?.given_name || "User avatar"}
-                                        src={user.picture}
+                                        src={userAvatarUrl || user?.picture || ""}
                                         className="w-full h-full rounded-full object-cover"
                                     />
                                 ) : (
@@ -97,13 +99,13 @@ export const Navbar = ({
                             <div className="flex items-center gap-3">
                                 <div className="avatar">
                                     <div className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
-                                        {user?.picture ? (
+                                        {userAvatarUrl || user?.picture ? (
                                             <img
                                                 alt={
                                                     user?.given_name ||
                                                     "User avatar"
                                                 }
-                                                src={user.picture}
+                                                src={userAvatarUrl || user?.picture || ""}
                                                 className="w-full h-full rounded-full object-cover"
                                             />
                                         ) : (
