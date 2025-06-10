@@ -87,7 +87,7 @@ export const Navbar = ({
                         className="btn btn-ghost flex items-center gap-2 hover:bg-base-200 transition-colors"
                     >
                         <div className="avatar">
-                            <div className="w-12 mask mask-circle">
+                            <div className="w-10 mask mask-circle">
                                 {isLoadingUser ? (
                                     <span className="skeleton h-16 w-16 shrink-0"></span>
                                 ) : userData?.avatar_url ? (
@@ -133,7 +133,7 @@ export const Navbar = ({
                                 <span>Profile</span>
                             </Link>
                         </li>
-                        
+
                         <li>
                             <Link
                                 href="/dashboard/business"
