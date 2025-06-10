@@ -153,7 +153,9 @@ export default function ProfilePage() {
         });
     };
 
-    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -166,7 +168,8 @@ export default function ProfilePage() {
                 setAvatarUrl(result.avatarUrl);
                 toast({
                     title: "Avatar updated",
-                    description: "Your profile picture has been updated successfully.",
+                    description:
+                        "Your profile picture has been updated successfully.",
                 });
                 // Reload user data to get the latest info
                 await loadCurrentUser();
@@ -181,14 +184,15 @@ export default function ProfilePage() {
             console.error("Error uploading avatar:", error);
             toast({
                 title: "Upload failed",
-                description: "An unexpected error occurred while uploading your avatar.",
+                description:
+                    "An unexpected error occurred while uploading your avatar.",
                 variant: "destructive",
             });
         } finally {
             setIsUploadingAvatar(false);
             // Reset file input
             if (fileInputRef.current) {
-                fileInputRef.current.value = '';
+                fileInputRef.current.value = "";
             }
         }
     };
@@ -287,63 +291,70 @@ export default function ProfilePage() {
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="lg:w-1/3 flex flex-col items-center">
                                 {/* Avatar Section */}
-                                    <div className="flex items-center space-x-6 mb-8">
-                                        <div className="relative">
-                                            {avatarUrl ? (
-                                                <img
-                                                    src={avatarUrl}
-                                                    alt="Profile"
-                                                    className="w-24 h-24 rounded-full object-cover border-4 border-base-300"
-                                                />
-                                            ) : (
-                                                <div className="w-24 h-24 rounded-full bg-primary text-primary-content flex items-center justify-center text-2xl font-bold border-4 border-base-300">
-                                                    {currentUser?.first_name?.[0] || user?.given_name?.[0] || "U"}
+                                <div className="flex items-center space-x-6 mb-8">
+                                    <div className="relative">
+                                        {avatarUrl ? (
+                                            <div className="avatar">
+                                                <div className="w-24 rounded-full">
+                                                    <img
+                                                        src={avatarUrl}
+                                                        alt="Profile"
+                                                        className=""
+                                                    />
                                                 </div>
+                                            </div>
+                                        ) : (
+                                            <div className="avatar avatar-placeholder">
+                                                <div className="bg-neutral text-neutral-content w-12 rounded-full">
+                                                    <i className="fas fa-user"></i>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={triggerFileInput}
+                                            disabled={isUploadingAvatar}
+                                            className="btn btn-primary btn-circle absolute bottom-0 right-0"
+                                        >
+                                            {isUploadingAvatar ? (
+                                                <i className="fas fa-spinner fa-spin text-sm"></i>
+                                            ) : (
+                                                <i className="fas fa-camera text-sm"></i>
                                             )}
-                                            <button 
-                                                onClick={triggerFileInput}
-                                                disabled={isUploadingAvatar}
-                                                className="absolute bottom-0 right-0 bg-primary text-primary-content p-2 rounded-full hover:bg-primary-focus transition-colors disabled:opacity-50"
-                                            >
-                                                {isUploadingAvatar ? (
-                                                    <i className="fas fa-spinner fa-spin text-sm"></i>
-                                                ) : (
-                                                    <i className="fas fa-camera text-sm"></i>
-                                                )}
-                                            </button>
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleAvatarUpload}
-                                                className="hidden"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-2">
-                                                Profile Photo
-                                            </h3>
-                                            <p className="text-base-content/70 text-sm mb-4">
-                                                Update your profile photo to help others
-                                                recognize you. Max file size: 5MB.
-                                            </p>
-                                            <button 
-                                                onClick={triggerFileInput}
-                                                disabled={isUploadingAvatar}
-                                                className="btn btn-outline btn-sm"
-                                            >
-                                                {isUploadingAvatar ? (
-                                                    <>
-                                                        <i className="fas fa-spinner fa-spin mr-2"></i>
-                                                        Uploading...
-                                                    </>
-                                                ) : (
-                                                    "Change Photo"
-                                                )}
-                                            </button>
-                                        </div>
+                                        </button>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarUpload}
+                                            className="hidden"
+                                        />
                                     </div>
+
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            Profile Photo
+                                        </h3>
+                                        <p className="text-base-content/70 text-sm mb-4">
+                                            Update your profile photo to help
+                                            others recognize you. Max file size:
+                                            5MB.
+                                        </p>
+                                        <button
+                                            onClick={triggerFileInput}
+                                            disabled={isUploadingAvatar}
+                                            className="btn btn-outline btn-sm"
+                                        >
+                                            {isUploadingAvatar ? (
+                                                <>
+                                                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                "Change Photo"
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="lg:w-2/3">
