@@ -33,7 +33,7 @@ export default function Footer() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-16">
                         <div>
                             <h3 className="footer-title mb-4">Services</h3>
-                            <ul className="space-y-2">
+                            <ul className="space-y-6">
                                 <li>
                                     <a
                                         href="https://www.jobsight.co/features"
@@ -83,7 +83,7 @@ export default function Footer() {
 
                         <div>
                             <h3 className="footer-title mb-4">Company</h3>
-                            <ul className="space-y-2">
+                            <ul className="space-y-6">
                                 <li>
                                     <a
                                         href="https://www.jobsight.co/about"
@@ -133,7 +133,7 @@ export default function Footer() {
 
                         <div>
                             <h3 className="footer-title mb-4">Legal</h3>
-                            <ul className="space-y-2">
+                            <ul className="space-y-6">
                                 <li>
                                     <a
                                         href="https://www.jobsight.co/terms"
@@ -177,7 +177,7 @@ export default function Footer() {
 
                 {/* Bottom section with social and copyright */}
                 <div className="flex flex-col md:flex-row justify-between items-center pt-6">
-                    <div className="flex gap-4 mb-4 md:mb-0">
+                    <div className="flex gap-6 mb-4 md:mb-0">
                         <a
                             aria-label="Twitter"
                             href="https://twitter.com/jobsightapp"

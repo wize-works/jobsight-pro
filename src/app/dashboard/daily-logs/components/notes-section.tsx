@@ -58,7 +58,7 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
                         {notes.length === 0 ? (
                             "No notes were recorded for this daily log."
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-6">
                                 {notes.map((note) => (
                                     <div key={note.id} className="bg-base-100 p-3 rounded">
                                         <p className="text-sm">{note.content}</p>

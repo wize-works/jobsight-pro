@@ -1,7 +1,7 @@
 export default function Loading() {
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <div className="h-8 w-48 bg-base-300 animate-pulse rounded"></div>
                     <div className="h-4 w-32 bg-base-300 animate-pulse rounded mt-2"></div>
@@ -29,7 +29,7 @@ export default function Loading() {
                             <div className="h-1 w-full bg-base-300 animate-pulse rounded my-4"></div>
 
                             <div className="h-6 w-48 bg-base-300 animate-pulse rounded mb-4"></div>
-                            <div className="space-y-3">
+                            <div className="space-y-6">
                                 <div className="h-4 w-full bg-base-300 animate-pulse rounded"></div>
                                 <div className="h-4 w-full bg-base-300 animate-pulse rounded"></div>
                                 <div className="h-4 w-full bg-base-300 animate-pulse rounded"></div>
@@ -40,7 +40,7 @@ export default function Loading() {
                 </div>
 
                 <div className="lg:col-span-2">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div className="h-32 bg-base-300 animate-pulse rounded"></div>
                         <div className="h-32 bg-base-300 animate-pulse rounded"></div>
                         <div className="h-32 bg-base-300 animate-pulse rounded"></div>

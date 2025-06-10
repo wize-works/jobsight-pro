@@ -88,7 +88,7 @@ font-family: 'Outfit', sans-serif;
 
 ## 📐 Grid & Layout
 
-- Base spacing: `4px` system (`.gap-4`, `.p-4`, etc.)
+- Base spacing: `4px` system (`.gap-6`, `.p-4`, etc.)
 - Rounded corners: `rounded-2xl` for cards, `rounded-lg` for buttons
 - Max width for containers: `max-w-7xl` (`1280px`)  
 - Use `grid` or `flex` layouts consistently

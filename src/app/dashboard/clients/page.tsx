@@ -127,7 +127,7 @@ export default function ClientsPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-title text-lg">Total Clients</div>
                     <div className="flex items-center justify-between">
@@ -177,7 +177,7 @@ export default function ClientsPage() {
 
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
@@ -307,7 +307,7 @@ export default function ClientsPage() {
                 <div className="modal modal-open">
                     <div className="modal-box max-w-3xl">
                         <h3 className="font-bold text-lg mb-4">Add New Client</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="form-control">
                                 <label className="label">
                                     <span className="label-text">Client Name</span>
@@ -343,7 +343,7 @@ export default function ClientsPage() {
 
                         <div className="divider">Contact Information</div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="form-control">
                                 <label className="label">
                                     <span className="label-text">Contact Name</span>

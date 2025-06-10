@@ -101,7 +101,7 @@ export default function ProjectEditModal({
             <div className="modal-box max-w-4xl">
                 <h3 className="font-bold text-lg mb-4">Edit Project</h3>
                 <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Project Name*</span>

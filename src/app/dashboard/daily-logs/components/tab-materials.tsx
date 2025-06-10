@@ -100,11 +100,11 @@ export default function TabMaterials({ materials, equipment }: { materials: any[
                 <div className="card bg-base-100 shadow">
                     <div className="card-body">
                         <h3 className="card-title">Material Cost Breakdown</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-6">
                             {materials && materials.length === 0 ? (
                                 <div className="text-base-content/50 text-center">No material costs available</div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-6">
                                     {materials.map((material) => (
                                         <div key={material.id}>
                                             <div className="flex justify-between items-center mb-1">
@@ -130,11 +130,11 @@ export default function TabMaterials({ materials, equipment }: { materials: any[
                 <div className="card bg-base-100 shadow">
                     <div className="card-body">
                         <h3 className="card-title">Equipment Hours</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-6">
                             {equipment && equipment.length === 0 ? (
                                 <div className="text-base-content/50 text-center">No equipment hours available</div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-6">
                                     {equipment.map((item) => (
                                         <div key={item.id}>
                                             <div className="flex justify-between items-center mb-1">

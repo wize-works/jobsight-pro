@@ -40,7 +40,7 @@ export default function InteractionModal({ clientId, interaction, onClose, onSub
                         <h2 className="text-xl font-bold mb-4">Interaction Details</h2>
                         {error && <div className="text-error">{error}</div>}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="form-control">
                             <label className="label">Date</label>
                             <input

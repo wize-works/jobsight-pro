@@ -88,7 +88,7 @@ export default function ProjectsPage() {
             </div>
 
             {/* Project Statistics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-title">Total Projects</div>
                     <div className="flex items-center justify-between">
@@ -136,7 +136,7 @@ export default function ProjectsPage() {
             {/* Filters and Search */}
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="form-control w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                                 <i className="fas fa-search"></i>
@@ -181,7 +181,7 @@ export default function ProjectsPage() {
 
             {/* Projects Grid/List View */}
             {viewType === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProjects.map((project) => (
                         <Link
                             href={`/dashboard/projects/${project.id}`}

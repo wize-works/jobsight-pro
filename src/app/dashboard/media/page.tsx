@@ -174,7 +174,7 @@ export default function MediaLibrary() {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <h1 className="text-2xl font-bold">Media Library</h1>
                 <div className="flex gap-2">
                     <Link href="/dashboard/media/upload" className="btn btn-primary">
@@ -199,7 +199,7 @@ export default function MediaLibrary() {
 
             {/* Filters and search */}
             <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-6">
                     <div className="form-control flex-1">
                         <div className="input-group">
                             <input
@@ -256,7 +256,7 @@ export default function MediaLibrary() {
 
             {/* Media content */}
             {view === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredMedia.map((item) => (
                         <div
                             key={item.id}
@@ -354,7 +354,7 @@ export default function MediaLibrary() {
                                         />
                                     </td>
                                     <td>
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex items-center space-x-6">
                                             <div className="flex-shrink-0">{getFileIcon(item.type ?? "")}</div>
                                             <div>
                                                 <div className="font-medium">{item.name}</div>

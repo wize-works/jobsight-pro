@@ -120,7 +120,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
 
     return (
         <dialog id="assignment-modal" className="modal modal-open">
-            <form method="dialog" className="modal-box space-y-4" onSubmit={handleSubmit}>
+            <form method="dialog" className="modal-box space-y-6" onSubmit={handleSubmit}>
                 <h3 className="font-bold text-lg">{assignment ? 'Edit' : 'Add'} Equipment Assignment</h3>
                 <div className="form-control">
                     <label className="label">
@@ -170,7 +170,7 @@ export const AssignmentModal = ({ assignment, onClose, onSave, onDelete }: Assig
                         </select>
                     )}
                 </div>
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+                <div className='grid grid-cols-2 gap-6 mb-4'>
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Start Date</span>

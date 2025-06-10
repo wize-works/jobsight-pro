@@ -182,7 +182,7 @@ Okay, let's break down the explicit components, pages, and structure for buildin
 *   **Responsibilities:**
     *   Map over `projects` array.
     *   Render a `<ProjectCard>` for each project.
-    *   Arrange cards in a responsive grid (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`).
+    *   Arrange cards in a responsive grid (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`).
 
 ### 7. Project Card Component (`/components/features/projects/ProjectCard.tsx`)
 

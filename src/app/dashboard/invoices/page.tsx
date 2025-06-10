@@ -14,7 +14,7 @@ export default async function InvoicesPage() {
                     <h1 className="text-2xl font-bold mb-2">Invoices</h1>
                     <p className="text-sm text-base-content/50">Manage your invoices efficiently</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-6">
                     <Link href={"/dashbaord/invoices/new"} className="btn btn-primary">
                         <i className="fal fa-plus fa-fw mr-2"></i>
                         New Invoice

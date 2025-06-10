@@ -69,13 +69,13 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card bg-base-100 shadow-lg md:col-span-2">
                 <div className="card-body">
-                    <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
-                        <div className="flex justify-end gap-4">
+                    <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
+                        <div className="flex justify-end gap-6">
                             <button type="submit" className="btn btn-primary">
                                 Save Changes
                             </button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
@@ -273,10 +273,10 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
 
 
             {/* Specifications - Column 3 */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
                 <div className="card bg-base-100 shadow-lg col-span-1">
                     <div className="card-body">
-                        <div className="flex flex-col gap-4 col-span-1">
+                        <div className="flex flex-col gap-6 col-span-1">
                             <div className="flex items-center justify-between">
                                 <h2 className="font-bold text-lg">Specifications</h2>
                                 <button

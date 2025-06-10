@@ -7,7 +7,7 @@ export default function MorePage() {
         <div>
             <h1 className="text-2xl font-bold mb-6">More Options</h1>
 
-            <div className="grid gap-4">
+            <div className="grid gap-6">
                 <div className="divider mb-0">Organization</div>
                 <Link href="/dashboard/business" className="btn btn-ghost justify-start">
                     <i className="fal fa-building fa-fw fa-lg mr-3"></i>

@@ -8,7 +8,7 @@ export default function Loading() {
 
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body">
-                    <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex flex-col md:flex-row gap-6">
                         <div className="h-10 w-full bg-base-300 animate-pulse rounded"></div>
                         <div className="h-10 w-40 bg-base-300 animate-pulse rounded"></div>
                     </div>

@@ -473,7 +473,7 @@ export default function ReportsPage() {
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <h1 className="text-2xl font-bold">Reports & Analytics</h1>
                 <div className="flex gap-2">
                     <div className="dropdown dropdown-end">
@@ -530,14 +530,14 @@ export default function ReportsPage() {
                                         >
                                             <i
                                                 className={`fas fa-${type.id === "financial"
-                                                        ? "chart-line"
-                                                        : type.id === "project"
-                                                            ? "project-diagram"
-                                                            : type.id === "equipment"
-                                                                ? "truck"
-                                                                : type.id === "crew"
-                                                                    ? "users"
-                                                                    : "user-tie"
+                                                    ? "chart-line"
+                                                    : type.id === "project"
+                                                        ? "project-diagram"
+                                                        : type.id === "equipment"
+                                                            ? "truck"
+                                                            : type.id === "crew"
+                                                                ? "users"
+                                                                : "user-tie"
                                                     }`}
                                             ></i>{" "}
                                             {type.name}
@@ -584,7 +584,7 @@ export default function ReportsPage() {
                         <div className="card-body">
                             <h2 className="card-title">Report Templates</h2>
                             <div className="divider mt-0"></div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {filteredTemplates.map((template) => (
                                     <div
                                         key={template.id}

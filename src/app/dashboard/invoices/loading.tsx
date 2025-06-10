@@ -6,7 +6,7 @@ export default function InvoicesLoading() {
                 <div className="h-10 w-32 bg-base-300 rounded animate-pulse"></div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="stats shadow bg-base-300 animate-pulse h-24"></div>
                 ))}

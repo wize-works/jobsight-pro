@@ -31,7 +31,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     )}
                 </div>
 
-                <ul className="menu menu-md space-y-2 w-full">
+                <ul className="menu menu-md space-y-6 w-full">
                     <li className="">
                         <Link href="/dashboard" className="flex items-center min-h-8 p-1">
                             <i className="far fa-tachometer-alt fa-fw fa-lg"></i>
@@ -41,44 +41,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
 
                     {!sidebarCollapsed ? (
                         <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1">Organization</span>
-                        </li>
-                    ) : (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1"></span>
-                        </li>
-                    )}
-                    <li className="">
-                        <Link href="/dashboard/business" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-buildings fa-fw fa-lg"></i>
-                            {!sidebarCollapsed && <span>Business</span>}
-                        </Link>
-                    </li>
-                    <li className="">
-                        <Link href="/dashboard/crews" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-user-helmet-safety fa-fw fa-lg"></i>
-                            {!sidebarCollapsed && <span>Crews</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
-                        </Link>
-                    </li>
-                    <li className="">
-                        <Link href="/dashboard/equipment" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-excavator fa-fw fa-lg"></i>
-                            {!sidebarCollapsed && <span>Equipment</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
-                        </Link>
-                    </li>
-                    <li className="">
-                        <Link href="/dashboard/clients" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-user-tie fa-fw fa-lg"></i>
-                            {!sidebarCollapsed && <span>Clients</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-accent ml-auto">New</span>}
-                        </Link>
-                    </li>
-
-                    {!sidebarCollapsed ? (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1">Projects</span>
+                            <div className="divider divider-start my-1">Projects</div>
                         </li>
                     ) : (
                         <li className="menu-title py-1 mx-0 px-0">
@@ -89,7 +52,6 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                         <Link href="/dashboard/projects" className="flex items-center min-h-8 p-1">
                             <i className="far fa-person-digging fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Projects</span>}
-                            {!sidebarCollapsed && <span className="badge badge-sm badge-neutral ml-auto">Next</span>}
                         </Link>
                     </li>
                     <li className="">
@@ -107,7 +69,35 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
 
                     {!sidebarCollapsed ? (
                         <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1">Finance</span>
+                            <div className="divider divider-start my-1">Organization</div>
+                        </li>
+                    ) : (
+                        <li className="menu-title py-1 mx-0 px-0">
+                            <span className="divider my-1"></span>
+                        </li>
+                    )}
+                    <li className="">
+                        <Link href="/dashboard/clients" className="flex items-center min-h-8 p-1">
+                            <i className="far fa-user-tie fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Clients</span>}
+                        </Link>
+                    </li>
+                    <li className="">
+                        <Link href="/dashboard/crews" className="flex items-center min-h-8 p-1">
+                            <i className="far fa-user-helmet-safety fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Crews</span>}
+                        </Link>
+                    </li>
+                    <li className="">
+                        <Link href="/dashboard/equipment" className="flex items-center min-h-8 p-1">
+                            <i className="far fa-excavator fa-fw fa-lg"></i>
+                            {!sidebarCollapsed && <span>Equipment</span>}
+                        </Link>
+                    </li>
+
+                    {!sidebarCollapsed ? (
+                        <li className="menu-title py-1 mx-0 px-0">
+                            <span className="divider divider-start my-1">Finance</span>
                         </li>
                     ) : (
                         <li className="menu-title py-1 mx-0 px-0">
@@ -129,7 +119,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
 
                     {!sidebarCollapsed ? (
                         <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1">Media</span>
+                            <span className="divider divider-start my-1">Media</span>
                         </li>
                     ) : (
                         <li className="menu-title py-1 mx-0 px-0">

@@ -72,7 +72,7 @@ export default function MediaTab({ projectId }: MediaTabProps) {
 
     if (loading) {
         return (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
                 <h2 className="text-lg font-semibold">Project Media</h2>
                 <div className="flex items-center justify-center py-12">
                     <div className="loading loading-spinner loading-lg"></div>
@@ -82,7 +82,7 @@ export default function MediaTab({ projectId }: MediaTabProps) {
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Project Media</h2>
                 <Link
@@ -133,7 +133,7 @@ export default function MediaTab({ projectId }: MediaTabProps) {
             </div>
 
             {filteredMedia.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMedia.map((item) => (
                         <div key={item.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow duration-200">
                             <figure className="relative h-32 bg-base-200">

@@ -15,7 +15,7 @@ export default function ProjectModal({
             <div className="modal-box max-w-3xl">
                 <h3 className="font-bold text-lg mb-4">Add New Project</h3>
                 <form>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Project Name</span>
@@ -34,7 +34,7 @@ export default function ProjectModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Project Type</span>
@@ -68,7 +68,7 @@ export default function ProjectModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Start Date</span>
@@ -83,7 +83,7 @@ export default function ProjectModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Budget</span>

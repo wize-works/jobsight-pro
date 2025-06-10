@@ -104,7 +104,7 @@ export default function Pricing() {
 
                                     <div className="divider"></div>
 
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-6">
                                         {plan.features.map((feature, index) => (
                                             <li key={index} className="flex items-start">
                                                 <i className="fas fa-check text-success mt-1 mr-2"></i>

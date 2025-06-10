@@ -197,7 +197,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
 
     return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard/projects" className="btn btn-outline">
@@ -230,7 +230,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     </div>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="card bg-base-100 shadow-sm">
                     <div className="card-body p-4">
                         <div className="flex items-center gap-2">
@@ -290,9 +290,9 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="flex flex-col justify-start items-start gap-2 mb-4">
-                                    <div className="flex justify-start items-start gap-4">
+                                    <div className="flex justify-start items-start gap-6">
                                         <h1 className="text-2xl font-bold">{project.name}</h1>
                                         {projectStatusOptions.badge(project.status as ProjectStatus)}
                                     </div>
@@ -334,7 +334,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                             </div>
                             <div className="divider my-4"></div>
                             <h2 className="card-title">Project Details</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <div className="mb-4">
                                         <h4 className="text-sm font-medium text-base-content/70">Project Type</h4>

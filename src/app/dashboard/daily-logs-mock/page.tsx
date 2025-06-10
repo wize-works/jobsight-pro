@@ -179,7 +179,7 @@ export default function DailyLogsPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow">
                     <div className="stat-figure text-primary">
                         <i className="fas fa-clipboard-list text-3xl"></i>
@@ -216,7 +216,7 @@ export default function DailyLogsPage() {
 
             {/* Filters */}
             <div className="bg-base-100 p-4 rounded-lg shadow mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Date</span>
@@ -308,7 +308,7 @@ export default function DailyLogsPage() {
 
                                 <div className="divider my-2"></div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <h3 className="font-semibold mb-1">Work Completed</h3>
                                         <p>{log.workCompleted}</p>

@@ -120,7 +120,7 @@ export default function ProfilePage() {
                                         <img src={user?.picture || "/placeholder.svg?height=128&width=128&query=avatar"} alt="Profile" />
                                     </div>
                                 </div>
-                                <div className="mt-4 space-y-2">
+                                <div className="mt-4 space-y-6">
                                     <button className="btn btn-outline btn-sm w-full">
                                         <i className="fas fa-upload mr-2"></i> Upload Photo
                                     </button>
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                             <div className="md:w-2/3">
                                 <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">First Name</span>
@@ -260,9 +260,9 @@ export default function ProfilePage() {
                     <div className="card-body">
                         <h2 className="text-xl font-semibold mb-4">Notification Preferences</h2>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div className="form-control">
-                                <label className="label cursor-pointer justify-start gap-4">
+                                <label className="label cursor-pointer justify-start gap-6">
                                     <input
                                         type="checkbox"
                                         className="toggle toggle-primary"
@@ -279,7 +279,7 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="form-control">
-                                <label className="label cursor-pointer justify-start gap-4">
+                                <label className="label cursor-pointer justify-start gap-6">
                                     <input
                                         type="checkbox"
                                         className="toggle toggle-primary"
@@ -301,7 +301,7 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="form-control">
-                                <label className="label cursor-pointer justify-start gap-4">
+                                <label className="label cursor-pointer justify-start gap-6">
                                     <input
                                         type="checkbox"
                                         className="toggle toggle-primary"

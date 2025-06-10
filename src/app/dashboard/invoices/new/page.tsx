@@ -160,7 +160,7 @@ export default function NewInvoicePage() {
                                 <h2 className="card-title">Client & Project</h2>
                                 <div className="divider mt-0"></div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Client</span>

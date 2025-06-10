@@ -8,7 +8,7 @@ export default function TabSafety({ safety, quality, delays }: { safety: string 
                         <i className="far fa-shield-check mr-2"></i>
                         Safety Information
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {safety ?? <div className="text-base-content/50">YAY! No safety information provided.</div>}
                     </div>
                 </div>
@@ -21,7 +21,7 @@ export default function TabSafety({ safety, quality, delays }: { safety: string 
                         <i className="far fa-clipboard-check mr-2"></i>
                         Quality Control
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {quality ?? <div className="text-base-content/50">No quality control information provided.</div>}
                     </div>
                 </div>
@@ -35,7 +35,7 @@ export default function TabSafety({ safety, quality, delays }: { safety: string 
                             <i className="far fa-exclamation-triangle mr-2"></i>
                             Delays & Issues
                         </h3>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {delays ?? <div className="text-base-content/50">No delays or issues reported.</div>}
                         </div>
                     </div>

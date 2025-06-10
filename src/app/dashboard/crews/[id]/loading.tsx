@@ -1,7 +1,7 @@
 export default function Loading() {
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <div className="h-8 w-48 bg-base-300 animate-pulse rounded"></div>
                     <div className="h-4 w-32 bg-base-300 animate-pulse rounded mt-2"></div>
@@ -14,7 +14,7 @@ export default function Loading() {
 
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[...Array(3)].map((_, i) => (
                             <div key={i}>
                                 <div className="h-5 w-24 bg-base-300 animate-pulse rounded mb-2"></div>

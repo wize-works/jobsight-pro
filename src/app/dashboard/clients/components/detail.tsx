@@ -342,7 +342,7 @@ export default function ClientDetailComponent({
 
     return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
                         <Link href={`/dashboard/clients`} className="btn btn-ghost btn-sm mr-2">
@@ -430,7 +430,7 @@ export default function ClientDetailComponent({
                         <div className="card bg-base-100 shadow-sm mb-6">
                             <div className="card-body">
                                 <h3 className="text-lg font-semibold mb-4">Client Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <h4 className="text-sm font-medium text-base-content/70">Type</h4>
                                         <p>{client.type}</p>

@@ -126,7 +126,7 @@ export default function TaskModal({ onClose, projectId, task, onSave, crews = []
                     {isEditing ? "Edit Task" : "Add New Task"}
                 </h3>
                 <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div className="form-control md:col-span-2">
                             <label className="label">
                                 <span className="label-text">Task Name</span>
