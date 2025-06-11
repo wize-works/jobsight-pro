@@ -288,6 +288,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             </div>            {/* Send Invoice Modal */}
             {showSendModal && business && (
                 <ModalSend
+                    isOpen={showSendModal}
                     invoice={invoice}
                     business={business}
                     onClose={() => setShowSendModal(false)} />
@@ -295,7 +296,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <ModalPayment total={0} onClose={() => setShowPaymentModal(false)}
+                <ModalPayment isOpen={showPaymentModal} total={total} onClose={() => setShowPaymentModal(false)}
                 />
             )}
         </div>

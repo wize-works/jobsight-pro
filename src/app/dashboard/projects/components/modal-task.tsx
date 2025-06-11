@@ -4,6 +4,7 @@ import { createTask, updateTask } from "@/app/actions/tasks";
 import { toast } from "@/hooks/use-toast";
 
 interface TaskModalProps {
+    isOpen: boolean;
     onClose: () => void;
     projectId: string;
     task?: TaskWithDetails | null;
@@ -11,84 +12,94 @@ interface TaskModalProps {
     crews?: { id: string; name: string }[];
 }
 
-export default function TaskModal({ onClose, projectId, task, onSave, crews = [] }: TaskModalProps) {
+export default function TaskModal({ isOpen, onClose, projectId, task, onSave, crews = [] }: TaskModalProps) {
     const isEditing = !!task?.id;
 
-    // Form state
-    const [name, setName] = useState(task?.name || "");
-    const [description, setDescription] = useState(task?.description || "");
-    const [startDate, setStartDate] = useState(task?.start_date?.split("T")[0] || "");
-    const [endDate, setEndDate] = useState(task?.end_date?.split("T")[0] || "");
-    const [status, setStatus] = useState<TaskStatus>((task?.status as TaskStatus) || "not_started");
-    const [priority, setPriority] = useState<TaskPriority>((task?.priority as TaskPriority) || "medium");
-    const [progress, setProgress] = useState(task?.progress || 0);
-    const [assignedTo, setAssignedTo] = useState(task?.assigned_to || "");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "",
+        description: "",
+        start_date: "",
+        end_date: "",
+        status: "not_started" as TaskStatus,
+        priority: "medium" as TaskPriority,
+        progress: 0,
+        assigned_to: "",
+    });
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     // Reset form values when task prop changes
     useEffect(() => {
         if (task) {
-            setName(task.name || "");
-            setDescription(task.description || "");
-            setStartDate(task.start_date?.split("T")[0] || "");
-            setEndDate(task.end_date?.split("T")[0] || "");
-            setStatus((task.status as TaskStatus) || "not_started");
-            setPriority((task.priority as TaskPriority) || "medium");
-            setProgress(task.progress || 0);
-            setAssignedTo(task.assigned_to || "");
+            setFormData({
+                name: task.name || "",
+                description: task.description || "",
+                start_date: task.start_date?.split("T")[0] || "",
+                end_date: task.end_date?.split("T")[0] || "",
+                status: (task.status as TaskStatus) || "not_started",
+                priority: (task.priority as TaskPriority) || "medium",
+                progress: task.progress || 0,
+                assigned_to: task.assigned_to || "",
+            });
         } else {
-            resetForm();
+            setFormData({
+                name: "",
+                description: "",
+                start_date: "",
+                end_date: "",
+                status: "not_started" as TaskStatus,
+                priority: "medium" as TaskPriority,
+                progress: 0,
+                assigned_to: "",
+            });
         }
     }, [task]);
 
-    const resetForm = () => {
-        setName("");
-        setDescription("");
-        setStartDate("");
-        setEndDate("");
-        setStatus("not_started");
-        setPriority("medium");
-        setProgress(0);
-        setAssignedTo("");
-        setIsSubmitting(false);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
-    const handleClose = () => {
-        resetForm();
-        onClose();
+    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: Number(value)
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        setError("");
 
-        if (!name) {
-            toast.error("Task name is required");
+        if (!formData.name) {
+            setError("Task name is required");
+            setLoading(false);
             return;
         }
 
-        if (!startDate) {
-            toast.error("Start date is required");
+        if (!formData.start_date) {
+            setError("Start date is required");
+            setLoading(false);
             return;
         }
 
-        if (!endDate) {
-            toast.error("End date is required");
+        if (!formData.end_date) {
+            setError("End date is required");
+            setLoading(false);
             return;
         }
-
-        setIsSubmitting(true);
 
         try {
             const taskData = {
-                name,
-                description,
-                start_date: startDate,
-                end_date: endDate,
-                status,
-                priority,
-                progress,
-                assigned_to: assignedTo,
+                ...formData,
                 project_id: projectId,
+                assigned_to: formData.assigned_to || null,
             } as TaskInsert;
 
             if (isEditing && task) {
@@ -97,7 +108,10 @@ export default function TaskModal({ onClose, projectId, task, onSave, crews = []
                 const updatedTask = await updateTask(task.id, taskData);
 
                 if (updatedTask) {
-                    toast.success("Task updated successfully");
+                    toast.success({
+                        title: "Success",
+                        description: "Task updated successfully"
+                    });
                     if (onSave) onSave(updatedTask);
                 }
             } else {
@@ -105,162 +119,269 @@ export default function TaskModal({ onClose, projectId, task, onSave, crews = []
                 const newTask = await createTask(taskData);
 
                 if (newTask) {
-                    toast.success("Task created successfully");
+                    toast.success({
+                        title: "Success",
+                        description: "Task created successfully"
+                    });
                     if (onSave) onSave(newTask);
                 }
             }
 
-            handleClose();
+            onClose();
         } catch (error) {
             console.error("Error saving task:", error);
-            toast.error("Failed to save task");
+            const errorMessage = isEditing ? "Failed to update task" : "Failed to create task";
+            setError(errorMessage);
+            toast.error({
+                title: "Error",
+                description: errorMessage
+            });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
+    if (!isOpen) return null;
+
     return (
         <div className="modal modal-open">
-            <div className="modal-box max-w-3xl">
-                <h3 className="font-bold text-lg mb-4">
-                    {isEditing ? "Edit Task" : "Add New Task"}
-                </h3>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                        <div className="form-control md:col-span-2">
-                            <label className="label">
-                                <span className="label-text">Task Name</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Enter task name"
-                                className="input input-bordered w-full"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Start Date</span>
-                            </label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">End Date</span>
-                            </label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Status</span>
-                            </label>
-                            {taskStatusOptions.select(
-                                status,
-                                (value) => setStatus(value as TaskStatus)
-                            )}
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Priority</span>
-                            </label>
-                            {taskPriorityOptions.select(
-                                priority,
-                                (value) => setPriority(value as TaskPriority)
-                            )}
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Assigned To</span>
-                            </label>
-                            <select
-                                className="select select-bordered w-full"
-                                value={assignedTo}
-                                onChange={(e) => setAssignedTo(e.target.value)}
-                            >
-                                <option value="">Not Assigned</option>
-                                {crews.map((crew) => (
-                                    <option key={crew.id} value={crew.id}>
-                                        {crew.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Progress (%)</span>
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                className="input input-bordered w-full"
-                                value={progress}
-                                onChange={(e) => setProgress(Number(e.target.value))}
-                            />
-                        </div>
-
-                        <div className="form-control md:col-span-2">
-                            <label className="label">
-                                <span className="label-text">Description</span>
-                            </label>
-                            <textarea
-                                className="textarea textarea-bordered h-24"
-                                placeholder="Enter task description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                            />
-                        </div>
+            <div className="modal-box max-w-4xl max-h-[90vh] p-0 rounded-lg">
+                {/* Modal Header */}
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold">
+                            {isEditing ? 'Edit Task' : 'Add New Task'}
+                        </h2>
+                        <button
+                            className="btn btn-sm btn-circle btn-ghost text-primary-content hover:bg-primary-content hover:text-primary"
+                            onClick={onClose}
+                            disabled={loading}
+                        >
+                            <i className="fas fa-times"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <div className="modal-action">
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Task Details */}
+                        <div className="card bg-base-100 border border-base-300">
+                            <div className="card-body p-4">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <i className="fas fa-tasks text-primary"></i>
+                                    Task Details
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Task Name *</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            className="input input-bordered input-secondary w-full"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter task name"
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Description</span>
+                                        </label>
+                                        <textarea
+                                            name="description"
+                                            className="textarea textarea-bordered textarea-secondary w-full"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Describe the task..."
+                                            rows={4}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Schedule & Assignment */}
+                        <div className="card bg-base-100 border border-base-300">
+                            <div className="card-body p-4">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <i className="fas fa-calendar-alt text-primary"></i>
+                                    Schedule & Assignment
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Start Date *</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="start_date"
+                                            className="input input-bordered input-secondary w-full"
+                                            value={formData.start_date}
+                                            onChange={handleInputChange}
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">End Date *</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="end_date"
+                                            className="input input-bordered input-secondary w-full"
+                                            value={formData.end_date}
+                                            onChange={handleInputChange}
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Assigned To</span>
+                                        </label>
+                                        <select
+                                            name="assigned_to"
+                                            className="select select-bordered select-secondary w-full"
+                                            value={formData.assigned_to}
+                                            onChange={handleInputChange}
+                                            disabled={loading}
+                                        >
+                                            <option value="">Not Assigned</option>
+                                            {crews.map((crew) => (
+                                                <option key={crew.id} value={crew.id}>
+                                                    {crew.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status & Progress */}
+                        <div className="card bg-base-100 border border-base-300">
+                            <div className="card-body p-4">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <i className="fas fa-chart-line text-primary"></i>
+                                    Status & Progress
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Status</span>
+                                        </label>
+                                        <select
+                                            name="status"
+                                            className="select select-bordered select-secondary w-full"
+                                            value={formData.status}
+                                            onChange={handleInputChange}
+                                            disabled={loading}
+                                        >
+                                            {Object.entries(taskStatusOptions).map(([key, { label }]) => (
+                                                <option key={key} value={key}>
+                                                    {label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Priority</span>
+                                        </label>
+                                        <select
+                                            name="priority"
+                                            className="select select-bordered select-secondary w-full"
+                                            value={formData.priority}
+                                            onChange={handleInputChange}
+                                            disabled={loading}
+                                        >
+                                            {Object.entries(taskPriorityOptions).map(([key, { label }]) => (
+                                                <option key={key} value={key}>
+                                                    {label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Progress (%)</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="progress"
+                                            className="input input-bordered input-secondary w-full"
+                                            value={formData.progress}
+                                            onChange={handleNumberChange}
+                                            placeholder="0"
+                                            min="0"
+                                            max="100"
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+                                {formData.progress > 0 && (
+                                    <div className="mt-4">
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span>Progress</span>
+                                            <span>{formData.progress}%</span>
+                                        </div>
+                                        <progress
+                                            className="progress progress-primary w-full"
+                                            value={formData.progress}
+                                            max="100"
+                                        ></progress>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                    {error && (
+                        <div className="alert alert-error mb-4">
+                            <i className="fas fa-exclamation-triangle"></i>
+                            <span>{error}</span>
+                        </div>
+                    )}
+                    <div className="flex justify-end gap-3">
                         <button
                             type="button"
-                            className="btn btn-ghost"
-                            onClick={handleClose}
-                            disabled={isSubmitting}
+                            className="btn btn-outline"
+                            onClick={onClose}
+                            disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="btn btn-primary"
-                            disabled={isSubmitting}
+                            className="btn btn-primary gap-2"
+                            onClick={handleSubmit}
+                            disabled={loading || !formData.name || !formData.start_date || !formData.end_date}
                         >
-                            {isSubmitting ? (
+                            {loading ? (
                                 <>
-                                    <span className="loading loading-spinner loading-xs mr-2"></span>
-                                    Saving...
+                                    <span className="loading loading-spinner loading-sm"></span>
+                                    {isEditing ? 'Updating...' : 'Creating...'}
                                 </>
-                            ) : isEditing ? (
-                                "Update Task"
                             ) : (
-                                "Add Task"
+                                <>
+                                    <i className={isEditing ? "fas fa-save" : "fas fa-plus"}></i>
+                                    {isEditing ? 'Update Task' : 'Create Task'}
+                                </>
                             )}
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
-            <div className="modal-backdrop" onClick={handleClose}></div>
         </div>
     );
 }

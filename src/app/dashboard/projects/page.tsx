@@ -299,7 +299,7 @@ export default function ProjectsPage() {
 
             {/* Add Project Modal */}
             {showAddProjectModal && (
-                <ProjectModal project={{} as Project} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
+                <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
             )}
         </>
     );
