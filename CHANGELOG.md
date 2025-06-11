@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/wize-works/jobsight-pro/compare/v1.33.0...v1.34.0) (2025-06-11)
+
+
+### Features
+
+* implement media upload functionality in project detail; add media linking and unlinking actions; enhance media tab with improved filtering and display ([f917e84](https://github.com/wize-works/jobsight-pro/commit/f917e84f582bb07a7abcac4447c5aacd8b009c7d))
+
 # [1.33.0](https://github.com/wize-works/jobsight-pro/compare/v1.32.1...v1.33.0) (2025-06-11)
 
 
