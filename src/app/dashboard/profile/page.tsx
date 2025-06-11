@@ -174,19 +174,17 @@ export default function ProfilePage() {
                 // Reload user data to get the latest info
                 await loadCurrentUser();
             } else {
-                toast({
+                toast.error({
                     title: "Upload failed",
                     description: result.error || "Failed to upload avatar",
-                    variant: "destructive",
                 });
             }
         } catch (error) {
             console.error("Error uploading avatar:", error);
-            toast({
+            toast.error({
                 title: "Upload failed",
                 description:
                     "An unexpected error occurred while uploading your avatar.",
-                variant: "destructive",
             });
         } finally {
             setIsUploadingAvatar(false);
