@@ -91,10 +91,29 @@ export default function RegisterPage() {
                     const result = await checkUserBusinessStatus(user.id);
 
                     if (result.success && result.hasBusiness) {
-                        // User has business, redirect to dashboard
-                        console.log("User already has business, redirecting to dashboard");
-                        router.push("/dashboard");
-                        return;
+                        // User has business, check if they need subscription
+                        console.log("User already has business, checking subscription status");
+                        try {
+                            const { getCurrentSubscription } = await import("@/app/actions/subscriptions");
+                            const subscription = await getCurrentSubscription();
+                            
+                            if (subscription && subscription.status === 'active') {
+                                // User has business and active subscription, redirect to dashboard
+                                console.log("User has active subscription, redirecting to dashboard");
+                                router.push("/dashboard");
+                                return;
+                            } else {
+                                // User has business but no active subscription, go to plan selection
+                                console.log("User needs to select subscription plan");
+                                setRegistrationStep("plan_selection");
+                                return;
+                            }
+                        } catch (error) {
+                            console.error("Error checking subscription:", error);
+                            // On error, let them select a plan
+                            setRegistrationStep("plan_selection");
+                            return;
+                        }
                     } else if (result.success && !result.hasBusiness) {
                         // User exists in JobSight but has no business - this shouldn't happen normally
                         // but let them continue with registration
@@ -152,51 +171,78 @@ export default function RegisterPage() {
                     router.push("/");
                 }
                 setIsProcessing(false);
-            } else if (isAuthenticated && registrationStep === "processing" && selectedPlan && businessForm.businessName) {
-                // Handle business creation
+            } else if (isAuthenticated && registrationStep === "processing" && selectedPlan) {
                 setIsProcessing(true);
                 try {
-                    const businessResult = await createBusiness({
-                        userId: user.id,
-                        businessName: businessForm.businessName,
-                        businessType: businessForm.businessType,
-                        email: businessForm.email,
-                        phoneNumber: businessForm.phone,
-                        address: businessForm.address,
-                        city: businessForm.city,
-                        state: businessForm.state,
-                        zipCode: businessForm.zipCode,
-                        country: businessForm.country,
-                    });
-
-                    if (businessResult.success) {
-                        // Create subscription with selected plan
+                    // Check if user has a business
+                    const { checkUserBusinessStatus } = await import("@/app/actions/business");
+                    const businessStatus = await checkUserBusinessStatus(user.id);
+                    
+                    if (businessStatus.success && businessStatus.hasBusiness) {
+                        // User has business, just create subscription
                         const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
 
                         if (subscriptionResult.success) {
                             toast.success({
-                                title: "Welcome to JobSight Pro!",
-                                description: "Your business has been set up successfully",
+                                title: "Subscription Created!",
+                                description: "Your subscription has been set up successfully",
                             });
                             router.push("/dashboard");
                         } else {
-                            toast.success({
-                                title: "Business Created",
-                                description: "Business created but subscription setup failed. You can set this up later.",
+                            toast.error({
+                                title: "Error",
+                                description: subscriptionResult.error || "Failed to create subscription",
                             });
-                            router.push("/dashboard");
+                        }
+                    } else if (businessForm.businessName) {
+                        // User doesn't have business, create both business and subscription
+                        const businessResult = await createBusiness({
+                            userId: user.id,
+                            businessName: businessForm.businessName,
+                            businessType: businessForm.businessType,
+                            email: businessForm.email,
+                            phoneNumber: businessForm.phone,
+                            address: businessForm.address,
+                            city: businessForm.city,
+                            state: businessForm.state,
+                            zipCode: businessForm.zipCode,
+                            country: businessForm.country,
+                        });
+
+                        if (businessResult.success) {
+                            // Create subscription with selected plan
+                            const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
+
+                            if (subscriptionResult.success) {
+                                toast.success({
+                                    title: "Welcome to JobSight Pro!",
+                                    description: "Your business has been set up successfully",
+                                });
+                                router.push("/dashboard");
+                            } else {
+                                toast.success({
+                                    title: "Business Created",
+                                    description: "Business created but subscription setup failed. You can set this up later.",
+                                });
+                                router.push("/dashboard");
+                            }
+                        } else {
+                            toast.error({
+                                title: "Error",
+                                description: businessResult.error || "Failed to create business",
+                            });
                         }
                     } else {
                         toast.error({
                             title: "Error",
-                            description: businessResult.error || "Failed to create business",
+                            description: "Missing business information",
                         });
                     }
                 } catch (error) {
-                    console.error("Error creating business:", error);
+                    console.error("Error in registration processing:", error);
                     toast.error({
                         title: "Error",
-                        description: "Failed to create business",
+                        description: "Failed to complete registration",
                     });
                 }
                 setIsProcessing(false);
@@ -206,8 +252,26 @@ export default function RegisterPage() {
         processRegistration();
     }, [user, invitationData, isAuthLoading, isProcessing, registrationStep, selectedPlan, businessForm, router, isAuthenticated, billingInterval]);
 
-    const handlePlanSelect = (planId: string) => {
+    const handlePlanSelect = async (planId: string) => {
         setSelectedPlan(planId);
+        
+        // Check if user already has a business
+        if (isAuthenticated && user?.id) {
+            try {
+                const { checkUserBusinessStatus } = await import("@/app/actions/business");
+                const result = await checkUserBusinessStatus(user.id);
+                
+                if (result.success && result.hasBusiness) {
+                    // User has business, proceed directly to subscription creation
+                    setRegistrationStep("processing");
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking business status:", error);
+            }
+        }
+        
+        // User doesn't have business, proceed to business setup
         setRegistrationStep("business_setup");
     };
 

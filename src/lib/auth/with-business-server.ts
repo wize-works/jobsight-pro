@@ -1,4 +1,3 @@
-
 import { redirect } from 'next/navigation'
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { getUserBusiness } from "@/app/actions/business"
@@ -24,7 +23,7 @@ export async function withBusinessServer(allowRegistration: boolean = false): Pr
         // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
             console.error("[withBusinessServer] Business auth error:", businessResponse);
-            
+
             // If registration is allowed, redirect to register instead of home
             if (allowRegistration) {
                 redirect("/register");
@@ -33,17 +32,30 @@ export async function withBusinessServer(allowRegistration: boolean = false): Pr
             }
         }
 
-        // If user has no business, handle based on context
-        if (!businessResponse || !('id' in businessResponse)) {
+        // If no business found, redirect based on allowRegistration flag
+        if (!businessResponse || 'success' in businessResponse) {
+            console.error("[withBusinessServer] No business found for user:", user.id);
+
             if (allowRegistration) {
-                // For registration flows, allow the process to continue
-                console.log("[withBusinessServer] User in registration flow, no business yet");
-                throw new Error("User has no business - in registration flow");
-            } else {
-                // For dashboard/protected routes, redirect to business setup
-                console.error("[withBusinessServer] No business data found for user:", user.id);
                 redirect("/register");
+            } else {
+                redirect("/");
             }
+        }
+
+        // Check if user has an active subscription (optional check based on business requirements)
+        try {
+            const { getCurrentSubscription } = await import("@/app/actions/subscriptions");
+            const subscription = await getCurrentSubscription();
+
+            if (!subscription || subscription.status !== 'active') {
+                console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+                // Allow access but could be modified based on business rules
+                // redirect("/register"); // Uncomment if subscription is required for dashboard access
+            }
+        } catch (error) {
+            console.error("[withBusinessServer] Error checking subscription:", error);
+            // Continue without subscription check if there's an error
         }
 
         return {
@@ -51,11 +63,7 @@ export async function withBusinessServer(allowRegistration: boolean = false): Pr
             userId: user.id
         };
     } catch (error) {
-        if (allowRegistration) {
-            // Re-throw the error for registration flows to handle
-            throw error;
-        }
-        console.error("[withBusinessServer] Error in business check:", error);
-        redirect('/register');
+        console.error("[withBusinessServer] Error:", error);
+        redirect('/');
     }
 }
