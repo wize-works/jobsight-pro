@@ -19,9 +19,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
     }
 
     try {
-        console.log("[withBusinessServer] Fetching business for user:", user.id);
         const businessResponse = await getUserBusiness(user.id);
-        console.log("[withBusinessServer] Business response:", businessResponse);
 
         // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
@@ -51,7 +49,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             // Continue without subscription check if there's an error
         }
 
-        console.log("[withBusinessServer] Business found:", businessResponse);
+        console.log("[withBusinessServer] Business found");
         return {
             business: businessResponse,
             userId: user.id

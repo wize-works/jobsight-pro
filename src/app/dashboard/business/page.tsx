@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { updateBusinessFromForm } from "@/app/actions/business";
 import { getUsers, deleteUser } from "@/app/actions/users";
-import { sendUserInvitation, revokeUserInvitation, resendUserInvitation } from "@/app/actions/user-invitations";
 import { toast } from "@/hooks/use-toast";
-import { User, UserInsert, UserRole, userRoleOptions } from "@/types/users";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import PushManager from "@/components/push-manager";
 import { getProjects } from "@/app/actions/projects";
 import { getEquipments } from "@/app/actions/equipments";
 import UsersPermissionsTab from "./components/tab-users";
@@ -19,41 +15,53 @@ import { BusinessSubscription } from "@/types/subscription";
 
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile");
-    const { businessData, loading, error, refreshBusiness } = useBusiness();
+    const { business, loading, error, refreshBusiness } = useBusiness();
     const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userCount, setUserCount] = useState(0);
     const [projectCount, setProjectCount] = useState(0);
     const [equipmentCount, setEquipmentCount] = useState(0);
+    const [dataLoaded, setDataLoaded] = useState(false);
 
 
     useEffect(() => {
-        async function fetchData() {
-            try {
-                const users = await getUsers();
-                const projects = await getProjects();
-                const equipment = await getEquipments();
-                const businessSubscription = await getCurrentSubscription();
-                setUserCount(users.length);
-                setProjectCount(projects.length);
-                setEquipmentCount(equipment.length);
-                setSubscription(businessSubscription);
-            } catch (error) {
-                console.error("Error fetching users:", error);
+        if (business && !dataLoaded && !loading) {
+            async function fetchData() {
+                try {
+                    const [users, projects, equipment, businessSubscription] = await Promise.all([
+                        getUsers(),
+                        getProjects(),
+                        getEquipments(),
+                        getCurrentSubscription()
+                    ]);
+                    setUserCount(users.length);
+                    setProjectCount(projects.length);
+                    setEquipmentCount(equipment.length);
+                    setSubscription(businessSubscription);
+                    setDataLoaded(true);
+                } catch (error) {
+                    console.error("Error fetching users:", error);
+                }
             }
+            fetchData();
         }
-        fetchData();
 
-        if (!businessData) {
+        if (!business) {
             refreshBusiness();
         }
-    }, [businessData, refreshBusiness]);
+    }, [business, loading, dataLoaded]);
+
+    useEffect(() => {
+        if (business && !dataLoaded) {
+            refreshBusiness();
+        }
+    }, [business, loading]);
 
     const handleSaveChanges = async (formData: FormData) => {
         setIsSubmitting(true);
         try {
-            if (businessData?.id) {
-                formData.append("id", businessData.id);
+            if (business?.id) {
+                formData.append("id", business.id);
             }
 
             const result = await updateBusinessFromForm(formData);
@@ -160,7 +168,7 @@ export default function BusinessPage() {
                                         <label className="label">
                                             <span className="label-text">Business Name</span>
                                         </label>
-                                        <input type="text" name="name" className="input input-bordered w-full" defaultValue={businessData?.name || ""} />
+                                        <input type="text" name="name" className="input input-bordered w-full" defaultValue={business?.name || ""} />
                                     </div>
 
                                     <div className="form-control">
@@ -170,7 +178,7 @@ export default function BusinessPage() {
                                         <select
                                             className="select select-bordered w-full"
                                             name="business_type"
-                                            defaultValue={businessData?.business_type || ""}
+                                            defaultValue={business?.business_type || ""}
                                         >
                                             <option value="General Contractor">General Contractor</option>
                                             <option value="Specialty Contractor">Specialty Contractor</option>
@@ -184,35 +192,35 @@ export default function BusinessPage() {
                                         <label className="label">
                                             <span className="label-text">Phone Number</span>
                                         </label>
-                                        <input type="tel" name="phone" className="input input-bordered w-full" defaultValue={businessData?.phone || ""} />
+                                        <input type="tel" name="phone" className="input input-bordered w-full" defaultValue={business?.phone || ""} />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Email</span>
                                         </label>
-                                        <input type="email" name="email" className="input input-bordered w-full" defaultValue={businessData?.email || ""} />
+                                        <input type="email" name="email" className="input input-bordered w-full" defaultValue={business?.email || ""} />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Website</span>
                                         </label>
-                                        <input type="url" name="website" className="input input-bordered w-full" defaultValue={businessData?.website || ""} />
+                                        <input type="url" name="website" className="input input-bordered w-full" defaultValue={business?.website || ""} />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Logo Url</span>
                                         </label>
-                                        <input type="url" name="logo_url" className="input input-bordered w-full" defaultValue={businessData?.logo_url || ""} />
+                                        <input type="url" name="logo_url" className="input input-bordered w-full" defaultValue={business?.logo_url || ""} />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Tax ID / EIN</span>
                                         </label>
-                                        <input type="text" name="tax_id" className="input input-bordered w-full" defaultValue={businessData?.tax_id || ""} />
+                                        <input type="text" name="tax_id" className="input input-bordered w-full" defaultValue={business?.tax_id || ""} />
                                     </div>
                                 </div>
                             </div>
@@ -225,14 +233,14 @@ export default function BusinessPage() {
                                         <label className="label">
                                             <span className="label-text">Street Address</span>
                                         </label>
-                                        <input type="text" name="address" className="input input-bordered w-full" defaultValue={businessData?.address || ""} />
+                                        <input type="text" name="address" className="input input-bordered w-full" defaultValue={business?.address || ""} />
                                     </div>
 
                                     <div className="form-control md:col-span-3">
                                         <label className="label">
                                             <span className="label-text">City</span>
                                         </label>
-                                        <input type="text" name="city" className="input input-bordered w-full" defaultValue={businessData?.city || ""} />
+                                        <input type="text" name="city" className="input input-bordered w-full" defaultValue={business?.city || ""} />
                                     </div>                                    <div className="form-control md:col-span-1">
                                         <label className="label">
                                             <span className="label-text">State</span>
@@ -240,8 +248,8 @@ export default function BusinessPage() {
                                         <select
                                             className="select select-bordered w-full"
                                             name="state"
-                                            key={businessData?.state || "empty"}
-                                            defaultValue={businessData?.state || ""}
+                                            key={business?.state || "empty"}
+                                            defaultValue={business?.state || ""}
                                         >
                                             <option value="">Select State</option>
                                             <option value="AL">AL - Alabama</option>
@@ -301,14 +309,14 @@ export default function BusinessPage() {
                                         <label className="label">
                                             <span className="label-text">Zip Code</span>
                                         </label>
-                                        <input type="text" name="zip" className="input input-bordered w-full" defaultValue={businessData?.zip || ""} />
+                                        <input type="text" name="zip" className="input input-bordered w-full" defaultValue={business?.zip || ""} />
                                     </div>
 
                                     <div className="form-control col-span-3">
                                         <label className="label">
                                             <span className="label-text">Country</span>
                                         </label>
-                                        <select className="select select-bordered w-full" name="country" defaultValue={businessData?.country || ""} >
+                                        <select className="select select-bordered w-full" name="country" defaultValue={business?.country || ""} >
                                             <option value="United States">United States</option>
                                         </select>
                                     </div>

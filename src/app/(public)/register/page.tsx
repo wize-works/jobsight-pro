@@ -237,7 +237,6 @@ export default function RegisterPage() {
         if (isAuthenticated && user?.id) {
             try {
                 const result = await checkUserBusinessStatus(user.id);
-                console.log("checkUserBusinessStatus result:", result);
                 if (result.success && result.hasBusiness) {
                     //await assignSubscriptionToBusiness(user.id, result.businessId, planId);
                     setRegistrationStep("processing");
@@ -245,7 +244,6 @@ export default function RegisterPage() {
                 }
 
                 const businessStatus = await checkBusinessStatus(user.id);
-                console.log("checkBusinessStatus result:", businessStatus);
                 if (businessStatus.hasBusiness) {
                     // User has business but no subscription, proceed to plan selection
                     setRegistrationStep("plan_selection");

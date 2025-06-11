@@ -889,7 +889,6 @@ export interface Database {
                     updated_by: string
                 }
                 Insert: {
-                    id: string
                     business_id: string
                     name: string
                     type: string | null
@@ -1092,7 +1091,6 @@ export interface Database {
                     updated_by: string | null
                 }
                 Insert: {
-                    id: string
                     equipment_id: string
                     business_id: string
                     project_id: string | null

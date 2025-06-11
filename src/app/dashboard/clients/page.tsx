@@ -297,10 +297,17 @@ export default function ClientsPage() {
             {/* No clients found message */}
 
             {filteredClients.length === 0 && (
-                <div className="text-center py-12">
-                    <i className="fas fa-users text-4xl text-base-content/30 mb-4"></i>
-                    <h3 className="text-xl font-semibold mb-2">No clients found</h3>
-                    <p className="text-base-content/70">Try adjusting your search or filters</p>
+                <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card-body text-center">
+                        <i className="fas fa-users text-4xl text-base-content/30 mb-4"></i>
+                        <h3 className="text-lg font-semibold">No clients found</h3>
+                        <p className="text-base-content/70">Try adjusting your search or filters</p>
+                        <div className="flex m-auto justify-center mt-4">
+                            <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
+                                <i className="fas fa-plus mr-2"></i> Add Your First Client
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

@@ -225,6 +225,24 @@ export default function CrewsList() {
                 </div>
             )}
 
+            {crews.length === 0 && (
+                <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card-body text-center">
+                        <i className="fas fa-users text-3xl text-base-content/30 mb-2"></i>
+                        <h3 className="text-lg font-semibold">No crews found</h3>
+                        <p className="text-base-content/70">Try adjusting your search or filters</p>
+                        <div className="flex m-auto justify-center mt-4">
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => setShowAddCrewModal(true)}
+                            >
+                                <i className="fas fa-plus mr-2"></i> Add Your First Crew
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             {showAddCrewModal && (
                 <dialog id="add_crew_modal" className={`modal ${showAddCrewModal ? 'modal-open' : ''}`}>
