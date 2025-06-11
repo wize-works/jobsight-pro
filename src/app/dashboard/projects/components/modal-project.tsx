@@ -331,18 +331,20 @@ export default function ProjectModal({
                                         <span className="label-text font-medium">Budget</span>
                                     </label>
                                     <div className="input-group">
-                                        <span className="input-group-text bg-base-200">$</span>
-                                        <input
-                                            type="number"
-                                            name="budget"
-                                            className="input input-bordered input-secondary flex-1"
-                                            value={formData.budget}
-                                            onChange={handleInputChange}
-                                            placeholder="0.00"
-                                            min="0"
-                                            step="0.01"
-                                            disabled={loading}
-                                        />
+                                        <label className="input input-secondary">
+                                            <i className="fas fa-dollar-sign text-secondary mr-2"></i>
+                                            <input
+                                                type="number"
+                                                name="budget"
+                                                className="grow"
+                                                value={formData.budget}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                min="0"
+                                                step="0.01"
+                                                disabled={loading}
+                                            />
+                                        </label>
                                     </div>
                                 </div>
                             </div>

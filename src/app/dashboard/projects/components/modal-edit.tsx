@@ -285,12 +285,12 @@ export default function ProjectEditModal({
                                     <label className="label">
                                         <span className="label-text font-medium">Budget</span>
                                     </label>
-                                    <div className="input-group">
-                                        <span className="input-group-text bg-base-200">$</span>
+                                    <label className="input input-secondary">
+                                        <i className="fas fa-dollar-sign text-secondary mr-2"></i>
                                         <input
                                             type="number"
                                             name="budget"
-                                            className="input input-bordered input-secondary flex-1 "
+                                            className="grow"
                                             value={formData.budget}
                                             onChange={handleInputChange}
                                             placeholder="0.00"
@@ -298,7 +298,7 @@ export default function ProjectEditModal({
                                             step="0.01"
                                             disabled={loading}
                                         />
-                                    </div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -405,7 +405,7 @@ export default function ProjectEditModal({
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

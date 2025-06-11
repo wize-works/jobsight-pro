@@ -215,13 +215,13 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         </label>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
-                                <a>Add Task</a>
+                                <button onClick={() => setTaskModalOpen(true)}>Add Task</button>
                             </li>
                             <li>
-                                <a>Add Milestone</a>
+                                <button onClick={() => setMilestoneModalOpen(true)}>Add Milestone</button>
                             </li>
                             <li>
-                                <a>Assign Crew</a>
+                                <button>Assign Crew</button>
                             </li>
                             <li>
                                 <a>Upload Document</a>

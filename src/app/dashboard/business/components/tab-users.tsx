@@ -2,7 +2,6 @@
 import { resendUserInvitation, revokeUserInvitation, sendUserInvitation } from "@/app/actions/user-invitations";
 import { deleteUser, getUsers } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
-import { useBusiness } from "@/lib/business-context";
 import { User, UserRole, userRoleOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useEffect, useState } from "react";
@@ -17,7 +16,6 @@ export default function UsersPermissionsTab() {
     const [inviteRole, setInviteRole] = useState<"admin" | "manager" | "member">("member");
     const [inviting, setInviting] = useState(false);
     const { user: currentUser } = useKindeBrowserClient();
-    const { business } = useBusiness();
 
     useEffect(() => {
         loadUsers();
