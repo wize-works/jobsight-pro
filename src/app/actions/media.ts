@@ -401,3 +401,136 @@ export async function generateUploadUrl(type: MediaType, filename: string): Prom
         fileName: blobName,
     };
 }
+
+export const linkMediaToProject = async (mediaId: string, projectId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Check if link already exists
+        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: projectId,
+                linked_type: "project"
+            }
+        });
+
+        if (existingLinks && existingLinks.length > 0) {
+            console.log("Media already linked to project");
+            return true;
+        }
+
+        // Create new link using insertWithBusiness
+        let newLink = {
+            media_id: mediaId,
+            linked_id: projectId,
+            linked_type: "project"
+        };
+
+        newLink = await applyCreated<MediaLink>(newLink);
+
+        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, business.id, {
+            userId: userId
+        });
+
+        if (error) {
+            console.error("Error linking media to project:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking media to project:", error);
+        return false;
+    }
+};
+
+export const unlinkMediaFromProject = async (mediaId: string, projectId: string): Promise<boolean> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        // Find the link to delete
+        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: projectId,
+                linked_type: "project"
+            }
+        });
+
+        if (!existingLinks || existingLinks.length === 0) {
+            console.log("No media link found to remove");
+            return true;
+        }
+
+        // Delete the link using deleteWithBusinessCheck
+        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, business.id);
+
+        if (error) {
+            console.error("Error unlinking media from project:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error unlinking media from project:", error);
+        return false;
+    }
+};
+
+export const uploadProjectMedia = async (projectId: string, file: File, type: MediaType, description?: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl(type, file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: description || `Media file for project`,
+            type: type,
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: business.id,
+            project_id: projectId,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to project
+        await linkMediaToProject(media.id, projectId);
+
+        return true;
+    } catch (error) {
+        console.error("Error uploading project media:", error);
+        return false;
+    }
+};
