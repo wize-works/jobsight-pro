@@ -86,9 +86,9 @@ export default function RegisterPage() {
 
             if (isAuthenticated && registrationStep === "plan_selection" && !selectedPlan) {
                 try {
-                    // Check if user has existing business in JobSight
-                    const response = await fetch(`/api/business/check?userId=${user.id}`);
-                    const result = await response.json();
+                    // Check if user has existing business in JobSight using server action
+                    const { checkUserBusinessStatus } = await import("@/app/actions/business");
+                    const result = await checkUserBusinessStatus(user.id);
 
                     if (result.success && result.hasBusiness) {
                         // User has business, redirect to dashboard

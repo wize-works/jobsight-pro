@@ -249,3 +249,36 @@ export async function updateBusinessFromForm(formData: FormData) {
         return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
     }
 }
+
+export async function checkUserBusinessStatus(userId: string) {
+    const supabase = createServerClient()
+    if (!supabase) {
+        throw new Error("Supabase client not initialized")
+    }
+
+    try {
+        // Check if user exists and has a business
+        const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", userId)
+            .single()
+
+        if (userError && userError.code !== 'PGRST116') {
+            console.error("Error checking user business:", userError)
+            return { success: false, error: "Database error" }
+        }
+
+        const hasBusiness = userData?.business_id ? true : false
+
+        return { 
+            success: true, 
+            hasBusiness,
+            businessId: userData?.business_id || null 
+        }
+
+    } catch (error) {
+        console.error("Error in checkUserBusinessStatus:", error)
+        return { success: false, error: "Internal server error" }
+    }
+}
