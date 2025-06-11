@@ -92,15 +92,20 @@ export default function RegisterPage() {
 
                     if (result.success && result.hasBusiness) {
                         // User has business, redirect to dashboard
+                        console.log("User already has business, redirecting to dashboard");
                         router.push("/dashboard");
+                        return;
+                    } else if (result.success && !result.hasBusiness) {
+                        // User exists in JobSight but has no business - this shouldn't happen normally
+                        // but let them continue with registration
+                        console.log("User exists but has no business - continuing with registration");
                     } else {
-                        // User needs to complete registration - they're authenticated but no business exists
-                        console.log("Authenticated user needs to complete registration");
-                        // Stay on plan selection to let them continue
+                        // User doesn't exist in JobSight database yet - normal case
+                        console.log("New user needs to complete registration");
                     }
                 } catch (error) {
                     console.error("Error checking user business status:", error);
-                    // Continue with registration flow
+                    // Continue with registration flow on error
                 }
             }
         };
@@ -108,28 +113,7 @@ export default function RegisterPage() {
         checkUserStatus();
     }, [user, isAuthenticated, isAuthLoading, registrationStep, selectedPlan, invitationData, router]);
 
-    // Handle authenticated users who reach the fallback case
-    useEffect(() => {
-        if (isAuthenticated && !invitationData && !isAuthLoading && registrationStep === "plan_selection" && !selectedPlan) {
-            // If user is authenticated but hasn't selected a plan or completed setup,
-            // check if they have a business and redirect accordingly
-            const checkAndRedirect = async () => {
-                try {
-                    const response = await fetch(`/api/business/check?userId=${user?.id}`);
-                    const result = await response.json();
-
-                    if (result.success && result.hasBusiness) {
-                        console.log("User is authenticated with existing business, redirecting to dashboard");
-                        router.push("/dashboard");
-                    }
-                } catch (error) {
-                    console.error("Error checking user business status for redirect:", error);
-                }
-            };
-
-            checkAndRedirect();
-        }
-    }, [isAuthenticated, invitationData, isAuthLoading, registrationStep, selectedPlan, user?.id, router]);
+    
 
     // Handle post-auth processing
     useEffect(() => {

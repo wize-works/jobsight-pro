@@ -47,12 +47,13 @@ export async function createBusiness(params: CreateBusinessParams) {
         // Try to update existing user, or create new one if doesn't exist
         const { data: existingUser, error: getUserError } = await supabase
             .from("users")
-            .select("id")
+            .select("id, business_id")
             .eq("auth_id", userId)
             .single()
 
         if (getUserError && getUserError.code === 'PGRST116') {
             // User doesn't exist, create new user
+            console.log("Creating new user record for:", userId)
             const { error: createUserError } = await supabase
                 .from("users")
                 .insert({
@@ -79,7 +80,17 @@ export async function createBusiness(params: CreateBusinessParams) {
                 error: "Failed to check user record"
             }
         } else {
-            // User exists, update with business ID
+            // User exists, check if they already have a business
+            if (existingUser.business_id) {
+                console.log("User already has a business:", existingUser.business_id)
+                return {
+                    success: false,
+                    error: "User already has a business associated"
+                }
+            }
+            
+            // User exists but has no business, update with business ID
+            console.log("Updating existing user with new business ID")
             const { error: userError } = await supabase
                 .from("users")
                 .update({ business_id: businessId, updated_at: now })
