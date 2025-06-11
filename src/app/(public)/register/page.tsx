@@ -45,10 +45,9 @@ export default function RegisterPage() {
             try {
                 const decoded = JSON.parse(Buffer.from(token, "base64").toString());
                 if (new Date(decoded.expiresAt) < new Date()) {
-                    toast({
+                    toast.warning({
                         title: "Invitation Expired",
                         description: "This invitation link has expired. Please request a new one.",
-                        variant: "destructive",
                     });
                     router.push("/");
                     return;
@@ -56,10 +55,9 @@ export default function RegisterPage() {
                 setInvitationData(decoded);
                 setRegistrationStep("processing"); // Skip plan selection for invitations
             } catch (error) {
-                toast({
+                toast.error({
                     title: "Invalid Invitation",
                     description: "Invalid invitation token",
-                    variant: "destructive",
                 });
                 router.push("/");
             }
@@ -99,25 +97,23 @@ export default function RegisterPage() {
                     );
 
                     if (result.success) {
-                        toast({
+                        toast.success({
                             title: "Welcome!",
                             description: "Your invitation has been accepted successfully",
                         });
                         router.push("/dashboard");
                     } else {
-                        toast({
+                        toast.error({
                             title: "Error",
                             description: result.error || "Failed to accept invitation",
-                            variant: "destructive",
                         });
                         router.push("/");
                     }
                 } catch (error) {
                     console.error("Error processing invitation:", error);
-                    toast({
+                    toast.error({
                         title: "Error",
                         description: "Failed to process invitation",
-                        variant: "destructive",
                     });
                     router.push("/");
                 }
@@ -142,7 +138,7 @@ export default function RegisterPage() {
                     if (businessResult.success) {
                         // Create subscription with selected plan
                         const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
-                        
+
                         if (subscriptionResult.success) {
                             toast({
                                 title: "Welcome to JobSight Pro!",
@@ -157,18 +153,16 @@ export default function RegisterPage() {
                             router.push("/dashboard");
                         }
                     } else {
-                        toast({
+                        toast.error({
                             title: "Error",
                             description: businessResult.error || "Failed to create business",
-                            variant: "destructive",
                         });
                     }
                 } catch (error) {
                     console.error("Error creating business:", error);
-                    toast({
+                    toast.error({
                         title: "Error",
                         description: "Failed to create business",
-                        variant: "destructive",
                     });
                 }
                 setIsProcessing(false);
@@ -186,10 +180,9 @@ export default function RegisterPage() {
     const handleBusinessFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!businessForm.businessName.trim()) {
-            toast({
+            toast.warning({
                 title: "Business Name Required",
                 description: "Please enter your business name",
-                variant: "destructive",
             });
             return;
         }
@@ -198,6 +191,7 @@ export default function RegisterPage() {
 
     // Show loading only if auth is actually loading and we don't have user data yet
     if (isAuthLoading && !user) {
+        console.log("Loading authentication state...");
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -210,6 +204,7 @@ export default function RegisterPage() {
 
     // Show invitation processing for invited users who aren't authenticated
     if (invitationData && !isAuthenticated) {
+        console.log("Processing invitation for user:", invitationData.email);
         return (
             <div className="min-h-screen flex items-center justify-center bg-base-200">
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
@@ -230,6 +225,7 @@ export default function RegisterPage() {
 
     // Show processing state for both invitation and business setup
     if (isProcessing) {
+        console.log("Processing registration step:", registrationStep);
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -244,6 +240,7 @@ export default function RegisterPage() {
 
     // Show plan selection step (for non-authenticated users or those who haven't selected a plan)
     if (!isAuthenticated && registrationStep === "plan_selection") {
+        console.log("Showing plan selection for unauthenticated user");
         return (
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4">
@@ -320,6 +317,7 @@ export default function RegisterPage() {
 
     // Show business setup step
     if (!isAuthenticated && registrationStep === "business_setup") {
+        console.log("Showing business setup for unauthenticated user");
         return (
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4 max-w-2xl">
@@ -462,11 +460,13 @@ export default function RegisterPage() {
 
     // If user is authenticated but hasn't completed setup, redirect to dashboard
     if (isAuthenticated && !invitationData) {
+        console.log("User is authenticated, redirecting to dashboard");
         router.push("/dashboard");
         return null;
     }
 
     // Default fallback
+    console.log("Rendering default registration page");
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">

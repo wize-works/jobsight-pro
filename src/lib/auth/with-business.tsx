@@ -42,9 +42,9 @@ export function useWithBusiness(): BusinessState {
             if (!isRegistrationFlow) {
                 console.warn('User ID is not available after auth load, redirecting to home');
                 setState(prev => ({ ...prev, loading: false }))
-                toast({
+                toast.error({
                     title: "Authentication required",
-                    variant: "destructive",
+                    description: "Please log in to access this page.",
                 });
                 router.push('/');
             }
@@ -61,10 +61,10 @@ export function useWithBusiness(): BusinessState {
                     loading: false,
                     error: (response && 'error' in response) ? response.error : "No business found"
                 })
-                
+
                 // Only redirect if not in registration flow
                 if (!isRegistrationFlow) {
-                    toast({
+                    toast.info({
                         title: "Business setup required",
                         description: "Please complete your business setup",
                     });
@@ -88,13 +88,12 @@ export function useWithBusiness(): BusinessState {
                 loading: false,
                 error: "Failed to verify business access"
             })
-            
+
             // Only redirect if not in registration flow
             if (!isRegistrationFlow) {
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to verify business access",
-                    variant: "destructive",
                 })
                 console.error('Redirecting to register due to error:', error)
                 router.push('/register')
