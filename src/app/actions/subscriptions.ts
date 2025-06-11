@@ -2,6 +2,7 @@
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { createServerClient } from "@/lib/supabase";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import {
   fetchByBusiness,
   insertWithBusiness,
@@ -65,46 +66,69 @@ export async function createSubscription(
   billingInterval: BillingInterval,
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const { business, userId } = await withBusinessServer(false);
+        // For subscription creation during registration, we need to get business manually
+        const supabase = createServerClient();
+        const { getUser } = getKindeServerSession();
+        const kindeUser = await getUser();
+        
+        if (!kindeUser?.id) {
+            return { success: false, error: "User not authenticated" };
+        }
+
+        // Get user's business
+        const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", kindeUser.id)
+            .single();
+
+        if (userError || !userData?.business_id) {
+            console.error("Error getting user business for subscription:", userError);
+            return { success: false, error: "User business not found" };
+        }
+
+        const businessId = userData.business_id;
+        const userId = kindeUser.id;
 
     // Check if there's already an active subscription
-    const existingSubscription = await getCurrentSubscription();
+    const { data: existingSubscription, error: subError } = await supabase
+        .from("business_subscriptions")
+        .select("*")
+        .eq("business_id", businessId)
+        .eq("status", "active")
+        .single();
 
     if (existingSubscription) {
-      // For now, we'll just update the existing subscription
-      // In a real implementation, this would involve Stripe to change the subscription
-      const { data, error } = await updateWithBusinessCheck(
-        "business_subscriptions",
-        existingSubscription.id,
-        {
+      // Update existing subscription
+      const { error } = await supabase
+        .from("business_subscriptions")
+        .update({
           plan_id: planId,
           updated_at: new Date().toISOString(),
           updated_by: userId,
-        } as BusinessSubscription,
-        business.id,
-      );
+        })
+        .eq("id", existingSubscription.id);
 
       if (error) {
+        console.error("Error updating subscription:", error);
         return { success: false, error: error.message };
       }
     } else {
       // Create new subscription
-      const newSubscription = {
-        business_id: business.id,
-        plan_id: planId,
-        start_date: new Date().toISOString(),
-        status: "active",
-        created_by: userId,
-        created_at: new Date().toISOString(),
-      } as BusinessSubscription;
-
-      const { data, error } = await insertWithBusiness(
-        "business_subscriptions",
-        newSubscription,
-        business.id,
-      );
+      const { error } = await supabase
+        .from("business_subscriptions")
+        .insert({
+          business_id: businessId,
+          plan_id: planId,
+          billing_interval: billingInterval,
+          start_date: new Date().toISOString(),
+          status: "active",
+          created_by: userId,
+          created_at: new Date().toISOString(),
+        });
 
       if (error) {
+        console.error("Error creating subscription:", error);
         return { success: false, error: error.message };
       }
     }

@@ -44,18 +44,53 @@ export async function createBusiness(params: CreateBusinessParams) {
             throw new Error(`Failed to create business: ${businessError.message}`)
         }
 
-        // Update the user with the business ID
-        const { error: userError } = await supabase
+        // Try to update existing user, or create new one if doesn't exist
+        const { data: existingUser, error: getUserError } = await supabase
             .from("users")
-            .update({ business_id: businessId, updated_at: now })
+            .select("id")
             .eq("auth_id", userId)
+            .single()
 
-        if (userError) {
-            console.error("Error updating user with business ID:", userError)
+        if (getUserError && getUserError.code === 'PGRST116') {
+            // User doesn't exist, create new user
+            const { error: createUserError } = await supabase
+                .from("users")
+                .insert({
+                    auth_id: userId,
+                    business_id: businessId,
+                    email: email || null,
+                    created_at: now,
+                    updated_at: now,
+                    created_by: userId,
+                    updated_by: userId,
+                })
+
+            if (createUserError) {
+                console.error("Error creating user:", createUserError)
+                return {
+                    success: false,
+                    error: "Failed to create user record"
+                }
+            }
+        } else if (getUserError) {
+            console.error("Error checking existing user:", getUserError)
             return {
                 success: false,
-                redirect: "/",
-                error: "Invalid user credentials. Please log in again."
+                error: "Failed to check user record"
+            }
+        } else {
+            // User exists, update with business ID
+            const { error: userError } = await supabase
+                .from("users")
+                .update({ business_id: businessId, updated_at: now })
+                .eq("auth_id", userId)
+
+            if (userError) {
+                console.error("Error updating user with business ID:", userError)
+                return {
+                    success: false,
+                    error: "Failed to update user record"
+                }
             }
         }
 
