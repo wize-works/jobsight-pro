@@ -79,9 +79,7 @@ export default function RegisterPage() {
         };
 
         loadPlans();
-    }, []);
-
-    // Check if authenticated user needs to complete registration
+    }, []);    // Check if authenticated user needs to complete registration
     useEffect(() => {
         const checkUserStatus = async () => {
             if (isAuthLoading || !user?.id || invitationData) return;
@@ -91,7 +89,7 @@ export default function RegisterPage() {
                     // Check if user has existing business in JobSight
                     const response = await fetch(`/api/business/check?userId=${user.id}`);
                     const result = await response.json();
-                    
+
                     if (result.success && result.hasBusiness) {
                         // User has business, redirect to dashboard
                         router.push("/dashboard");
@@ -109,6 +107,29 @@ export default function RegisterPage() {
 
         checkUserStatus();
     }, [user, isAuthenticated, isAuthLoading, registrationStep, selectedPlan, invitationData, router]);
+
+    // Handle authenticated users who reach the fallback case
+    useEffect(() => {
+        if (isAuthenticated && !invitationData && !isAuthLoading && registrationStep === "plan_selection" && !selectedPlan) {
+            // If user is authenticated but hasn't selected a plan or completed setup,
+            // check if they have a business and redirect accordingly
+            const checkAndRedirect = async () => {
+                try {
+                    const response = await fetch(`/api/business/check?userId=${user?.id}`);
+                    const result = await response.json();
+
+                    if (result.success && result.hasBusiness) {
+                        console.log("User is authenticated with existing business, redirecting to dashboard");
+                        router.push("/dashboard");
+                    }
+                } catch (error) {
+                    console.error("Error checking user business status for redirect:", error);
+                }
+            };
+
+            checkAndRedirect();
+        }
+    }, [isAuthenticated, invitationData, isAuthLoading, registrationStep, selectedPlan, user?.id, router]);
 
     // Handle post-auth processing
     useEffect(() => {
@@ -503,16 +524,7 @@ export default function RegisterPage() {
                 </div>
             </div>
         );
-    }
-
-    // If user is authenticated but hasn't completed setup, redirect to dashboard
-    if (isAuthenticated && !invitationData) {
-        console.log("User is authenticated, redirecting to dashboard");
-        router.push("/dashboard");
-        return null;
-    }
-
-    // Default fallback
+    }    // Default fallback
     console.log("Rendering default registration page");
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
