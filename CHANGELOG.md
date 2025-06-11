@@ -1,3 +1,22 @@
+# [1.33.0](https://github.com/wize-works/jobsight-pro/compare/v1.32.1...v1.33.0) (2025-06-11)
+
+
+### Bug Fixes
+
+* correct directory path in Dockerfile and improve loading state handling in DashboardLayout ([34f0dde](https://github.com/wize-works/jobsight-pro/commit/34f0ddeb15f43c90df4590d6f96aa0b350a37b0a))
+* improve registration flow for authenticated users and handle business checks ([752dee5](https://github.com/wize-works/jobsight-pro/commit/752dee55a3335215560945a4d7115af50af088cd))
+* removed merge remnant ([513ba86](https://github.com/wize-works/jobsight-pro/commit/513ba86f6cdf9eac09ef76eaa49b62f14e392470))
+* update AssignmentModal props for better state management; enhance error handling in avatar upload process; improve offline action error handling by ensuring user context is available ([8304c30](https://github.com/wize-works/jobsight-pro/commit/8304c3078e66a2d1117b697b80efb504d1261b96))
+* update toast notifications for invitation and business setup handling ([4e49b0e](https://github.com/wize-works/jobsight-pro/commit/4e49b0e7ee4cbf2acf67eae607f955c83408a5e1))
+* update toast notifications for invitation handling and add console logs for better debugging ([954ae97](https://github.com/wize-works/jobsight-pro/commit/954ae9792bef6f00c0093d2f1d3697584f416c5b))
+
+
+### Features
+
+* Enhance business management features ([7511add](https://github.com/wize-works/jobsight-pro/commit/7511add4a90a2d6052b97093e15eb793aede0107))
+* enhance task modal with improved form handling and validation ([25840d1](https://github.com/wize-works/jobsight-pro/commit/25840d16963927b33784c388bd75c47f6ebf5847))
+* Refactor Equipment Usage Modal: Enhance form handling, loading states, and UI structure; integrate new form data management; improve error handling and toast notifications. Update Equipment Page to remove empty state message. Revise Projects Page to enhance no projects found message layout. Clean up logging in withBusinessServer function. Remove unused id fields from Supabase types. Create new modal design documentation for standardization. Implement new Equipment creation modal with structured form and improved user experience. ([151a600](https://github.com/wize-works/jobsight-pro/commit/151a600835f86284ff3fdeee19b465faeef29021))
+
 ## [1.32.1](https://github.com/wize-works/jobsight-pro/compare/v1.32.0...v1.32.1) (2025-06-10)
 
 
