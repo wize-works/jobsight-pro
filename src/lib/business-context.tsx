@@ -1,8 +1,9 @@
+
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { getUserBusiness } from "@/app/actions/business"
 import { useToast } from "@/hooks/use-toast"
 import type { Business } from "@/types/business";
@@ -32,7 +33,11 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null)
     const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
     const router = useRouter()
+    const pathname = usePathname()
     const { toast } = useToast()
+
+    // Check if we're in a registration flow
+    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'
 
     // Function to fetch business data using server action
     const fetchBusinessData = async (userId: string) => {
@@ -41,20 +46,27 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
             if (!response) {
                 // User is valid but has no business
-                router.push('/dashboard/business')
-                toast.warning({
-                    description: "Please set up your business profile",
-                })
+                if (!isRegistrationFlow) {
+                    router.push('/register')
+                    toast({
+                        title: "Business setup required",
+                        description: "Please complete your business setup",
+                    })
+                }
                 return
             }
 
             if ('success' in response && !response.success) {
                 // If there's an error with authentication
-                toast.error({
-                    description: response.error,
-                })
-                console.error("Business auth error:", response.error)
-                router.push(response.redirect)
+                if (!isRegistrationFlow) {
+                    toast({
+                        title: "Error",
+                        description: response.error,
+                        variant: "destructive",
+                    })
+                    console.error("Business auth error:", response.error)
+                    router.push(response.redirect)
+                }
                 return
             }
 
@@ -66,9 +78,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             console.error("Error fetching business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
-            toast.error({
-                description: "Failed to load business data",
-            })
+            
+            if (!isRegistrationFlow) {
+                toast({
+                    title: "Error",
+                    description: "Failed to load business data",
+                    variant: "destructive",
+                })
+            }
         }
     }
 
@@ -82,18 +99,18 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         setError(null)
 
         try {
+            // If no user and not in registration flow, finish loading
+            if (!user) {
+                setLoading(false)
+                return
+            }
+
             // Try to get from localStorage first
             const storedBusinessId = localStorage.getItem("businessId")
 
             if (storedBusinessId && user) {
                 // Verify the stored business ID is still valid by fetching it
                 await fetchBusinessData(user.id)
-                setLoading(false)
-                return
-            }
-
-            // If not in localStorage and user is logged in, try to fetch from API
-            if (!user) {
                 setLoading(false)
                 return
             }
@@ -111,7 +128,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     // Load business data when user changes or on initial load
     useEffect(() => {
         loadBusinessData()
-    }, [user, isKindeLoading])
+    }, [user, isKindeLoading, isRegistrationFlow])
 
     // Update business ID in storage
     const setBusinessIdWithStorage = (id: string) => {

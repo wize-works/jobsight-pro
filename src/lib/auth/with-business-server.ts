@@ -1,3 +1,4 @@
+
 import { redirect } from 'next/navigation'
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { getUserBusiness } from "@/app/actions/business"
@@ -8,7 +9,7 @@ export type WithBusinessResult = {
     userId: string;
 }
 
-export async function withBusinessServer(): Promise<WithBusinessResult> {
+export async function withBusinessServer(allowRegistration: boolean = false): Promise<WithBusinessResult> {
     const kindeSession = await getKindeServerSession();
     const user = await kindeSession.getUser();
 
@@ -26,10 +27,17 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             redirect("/");
         }
 
-        // If user has no business, redirect to business setup
+        // If user has no business, handle based on context
         if (!businessResponse || !('id' in businessResponse)) {
-            console.error("[withBusinessServer] No business data found for user:", user.id);
-            redirect("/dashboard/business");
+            if (allowRegistration) {
+                // For registration flows, allow the process to continue
+                console.log("[withBusinessServer] User in registration flow, no business yet");
+                throw new Error("User has no business - in registration flow");
+            } else {
+                // For dashboard/protected routes, redirect to business setup
+                console.error("[withBusinessServer] No business data found for user:", user.id);
+                redirect("/register");
+            }
         }
 
         return {
@@ -37,7 +45,11 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             userId: user.id
         };
     } catch (error) {
+        if (allowRegistration) {
+            // Re-throw the error for registration flows to handle
+            throw error;
+        }
         console.error("[withBusinessServer] Error in business check:", error);
-        redirect('/');
+        redirect('/register');
     }
 }
