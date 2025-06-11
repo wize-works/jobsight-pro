@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast"
 import type { Business } from "@/types/business";
 
 type BusinessContextType = {
-    businessId: string | null
-    businessData: Business | null
+    businessId: string
+    business: Business
     setBusinessId: (id: string) => void
     loading: boolean
     error: string | null
@@ -18,8 +18,8 @@ type BusinessContextType = {
 }
 
 const BusinessContext = createContext<BusinessContextType>({
-    businessId: null,
-    businessData: null,
+    businessId: "",
+    business: {} as Business,
     setBusinessId: () => { },
     loading: true,
     error: null,
@@ -27,8 +27,8 @@ const BusinessContext = createContext<BusinessContextType>({
 })
 
 export function BusinessProvider({ children }: { children: ReactNode }) {
-    const [businessId, setBusinessId] = useState<string | null>(null)
-    const [businessData, setBusinessData] = useState<Business | null>(null)
+    const [businessId, setBusinessId] = useState<string>("")
+    const [business, setBusinessData] = useState<Business>({} as Business)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
@@ -48,7 +48,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                 // User is valid but has no business
                 if (!isRegistrationFlow) {
                     router.push('/register')
-                    toast({
+                    toast.info({
                         title: "Business setup required",
                         description: "Please complete your business setup",
                     })
@@ -59,10 +59,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             if ('success' in response && !response.success) {
                 // If there's an error with authentication
                 if (!isRegistrationFlow) {
-                    toast({
+                    toast.error({
                         title: "Error",
                         description: response.error,
-                        variant: "destructive",
                     })
                     console.error("Business auth error:", response.error)
                     router.push(response.redirect)
@@ -75,15 +74,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                 setBusinessData(response as Business)
                 localStorage.setItem("businessId", response.id)
             }
+            else {
+                router.push('/register');
+                toast.warning({
+                    title: "No Business Found",
+                    description: "Please register your business to continue.",
+                });
+            }
         } catch (err) {
             console.error("Error fetching business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
-            
+
             if (!isRegistrationFlow) {
-                toast({
+                toast.error({
                     title: "Error",
                     description: "Failed to load business data",
-                    variant: "destructive",
                 })
             }
         }
@@ -147,7 +152,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         <BusinessContext.Provider
             value={{
                 businessId,
-                businessData,
+                business,
                 setBusinessId: setBusinessIdWithStorage,
                 loading,
                 error,

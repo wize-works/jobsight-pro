@@ -7,7 +7,6 @@ import { Sidebar } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BusinessProvider } from "@/lib/business-context";
-import { withBusiness } from "@/lib/auth/with-business";
 import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
@@ -84,4 +83,4 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default withBusiness(DashboardLayout);
+export default DashboardLayout;

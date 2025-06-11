@@ -7,10 +7,13 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { toast } from "@/hooks/use-toast";
 import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscriptions";
-import { createBusiness } from "@/app/actions/business";
+import { assignSubscriptionToBusiness, checkBusinessStatus, checkUserBusinessStatus, createBusiness } from "@/app/actions/business";
 import { acceptInvitation } from "../onboarding/actions";
 import type { SubscriptionPlan } from "@/types/subscription";
 import Image from "next/image";
+import { assignBusinessToSelf, createSelf, createUser, getSelfByAuthId, getUserById } from "@/app/actions/users";
+import { User } from "@sentry/nextjs";
+import { UserInsert } from "@/types/users";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -21,7 +24,7 @@ export default function RegisterPage() {
     const [selectedPlan, setSelectedPlan] = useState<string>("");
     const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
     const [isProcessing, setIsProcessing] = useState(false);
-    const [registrationStep, setRegistrationStep] = useState<"plan_selection" | "business_setup" | "processing">("plan_selection");
+    const [registrationStep, setRegistrationStep] = useState<"business_setup" | "plan_selection" | "processing">("business_setup");
     const [invitationData, setInvitationData] = useState<any>(null);
     const [businessForm, setBusinessForm] = useState({
         businessName: "",
@@ -79,63 +82,75 @@ export default function RegisterPage() {
         };
 
         loadPlans();
-    }, []);    // Check if authenticated user needs to complete registration
+    }, []);
+
+    // Check if authenticated user needs to complete registration
     useEffect(() => {
         const checkUserStatus = async () => {
-            if (isAuthLoading || !user?.id || invitationData) return;
+            if (isAuthLoading || !user?.id || invitationData) {
+                console.log("Auth loading or user not available, skipping user status check");
+                return;
+            }
 
-            if (isAuthenticated && registrationStep === "plan_selection" && !selectedPlan) {
-                try {
-                    // Check if user has existing business in JobSight using server action
-                    const { checkUserBusinessStatus } = await import("@/app/actions/business");
-                    const result = await checkUserBusinessStatus(user.id);
-
-                    if (result.success && result.hasBusiness) {
-                        // User has business, check if they need subscription
-                        console.log("User already has business, checking subscription status");
-                        try {
-                            const { getCurrentSubscription } = await import("@/app/actions/subscriptions");
-                            const subscription = await getCurrentSubscription();
-                            
-                            if (subscription && subscription.status === 'active') {
-                                // User has business and active subscription, redirect to dashboard
-                                console.log("User has active subscription, redirecting to dashboard");
-                                router.push("/dashboard");
-                                return;
-                            } else {
-                                // User has business but no active subscription, go to plan selection
-                                console.log("User needs to select subscription plan");
-                                setRegistrationStep("plan_selection");
-                                return;
-                            }
-                        } catch (error) {
-                            console.error("Error checking subscription:", error);
-                            // On error, let them select a plan
-                            setRegistrationStep("plan_selection");
-                            return;
-                        }
-                    } else if (result.success && !result.hasBusiness) {
-                        // User exists in JobSight but has no business - this shouldn't happen normally
-                        // but let them continue with registration
-                        console.log("User exists but has no business - continuing with registration");
-                    } else {
-                        // User doesn't exist in JobSight database yet - normal case
-                        console.log("New user needs to complete registration");
+            if (isAuthenticated) {
+                const dbUser = await getSelfByAuthId(user.id);
+                if (!dbUser) {
+                    try {
+                        await createSelf({
+                            auth_id: user.id,
+                            email: user.email,
+                            first_name: user.given_name || "",
+                            last_name: user.family_name || "",
+                            avatar_url: user.picture || "",
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            created_by: user.id,
+                            updated_by: user.id,
+                            status: "registering",
+                        } as UserInsert);
+                    } catch (error) {
+                        console.error("Error creating user:", error);
+                        toast.error({
+                            title: "User Creation Error",
+                            description: "Failed to create user record in JobSight Pro",
+                        });
+                        router.push("/register");
+                        return;
                     }
-                } catch (error) {
-                    console.error("Error checking user business status:", error);
-                    // Continue with registration flow on error
                 }
+
+                const userBusinessState = await checkUserBusinessStatus(user.id);
+
+                if (userBusinessState.hasBusiness) {
+                    setRegistrationStep("plan_selection");
+                    return;
+                }
+
+                const businessState = await checkBusinessStatus(user.id);
+                if (businessState.hasBusiness) {
+                    await assignBusinessToSelf(user.id, businessState.businessId);
+
+                    setRegistrationStep("plan_selection");
+
+                    if (businessState.hasSubscription) {
+                        router.push("/dashboard");
+                        return;
+                    }
+                    return;
+                }
+                setRegistrationStep("business_setup");
+                console.log("User has no business, proceeding to business setup");
             }
         };
 
         checkUserStatus();
-    }, [user, isAuthenticated, isAuthLoading, registrationStep, selectedPlan, invitationData, router]);
+    }, [user, isAuthenticated, isAuthLoading, registrationStep, invitationData, router]);
 
-    
+
 
     // Handle post-auth processing
     useEffect(() => {
+        console.log("Processing registration step:", registrationStep, "for user:", user?.id);
         const processRegistration = async () => {
             if (isAuthLoading || !user?.id || isProcessing) return;
 
@@ -177,7 +192,7 @@ export default function RegisterPage() {
                     // Check if user has a business
                     const { checkUserBusinessStatus } = await import("@/app/actions/business");
                     const businessStatus = await checkUserBusinessStatus(user.id);
-                    
+
                     if (businessStatus.success && businessStatus.hasBusiness) {
                         // User has business, just create subscription
                         const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
@@ -194,44 +209,7 @@ export default function RegisterPage() {
                                 description: subscriptionResult.error || "Failed to create subscription",
                             });
                         }
-                    } else if (businessForm.businessName) {
-                        // User doesn't have business, create both business and subscription
-                        const businessResult = await createBusiness({
-                            userId: user.id,
-                            businessName: businessForm.businessName,
-                            businessType: businessForm.businessType,
-                            email: businessForm.email,
-                            phoneNumber: businessForm.phone,
-                            address: businessForm.address,
-                            city: businessForm.city,
-                            state: businessForm.state,
-                            zipCode: businessForm.zipCode,
-                            country: businessForm.country,
-                        });
 
-                        if (businessResult.success) {
-                            // Create subscription with selected plan
-                            const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
-
-                            if (subscriptionResult.success) {
-                                toast.success({
-                                    title: "Welcome to JobSight Pro!",
-                                    description: "Your business has been set up successfully",
-                                });
-                                router.push("/dashboard");
-                            } else {
-                                toast.success({
-                                    title: "Business Created",
-                                    description: "Business created but subscription setup failed. You can set this up later.",
-                                });
-                                router.push("/dashboard");
-                            }
-                        } else {
-                            toast.error({
-                                title: "Error",
-                                description: businessResult.error || "Failed to create business",
-                            });
-                        }
                     } else {
                         toast.error({
                             title: "Error",
@@ -254,29 +232,45 @@ export default function RegisterPage() {
 
     const handlePlanSelect = async (planId: string) => {
         setSelectedPlan(planId);
-        
+
         // Check if user already has a business
         if (isAuthenticated && user?.id) {
             try {
-                const { checkUserBusinessStatus } = await import("@/app/actions/business");
                 const result = await checkUserBusinessStatus(user.id);
-                
+                console.log("checkUserBusinessStatus result:", result);
                 if (result.success && result.hasBusiness) {
-                    // User has business, proceed directly to subscription creation
+                    //await assignSubscriptionToBusiness(user.id, result.businessId, planId);
                     setRegistrationStep("processing");
+                    return;
+                }
+
+                const businessStatus = await checkBusinessStatus(user.id);
+                console.log("checkBusinessStatus result:", businessStatus);
+                if (businessStatus.hasBusiness) {
+                    // User has business but no subscription, proceed to plan selection
+                    setRegistrationStep("plan_selection");
                     return;
                 }
             } catch (error) {
                 console.error("Error checking business status:", error);
             }
         }
-        
+
         // User doesn't have business, proceed to business setup
         setRegistrationStep("business_setup");
     };
 
-    const handleBusinessFormSubmit = (e: React.FormEvent) => {
+    const handleBusinessFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!user) {
+            toast.error({
+                title: "User Not Authenticated",
+                description: "You must be logged in to create a business",
+            });
+            return;
+        }
+
         if (!businessForm.businessName.trim()) {
             toast.warning({
                 title: "Business Name Required",
@@ -284,7 +278,25 @@ export default function RegisterPage() {
             });
             return;
         }
-        setRegistrationStep("processing");
+
+        setIsProcessing(true);
+        console.log("Submitting business form:", businessForm);
+        // Create business with the provided form data
+        await createBusiness({
+            userId: user.id,
+            businessName: businessForm.businessName,
+            businessType: businessForm.businessType,
+            email: businessForm.email,
+            phoneNumber: businessForm.phone,
+            address: businessForm.address,
+            city: businessForm.city,
+            state: businessForm.state,
+            zipCode: businessForm.zipCode,
+            country: businessForm.country,
+        });
+
+        setIsProcessing(false);
+        setRegistrationStep("plan_selection");
     };
 
     // Show loading only if auth is actually loading and we don't have user data yet

@@ -33,6 +33,7 @@ export async function createBusiness(params: CreateBusinessParams) {
             phone: phoneNumber || null,
             email: email || null,
             website: website || null,
+            owner_id: userId, // Use ownerId if provided, otherwise use userId
             created_at: now,
             updated_at: now,
             created_by: userId,
@@ -88,7 +89,7 @@ export async function createBusiness(params: CreateBusinessParams) {
                     error: "User already has a business associated"
                 }
             }
-            
+
             // User exists but has no business, update with business ID
             console.log("Updating existing user with new business ID")
             const { error: userError } = await supabase
@@ -282,14 +283,94 @@ export async function checkUserBusinessStatus(userId: string) {
 
         const hasBusiness = userData?.business_id ? true : false
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             hasBusiness,
-            businessId: userData?.business_id || null 
+            businessId: userData?.business_id || null
         }
 
     } catch (error) {
         console.error("Error in checkUserBusinessStatus:", error)
         return { success: false, error: "Internal server error" }
+    }
+}
+
+export async function checkBusinessStatus(userId: string) {
+    const supabase = createServerClient()
+    if (!supabase) {
+        throw new Error("Supabase client not initialized")
+    }
+
+    try {
+        // Check if user exists and has a business
+        const { data, error } = await supabase
+            .from("businesses")
+            .select(`
+                *,
+                business_subscriptions (
+                    *
+                )
+            `)
+            .eq("owner_id", userId)
+            .single()
+
+        if (error && error.code !== 'PGRST116') {
+            console.error("Error checking user business:", error)
+            return { success: false, error: "Database error" }
+        }
+
+
+
+        const hasSubscription = data?.business_subscriptions.subscription_id ? true : false
+
+        const hasBusiness = data?.id ? true : false
+
+        return {
+            success: true,
+            hasBusiness,
+            hasSubscription,
+            businessId: data?.id || null
+        }
+
+    } catch (error) {
+        console.error("Error in checkBusinessStatus:", error)
+        return { success: false, error: "Internal server error" }
+    }
+}
+
+export async function assignSubscriptionToBusiness(
+    userId: string,
+    businessId: string,
+    subscriptionId: string
+) {
+    const supabase = createServerClient()
+    if (!supabase) {
+        throw new Error("Supabase client not initialized")
+    }
+
+    try {
+        const now = new Date().toISOString()
+
+        // Insert or update the business subscription
+        const { error } = await supabase.from("business_subscriptions").upsert({
+            business_id: businessId,
+            plan_id: subscriptionId,
+            status: "incomplete",
+            created_at: now,
+            updated_at: now,
+            created_by: userId,
+            updated_by: userId,
+        })
+
+        if (error) {
+            console.error("Error assigning subscription to business:", error)
+            throw new Error(`Failed to assign subscription: ${error.message}`)
+        }
+
+        revalidatePath("/dashboard/business")
+        return { success: true }
+    } catch (error) {
+        console.error("Error in assignSubscriptionToBusiness:", error)
+        throw error
     }
 }

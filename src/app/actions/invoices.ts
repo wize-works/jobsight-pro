@@ -7,13 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { withBusiness } from "@/lib/auth/with-business";
-import { useBusiness } from "@/hooks/use-business";
+import { useBusiness } from "@/lib/business-context";
 
 export const getInvoices = async (): Promise<Invoice[]> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id);
+    const { data, error } = await fetchByBusiness("invoices", businessId);
 
     if (error) {
         console.error("Error fetching invoices:", error);
@@ -28,9 +27,9 @@ export const getInvoices = async (): Promise<Invoice[]> => {
 }
 
 export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id, "*", { filter: { id: id } });
+    const { data, error } = await fetchByBusiness("invoices", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching invoice by ID:", error);
@@ -45,11 +44,11 @@ export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
 };
 
 export const createInvoice = async (invoice: InvoiceInsert): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
     invoice = await applyCreated<InvoiceInsert>(invoice);
 
-    const { data, error } = await insertWithBusiness("invoices", invoice, business.id);
+    const { data, error } = await insertWithBusiness("invoices", invoice, businessId);
 
     if (error) {
         console.error("Error creating invoice:", error);
@@ -60,11 +59,11 @@ export const createInvoice = async (invoice: InvoiceInsert): Promise<Invoice | n
 }
 
 export const updateInvoice = async (id: string, invoice: InvoiceUpdate): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
     invoice = await applyUpdated<InvoiceUpdate>(invoice);
 
-    const { data, error } = await updateWithBusinessCheck("invoices", id, invoice, business.id);
+    const { data, error } = await updateWithBusinessCheck("invoices", id, invoice, businessId);
 
     if (error) {
         console.error("Error updating invoice:", error);
@@ -75,9 +74,9 @@ export const updateInvoice = async (id: string, invoice: InvoiceUpdate): Promise
 }
 
 export const deleteInvoice = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
-    const { error } = await deleteWithBusinessCheck("invoices", id, business.id);
+    const { error } = await deleteWithBusinessCheck("invoices", id, businessId);
 
     if (error) {
         console.error("Error deleting invoice:", error);
@@ -88,9 +87,9 @@ export const deleteInvoice = async (id: string): Promise<boolean> => {
 }
 
 export const searchInvoices = async (query: string): Promise<Invoice[]> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id, "*", {
+    const { data, error } = await fetchByBusiness("invoices", businessId, "*", {
         filter: {
             or: [
                 { invoice_number: { ilike: `%${query}%` } },
@@ -109,9 +108,9 @@ export const searchInvoices = async (query: string): Promise<Invoice[]> => {
 };
 
 export const getInvoicesWithClient = async (): Promise<InvoiceWithClient[]> => {
-    const { business } = await withBusinessServer();
+    const { businessId } = await useBusiness();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id);
+    const { data, error } = await fetchByBusiness("invoices", businessId);
 
     if (error) {
         console.error("Error fetching invoices:", error);
@@ -122,7 +121,7 @@ export const getInvoicesWithClient = async (): Promise<InvoiceWithClient[]> => {
         return [];
     }
     const clientIds = data.map((invoice: Invoice) => invoice.client_id).filter(id => id);
-    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", businessId, "*", {
         filter: {
             id: { in: clientIds },
         },
@@ -145,9 +144,9 @@ export const getInvoicesWithClient = async (): Promise<InvoiceWithClient[]> => {
 };
 
 export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithDetails | null> => {
-    const { business } = await withBusinessServer();
+    const { businessId, business } = await useBusiness();
 
-    const { data, error } = await fetchByBusiness("invoices", business.id, "*", { filter: { id: id } });
+    const { data, error } = await fetchByBusiness("invoices", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching invoices:", error);
@@ -158,18 +157,14 @@ export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithD
         return null;
     }
 
-    const { data: itemsData, error: itemsError } = await fetchByBusiness("invoice_items", business.id, "*", {
+    const { data: itemsData, error: itemsError } = await fetchByBusiness("invoice_items", businessId, "*", {
         filter: {
             invoice_id: { eq: id },
         },
     });
 
-    console.log("Items Error:", itemsError);
-
-    console.log("Items Data:", itemsData);
-
     const clientIds = data.map((invoice: Invoice) => invoice.client_id).filter(id => id);
-    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", businessId, "*", {
         filter: {
             id: { in: clientIds },
         },
@@ -181,7 +176,7 @@ export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithD
     }
 
     const projectId = data[0].project_id;
-    const { data: project, error: projectError } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: project, error: projectError } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: projectId },
     });
 
@@ -202,7 +197,7 @@ export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithD
                 country: client?.country || null,
             },
             business_info: {
-                name: business?.name,
+                name: business.name,
                 street: business?.address || null,
                 city: business?.city || null,
                 state: business?.state || null,

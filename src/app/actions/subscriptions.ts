@@ -4,78 +4,82 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { createServerClient } from "@/lib/supabase";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import {
-  fetchByBusiness,
-  insertWithBusiness,
-  updateWithBusinessCheck,
+    fetchByBusiness,
+    insertWithBusiness,
+    updateWithBusinessCheck,
 } from "@/lib/db";
 import type {
-  BusinessSubscription,
-  SubscriptionPlan,
-  BillingInterval,
+    BusinessSubscription,
+    SubscriptionPlan,
+    BillingInterval,
 } from "@/types/subscription";
 import { revalidatePath } from "next/cache";
 
 export async function getCurrentSubscription(): Promise<BusinessSubscription | null> {
-  try {
-    const { business } = await withBusinessServer();
+    try {
+        const { business } = await withBusinessServer();
 
-    const { data, error } = await fetchByBusiness(
-      "business_subscriptions",
-      business.id,
-      "*",
-      {
-        filter: { status: "active" },
-      },
-    );
+        const { data, error } = await fetchByBusiness(
+            "business_subscriptions",
+            business.id,
+            "*",
+            {
+                filter: { status: "active" },
+            },
+        );
 
-    if (!data || data.length === 0) {
-      return null; // No active subscription found
+        if (!data || data.length === 0) {
+            return null; // No active subscription found
+        }
+        if (error) {
+            console.error("Error fetching current subscription:", error);
+            return null;
+        }
+        return data[0];
+    } catch (error) {
+        console.error("Error fetching current subscription:", error);
+        return null;
     }
-    if (error) {
-      console.error("Error fetching current subscription:", error);
-      return null;
-    }
-    return data[0];
-  } catch (error) {
-    console.error("Error fetching current subscription:", error);
-    return null;
-  }
 }
 
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-  // For now, we'll load from the static file. Later this could be from database or API
-  const fs = require("fs");
-  const path = require("path");
+    // For now, we'll load from the static file. Later this could be from database or API
+    const fs = require("fs");
+    const path = require("path");
 
-  try {
-    const filePath = path.join(
-      process.cwd(),
-      "docs",
-      "jobsight_pricing_with_ai_addon.json",
-    );
-    const fileContent = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(fileContent);
-  } catch (error) {
-    console.error("Error loading subscription plans:", error);
-    return [];
-  }
+    try {
+        const filePath = path.join(
+            process.cwd(),
+            "docs",
+            "jobsight_pricing_with_ai_addon.json",
+        );
+        const fileContent = fs.readFileSync(filePath, "utf8");
+        return JSON.parse(fileContent);
+    } catch (error) {
+        console.error("Error loading subscription plans:", error);
+        return [];
+    }
 }
 
 export async function createSubscription(
-  planId: string,
-  billingInterval: BillingInterval,
+    planId: string,
+    billingInterval: BillingInterval,
 ): Promise<{ success: boolean; error?: string }> {
     try {
         // For subscription creation during registration, we need to get business manually
         const supabase = createServerClient();
         const { getUser } = getKindeServerSession();
         const kindeUser = await getUser();
-        
+
         if (!kindeUser?.id) {
             return { success: false, error: "User not authenticated" };
         }
 
         // Get user's business
+        if (!supabase) {
+            console.error("Supabase client is not initialized");
+            return { success: false, error: "Internal server error" };
+        }
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
@@ -90,90 +94,94 @@ export async function createSubscription(
         const businessId = userData.business_id;
         const userId = kindeUser.id;
 
-    // Check if there's already an active subscription
-    const { data: existingSubscription, error: subError } = await supabase
-        .from("business_subscriptions")
-        .select("*")
-        .eq("business_id", businessId)
-        .eq("status", "active")
-        .single();
+        if (!supabase) {
+            console.error("Supabase client is not initialized");
+            return { success: false, error: "Internal server error" };
+        }
 
-    if (existingSubscription) {
-      // Update existing subscription
-      const { error } = await supabase
-        .from("business_subscriptions")
-        .update({
-          plan_id: planId,
-          updated_at: new Date().toISOString(),
-          updated_by: userId,
-        })
-        .eq("id", existingSubscription.id);
+        // Check if there's already an active subscription
+        const { data: existingSubscription, error: subError } = await supabase
+            .from("business_subscriptions")
+            .select("*")
+            .eq("business_id", businessId)
+            .eq("status", "active")
+            .single();
 
-      if (error) {
-        console.error("Error updating subscription:", error);
-        return { success: false, error: error.message };
-      }
-    } else {
-      // Create new subscription
-      const { error } = await supabase
-        .from("business_subscriptions")
-        .insert({
-          business_id: businessId,
-          plan_id: planId,
-          billing_interval: billingInterval,
-          start_date: new Date().toISOString(),
-          status: "active",
-          created_by: userId,
-          created_at: new Date().toISOString(),
-        });
+        if (existingSubscription) {
+            // Update existing subscription
+            const { error } = await supabase
+                .from("business_subscriptions")
+                .update({
+                    plan_id: planId,
+                    updated_at: new Date().toISOString(),
+                    updated_by: userId,
+                })
+                .eq("id", existingSubscription.id);
 
-      if (error) {
+            if (error) {
+                console.error("Error updating subscription:", error);
+                return { success: false, error: error.message };
+            }
+        } else {
+            // Create new subscription
+            const { error } = await supabase
+                .from("business_subscriptions")
+                .insert({
+                    business_id: businessId,
+                    plan_id: planId,
+                    start_date: new Date().toISOString(),
+                    status: "active",
+                    created_by: userId,
+                    created_at: new Date().toISOString(),
+                });
+
+            if (error) {
+                console.error("Error creating subscription:", error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        revalidatePath("/dashboard/business");
+        return { success: true };
+    } catch (error) {
         console.error("Error creating subscription:", error);
-        return { success: false, error: error.message };
-      }
+        return { success: false, error: "Failed to create subscription" };
     }
-
-    revalidatePath("/dashboard/business");
-    return { success: true };
-  } catch (error) {
-    console.error("Error creating subscription:", error);
-    return { success: false, error: "Failed to create subscription" };
-  }
 }
 
 export async function cancelSubscription(): Promise<{
-  success: boolean;
-  error?: string;
+    success: boolean;
+    error?: string;
 }> {
-  try {
-    const { business, userId } = await withBusinessServer();
+    try {
+        const { business, userId } = await withBusinessServer();
 
-    const currentSubscription = await getCurrentSubscription();
-    if (!currentSubscription) {
-      return { success: false, error: "No active subscription found" };
+        const currentSubscription = await getCurrentSubscription();
+        if (!currentSubscription) {
+            return { success: false, error: "No active subscription found" };
+        }
+
+        // Update subscription status to canceled
+        const { data, error } = await updateWithBusinessCheck(
+            "business_subscriptions",
+            currentSubscription.id,
+            {
+                status: "canceled",
+                end_date: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                updated_by: userId,
+            } as BusinessSubscription,
+            business.id,
+        );
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        revalidatePath("/dashboard/business");
+        return { success: true };
+    } catch (error) {
+        console.error("Error canceling subscription:", error);
+        return { success: false, error: "Failed to cancel subscription" };
     }
-
-    // Update subscription status to canceled
-    const { data, error } = await updateWithBusinessCheck(
-      "business_subscriptions",
-      currentSubscription.id,
-      {
-        status: "canceled",
-        end_date: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        updated_by: userId,
-      } as BusinessSubscription,
-      business.id,
-    );
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    revalidatePath("/dashboard/business");
-    return { success: true };
-  } catch (error) {
-    console.error("Error canceling subscription:", error);
-    return { success: false, error: "Failed to cancel subscription" };
-  }
 }

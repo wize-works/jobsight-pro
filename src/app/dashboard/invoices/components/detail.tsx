@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { withBusiness } from "@/lib/auth/with-business";
-import { useBusiness } from "@/hooks/use-business";
+import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ModalSend from "./modal-send";
 import ModalPayment from "./modal-payment";

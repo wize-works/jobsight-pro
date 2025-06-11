@@ -47,8 +47,10 @@ export default function ClientsPage() {
         const fetchClients = async () => {
             try {
                 const data = await getClientsWithStats();
+                console.log("Fetched clients:", data);
                 setClients(data);
             } catch (error) {
+                throw error;
                 console.error("Error fetching clients:", error);
                 toast.error("Failed to load clients. Please try again.");
             }

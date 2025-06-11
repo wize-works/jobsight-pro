@@ -4,13 +4,12 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { DailyLogMaterial, DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { withBusiness } from "@/lib/auth/with-business";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { useBusiness } from "@/lib/business-context";
 
 export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     const { data, error } = await fetchByBusiness("daily_log_materials", business.id);
 
@@ -27,7 +26,7 @@ export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
 }
 
 export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMaterial | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
         filter: { id: id }
@@ -46,7 +45,7 @@ export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMater
 };
 
 export const createDailyLogMaterial = async (material: DailyLogMaterialInsert): Promise<DailyLogMaterial | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     material = await applyCreated<DailyLogMaterialInsert>(material);
 
@@ -61,7 +60,7 @@ export const createDailyLogMaterial = async (material: DailyLogMaterialInsert): 
 }
 
 export const updateDailyLogMaterial = async (id: string, material: DailyLogMaterialUpdate): Promise<DailyLogMaterial | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     material = await applyUpdated<DailyLogMaterialUpdate>(material);
 
@@ -76,7 +75,7 @@ export const updateDailyLogMaterial = async (id: string, material: DailyLogMater
 }
 
 export const deleteDailyLogMaterial = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     const { error } = await deleteWithBusinessCheck("daily_log_materials", id, business.id);
 
@@ -89,7 +88,7 @@ export const deleteDailyLogMaterial = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogMaterials = async (query: string): Promise<DailyLogMaterial[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
         filter: {
@@ -110,7 +109,7 @@ export const searchDailyLogMaterials = async (query: string): Promise<DailyLogMa
 };
 
 export const getDailyLogMaterialsWithDetailsByLogId = async (id: string): Promise<DailyLogMaterial[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await useBusiness();
 
     const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
         filter: { daily_log_id: id },
