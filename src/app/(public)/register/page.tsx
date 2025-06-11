@@ -81,6 +81,35 @@ export default function RegisterPage() {
         loadPlans();
     }, []);
 
+    // Check if authenticated user needs to complete registration
+    useEffect(() => {
+        const checkUserStatus = async () => {
+            if (isAuthLoading || !user?.id || invitationData) return;
+
+            if (isAuthenticated && registrationStep === "plan_selection" && !selectedPlan) {
+                try {
+                    // Check if user has existing business in JobSight
+                    const response = await fetch(`/api/business/check?userId=${user.id}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.hasBusiness) {
+                        // User has business, redirect to dashboard
+                        router.push("/dashboard");
+                    } else {
+                        // User needs to complete registration - they're authenticated but no business exists
+                        console.log("Authenticated user needs to complete registration");
+                        // Stay on plan selection to let them continue
+                    }
+                } catch (error) {
+                    console.error("Error checking user business status:", error);
+                    // Continue with registration flow
+                }
+            }
+        };
+
+        checkUserStatus();
+    }, [user, isAuthenticated, isAuthLoading, registrationStep, selectedPlan, invitationData, router]);
+
     // Handle post-auth processing
     useEffect(() => {
         const processRegistration = async () => {
@@ -140,13 +169,13 @@ export default function RegisterPage() {
                         const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
 
                         if (subscriptionResult.success) {
-                            toast({
+                            toast.success({
                                 title: "Welcome to JobSight Pro!",
                                 description: "Your business has been set up successfully",
                             });
                             router.push("/dashboard");
                         } else {
-                            toast({
+                            toast.success({
                                 title: "Business Created",
                                 description: "Business created but subscription setup failed. You can set this up later.",
                             });
@@ -238,8 +267,8 @@ export default function RegisterPage() {
         );
     }
 
-    // Show plan selection step (for non-authenticated users or those who haven't selected a plan)
-    if (!isAuthenticated && registrationStep === "plan_selection") {
+    // Show plan selection step (for users who haven't selected a plan)
+    if (registrationStep === "plan_selection") {
         console.log("Showing plan selection for unauthenticated user");
         return (
             <div className="min-h-screen bg-base-200 py-12">
@@ -305,18 +334,27 @@ export default function RegisterPage() {
                         ))}
                     </div>
 
-                    <div className="text-center mt-8">
-                        <p className="text-sm text-base-content/70">
-                            Already have an account? <LoginLink className="link link-primary">Sign In</LoginLink>
-                        </p>
-                    </div>
+                    {!isAuthenticated && (
+                        <div className="text-center mt-8">
+                            <p className="text-sm text-base-content/70">
+                                Already have an account? <LoginLink className="link link-primary">Sign In</LoginLink>
+                            </p>
+                        </div>
+                    )}
+                    {isAuthenticated && (
+                        <div className="text-center mt-8">
+                            <p className="text-sm text-base-content/70">
+                                Complete your business setup to get started
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
     }
 
     // Show business setup step
-    if (!isAuthenticated && registrationStep === "business_setup") {
+    if (registrationStep === "business_setup") {
         console.log("Showing business setup for unauthenticated user");
         return (
             <div className="min-h-screen bg-base-200 py-12">
@@ -446,9 +484,18 @@ export default function RegisterPage() {
                                     >
                                         Back to Plans
                                     </button>
-                                    <RegisterLink className="btn btn-primary">
-                                        Create Account & Continue
-                                    </RegisterLink>
+                                    {isAuthenticated ? (
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary"
+                                        >
+                                            Complete Setup
+                                        </button>
+                                    ) : (
+                                        <RegisterLink className="btn btn-primary">
+                                            Create Account & Continue
+                                        </RegisterLink>
+                                    )}
                                 </div>
                             </form>
                         </div>

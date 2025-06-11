@@ -24,7 +24,13 @@ export async function withBusinessServer(allowRegistration: boolean = false): Pr
         // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
             console.error("[withBusinessServer] Business auth error:", businessResponse);
-            redirect("/");
+            
+            // If registration is allowed, redirect to register instead of home
+            if (allowRegistration) {
+                redirect("/register");
+            } else {
+                redirect("/");
+            }
         }
 
         // If user has no business, handle based on context
