@@ -28,6 +28,7 @@ import { CrewMember } from "@/types/crew-members";
 import MilestoneModal from "../components/modal-milestone";
 import ProjectEditModal from "../components/modal-edit";
 import TaskModal from "../components/modal-task";
+import MediaModal from "../components/modal-media";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -78,6 +79,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [mediaModalOpen, setMediaModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchClients = async () => {
@@ -215,16 +217,16 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         </label>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
-                                <a>Add Task</a>
+                                <button onClick={() => setTaskModalOpen(true)}>Add Task</button>
                             </li>
                             <li>
-                                <a>Add Milestone</a>
+                                <button onClick={() => setMilestoneModalOpen(true)}>Add Milestone</button>
                             </li>
                             <li>
-                                <a>Assign Crew</a>
+                                <button>Assign Crew</button>
                             </li>
                             <li>
-                                <a>Upload Document</a>
+                                <button onClick={() => setMediaModalOpen(true)}>Upload Media</button>
                             </li>
                         </ul>
                     </div>
@@ -409,7 +411,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         <button className={`tab ${activeTab === "crew" ? "tab-active" : ""}`} onClick={() => setActiveTab("crew")}>Crew</button>
                         <button className={`tab ${activeTab === "budget" ? "tab-active" : ""}`} onClick={() => setActiveTab("budget")}>Budget</button>
                         <button className={`tab ${activeTab === "issues" ? "tab-active" : ""}`} onClick={() => setActiveTab("issues")}>Issues</button>
-                        <button className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Documents</button>
+                        <button className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Media</button>
                     </div>
                     {activeTab === "overview" && (
                         <>
@@ -651,6 +653,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
             {editModalOpen && <ProjectEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
+            {mediaModalOpen && <MediaModal isOpen={mediaModalOpen} onClose={() => setMediaModalOpen(false)} projectId={project.id} />}
         </div>
     );
 };
