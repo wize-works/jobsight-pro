@@ -6,7 +6,7 @@ import { Project } from "@/types/projects";
 import { useState } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
-import EditModal from "./edit-modal";
+import EditModal from "./modal-edit";
 import { CrewMember } from "@/types/crew-members";
 import TabSafety from "./tab-safety";
 import TabMaterials from "./tab-materials";

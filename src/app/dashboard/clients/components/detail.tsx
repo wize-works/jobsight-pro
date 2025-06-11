@@ -844,19 +844,7 @@ export default function ClientDetailComponent({
                 )
             }        {/* Edit Client Modal */}
             {showEditClientModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-4xl">
-                        <button
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                            onClick={() => setShowEditClientModal(false)}
-                        >
-                            ✕
-                        </button>
-                        <h3 className="font-bold text-lg mb-4">Edit Client</h3>
-                        <ClientEditForm client={client} onClose={() => setShowEditClientModal(false)} onSubmit={handleUpdateClient} />
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowEditClientModal(false)}></div>
-                </div>
+                <ClientEditForm isOpen={showEditClientModal} client={client} onClose={() => setShowEditClientModal(false)} onSubmit={handleUpdateClient} />
             )}
 
             {/* Add Contact Modal */}
@@ -937,6 +925,7 @@ export default function ClientDetailComponent({
 
             {showInteractionModal && (
                 <InteractionModal
+                    isOpen={showInteractionModal}
                     clientId={client.id}
                     interaction={interaction as ClientInteraction}
                     onClose={() => setShowInteractionModal(false)}

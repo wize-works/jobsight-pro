@@ -646,10 +646,11 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                         </div>
                     </div>
                 </div>
-            </div>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} />}
-            {milestoneModalOpen && <MilestoneModal onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
-            {taskModalOpen && <TaskModal onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
-            {editModalOpen && <ProjectEditModal onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
+            </div>
+            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
+            {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
+            {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
+            {editModalOpen && <ProjectEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
         </div>
     );
 };

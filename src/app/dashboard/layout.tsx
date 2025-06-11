@@ -7,7 +7,6 @@ import { Sidebar } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BusinessProvider } from "@/lib/business-context";
-import { withBusiness } from "@/lib/auth/with-business";
 import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
@@ -20,7 +19,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading: isKindeLoading } = useKindeAuth();
     const [userData, setUserData] = useState<User | null>(null);
     const [isLoadingUser, setIsLoadingUser] = useState(true);
-    
+
     const storedSidebarCollapsed =
         typeof window !== "undefined"
             ? localStorage.getItem("sidebarCollapsed")
@@ -35,7 +34,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const loadUserData = async () => {
             if (!user?.id || isKindeLoading) {
-                setIsLoadingUser(isKindeLoading);
+                setIsLoadingUser(Boolean(isKindeLoading));
                 return;
             }
 
@@ -84,4 +83,4 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default withBusiness(DashboardLayout);
+export default DashboardLayout;

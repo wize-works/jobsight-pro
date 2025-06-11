@@ -17,7 +17,7 @@ export default function UsersPermissionsTab() {
     const [inviteRole, setInviteRole] = useState<"admin" | "manager" | "member">("member");
     const [inviting, setInviting] = useState(false);
     const { user: currentUser } = useKindeBrowserClient();
-    const { businessData } = useBusiness();
+    const { business } = useBusiness();
 
     useEffect(() => {
         loadUsers();

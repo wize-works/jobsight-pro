@@ -1117,7 +1117,7 @@ export default function CrewDetailComponent({
 
                     {/* Assign Equipment Modal */}
                     {showAssignEquipmentModal && (
-                        <AssignmentModal assignment={{ crew_id: crew.id } as EquipmentAssignment} onClose={() => setShowAssignEquipmentModal(false)} onSave={function (assignment: EquipmentAssignment): void {
+                        <AssignmentModal isOpen={showAssignEquipmentModal} assignment={{ crew_id: crew.id } as EquipmentAssignment} onClose={() => setShowAssignEquipmentModal(false)} onSave={function (assignment: EquipmentAssignment): void {
                             throw new Error("Function not implemented.");
                         }} />
                     )}

@@ -551,6 +551,7 @@ export default function EquipmentDetail({
                                         onClose={closeMaintenanceModal}
                                         onSave={handleAddMaintenance}
                                         maintenance={selectedMaintenance}
+                                        isOpen={showMaintenanceModal}
                                     />
                                 )}
                             </div>
@@ -618,6 +619,7 @@ export default function EquipmentDetail({
                                 </table>
                                 {showUsageModal && (
                                     <UsageModal
+                                        isOpen={showUsageModal}
                                         onClose={closeUsageModal}
                                         onSave={handleAddUsage}
                                         usage={selectedUsage}
@@ -688,6 +690,7 @@ export default function EquipmentDetail({
                                         onClose={closeAssignmentModal}
                                         onSave={handleAddAssignment}
                                         onDelete={handleDeleteAssignment}
+                                        isOpen={showAssignmentModal}
                                     />
                                 )}
                             </div>
@@ -846,6 +849,7 @@ export default function EquipmentDetail({
             {/* Usage Modal */}
             {showUsageModal && (
                 <UsageModal
+                    isOpen={showUsageModal}
                     usage={selectedUsage}
                     onClose={() => {
                         setShowUsageModal(false);

@@ -18,6 +18,7 @@ export interface Database {
                     logo_url: string | null
                     phone: string | null
                     tax_id: string | null
+                    owner_id: string | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -37,6 +38,7 @@ export interface Database {
                     logo_url: string | null
                     phone: string | null
                     tax_id: string | null
+                    owner_id: string | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -56,6 +58,7 @@ export interface Database {
                     logo_url: string | null
                     phone: string | null
                     tax_id: string | null
+                    owner_id: string | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -886,7 +889,6 @@ export interface Database {
                     updated_by: string
                 }
                 Insert: {
-                    id: string
                     business_id: string
                     name: string
                     type: string | null
@@ -1089,7 +1091,6 @@ export interface Database {
                     updated_by: string | null
                 }
                 Insert: {
-                    id: string
                     equipment_id: string
                     business_id: string
                     project_id: string | null
@@ -1787,7 +1788,7 @@ export interface Database {
                     created_at?: string | null
                     email?: string | null
                     first_name?: string | null
-                    id: string
+                    id?: string | null
                     last_name?: string | null
                     phone?: string | null
                     role?: string | null

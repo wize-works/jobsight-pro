@@ -280,24 +280,26 @@ export default function ProjectsPage() {
             )}
 
             {projects.length === 0 && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-6 text-center">
+                <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card-body text-center">
                         <i className="fas fa-project-diagram text-3xl text-base-content/30 mb-2"></i>
                         <h3 className="text-lg font-semibold">No projects found</h3>
                         <p className="text-base-content/70">Try adjusting your search or filters</p>
-                        <button
-                            className="btn btn-primary mt-4"
-                            onClick={() => setShowAddProjectModal(true)}
-                        >
-                            <i className="fas fa-plus mr-2"></i> Add Your First Project
-                        </button>
+                        <div className="flex m-auto justify-center mt-4">
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => setShowAddProjectModal(true)}
+                            >
+                                <i className="fas fa-plus mr-2"></i> Add Your First Project
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* Add Project Modal */}
             {showAddProjectModal && (
-                <ProjectModal project={{} as Project} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
+                <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
             )}
         </>
     );

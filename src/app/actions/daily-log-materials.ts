@@ -4,10 +4,10 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { DailyLogMaterial, DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { withBusiness } from "@/lib/auth/with-business";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { useBusiness } from "@/lib/business-context";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
     const { business } = await withBusinessServer();

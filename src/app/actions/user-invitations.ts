@@ -50,7 +50,7 @@ export async function sendUserInvitation(
             }),
         ).toString("base64");
 
-        const invitationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/onboarding?token=${invitationToken}`;
+        const invitationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/register?token=${invitationToken}`;
         const expirationDate = new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000,
         ).toLocaleDateString("en-US", {
@@ -200,7 +200,7 @@ export async function resendUserInvitation(userId: string) {
             }),
         ).toString("base64");
 
-        const invitationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/onboarding?token=${invitationToken}`;
+        const invitationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/register?token=${invitationToken}`;
         const expirationDate = new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000,
         ).toLocaleDateString("en-US", {

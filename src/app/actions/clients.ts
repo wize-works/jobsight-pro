@@ -59,7 +59,6 @@ export const getClients = async (): Promise<Client[]> => {
 export const getClientsWithStats = async (): Promise<Client[]> => {
     try {
         const { business } = await withBusinessServer();
-
         const { data: clients, error: clientErrors } = await fetchByBusiness("clients", business.id, "*", {
             orderBy: { column: "name", ascending: true },
         });

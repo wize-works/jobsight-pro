@@ -30,15 +30,9 @@ export default function Home() {
 
                     <div className="flex flex-col gap-3">
                         <LoginLink className="btn btn-secondary btn-outline">Sign In</LoginLink>
-                        <RegisterLink className="btn btn-primary w-full">
-                            Get Started
+                        <RegisterLink postLoginRedirectURL={"/register"} className="btn btn-primary w-full">
+                            Register with Kinde
                         </RegisterLink>
-                        {/* <Link href="/dashboard" className="btn btn-outline w-full">
-                            Go to Dashboard
-                        </Link> */}
-                        {/* <Link href="/onboarding" className="btn btn-ghost w-full">
-                            Register with Onboarding
-                        </Link> */}
                     </div>
                 </div>
             </section>

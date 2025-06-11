@@ -12,7 +12,7 @@ export function getUserFullName(user: { first_name?: string | null; last_name?: 
 }
 
 export type UserRole = "admin" | "manager" | "member";
-export type UserStatus = "active" | "invited" | "inactive" | "revoked" | "email_failed" | "suspended";
+export type UserStatus = "registering" | "active" | "invited" | "inactive" | "revoked" | "email_failed" | "suspended";
 
 export const userRoleOptions = createOptions<UserRole>({
     admin: { label: "Admin", badge: "badge-primary" },
@@ -21,6 +21,7 @@ export const userRoleOptions = createOptions<UserRole>({
 });
 
 export const userStatusOptions = createOptions<UserStatus>({
+    registering: { label: "Registering", badge: "badge-info" },
     active: { label: "Active", badge: "badge-success" },
     invited: { label: "Invited", badge: "badge-warning" },
     suspended: { label: "Suspended", badge: "badge-error" },

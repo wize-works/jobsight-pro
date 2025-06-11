@@ -2,13 +2,9 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Invoice, InvoiceInsert, InvoiceUpdate, InvoiceWithClient, InvoiceWithDetails } from "@/types/invoices";
-import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { withBusiness } from "@/lib/auth/with-business";
-import { useBusiness } from "@/hooks/use-business";
 
 export const getInvoices = async (): Promise<Invoice[]> => {
     const { business } = await withBusinessServer();
@@ -164,10 +160,6 @@ export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithD
         },
     });
 
-    console.log("Items Error:", itemsError);
-
-    console.log("Items Data:", itemsData);
-
     const clientIds = data.map((invoice: Invoice) => invoice.client_id).filter(id => id);
     const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
         filter: {
@@ -202,7 +194,7 @@ export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithD
                 country: client?.country || null,
             },
             business_info: {
-                name: business?.name,
+                name: business.name,
                 street: business?.address || null,
                 city: business?.city || null,
                 state: business?.state || null,

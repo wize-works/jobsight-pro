@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { withBusiness } from "@/lib/auth/with-business";
-import { useBusiness } from "@/hooks/use-business";
+import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ModalSend from "./modal-send";
 import ModalPayment from "./modal-payment";
@@ -289,6 +288,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             </div>            {/* Send Invoice Modal */}
             {showSendModal && business && (
                 <ModalSend
+                    isOpen={showSendModal}
                     invoice={invoice}
                     business={business}
                     onClose={() => setShowSendModal(false)} />
@@ -296,7 +296,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
 
             {/* Record Payment Modal */}
             {showPaymentModal && (
-                <ModalPayment total={0} onClose={() => setShowPaymentModal(false)}
+                <ModalPayment isOpen={showPaymentModal} total={total} onClose={() => setShowPaymentModal(false)}
                 />
             )}
         </div>
