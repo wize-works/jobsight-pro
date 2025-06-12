@@ -70,17 +70,17 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
             // Assuming getProjectById and triggerTaskNotification are defined elsewhere
             // and are accessible in this scope.  Need to create dummy functions
             async function getProjectById(project_id: string) {
-              return {name: "test"};
+                return { name: "test" };
             }
 
             async function triggerTaskNotification(
-              taskId: any,
-              title: any,
-              projectName: any,
-              assigned: any,
-              assigned_to: any
+                taskId: any,
+                title: any,
+                projectName: any,
+                assigned: any,
+                assigned_to: any
             ) {
-              console.log("triggerTaskNotification called");
+                console.log("triggerTaskNotification called");
             }
             const project = await getProjectById(data.project_id);
             await triggerTaskNotification(
@@ -102,7 +102,7 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
 export const updateTask = async (id: string, task: TaskUpdate): Promise<Task> => {
     try {
         const { business } = await withBusinessServer();
-
+        console.log("updateTask called with id:", id, "and task:", task);
         task = await applyUpdated<TaskUpdate>(task);
 
         const { data, error } = await updateWithBusinessCheck("tasks", id, task, business.id);
@@ -210,7 +210,73 @@ export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]
         if (!data || data.length === 0) {
             return [];
         }
+        const tasksWithDetails = data.map<TaskWithDetails>((task: TaskWithDetails) => {
+            const project = projects?.find((p: any) => p.id === task.project_id);
+            const crew = crews?.find((c: any) => c.id === task?.assigned_to);
+            const client = clients?.find((c: any) => c.id === project?.client_id);
+            return {
+                ...task,
+                project_name: project?.name || "",
+                crew_name: crew?.name || "",
+                client_name: client?.name || "",
+            };
+        });
 
+        return tasksWithDetails;
+    } catch (err) {
+        console.error("Error in getTasks:", err);
+        return [];
+    }
+}
+
+
+
+export const getTasksWithDetails = async (): Promise<TaskWithDetails[]> => {
+    try {
+        const { business } = await withBusinessServer();
+
+        const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
+            orderBy: { column: "status", ascending: false },
+        });
+
+        const projectIds = data?.map((task: Task) => task.project_id).filter(Boolean) || [];
+        const { data: projects, error: projectsError } = await fetchByBusiness("projects", business.id, "*", {
+            filter: { id: { in: projectIds } },
+        });
+
+        const crewIds = projects?.map((project: any) => project.crew_id).filter(Boolean) || [];
+        const taskCrewIds = data?.map((task: Task) => task.assigned_to).filter(Boolean) || [];
+        const crewIdsSet = new Set([...crewIds, ...taskCrewIds]);
+        const { data: crews, error: crewsError } = await fetchByBusiness("crews", business.id, "*", {
+            filter: { id: { in: crewIdsSet } },
+        });
+
+        const clientIds = projects?.map((project: any) => project.client_id).filter(Boolean) || [];
+        const { data: clients, error: clientsError } = await fetchByBusiness("clients", business.id, "*", {
+            filter: { id: { in: clientIds } },
+        });
+
+        if (projectsError) {
+            console.error("Error fetching projects:", projectsError);
+            return [];
+        }
+        if (crewsError) {
+            console.error("Error fetching crews:", crewsError);
+            return [];
+        }
+        if (clientsError) {
+            console.error("Error fetching clients:", clientsError);
+            return [];
+        }
+
+        if (error) {
+            console.error("Error fetching tasks:", error);
+            return [];
+        }
+
+        if (!data || data.length === 0) {
+            return [];
+        }
         const tasksWithDetails = data.map<TaskWithDetails>((task: TaskWithDetails) => {
             const project = projects?.find((p: any) => p.id === task.project_id);
             const crew = crews?.find((c: any) => c.id === task?.assigned_to);
