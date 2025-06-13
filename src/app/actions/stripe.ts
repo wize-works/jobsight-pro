@@ -157,6 +157,84 @@ export async function createBillingPortalSession(): Promise<{
   }
 }
 
+export async function updateStripeSubscription(
+  planId: string,
+  billingInterval: "monthly" | "annual"
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const { business } = await withBusinessServer();
+    const supabase = createServerClient();
+
+    // Get subscription plans
+    const plans = await getSubscriptionPlans();
+    const plan = plans.find(p => p.id === planId);
+    
+    if (!plan) {
+      return { success: false, error: "Plan not found" };
+    }
+
+    const priceId = billingInterval === "monthly" 
+      ? plan.stripe_monthly_price_id 
+      : plan.stripe_annual_price_id;
+
+    if (!priceId) {
+      return { success: false, error: "Price ID not found for plan" };
+    }
+
+    // Get current Stripe subscription
+    const { data: stripeSubscription, error } = await supabase
+      .from("stripe_subscriptions")
+      .select("*")
+      .eq("business_id", business.id)
+      .eq("status", "active")
+      .single();
+
+    if (error || !stripeSubscription) {
+      return { success: false, error: "No active subscription found" };
+    }
+
+    // Update subscription in Stripe
+    const subscription = await stripe.subscriptions.retrieve(
+      stripeSubscription.stripe_subscription_id
+    );
+
+    await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
+      items: [{
+        id: subscription.items.data[0].id,
+        price: priceId,
+      }],
+      proration_behavior: 'create_prorations',
+    });
+
+    // Update database
+    await supabase
+      .from("stripe_subscriptions")
+      .update({
+        plan_id: planId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", stripeSubscription.id);
+
+    await supabase
+      .from("business_subscriptions")
+      .update({
+        plan_id: planId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("business_id", business.id)
+      .eq("status", "active");
+
+    revalidatePath("/dashboard/business");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating Stripe subscription:", error);
+    return { success: false, error: "Failed to update subscription" };
+  }
+}
+
 export async function getStripeSubscription(): Promise<{
   success: boolean;
   subscription?: any;

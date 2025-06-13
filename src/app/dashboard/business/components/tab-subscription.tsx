@@ -11,6 +11,7 @@ import {
     createCheckoutSession,
     createBillingPortalSession,
     getStripeSubscription,
+    updateStripeSubscription,
 } from "@/app/actions/stripe";
 import type {
     BusinessSubscription,
@@ -51,84 +52,76 @@ export const TabSubscription = () => {
     const handlePlanChange = async (planId: string) => {
         try {
             setIsUpdating(true);
-            const result = await createSubscription(planId, billingInterval);
+            
+            // Handle personal plan separately (no Stripe required)
+            if (planId === "personal") {
+                const result = await createSubscription(planId, billingInterval);
+                if (result.success) {
+                    await loadData();
+                    showToast("Subscription updated successfully!", "success");
+                } else {
+                    showToast(result.error || "Failed to update subscription", "error");
+                }
+                return;
+            }
 
-            if (result.success) {
-                await loadData();
-                // Show success toast
-                const toast = document.createElement("div");
-                toast.className = "toast toast-top toast-end";
-                toast.innerHTML = `
-          <div class="alert alert-success">
-            <span>Subscription updated successfully!</span>
-          </div>
-        `;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+            // For paid plans, use Stripe checkout
+            const result = await createCheckoutSession(planId, billingInterval);
+            if (result.success && result.sessionUrl) {
+                window.location.href = result.sessionUrl;
             } else {
-                // Show error toast
-                const toast = document.createElement("div");
-                toast.className = "toast toast-top toast-end";
-                toast.innerHTML = `
-          <div class="alert alert-error">
-            <span>Error: ${result.error}</span>
-          </div>
-        `;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                showToast(result.error || "Failed to create checkout session", "error");
             }
         } catch (error) {
             console.error("Error updating subscription:", error);
+            showToast("Failed to update subscription", "error");
         } finally {
             setIsUpdating(false);
         }
     };
 
+    const showToast = (message: string, type: "success" | "error") => {
+        const toast = document.createElement("div");
+        toast.className = "toast toast-top toast-end";
+        toast.innerHTML = `
+            <div class="alert alert-${type}">
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    };
+
     const handleCancelSubscription = async () => {
         setIsLoading(true);
         try {
-            const result = await cancelSubscription();
-            if (result.success) {
-                toast.success("Subscription cancelled successfully");
-                // Refresh the data
-                window.location.reload();
+            // For Stripe subscriptions, redirect to billing portal
+            if (currentSubscription?.stripe_subscription_id) {
+                const result = await createBillingPortalSession();
+                if (result.success && result.sessionUrl) {
+                    window.location.href = result.sessionUrl;
+                } else {
+                    showToast(result.error || "Failed to access billing portal", "error");
+                }
             } else {
-                toast.error(result.error || "Failed to cancel subscription");
+                // For local-only subscriptions (like personal plan)
+                const result = await cancelSubscription();
+                if (result.success) {
+                    showToast("Subscription cancelled successfully", "success");
+                    await loadData();
+                } else {
+                    showToast(result.error || "Failed to cancel subscription", "error");
+                }
             }
         } catch (error) {
             console.error("Error canceling subscription:", error);
-            toast.error("Failed to cancel subscription");
+            showToast("Failed to cancel subscription", "error");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleUpgrade = async (
-        planId: string,
-        billingInterval: "monthly" | "annual",
-    ) => {
-        setIsLoading(true);
-        try {
-            if (planId === "personal") {
-                toast.error("Cannot upgrade to personal plan");
-                return;
-            }
-
-            const result = await createCheckoutSession(planId, billingInterval);
-            if (result.success && result.sessionUrl) {
-                window.location.href = result.sessionUrl;
-            } else {
-                toast.error(
-                    result.error || "Failed to create checkout session",
-                );
-            }
-        } catch (error) {
-            console.error("Error upgrading subscription:", error);
-            toast.error("Failed to upgrade subscription");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    
 
     const handleManageBilling = async () => {
         setIsLoading(true);
@@ -190,13 +183,24 @@ export const TabSubscription = () => {
                             ).toLocaleDateString()}
                         </div>
                     </div>
-                    <button
-                        className="btn btn-sm btn-outline btn-error"
-                        onClick={handleCancelSubscription}
-                        disabled={isUpdating}
-                    >
-                        Cancel Plan
-                    </button>
+                    <div className="flex gap-2">
+                        {currentSubscription?.stripe_subscription_id && (
+                            <button
+                                className="btn btn-sm btn-outline"
+                                onClick={handleManageBilling}
+                                disabled={isUpdating}
+                            >
+                                Manage Billing
+                            </button>
+                        )}
+                        <button
+                            className="btn btn-sm btn-outline btn-error"
+                            onClick={handleCancelSubscription}
+                            disabled={isUpdating}
+                        >
+                            {currentSubscription?.stripe_subscription_id ? "Cancel via Stripe" : "Cancel Plan"}
+                        </button>
+                    </div>
                 </div>
             )}
 
