@@ -891,7 +891,7 @@ export default function CreateDailyLogModal({
                                                                     <span className="label-text font-medium">Crew Member</span>
                                                                 </label>
                                                                 <select className="select select-bordered select-secondary w-full"
-                                                                    value={equip.crew_member_id || ""}
+                                                                    value={equip.crewMemberId || ""}
                                                                     onChange={(e) => handleEquipmentChange(index, "crew_member", e.target.value)}
                                                                     disabled={loading}
                                                                 >
@@ -967,7 +967,7 @@ export default function CreateDailyLogModal({
                                             </label>
                                             <textarea
                                                 name="notes"
-                                                className="textarea textarea-bordered textarea-secondary"
+                                                className="textarea textarea-bordered textarea-secondary w-full"
                                                 value={formData.notes}
                                                 onChange={handleInputChange}
                                                 placeholder="Any additional notes, observations, or important details about today's work..."
