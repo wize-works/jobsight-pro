@@ -1,14 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { getCurrentSubscription, getSubscriptionPlans, cancelSubscription } from "@/app/actions/subscriptions";
-import { createCheckoutSession, createBillingPortalSession, getStripeSubscription } from "@/app/actions/stripe";
-import type { BusinessSubscription, SubscriptionPlan, BillingInterval } from '@/types/subscription';
+import { useState, useEffect } from "react";
+import {
+    getCurrentSubscription,
+    getSubscriptionPlans,
+    createSubscription,
+    cancelSubscription,
+} from "@/app/actions/subscriptions";
+import {
+    createCheckoutSession,
+    createBillingPortalSession,
+    getStripeSubscription,
+} from "@/app/actions/stripe";
+import type {
+    BusinessSubscription,
+    SubscriptionPlan,
+    BillingInterval,
+} from "@/types/subscription";
 
 export const TabSubscription = () => {
-    const [currentSubscription, setCurrentSubscription] = useState<BusinessSubscription | null>(null);
+    const [currentSubscription, setCurrentSubscription] =
+        useState<BusinessSubscription | null>(null);
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-    const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+    const [billingInterval, setBillingInterval] =
+        useState<BillingInterval>("monthly");
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
 
@@ -21,13 +36,13 @@ export const TabSubscription = () => {
             setIsLoading(true);
             const [subscription, subscriptionPlans] = await Promise.all([
                 getCurrentSubscription(),
-                getSubscriptionPlans()
+                getSubscriptionPlans(),
             ]);
 
             setCurrentSubscription(subscription);
             setPlans(subscriptionPlans);
         } catch (error) {
-            console.error('Error loading subscription data:', error);
+            console.error("Error loading subscription data:", error);
         } finally {
             setIsLoading(false);
         }
@@ -41,8 +56,8 @@ export const TabSubscription = () => {
             if (result.success) {
                 await loadData();
                 // Show success toast
-                const toast = document.createElement('div');
-                toast.className = 'toast toast-top toast-end';
+                const toast = document.createElement("div");
+                toast.className = "toast toast-top toast-end";
                 toast.innerHTML = `
           <div class="alert alert-success">
             <span>Subscription updated successfully!</span>
@@ -52,8 +67,8 @@ export const TabSubscription = () => {
                 setTimeout(() => toast.remove(), 3000);
             } else {
                 // Show error toast
-                const toast = document.createElement('div');
-                toast.className = 'toast toast-top toast-end';
+                const toast = document.createElement("div");
+                toast.className = "toast toast-top toast-end";
                 toast.innerHTML = `
           <div class="alert alert-error">
             <span>Error: ${result.error}</span>
@@ -63,7 +78,7 @@ export const TabSubscription = () => {
                 setTimeout(() => toast.remove(), 3000);
             }
         } catch (error) {
-            console.error('Error updating subscription:', error);
+            console.error("Error updating subscription:", error);
         } finally {
             setIsUpdating(false);
         }
@@ -88,7 +103,10 @@ export const TabSubscription = () => {
         }
     };
 
-    const handleUpgrade = async (planId: string, billingInterval: "monthly" | "annual") => {
+    const handleUpgrade = async (
+        planId: string,
+        billingInterval: "monthly" | "annual",
+    ) => {
         setIsLoading(true);
         try {
             if (planId === "personal") {
@@ -100,7 +118,9 @@ export const TabSubscription = () => {
             if (result.success && result.sessionUrl) {
                 window.location.href = result.sessionUrl;
             } else {
-                toast.error(result.error || "Failed to create checkout session");
+                toast.error(
+                    result.error || "Failed to create checkout session",
+                );
             }
         } catch (error) {
             console.error("Error upgrading subscription:", error);
@@ -136,8 +156,11 @@ export const TabSubscription = () => {
         );
     }
 
-    const currentPlan = plans.find(plan => plan.id === currentSubscription?.plan_id);
-    const getPrice = (plan: SubscriptionPlan) => billingInterval === 'monthly' ? plan.monthly_price : plan.annual_price;
+    const currentPlan = plans.find(
+        (plan) => plan.id === currentSubscription?.plan_id,
+    );
+    const getPrice = (plan: SubscriptionPlan) =>
+        billingInterval === "monthly" ? plan.monthly_price : plan.annual_price;
 
     return (
         <div className="space-y-8">
@@ -145,7 +168,8 @@ export const TabSubscription = () => {
             <div className="text-center">
                 <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
                 <p className="text-base-content/70 max-w-2xl mx-auto">
-                    Select the plan that fits your business needs. You can upgrade or downgrade at any time.
+                    Select the plan that fits your business needs. You can
+                    upgrade or downgrade at any time.
                 </p>
             </div>
 
@@ -154,10 +178,16 @@ export const TabSubscription = () => {
                 <div className="alert alert-success">
                     <i className="fas fa-check-circle"></i>
                     <div>
-                        <div className="font-medium">Active Subscription: {currentPlan.name}</div>
+                        <div className="font-medium">
+                            Active Subscription: {currentPlan.name}
+                        </div>
                         <div className="text-sm">
-                            ${getPrice(currentPlan)}/{billingInterval === 'monthly' ? 'month' : 'year'} •
-                            Started {new Date(currentSubscription.start_date || '').toLocaleDateString()}
+                            ${getPrice(currentPlan)}/
+                            {billingInterval === "monthly" ? "month" : "year"} •
+                            Started{" "}
+                            {new Date(
+                                currentSubscription.start_date || "",
+                            ).toLocaleDateString()}
                         </div>
                     </div>
                     <button
@@ -174,17 +204,19 @@ export const TabSubscription = () => {
             <div className="flex justify-center mb-8">
                 <div className="tabs tabs-boxed">
                     <a
-                        className={`tab ${billingInterval === 'monthly' ? 'tab-active' : ''}`}
-                        onClick={() => setBillingInterval('monthly')}
+                        className={`tab ${billingInterval === "monthly" ? "tab-active" : ""}`}
+                        onClick={() => setBillingInterval("monthly")}
                     >
                         Monthly
                     </a>
                     <a
-                        className={`tab ${billingInterval === 'annual' ? 'tab-active' : ''}`}
-                        onClick={() => setBillingInterval('annual')}
+                        className={`tab ${billingInterval === "annual" ? "tab-active" : ""}`}
+                        onClick={() => setBillingInterval("annual")}
                     >
                         Annual
-                        <span className="badge badge-success ml-2 text-xs">Save 17%</span>
+                        <span className="badge badge-success ml-2 text-xs">
+                            Save 17%
+                        </span>
                     </a>
                 </div>
             </div>
@@ -193,14 +225,16 @@ export const TabSubscription = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
                 {plans.map((plan) => {
                     const price = getPrice(plan);
-                    const isCurrentPlan = currentSubscription?.plan_id === plan.id;
-                    const isPopular = plan.id === 'pro';
+                    const isCurrentPlan =
+                        currentSubscription?.plan_id === plan.id;
+                    const isPopular = plan.id === "pro";
 
                     return (
                         <div
                             key={plan.id}
-                            className={`card bg-base-100 shadow-xl relative ${isCurrentPlan ? 'ring-2 ring-primary' : ''
-                                } ${isPopular ? 'border-accent border-2' : ''}`}
+                            className={`card bg-base-100 shadow-xl relative ${
+                                isCurrentPlan ? "ring-2 ring-primary" : ""
+                            } ${isPopular ? "border-accent border-2" : ""}`}
                         >
                             {isPopular && (
                                 <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
@@ -210,16 +244,25 @@ export const TabSubscription = () => {
 
                             <div className="card-body">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h2 className="card-title text-2xl">{plan.name}</h2>
+                                    <h2 className="card-title text-2xl">
+                                        {plan.name}
+                                    </h2>
                                     {isCurrentPlan && (
-                                        <span className="badge badge-primary">Current</span>
+                                        <span className="badge badge-primary">
+                                            Current
+                                        </span>
                                     )}
                                 </div>
 
                                 <div className="text-center my-4">
-                                    <span className="text-4xl font-bold">${price}</span>
+                                    <span className="text-4xl font-bold">
+                                        ${price}
+                                    </span>
                                     <span className="text-base-content/70">
-                                        /{billingInterval === 'monthly' ? 'month' : 'year'}
+                                        /
+                                        {billingInterval === "monthly"
+                                            ? "month"
+                                            : "year"}
                                     </span>
                                 </div>
 
@@ -227,31 +270,47 @@ export const TabSubscription = () => {
 
                                 <ul className="space-y-3 mb-6">
                                     {plan.features.map((feature, index) => (
-                                        <li key={index} className="flex items-start">
+                                        <li
+                                            key={index}
+                                            className="flex items-start"
+                                        >
                                             <i className="fas fa-check text-success mt-1 mr-3 text-sm"></i>
-                                            <span className="text-sm">{feature}</span>
+                                            <span className="text-sm">
+                                                {feature}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
 
                                 {plan.ai_addon_available && (
                                     <div className="bg-base-200 p-3 rounded-lg mb-4 text-sm">
-                                        <p className="font-semibold">AI Add-on Available</p>
+                                        <p className="font-semibold">
+                                            AI Add-on Available
+                                        </p>
                                         <p>+${plan.ai_addon_price}/month</p>
                                     </div>
                                 )}
 
                                 <div className="card-actions justify-center mt-auto">
                                     {isCurrentPlan ? (
-                                        <button className="btn btn-outline btn-block" disabled>
+                                        <button
+                                            className="btn btn-outline btn-block"
+                                            disabled
+                                        >
                                             Current Plan
                                         </button>
                                     ) : (
                                         <button
-                                            className={`btn btn-block ${plan.id === 'starter' ? 'btn-outline' :
-                                                isPopular ? 'btn-accent' : 'btn-primary'
-                                                }`}
-                                            onClick={() => handlePlanChange(plan.id)}
+                                            className={`btn btn-block ${
+                                                plan.id === "starter"
+                                                    ? "btn-outline"
+                                                    : isPopular
+                                                      ? "btn-accent"
+                                                      : "btn-primary"
+                                            }`}
+                                            onClick={() =>
+                                                handlePlanChange(plan.id)
+                                            }
                                             disabled={isUpdating}
                                         >
                                             {isUpdating ? (
@@ -259,8 +318,10 @@ export const TabSubscription = () => {
                                                     <span className="loading loading-spinner loading-sm"></span>
                                                     Processing...
                                                 </>
+                                            ) : currentSubscription ? (
+                                                `Switch to ${plan.name}`
                                             ) : (
-                                                currentSubscription ? `Switch to ${plan.name}` : `Choose ${plan.name}`
+                                                `Choose ${plan.name}`
                                             )}
                                         </button>
                                     )}
