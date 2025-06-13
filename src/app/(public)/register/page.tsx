@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { toast } from "@/hooks/use-toast";
-import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscriptions";
+import { createSubscription } from "@/app/actions/subscriptions";
+import { createCheckoutSession } from "@/app/actions/stripe";
 import { assignSubscriptionToBusiness, checkBusinessStatus, checkUserBusinessStatus, createBusiness } from "@/app/actions/business";
 import { acceptInvitation } from "../onboarding/actions";
 import type { SubscriptionPlan } from "@/types/subscription";
@@ -195,19 +195,44 @@ export default function RegisterPage() {
 
                     if (businessStatus.success && businessStatus.hasBusiness) {
                         // User has business, just create subscription
-                        const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
+                        // Handle personal plan differently (no Stripe required)
+                        if (selectedPlan === "personal") {
+                            const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
 
-                        if (subscriptionResult.success) {
-                            toast.success({
-                                title: "Subscription Created!",
-                                description: "Your subscription has been set up successfully",
-                            });
-                            router.push("/dashboard");
+                            if (subscriptionResult.success) {
+                                toast.success({
+                                    title: "Subscription Created!",
+                                    description: "Your subscription has been set up successfully",
+                                });
+                                router.push("/dashboard");
+                            } else {
+                                toast.error({
+                                    title: "Error",
+                                    description: subscriptionResult.error || "Failed to create subscription",
+                                });
+                            }
                         } else {
-                            toast.error({
-                                title: "Error",
-                                description: subscriptionResult.error || "Failed to create subscription",
-                            });
+                            // For paid plans, redirect to Stripe checkout
+                            const checkoutResult = await createCheckoutSession(
+                                selectedPlan,
+                                billingInterval
+                            );
+
+                            if (checkoutResult.success) {
+                                if (checkoutResult.sessionUrl) {
+                                    window.location.href = checkoutResult.sessionUrl;
+                                } else {
+                                    toast.error({
+                                        title: "Error",
+                                        description: "Failed to get checkout session URL",
+                                    });
+                                }
+                            } else {
+                                toast.error({
+                                    title: "Error",
+                                    description: checkoutResult.error || "Failed to create checkout session",
+                                });
+                            }
                         }
 
                     } else {

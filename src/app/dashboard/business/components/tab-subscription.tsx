@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentSubscription, getSubscriptionPlans, createSubscription, cancelSubscription } from '@/app/actions/subscriptions';
+import { getCurrentSubscription, getSubscriptionPlans, cancelSubscription } from "@/app/actions/subscriptions";
+import { createCheckoutSession, createBillingPortalSession, getStripeSubscription } from "@/app/actions/stripe";
 import type { BusinessSubscription, SubscriptionPlan, BillingInterval } from '@/types/subscription';
 
 export const TabSubscription = () => {
@@ -70,30 +70,60 @@ export const TabSubscription = () => {
     };
 
     const handleCancelSubscription = async () => {
-        if (!confirm('Are you sure you want to cancel your subscription?')) {
-            return;
-        }
-
+        setIsLoading(true);
         try {
-            setIsUpdating(true);
             const result = await cancelSubscription();
-
             if (result.success) {
-                await loadData();
-                const toast = document.createElement('div');
-                toast.className = 'toast toast-top toast-end';
-                toast.innerHTML = `
-          <div class="alert alert-success">
-            <span>Subscription canceled successfully!</span>
-          </div>
-        `;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                toast.success("Subscription cancelled successfully");
+                // Refresh the data
+                window.location.reload();
+            } else {
+                toast.error(result.error || "Failed to cancel subscription");
             }
         } catch (error) {
-            console.error('Error canceling subscription:', error);
+            console.error("Error canceling subscription:", error);
+            toast.error("Failed to cancel subscription");
         } finally {
-            setIsUpdating(false);
+            setIsLoading(false);
+        }
+    };
+
+    const handleUpgrade = async (planId: string, billingInterval: "monthly" | "annual") => {
+        setIsLoading(true);
+        try {
+            if (planId === "personal") {
+                toast.error("Cannot upgrade to personal plan");
+                return;
+            }
+
+            const result = await createCheckoutSession(planId, billingInterval);
+            if (result.success && result.sessionUrl) {
+                window.location.href = result.sessionUrl;
+            } else {
+                toast.error(result.error || "Failed to create checkout session");
+            }
+        } catch (error) {
+            console.error("Error upgrading subscription:", error);
+            toast.error("Failed to upgrade subscription");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleManageBilling = async () => {
+        setIsLoading(true);
+        try {
+            const result = await createBillingPortalSession();
+            if (result.success && result.sessionUrl) {
+                window.location.href = result.sessionUrl;
+            } else {
+                toast.error(result.error || "Failed to access billing portal");
+            }
+        } catch (error) {
+            console.error("Error accessing billing portal:", error);
+            toast.error("Failed to access billing portal");
+        } finally {
+            setIsLoading(false);
         }
     };
 
