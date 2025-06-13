@@ -26,7 +26,7 @@ export const taskStatusOptions = createOptions<TaskStatus>({
 export const taskPriorityOptions = createOptions<TaskPriority>({
     all: { label: "All Priorities", badge: "badge-neutral" },
     low: { label: "Low", badge: "badge-secondary" },
-    medium: { label: "Medium", badge: "badge-warning" },
-    high: { label: "High", badge: "badge-danger" },
+    medium: { label: "Medium", badge: "badge-info" },
+    high: { label: "High", badge: "badge-warning" },
     urgent: { label: "Urgent", badge: "badge-error" }
 });

@@ -50,7 +50,7 @@ export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | nu
     log = await applyCreated<DailyLogInsert>(log);
 
     const { data, error } = await insertWithBusiness("daily_logs", log, business.id);
-
+    console.log("Creating Daily Log:", log, data, error);
     if (error) {
         console.error("Error creating daily log:", error);
         return null;

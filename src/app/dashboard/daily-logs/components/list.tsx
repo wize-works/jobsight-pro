@@ -3,21 +3,34 @@ import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
 import { useState } from "react";
+import CreateDailyLogModal from "./modal-log";
+import { Equipment } from "@/types/equipment";
+import { CrewMember } from "@/types/crew-members";
 
 interface DailyLogsListProps {
     initialLogs: DailyLogWithDetails[];
     initialCrews: Crew[];
+    initialCrewMembers: CrewMember[];
     initialProjects: Project[];
+    initialEquipments: Equipment[]
 }
 
-export default function DailyLogsList({ initialLogs, initialCrews, initialProjects }: DailyLogsListProps) {
+export default function DailyLogsList({ initialLogs, initialCrews, initialCrewMembers, initialProjects, initialEquipments }: DailyLogsListProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [logs] = useState<DailyLogWithDetails[]>(initialLogs);
+    const [logs, setLogs] = useState<DailyLogWithDetails[]>(initialLogs);
     const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(initialLogs);
     const [selectedLog, setSelectedLog] = useState<DailyLogWithDetails | null>(null);
     const [crews] = useState<Crew[]>(initialCrews);
+    const [crewMembers] = useState<CrewMember[]>(initialCrewMembers);
     const [projects] = useState<Project[]>(initialProjects);
+    const [equipments] = useState<Equipment[]>(initialEquipments);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    const handleNewLog = (newLog: DailyLogWithDetails) => {
+        setLogs(prev => [newLog, ...prev]);
+        setFilteredLogs(prev => [newLog, ...prev]);
+    };
 
     const filterByCrew = (crewId: string) => {
         if (crewId) {
@@ -33,10 +46,25 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
         } else {
             setFilteredLogs(logs); // Reset to all logs
         }
-    };
-
-    return (
+    }; return (
         <>
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold mb-2">Daily Logs</h1>
+                    <p className="text-sm text-base-content/50">Manage your daily logs efficiently</p>
+                </div>
+                <div className="flex items-center space-x-6">
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setIsCreateModalOpen(true)}
+                    >
+                        <i className="fal fa-plus fa-fw mr-2"></i>
+                        New Log
+                    </button>
+                </div>
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow">
@@ -84,33 +112,27 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
             {/* Filters */}
             <div className="bg-base-100 p-4 rounded-lg shadow mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="form-control">
-                        <select
-                            className="select select-bordered w-full"
-                            onChange={(e) => filterByCrew(e.target.value)}
-                        >
-                            <option value="">All Crews</option>
-                            {crews.map(crew => (
-                                <option key={crew.id} value={crew.id}>{crew.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <select
+                        className="select select-bordered select-secondary w-full"
+                        onChange={(e) => filterByCrew(e.target.value)}
+                    >
+                        <option value="">All Crews</option>
+                        {crews.map(crew => (
+                            <option key={crew.id} value={crew.id}>{crew.name}</option>
+                        ))}
+                    </select>
 
-                    <div className="form-control">
-                        <select
-                            className="select select-bordered w-full"
-                            onChange={(e) => filterByProject(e.target.value)}
-                        >
-                            <option value="">All Projects</option>
-                            {projects.map(project => (
-                                <option key={project.id} value={project.id}>{project.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <select
+                        className="select select-bordered select-secondary w-full"
+                        onChange={(e) => filterByProject(e.target.value)}
+                    >
+                        <option value="">All Projects</option>
+                        {projects.map(project => (
+                            <option key={project.id} value={project.id}>{project.name}</option>
+                        ))}
+                    </select>
 
-                    <div className="form-control">
-                        <input type="date" className="input input-bordered w-full" />
-                    </div>
+                    <input type="date" className="input input-bordered input-secondary w-full" />
 
                     <div className="form-control">
                         <button className="btn btn-primary">Apply Filters</button>
@@ -194,10 +216,20 @@ export default function DailyLogsList({ initialLogs, initialCrews, initialProjec
                                     {log.notes}
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        </div>))
                 )}
             </div>
+
+            {/* Create Daily Log Modal */}
+            <CreateDailyLogModal
+                crews={crews}
+                crewMembers={crewMembers}
+                projects={projects}
+                equipments={equipments}
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSave={handleNewLog}
+            />
         </>
     );
 }

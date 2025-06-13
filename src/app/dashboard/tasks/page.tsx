@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import TasksComponent from "./components/list";
-import { getTasks } from "@/app/actions/tasks";
+import { getTasks, getTasksWithDetails } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 
@@ -8,7 +8,7 @@ export default async function TasksPage() {
     try {
         // Fetch all required data in parallel
         const [tasks, projects, crews] = await Promise.all([
-            getTasks(),
+            getTasksWithDetails(),
             getProjects(),
             getCrews(),
         ]);

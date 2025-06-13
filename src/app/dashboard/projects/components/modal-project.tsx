@@ -269,37 +269,21 @@ export default function ProjectModal({
                                         <label className="label">
                                             <span className="label-text font-medium">Project Type</span>
                                         </label>
-                                        <select
-                                            name="type"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.type}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(projectTypeOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {projectTypeOptions.select(
+                                            formData.type,
+                                            (value) => setFormData(prev => ({ ...prev, type: value })),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(projectStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {projectStatusOptions.select(
+                                            formData.status,
+                                            (value) => setFormData(prev => ({ ...prev, status: value })),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                 </div>
                                 <div className="form-control mt-4">

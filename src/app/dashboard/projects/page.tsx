@@ -137,39 +137,37 @@ export default function ProjectsPage() {
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
-                        <div className="form-control w-full">
-                            <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
-                                <i className="fas fa-search"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search projects..."
-                                    className="input input-bordered w-full"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
-                            </label>
-                        </div>
+                        <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
+                            <i className="fas fa-search"></i>
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                className="input input-bordered w-full"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </label>
                         {projectStatusOptions.select(
                             statusFilter as ProjectStatus | null | undefined,
-                            (value) => setStatusFilter(value as ProjectStatus)
+                            (value) => setStatusFilter(value as ProjectStatus),
+                            "select-secondary w-full"
                         )}
                         {projectTypeOptions.select(
                             typeFilter as ProjectType | null | undefined,
-                            (value) => setTypeFilter(value as string)
+                            (value) => setTypeFilter(value as string),
+                            "select-secondary w-full"
                         )}
 
-                        <div className="form-control w-full">
-                            <select
-                                className="select select-bordered w-full"
-                                value={sortOption}
-                                onChange={(e) => setSortOption(e.target.value)}
-                            >
-                                <option value="name">Sort by Name</option>
-                                <option value="date">Sort by Start Date</option>
-                                <option value="budget">Sort by Budget</option>
-                                <option value="progress">Sort by Progress</option>
-                            </select>
-                        </div>
+                        <select
+                            className="select select-bordered select-secondary w-full"
+                            value={sortOption}
+                            onChange={(e) => setSortOption(e.target.value)}
+                        >
+                            <option value="name">Sort by Name</option>
+                            <option value="date">Sort by Start Date</option>
+                            <option value="budget">Sort by Budget</option>
+                            <option value="progress">Sort by Progress</option>
+                        </select>
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
                             <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>

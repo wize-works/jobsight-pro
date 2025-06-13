@@ -20,10 +20,10 @@ export const getEquipments = async (): Promise<Equipment[]> => {
     }
 
     if (!data || data.length === 0) {
-        return [] as Equipment[];
+        return [];
     }
 
-    return data as unknown as Equipment[];
+    return data;
 }
 
 export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
