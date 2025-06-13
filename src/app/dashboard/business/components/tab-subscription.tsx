@@ -66,12 +66,22 @@ export const TabSubscription = () => {
                 return;
             }
 
-            // For paid plans, use Stripe checkout
-            const result = await createCheckoutSession(planId, billingInterval);
-            if (result.success && result.sessionUrl) {
-                window.location.href = result.sessionUrl;
+            // Handle other paid plans
+            if (currentSubscription?.stripe_subscription_id) {
+                // User has existing Stripe subscription, update it
+                const result = await updateStripeSubscription(planId, billingInterval);
+                if (!result.success) {
+                    throw new Error(result.error || "Failed to update subscription");
+                }
             } else {
-                showToast(result.error || "Failed to create checkout session", "error");
+                // New Stripe customer, redirect to checkout
+                const result = await createCheckoutSession(planId, billingInterval);
+                if (result.success && result.sessionUrl) {
+                    window.location.href = result.sessionUrl;
+                    return;
+                } else {
+                    throw new Error(result.error || "Failed to create checkout session");
+                }
             }
         } catch (error) {
             console.error("Error updating subscription:", error);

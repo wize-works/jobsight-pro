@@ -267,3 +267,55 @@ export async function getStripeSubscription(): Promise<{
     return { success: false, error: "Failed to get subscription" };
   }
 }
+
+export async function cancelStripeSubscription(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const { business } = await withBusinessServer();
+    const supabase = createServerClient();
+
+    // Get current Stripe subscription
+    const { data: stripeSubscription, error } = await supabase
+      .from("stripe_subscriptions")
+      .select("*")
+      .eq("business_id", business.id)
+      .eq("status", "active")
+      .single();
+
+    if (error || !stripeSubscription) {
+      return { success: false, error: "No active subscription found" };
+    }
+
+    // Cancel subscription in Stripe (at period end)
+    await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
+      cancel_at_period_end: true,
+    });
+
+    // Update database
+    await supabase
+      .from("stripe_subscriptions")
+      .update({
+        cancel_at_period_end: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", stripeSubscription.id);
+
+    await supabase
+      .from("business_subscriptions")
+      .update({
+        status: "canceled",
+        end_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("business_id", business.id)
+      .eq("status", "active");
+
+    revalidatePath("/dashboard/business");
+    return { success: true };
+  } catch (error) {
+    console.error("Error canceling Stripe subscription:", error);
+    return { success: false, error: "Failed to cancel subscription" };
+  }
+}

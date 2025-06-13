@@ -129,6 +129,13 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed': {
         const invoice = event.data.object as any;
+        
+        // Check if invoice has a subscription
+        if (!invoice.subscription) {
+          console.log('Invoice has no subscription, skipping');
+          break;
+        }
+
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
         const businessId = subscription.metadata?.business_id;
 
