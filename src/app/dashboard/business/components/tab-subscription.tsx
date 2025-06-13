@@ -4,21 +4,20 @@ import { useState, useEffect } from "react";
 import {
     getCurrentSubscription,
     cancelSubscription,
+    getSubscriptionPlans,
+    createSubscription,
 } from "@/app/actions/subscriptions";
 import {
     createCheckoutSession,
     createBillingPortalSession,
     updateStripeSubscription,
 } from "@/app/actions/stripe";
-import {
-    getSubscriptionPlans,
-    createSubscription,
-} from "@/app/actions/subscriptions";
 import type {
     BusinessSubscription,
     SubscriptionPlan,
     BillingInterval,
 } from "@/types/subscription";
+import { toast } from "@/hooks/use-toast";
 
 export const TabSubscription = () => {
     const [currentSubscription, setCurrentSubscription] =
@@ -56,12 +55,18 @@ export const TabSubscription = () => {
 
             // Handle personal plan separately (no Stripe required)
             if (planId === "personal") {
-                const result = await createSubscription(planId, billingInterval);
+                const result = await createSubscription(
+                    planId,
+                    billingInterval,
+                );
                 if (result.success) {
                     await loadData();
                     showToast("Subscription updated successfully!", "success");
                 } else {
-                    showToast(result.error || "Failed to update subscription", "error");
+                    showToast(
+                        result.error || "Failed to update subscription",
+                        "error",
+                    );
                 }
                 return;
             }
@@ -69,18 +74,28 @@ export const TabSubscription = () => {
             // Handle other paid plans
             if (currentSubscription?.stripe_subscription_id) {
                 // User has existing Stripe subscription, update it
-                const result = await updateStripeSubscription(planId, billingInterval);
+                const result = await updateStripeSubscription(
+                    planId,
+                    billingInterval,
+                );
                 if (!result.success) {
-                    throw new Error(result.error || "Failed to update subscription");
+                    throw new Error(
+                        result.error || "Failed to update subscription",
+                    );
                 }
             } else {
                 // New Stripe customer, redirect to checkout
-                const result = await createCheckoutSession(planId, billingInterval);
+                const result = await createCheckoutSession(
+                    planId,
+                    billingInterval,
+                );
                 if (result.success && result.sessionUrl) {
                     window.location.href = result.sessionUrl;
                     return;
                 } else {
-                    throw new Error(result.error || "Failed to create checkout session");
+                    throw new Error(
+                        result.error || "Failed to create checkout session",
+                    );
                 }
             }
         } catch (error) {
@@ -112,7 +127,10 @@ export const TabSubscription = () => {
                 if (result.success && result.sessionUrl) {
                     window.location.href = result.sessionUrl;
                 } else {
-                    showToast(result.error || "Failed to access billing portal", "error");
+                    showToast(
+                        result.error || "Failed to access billing portal",
+                        "error",
+                    );
                 }
             } else {
                 // For local-only subscriptions (like personal plan)
@@ -121,7 +139,10 @@ export const TabSubscription = () => {
                     showToast("Subscription cancelled successfully", "success");
                     await loadData();
                 } else {
-                    showToast(result.error || "Failed to cancel subscription", "error");
+                    showToast(
+                        result.error || "Failed to cancel subscription",
+                        "error",
+                    );
                 }
             }
         } catch (error) {
@@ -131,8 +152,6 @@ export const TabSubscription = () => {
             setIsLoading(false);
         }
     };
-
-
 
     const handleManageBilling = async () => {
         setIsLoading(true);
@@ -209,7 +228,9 @@ export const TabSubscription = () => {
                             onClick={handleCancelSubscription}
                             disabled={isUpdating}
                         >
-                            {currentSubscription?.stripe_subscription_id ? "Cancel via Stripe" : "Cancel Plan"}
+                            {currentSubscription?.stripe_subscription_id
+                                ? "Cancel via Stripe"
+                                : "Cancel Plan"}
                         </button>
                     </div>
                 </div>
