@@ -1,12 +1,20 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { transcribeVoiceNote } from '@/lib/ai/voice-to-text';
-import { withBusinessServer } from '@/lib/auth/with-business-server';
+import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and business context
-    await withBusinessServer();
+    // Check authentication
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
     
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;
