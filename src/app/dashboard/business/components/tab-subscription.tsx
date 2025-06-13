@@ -160,7 +160,7 @@ export const TabSubscription = () => {
             </div>
 
             {/* Pricing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
                 {plans.map((plan) => {
                     const price = getPrice(plan);
                     const isCurrentPlan = currentSubscription?.plan_id === plan.id;
