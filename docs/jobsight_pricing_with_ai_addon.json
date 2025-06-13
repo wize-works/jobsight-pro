@@ -7,6 +7,9 @@
         "included_users": 1,
         "extra_user_price": 0,
         "ai_addon_available": false,
+        "stripe_product_id": "prod_SUPYjsdZJbrP74",
+        "stripe_monthly_price_id": "price_1RZQjfFhqtMtMtVLawZMWMnc",
+        "stripe_annual_price_id": "price_1RZQkpFhqtMtMtVLshUh6aO6",
         "features": [
             "Only 1 user",
             "Core project and task management",
@@ -24,6 +27,9 @@
         "extra_user_price": 0,
         "ai_addon_available": false,
         "ai_addon_price": 5.0,
+        "stripe_product_id": "prod_SJQWrWsFT7ZnQk",
+        "stripe_monthly_price_id": "price_1ROnf1FhqtMtMtVLvpzSujpa",
+        "stripe_annual_price_id": "price_1RQ3ZbFhqtMtMtVL5CDrnJMd",
         "features": [
             "Up to 3 users",
             "All Starter features",
@@ -42,6 +48,9 @@
         "extra_user_price": 5,
         "ai_addon_available": false,
         "ai_addon_price": 15.0,
+        "stripe_product_id": "prod_SJQMFTBfoGGruq",
+        "stripe_monthly_price_id": "price_1RQ3dgFhqtMtMtVLmL1A7CND",
+        "stripe_annual_price_id": "price_1RPZ4WFhqtMtMtVLI6Ed1sVR",
         "features": [
             "Up to 10 users",
             "All Starter features",
@@ -60,6 +69,9 @@
         "included_users": 50,
         "extra_user_price": 3,
         "ai_addon_available": false,
+        "stripe_product_id": "prod_SJQJqklErO9U5x",
+        "stripe_monthly_price_id": "price_1ROnSgFhqtMtMtVLygljvPDg",
+        "stripe_annual_price_id": "price_1RQ3flFhqtMtMtVLS2XAL2V4",
         "features": [
             "Up to 50 users",
             "All Pro features",
