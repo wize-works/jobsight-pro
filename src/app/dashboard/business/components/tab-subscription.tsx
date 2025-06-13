@@ -52,7 +52,7 @@ export const TabSubscription = () => {
     const handlePlanChange = async (planId: string) => {
         try {
             setIsUpdating(true);
-            
+
             // Handle personal plan separately (no Stripe required)
             if (planId === "personal") {
                 const result = await createSubscription(planId, billingInterval);
@@ -121,7 +121,7 @@ export const TabSubscription = () => {
         }
     };
 
-    
+
 
     const handleManageBilling = async () => {
         setIsLoading(true);
