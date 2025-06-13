@@ -1,30 +1,55 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import {
+    LoginLink,
+    RegisterLink,
+} from "@kinde-oss/kinde-auth-nextjs/components";
 import { toast } from "@/hooks/use-toast";
-import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscriptions";
-import { assignSubscriptionToBusiness, checkBusinessStatus, checkUserBusinessStatus, createBusiness } from "@/app/actions/business";
+import {
+    getSubscriptionPlans,
+    createSubscription,
+} from "@/app/actions/subscriptions";
+import { createCheckoutSession } from "@/app/actions/stripe";
+import {
+    assignSubscriptionToBusiness,
+    checkBusinessStatus,
+    checkUserBusinessStatus,
+    createBusiness,
+} from "@/app/actions/business";
 import { acceptInvitation } from "../onboarding/actions";
 import type { SubscriptionPlan } from "@/types/subscription";
 import Image from "next/image";
-import { assignBusinessToSelf, createSelf, createUser, getSelfByAuthId, getUserById } from "@/app/actions/users";
+import {
+    assignBusinessToSelf,
+    createSelf,
+    createUser,
+    getSelfByAuthId,
+    getUserById,
+} from "@/app/actions/users";
 import { User } from "@sentry/nextjs";
 import { UserInsert } from "@/types/users";
 
 export default function RegisterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, isLoading: isAuthLoading, isAuthenticated } = useKindeBrowserClient();
+    const {
+        user,
+        isLoading: isAuthLoading,
+        isAuthenticated,
+    } = useKindeBrowserClient();
 
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<string>("");
-    const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
+    const [billingInterval, setBillingInterval] = useState<
+        "monthly" | "annual"
+    >("monthly");
     const [isProcessing, setIsProcessing] = useState(false);
-    const [registrationStep, setRegistrationStep] = useState<"business_setup" | "plan_selection" | "processing">("business_setup");
+    const [registrationStep, setRegistrationStep] = useState<
+        "business_setup" | "plan_selection" | "processing"
+    >("business_setup");
     const [invitationData, setInvitationData] = useState<any>(null);
     const [businessForm, setBusinessForm] = useState({
         businessName: "",
@@ -35,7 +60,7 @@ export default function RegisterPage() {
         city: "",
         state: "",
         zipCode: "",
-        country: "United States"
+        country: "United States",
     });
 
     // Check for invitation token or pre-selected plan
@@ -46,11 +71,14 @@ export default function RegisterPage() {
         if (token) {
             // Handle invitation flow
             try {
-                const decoded = JSON.parse(Buffer.from(token, "base64").toString());
+                const decoded = JSON.parse(
+                    Buffer.from(token, "base64").toString(),
+                );
                 if (new Date(decoded.expiresAt) < new Date()) {
                     toast.warning({
                         title: "Invitation Expired",
-                        description: "This invitation link has expired. Please request a new one.",
+                        description:
+                            "This invitation link has expired. Please request a new one.",
                     });
                     router.push("/");
                     return;
@@ -88,7 +116,9 @@ export default function RegisterPage() {
     useEffect(() => {
         const checkUserStatus = async () => {
             if (isAuthLoading || !user?.id || invitationData) {
-                console.log("Auth loading or user not available, skipping user status check");
+                console.log(
+                    "Auth loading or user not available, skipping user status check",
+                );
                 return;
             }
 
@@ -112,14 +142,17 @@ export default function RegisterPage() {
                         console.error("Error creating user:", error);
                         toast.error({
                             title: "User Creation Error",
-                            description: "Failed to create user record in JobSight Pro",
+                            description:
+                                "Failed to create user record in JobSight Pro",
                         });
                         router.push("/register");
                         return;
                     }
                 }
 
-                const userBusinessState = await checkUserBusinessStatus(user.id);
+                const userBusinessState = await checkUserBusinessStatus(
+                    user.id,
+                );
 
                 if (userBusinessState.hasBusiness) {
                     setRegistrationStep("plan_selection");
@@ -128,7 +161,10 @@ export default function RegisterPage() {
 
                 const businessState = await checkBusinessStatus(user.id);
                 if (businessState.hasBusiness) {
-                    await assignBusinessToSelf(user.id, businessState.businessId);
+                    await assignBusinessToSelf(
+                        user.id,
+                        businessState.businessId,
+                    );
 
                     setRegistrationStep("plan_selection");
 
@@ -139,18 +175,30 @@ export default function RegisterPage() {
                     return;
                 }
                 setRegistrationStep("business_setup");
-                console.log("User has no business, proceeding to business setup");
+                console.log(
+                    "User has no business, proceeding to business setup",
+                );
             }
         };
 
         checkUserStatus();
-    }, [user, isAuthenticated, isAuthLoading, registrationStep, invitationData, router]);
-
-
+    }, [
+        user,
+        isAuthenticated,
+        isAuthLoading,
+        registrationStep,
+        invitationData,
+        router,
+    ]);
 
     // Handle post-auth processing
     useEffect(() => {
-        console.log("Processing registration step:", registrationStep, "for user:", user?.id);
+        console.log(
+            "Processing registration step:",
+            registrationStep,
+            "for user:",
+            user?.id,
+        );
         const processRegistration = async () => {
             if (isAuthLoading || !user?.id || isProcessing) return;
 
@@ -161,19 +209,21 @@ export default function RegisterPage() {
                     const result = await acceptInvitation(
                         invitationData.userId,
                         user.id,
-                        invitationData.email
+                        invitationData.email,
                     );
 
                     if (result.success) {
                         toast.success({
                             title: "Welcome!",
-                            description: "Your invitation has been accepted successfully",
+                            description:
+                                "Your invitation has been accepted successfully",
                         });
                         router.push("/dashboard");
                     } else {
                         toast.error({
                             title: "Error",
-                            description: result.error || "Failed to accept invitation",
+                            description:
+                                result.error || "Failed to accept invitation",
                         });
                         router.push("/");
                     }
@@ -186,30 +236,72 @@ export default function RegisterPage() {
                     router.push("/");
                 }
                 setIsProcessing(false);
-            } else if (isAuthenticated && registrationStep === "processing" && selectedPlan) {
+            } else if (
+                isAuthenticated &&
+                registrationStep === "processing" &&
+                selectedPlan
+            ) {
                 setIsProcessing(true);
                 try {
                     // Check if user has a business
-                    const { checkUserBusinessStatus } = await import("@/app/actions/business");
-                    const businessStatus = await checkUserBusinessStatus(user.id);
+                    const { checkUserBusinessStatus } = await import(
+                        "@/app/actions/business"
+                    );
+                    const businessStatus = await checkUserBusinessStatus(
+                        user.id,
+                    );
 
                     if (businessStatus.success && businessStatus.hasBusiness) {
                         // User has business, just create subscription
-                        const subscriptionResult = await createSubscription(selectedPlan, billingInterval);
+                        // Handle personal plan differently (no Stripe required)
+                        if (selectedPlan === "personal") {
+                            const subscriptionResult = await createSubscription(
+                                selectedPlan,
+                                billingInterval,
+                            );
 
-                        if (subscriptionResult.success) {
-                            toast.success({
-                                title: "Subscription Created!",
-                                description: "Your subscription has been set up successfully",
-                            });
-                            router.push("/dashboard");
+                            if (subscriptionResult.success) {
+                                toast.success({
+                                    title: "Subscription Created!",
+                                    description:
+                                        "Your subscription has been set up successfully",
+                                });
+                                router.push("/dashboard");
+                            } else {
+                                toast.error({
+                                    title: "Error",
+                                    description:
+                                        subscriptionResult.error ||
+                                        "Failed to create subscription",
+                                });
+                            }
                         } else {
-                            toast.error({
-                                title: "Error",
-                                description: subscriptionResult.error || "Failed to create subscription",
-                            });
-                        }
+                            // For paid plans, redirect to Stripe checkout
+                            const checkoutResult = await createCheckoutSession(
+                                selectedPlan,
+                                billingInterval,
+                            );
 
+                            if (checkoutResult.success) {
+                                if (checkoutResult.sessionUrl) {
+                                    window.location.href =
+                                        checkoutResult.sessionUrl;
+                                } else {
+                                    toast.error({
+                                        title: "Error",
+                                        description:
+                                            "Failed to get checkout session URL",
+                                    });
+                                }
+                            } else {
+                                toast.error({
+                                    title: "Error",
+                                    description:
+                                        checkoutResult.error ||
+                                        "Failed to create checkout session",
+                                });
+                            }
+                        }
                     } else {
                         toast.error({
                             title: "Error",
@@ -228,7 +320,18 @@ export default function RegisterPage() {
         };
 
         processRegistration();
-    }, [user, invitationData, isAuthLoading, isProcessing, registrationStep, selectedPlan, businessForm, router, isAuthenticated, billingInterval]);
+    }, [
+        user,
+        invitationData,
+        isAuthLoading,
+        isProcessing,
+        registrationStep,
+        selectedPlan,
+        businessForm,
+        router,
+        isAuthenticated,
+        billingInterval,
+    ]);
 
     const handlePlanSelect = async (planId: string) => {
         setSelectedPlan(planId);
@@ -317,8 +420,12 @@ export default function RegisterPage() {
             <div className="min-h-screen flex items-center justify-center bg-base-200">
                 <div className="card w-full max-w-md bg-base-100 shadow-xl">
                     <div className="card-body text-center">
-                        <h1 className="text-2xl font-bold mb-4">Complete Your Invitation</h1>
-                        <p className="mb-6">Please sign in to accept your team invitation</p>
+                        <h1 className="text-2xl font-bold mb-4">
+                            Complete Your Invitation
+                        </h1>
+                        <p className="mb-6">
+                            Please sign in to accept your team invitation
+                        </p>
                         <RegisterLink className="btn btn-primary w-full mb-2">
                             Create Account
                         </RegisterLink>
@@ -339,7 +446,9 @@ export default function RegisterPage() {
                 <div className="text-center">
                     <div className="loading loading-spinner loading-lg"></div>
                     <p className="mt-4">
-                        {invitationData ? "Processing your invitation..." : "Setting up your business..."}
+                        {invitationData
+                            ? "Processing your invitation..."
+                            : "Setting up your business..."}
                     </p>
                 </div>
             </div>
@@ -353,22 +462,33 @@ export default function RegisterPage() {
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-8">
-                        <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={50} className="mx-auto mb-4" />
-                        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-                        <p className="text-lg">Select a subscription plan to get started with JobSight Pro</p>
+                        <Image
+                            src="/logo-full.png"
+                            alt="JobSight Logo"
+                            width={200}
+                            height={50}
+                            className="mx-auto mb-4"
+                        />
+                        <h1 className="text-4xl font-bold mb-4">
+                            Choose Your Plan
+                        </h1>
+                        <p className="text-lg">
+                            Select a subscription plan to get started with
+                            JobSight Pro
+                        </p>
                     </div>
 
                     <div className="flex justify-center mb-8">
                         <div className="tabs tabs-boxed">
                             <button
-                                className={`tab ${billingInterval === 'monthly' ? 'tab-active' : ''}`}
-                                onClick={() => setBillingInterval('monthly')}
+                                className={`tab ${billingInterval === "monthly" ? "tab-active" : ""}`}
+                                onClick={() => setBillingInterval("monthly")}
                             >
                                 Monthly
                             </button>
                             <button
-                                className={`tab ${billingInterval === 'annual' ? 'tab-active' : ''}`}
-                                onClick={() => setBillingInterval('annual')}
+                                className={`tab ${billingInterval === "annual" ? "tab-active" : ""}`}
+                                onClick={() => setBillingInterval("annual")}
                             >
                                 Annual (Save 15%)
                             </button>
@@ -377,15 +497,26 @@ export default function RegisterPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
                         {plans.map((plan) => (
-                            <div key={plan.id} className={`card bg-base-100 shadow-xl ${selectedPlan === plan.id ? 'ring-2 ring-primary' : ''}`}>
+                            <div
+                                key={plan.id}
+                                className={`card bg-base-100 shadow-xl ${selectedPlan === plan.id ? "ring-2 ring-primary" : ""}`}
+                            >
                                 <div className="card-body">
-                                    <h2 className="card-title text-2xl justify-center">{plan.name}</h2>
+                                    <h2 className="card-title text-2xl justify-center">
+                                        {plan.name}
+                                    </h2>
                                     <div className="text-center my-4">
                                         <span className="text-4xl font-bold">
-                                            ${billingInterval === 'monthly' ? plan.monthly_price : plan.annual_price}
+                                            $
+                                            {billingInterval === "monthly"
+                                                ? plan.monthly_price
+                                                : plan.annual_price}
                                         </span>
                                         <span className="text-base-content/70">
-                                            /{billingInterval === 'monthly' ? 'month' : 'year'}
+                                            /
+                                            {billingInterval === "monthly"
+                                                ? "month"
+                                                : "year"}
                                         </span>
                                     </div>
 
@@ -393,9 +524,22 @@ export default function RegisterPage() {
 
                                     <ul className="space-y-2 mb-6">
                                         {plan.features.map((feature, index) => (
-                                            <li key={index} className="flex items-start text-sm">
-                                                <svg className="h-4 w-4 text-success mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            <li
+                                                key={index}
+                                                className="flex items-start text-sm"
+                                            >
+                                                <svg
+                                                    className="h-4 w-4 text-success mt-0.5 mr-2 flex-shrink-0"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M5 13l4 4L19 7"
+                                                    />
                                                 </svg>
                                                 <span>{feature}</span>
                                             </li>
@@ -403,7 +547,9 @@ export default function RegisterPage() {
                                     </ul>
 
                                     <button
-                                        onClick={() => handlePlanSelect(plan.id)}
+                                        onClick={() =>
+                                            handlePlanSelect(plan.id)
+                                        }
                                         className="btn btn-primary btn-block"
                                     >
                                         Choose {plan.name}
@@ -416,7 +562,10 @@ export default function RegisterPage() {
                     {!isAuthenticated && (
                         <div className="text-center mt-8">
                             <p className="text-sm text-base-content/70">
-                                Already have an account? <LoginLink className="link link-primary">Sign In</LoginLink>
+                                Already have an account?{" "}
+                                <LoginLink className="link link-primary">
+                                    Sign In
+                                </LoginLink>
                             </p>
                         </div>
                     )}
@@ -439,42 +588,75 @@ export default function RegisterPage() {
             <div className="min-h-screen bg-base-200 py-12">
                 <div className="container mx-auto px-4 max-w-2xl">
                     <div className="text-center mb-8">
-                        <Image src="/logo-full.png" alt="JobSight Logo" width={200} height={50} className="mx-auto mb-4" />
-                        <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
+                        <Image
+                            src="/logo-full.png"
+                            alt="JobSight Logo"
+                            width={200}
+                            height={50}
+                            className="mx-auto mb-4"
+                        />
+                        <h1 className="text-3xl font-bold mb-2">
+                            Create Your Account
+                        </h1>
                         <p>Tell us about your business to complete setup</p>
                     </div>
 
                     <div className="card bg-base-100 shadow-xl">
                         <div className="card-body">
-                            <form onSubmit={handleBusinessFormSubmit} className="space-y-4">
+                            <form
+                                onSubmit={handleBusinessFormSubmit}
+                                className="space-y-4"
+                            >
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Business Name *</span>
+                                        <span className="label-text">
+                                            Business Name *
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
                                         className="input input-bordered"
                                         value={businessForm.businessName}
-                                        onChange={(e) => setBusinessForm({ ...businessForm, businessName: e.target.value })}
+                                        onChange={(e) =>
+                                            setBusinessForm({
+                                                ...businessForm,
+                                                businessName: e.target.value,
+                                            })
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Business Type</span>
+                                        <span className="label-text">
+                                            Business Type
+                                        </span>
                                     </label>
                                     <select
                                         className="select select-bordered"
                                         value={businessForm.businessType}
-                                        onChange={(e) => setBusinessForm({ ...businessForm, businessType: e.target.value })}
+                                        onChange={(e) =>
+                                            setBusinessForm({
+                                                ...businessForm,
+                                                businessType: e.target.value,
+                                            })
+                                        }
                                     >
-                                        <option value="General Contractor">General Contractor</option>
-                                        <option value="Electrical">Electrical</option>
-                                        <option value="Plumbing">Plumbing</option>
+                                        <option value="General Contractor">
+                                            General Contractor
+                                        </option>
+                                        <option value="Electrical">
+                                            Electrical
+                                        </option>
+                                        <option value="Plumbing">
+                                            Plumbing
+                                        </option>
                                         <option value="HVAC">HVAC</option>
                                         <option value="Roofing">Roofing</option>
-                                        <option value="Concrete">Concrete</option>
+                                        <option value="Concrete">
+                                            Concrete
+                                        </option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
@@ -482,75 +664,117 @@ export default function RegisterPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Email</span>
+                                            <span className="label-text">
+                                                Email
+                                            </span>
                                         </label>
                                         <input
                                             type="email"
                                             className="input input-bordered"
                                             value={businessForm.email}
-                                            onChange={(e) => setBusinessForm({ ...businessForm, email: e.target.value })}
+                                            onChange={(e) =>
+                                                setBusinessForm({
+                                                    ...businessForm,
+                                                    email: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">Phone</span>
+                                            <span className="label-text">
+                                                Phone
+                                            </span>
                                         </label>
                                         <input
                                             type="tel"
                                             className="input input-bordered"
                                             value={businessForm.phone}
-                                            onChange={(e) => setBusinessForm({ ...businessForm, phone: e.target.value })}
+                                            onChange={(e) =>
+                                                setBusinessForm({
+                                                    ...businessForm,
+                                                    phone: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
                                 </div>
 
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text">Address</span>
+                                        <span className="label-text">
+                                            Address
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
                                         className="input input-bordered"
                                         value={businessForm.address}
-                                        onChange={(e) => setBusinessForm({ ...businessForm, address: e.target.value })}
+                                        onChange={(e) =>
+                                            setBusinessForm({
+                                                ...businessForm,
+                                                address: e.target.value,
+                                            })
+                                        }
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">City</span>
+                                            <span className="label-text">
+                                                City
+                                            </span>
                                         </label>
                                         <input
                                             type="text"
                                             className="input input-bordered"
                                             value={businessForm.city}
-                                            onChange={(e) => setBusinessForm({ ...businessForm, city: e.target.value })}
+                                            onChange={(e) =>
+                                                setBusinessForm({
+                                                    ...businessForm,
+                                                    city: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">State</span>
+                                            <span className="label-text">
+                                                State
+                                            </span>
                                         </label>
                                         <input
                                             type="text"
                                             className="input input-bordered"
                                             value={businessForm.state}
-                                            onChange={(e) => setBusinessForm({ ...businessForm, state: e.target.value })}
+                                            onChange={(e) =>
+                                                setBusinessForm({
+                                                    ...businessForm,
+                                                    state: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
 
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text">ZIP Code</span>
+                                            <span className="label-text">
+                                                ZIP Code
+                                            </span>
                                         </label>
                                         <input
                                             type="text"
                                             className="input input-bordered"
                                             value={businessForm.zipCode}
-                                            onChange={(e) => setBusinessForm({ ...businessForm, zipCode: e.target.value })}
+                                            onChange={(e) =>
+                                                setBusinessForm({
+                                                    ...businessForm,
+                                                    zipCode: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -558,7 +782,11 @@ export default function RegisterPage() {
                                 <div className="card-actions justify-between pt-4">
                                     <button
                                         type="button"
-                                        onClick={() => setRegistrationStep("plan_selection")}
+                                        onClick={() =>
+                                            setRegistrationStep(
+                                                "plan_selection",
+                                            )
+                                        }
                                         className="btn btn-ghost"
                                     >
                                         Back to Plans
@@ -582,7 +810,7 @@ export default function RegisterPage() {
                 </div>
             </div>
         );
-    }    // Default fallback
+    } // Default fallback
     console.log("Rendering default registration page");
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
