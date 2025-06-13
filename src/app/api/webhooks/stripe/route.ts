@@ -51,18 +51,38 @@ export async function POST(request: NextRequest) {
           created_at: new Date().toISOString(),
         } as StripeSubscriptionInsert);
 
-        // Update business subscription
-        await supabase
+        // Check if business subscription already exists
+        const { data: existingBusinessSub } = await supabase
           .from('business_subscriptions')
-          .upsert({
-            id: crypto.randomUUID(),
-            business_id: businessId,
-            plan_id: planId,
-            start_date: new Date().toISOString(),
-            status: 'active',
-            stripe_subscription_id: subscription.id,
-            created_at: new Date().toISOString(),
-          });
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('status', 'active')
+          .single();
+
+        if (existingBusinessSub) {
+          // Update existing subscription
+          await supabase
+            .from('business_subscriptions')
+            .update({
+              plan_id: planId,
+              stripe_subscription_id: subscription.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingBusinessSub.id);
+        } else {
+          // Create new subscription
+          await supabase
+            .from('business_subscriptions')
+            .insert({
+              id: crypto.randomUUID(),
+              business_id: businessId,
+              plan_id: planId,
+              start_date: new Date().toISOString(),
+              status: 'active',
+              stripe_subscription_id: subscription.id,
+              created_at: new Date().toISOString(),
+            });
+        }
 
         break;
       }
