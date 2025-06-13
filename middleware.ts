@@ -18,13 +18,14 @@ export default withAuth(
         return NextResponse.next();
     },
     {
-        publicPaths: ["/public", "/landing", "/pricing", "/register", "/api", "/onboarding"],
+        publicPaths: ["/", "/public", "/landing", "/pricing", "/register", "/api", "/onboarding", "/printables"],
     },
 );
 
 export const config = {
     matcher: [
-        // Run on everything but Next internals and static files
-        "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+        // Only protect dashboard and actions routes
+        "/dashboard/:path*",
+        "/((?!api|_next|public|landing|pricing|register|onboarding|printables|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     ],
 };
