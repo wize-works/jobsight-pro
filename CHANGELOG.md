@@ -1,3 +1,15 @@
+# [1.35.0](https://github.com/wize-works/jobsight-pro/compare/v1.34.0...v1.35.0) (2025-06-13)
+
+
+### Bug Fixes
+
+* correct crew member ID reference and enhance notes textarea styling in CreateDailyLogModal ([f8eafce](https://github.com/wize-works/jobsight-pro/commit/f8eafcefbe7f6f622060dffa9570623d521d5b72))
+
+
+### Features
+
+* add TaskModal component for creating and editing tasks with form validation and project/crew selection ([3a2cadb](https://github.com/wize-works/jobsight-pro/commit/3a2cadb167b7a9308101dd857a18ab09deefa8e6))
+
 # [1.34.0](https://github.com/wize-works/jobsight-pro/compare/v1.33.0...v1.34.0) (2025-06-11)
 
 
