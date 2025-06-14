@@ -1,3 +1,10 @@
+## [1.39.1](https://github.com/wize-works/jobsight-pro/compare/v1.39.0...v1.39.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Adjust layout and sidebar styles for improved UI consistency; enhance data fetching to ensure proper data types ([23c2edb](https://github.com/wize-works/jobsight-pro/commit/23c2edbfd67158ef9f008c99c639abdea260c483))
+
 # [1.39.0](https://github.com/wize-works/jobsight-pro/compare/v1.38.0...v1.39.0) (2025-06-14)
 
 
