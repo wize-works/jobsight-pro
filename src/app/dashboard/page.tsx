@@ -245,19 +245,19 @@ export default function Dashboard() {
                         <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 md:mt-0 w-full md:w-auto">
-                        <button className="btn btn-primary btn-sm" onClick={() => setProjectModal(true)}>
+                        <button className="btn btn-primary md:btn-sm" onClick={() => setProjectModal(true)}>
                             <i className="fas fa-diagram-project mr-2"></i>
                             New Projects
                         </button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setTaskModal(true)}>
+                        <button className="btn btn-secondary md:btn-sm" onClick={() => setTaskModal(true)}>
                             <i className="fas fa-tasks mr-2"></i>
                             New Tasks
                         </button>
-                        <button className="btn btn-info btn-sm" onClick={() => setDailyLogModal(true)}>
+                        <button className="btn btn-info md:btn-sm" onClick={() => setDailyLogModal(true)}>
                             <i className="fas fa-calendar-alt mr-2"></i>
                             Daily Log
                         </button>
-                        <button className="btn btn-accent btn-sm" onClick={() => setEquipmentModal(true)}>
+                        <button className="btn btn-accent md:btn-sm" onClick={() => setEquipmentModal(true)}>
                             <i className="fas fa-users mr-2"></i>
                             New Equipment
                         </button>
