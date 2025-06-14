@@ -213,20 +213,24 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
     // Helper functions to enhance user statements for professional daily logs
     const enhanceWorkStatement = async (statement: string): Promise<string> => {
-        if (!statement || statement.length > 200) return statement; // Don't enhance if already detailed
+        if (!statement || statement.length > 150) return statement; // Don't enhance if already detailed
 
         try {
             const response = await fetch("/api/ai/query", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: `Enhance this brief work statement into a more detailed professional daily log entry. Keep it concise but add context typical for construction work: "${statement}"`,
+                    message: `Only fix grammar and improve clarity of this work statement. Do NOT add new information or details that weren't provided. Keep the same tone and structure: "${statement}"`,
                 }),
             });
 
             if (response.ok) {
                 const result = await response.json();
-                return result.response || statement;
+                const enhanced = result.response || statement;
+                // Only use enhanced version if it's not significantly longer
+                if (enhanced.length <= statement.length * 1.5) {
+                    return enhanced;
+                }
             }
         } catch (error) {
             console.error("Error enhancing work statement:", error);
@@ -236,20 +240,24 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     };
 
     const enhanceNotesStatement = async (notes: string): Promise<string> => {
-        if (!notes || notes.length > 150) return notes;
+        if (!notes || notes.length > 100) return notes;
 
         try {
             const response = await fetch("/api/ai/query", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: `Enhance these brief notes into more professional daily log notes for construction: "${notes}"`,
+                    message: `Only fix grammar and improve clarity of this note. Do NOT add new information. Keep it brief: "${notes}"`,
                 }),
             });
 
             if (response.ok) {
                 const result = await response.json();
-                return result.response || notes;
+                const enhanced = result.response || notes;
+                // Only use enhanced version if it's not significantly longer
+                if (enhanced.length <= notes.length * 1.3) {
+                    return enhanced;
+                }
             }
         } catch (error) {
             console.error("Error enhancing notes:", error);
@@ -259,20 +267,24 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     };
 
     const enhanceSafetyStatement = async (safety: string): Promise<string> => {
-        if (!safety || safety.length > 100) return safety;
+        if (!safety || safety.length > 80) return safety;
 
         try {
             const response = await fetch("/api/ai/query", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: `Enhance this brief safety note into a more detailed safety observation for a construction daily log: "${safety}"`,
+                    message: `Only fix grammar and improve clarity of this safety note. Do NOT add new information or details: "${safety}"`,
                 }),
             });
 
             if (response.ok) {
                 const result = await response.json();
-                return result.response || safety;
+                const enhanced = result.response || safety;
+                // Only use enhanced version if it's not significantly longer
+                if (enhanced.length <= safety.length * 1.2) {
+                    return enhanced;
+                }
             }
         } catch (error) {
             console.error("Error enhancing safety statement:", error);
@@ -398,7 +410,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 // We have enough information, enhance and save
                 addToConversation(
                     "assistant",
-                    "Perfect! I now have all the information needed. Let me finalize your daily log...",
+                    "Perfect! I now have all the information needed. Creating your daily log...",
                 );
 
                 // If we don't have enhanced data yet, enhance it
@@ -439,7 +451,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     if (savedLog) {
                         addToConversation(
                             "assistant",
-                            `Excellent! Your daily log has been successfully created and saved. The log includes:\n\n• Enhanced work description\n• Safety notes\n• Project details\n\nYou can view it in the daily logs section. Is there anything else you'd like me to help you with?`,
+                            `Excellent! Your daily log has been successfully created and saved with the details you provided:\n\n• Work completed\n• Safety notes\n• Project details\n\nYou can view it in the daily logs section. Is there anything else you'd like me to help you with?`,
                         );
 
                         // Clear the stored data since we're done
@@ -517,7 +529,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             } else {
                 addToConversation(
                     "assistant",
-                    "I'm enhancing your statements and creating a structured daily log. This will take a moment...",
+                    "Creating your daily log with the details you provided...",
                 );
 
                 // Enhance the user's statements before saving
@@ -598,7 +610,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     if (savedLog) {
                         addToConversation(
                             "assistant",
-                            `Daily log created successfully! You can view it in the daily logs section. The enhanced log includes detailed work descriptions and safety notes.`,
+                            `Daily log created successfully! You can view it in the daily logs section.`,
                         );
                     } else {
                         throw new Error("Failed to save daily log");
