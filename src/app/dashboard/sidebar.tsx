@@ -44,8 +44,8 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             <div className="divider divider-start my-1">Projects</div>
                         </li>
                     ) : (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1"></span>
+                        <li className=" py-3 mx-0 px-0">
+                            <span className="divider divider-start m-0 p-0"></span>
                         </li>
                     )}
                     <li className="">
@@ -72,8 +72,8 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             <div className="divider divider-start my-1">Organization</div>
                         </li>
                     ) : (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1"></span>
+                        <li className=" py-3 mx-0 px-0">
+                            <span className="divider divider-start m-0 p-0"></span>
                         </li>
                     )}
                     <li className="">
@@ -100,8 +100,8 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             <span className="divider divider-start my-1">Finance</span>
                         </li>
                     ) : (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1"></span>
+                        <li className=" py-3 mx-0 px-0">
+                            <span className="divider divider-start m-0 p-0"></span>
                         </li>
                     )}
                     <li className="">
@@ -122,8 +122,8 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             <span className="divider divider-start my-1">Media</span>
                         </li>
                     ) : (
-                        <li className="menu-title py-1 mx-0 px-0">
-                            <span className="divider my-1"></span>
+                        <li className=" py-3 mx-0 px-0">
+                            <span className="divider divider-start m-0 p-0"></span>
                         </li>
                     )}
                     <li className="">

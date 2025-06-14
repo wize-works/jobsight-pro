@@ -56,7 +56,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     }, [user?.id, isKindeLoading]);
 
     return (
-        <div className="">
+        <div className={`${!isMobile && "drawer lg:drawer-open"}`}>
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content flex flex-col bg-base-200">
                 <Navbar
@@ -82,8 +82,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {isMobile && <BottomNav />}
             </div>
             {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
-            <SyncStatusIndicator />
-            <PushManager />
             <Toaster />
         </div>
     );
