@@ -159,6 +159,16 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     const processMessage = async (message: string) => {
         const lowerMessage = message.toLowerCase();
 
+        // Check if there's a pending daily log conversation
+        const partialData = sessionStorage.getItem("aiGeneratedLog");
+        const enhancedData = sessionStorage.getItem("aiEnhancedLog");
+
+        if (partialData || enhancedData) {
+            // Continue the daily log conversation
+            await continueDailyLogConversation(message, partialData, enhancedData);
+            return;
+        }
+
         const dailyLogKeywords = [
             "daily log",
             "create log",
@@ -257,7 +267,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
         if (!logData.project_id && !logData.project_name) {
             missingFields.push("project");
-            suggestions.push("Which project did you work on today?");
+            suggestions.push("• Which project or site did you work on today?");
         }
 
         if (
@@ -266,12 +276,17 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             !logData.tasks_completed
         ) {
             missingFields.push("work completed");
-            suggestions.push("Can you describe what work was completed today?");
+            suggestions.push("• Can you describe what work was completed today?");
         }
 
         if (!logData.date) {
             missingFields.push("date");
-            suggestions.push("What date was this work performed?");
+            suggestions.push("• What date was this work performed? (or say 'today' for today's date)");
+        }
+
+        // Optional but helpful fields
+        if (!logData.start_time && !logData.end_time) {
+            suggestions.push("• What time did you start and finish work? (optional - I can use standard 8am-5pm if not specified)");
         }
 
         return {
@@ -298,6 +313,136 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
 
         return null;
+    };
+
+    const continueDailyLogConversation = async (
+        message: string,
+        partialDataStr: string | null,
+        enhancedDataStr: string | null
+    ) => {
+        try {
+            let dailyLogData: any = {};
+            
+            // Parse existing data
+            if (enhancedDataStr) {
+                dailyLogData = JSON.parse(enhancedDataStr);
+            } else if (partialDataStr) {
+                dailyLogData = JSON.parse(partialDataStr);
+            }
+
+            // Extract additional information from the new message
+            const projectName = extractProjectFromMessage(message);
+            if (projectName) {
+                dailyLogData.project_name = projectName;
+            }
+
+            // Use AI to extract any additional details from the message
+            const response = await fetch("/api/ai/transcribe", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ message }),
+            });
+
+            if (response.ok) {
+                const newData = await response.json();
+                
+                // Merge new data with existing data
+                dailyLogData = {
+                    ...dailyLogData,
+                    ...newData,
+                    // Don't overwrite existing enhanced data
+                    work_completed: dailyLogData.work_completed || newData.work_completed,
+                    safety: dailyLogData.safety || newData.safety_notes || newData.safety,
+                    notes: dailyLogData.notes || newData.notes,
+                };
+            }
+
+            // Check if we have enough information now
+            const validation = validateDailyLogFields(dailyLogData);
+
+            if (!validation.isValid) {
+                // Still missing information, ask for more details
+                addToConversation(
+                    "assistant",
+                    `Thanks for the additional information! I still need a few more details:\n\n${validation.suggestions.join("\n")}\n\nOnce you provide these, I'll create the complete daily log for you.`,
+                );
+                
+                // Update stored data with new information
+                sessionStorage.setItem(
+                    "aiGeneratedLog",
+                    JSON.stringify(dailyLogData),
+                );
+            } else {
+                // We have enough information, enhance and save
+                addToConversation(
+                    "assistant",
+                    "Perfect! I now have all the information needed. Let me finalize your daily log...",
+                );
+
+                // If we don't have enhanced data yet, enhance it
+                if (!enhancedDataStr) {
+                    const enhancedWorkCompleted = await enhanceWorkStatement(
+                        dailyLogData.work_completed || message
+                    );
+                    const enhancedNotes = await enhanceNotesStatement(
+                        dailyLogData.notes || ""
+                    );
+                    const enhancedSafety = await enhanceSafetyStatement(
+                        dailyLogData.safety || ""
+                    );
+
+                    dailyLogData.work_completed = enhancedWorkCompleted;
+                    dailyLogData.notes = enhancedNotes;
+                    dailyLogData.safety = enhancedSafety;
+                }
+
+                // Create the final daily log data structure
+                const finalLogData: DailyLogInsert = {
+                    work_completed: dailyLogData.work_completed,
+                    weather: dailyLogData.weather || "",
+                    safety: dailyLogData.safety,
+                    notes: dailyLogData.notes,
+                    date: dailyLogData.date || new Date().toISOString().split('T')[0],
+                    project_id: dailyLogData.project_id || "temp-project-id", // This should be resolved from project name
+                    start_time: dailyLogData.start_time || "08:00",
+                    end_time: dailyLogData.end_time || "17:00",
+                    hours_worked: dailyLogData.hours_worked || 8,
+                    overtime: dailyLogData.overtime || 0,
+                };
+
+                try {
+                    // Save the daily log directly using the action
+                    const savedLog = await createDailyLog(finalLogData);
+
+                    if (savedLog) {
+                        addToConversation(
+                            "assistant",
+                            `Excellent! Your daily log has been successfully created and saved. The log includes:\n\n• Enhanced work description\n• Safety notes\n• Project details\n\nYou can view it in the daily logs section. Is there anything else you'd like me to help you with?`,
+                        );
+                        
+                        // Clear the stored data since we're done
+                        sessionStorage.removeItem("aiGeneratedLog");
+                        sessionStorage.removeItem("aiEnhancedLog");
+                    } else {
+                        throw new Error("Failed to save daily log");
+                    }
+                } catch (saveError) {
+                    console.error("Error saving daily log:", saveError);
+                    addToConversation(
+                        "assistant",
+                        `I couldn't save the daily log automatically. This might be because the project "${dailyLogData.project_name}" isn't set up in your system yet. Would you like me to guide you through creating the project first, or you can manually create the daily log with this enhanced information:\n\n• Work: ${dailyLogData.work_completed}\n• Safety: ${dailyLogData.safety}\n• Notes: ${dailyLogData.notes}`,
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Error continuing daily log conversation:", error);
+            addToConversation(
+                "assistant",
+                "I had trouble processing that information. Could you please provide the missing details again?",
+            );
+        }
     };
 
     const createDailyLogFromMessage = async (message: string) => {
@@ -328,11 +473,22 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             const validation = validateDailyLogFields(result);
 
             if (!validation.isValid) {
-                // Ask for missing information
-                addToConversation(
-                    "assistant",
-                    `I'd like to help you create a daily log, but I need some additional information:\n\n${validation.suggestions.join("\n")}\n\nPlease provide these details and I'll create the log for you.`,
-                );
+                // Ask for missing information but acknowledge what we already have
+                const hasInfo = [];
+                if (result.work_completed || result.summary) hasInfo.push("work details");
+                if (result.weather) hasInfo.push("weather conditions");
+                if (result.safety_notes || result.safety) hasInfo.push("safety notes");
+                
+                let response = "I'm starting to create your daily log! ";
+                if (hasInfo.length > 0) {
+                    response += `I've captured your ${hasInfo.join(", ")}, but I need some additional information:\n\n${validation.suggestions.join("\n")}\n\n`;
+                } else {
+                    response += `I need some information to create your daily log:\n\n${validation.suggestions.join("\n")}\n\n`;
+                }
+                response += "Just provide the missing details and I'll complete the log for you.";
+                
+                addToConversation("assistant", response);
+                
                 // Store partial data for continuation
                 sessionStorage.setItem(
                     "aiGeneratedLog",
