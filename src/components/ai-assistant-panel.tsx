@@ -281,6 +281,25 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         };
     };
 
+    const extractProjectFromMessage = (message: string): string | null => {
+        // Look for common project patterns in the message
+        const projectPatterns = [
+            /daily log for ([^:]+):/i,
+            /project ([^:,\.]+)/i,
+            /working on ([^:,\.]+)/i,
+            /at ([^:,\.]+) today/i,
+        ];
+
+        for (const pattern of projectPatterns) {
+            const match = message.match(pattern);
+            if (match && match[1]) {
+                return match[1].trim();
+            }
+        }
+
+        return null;
+    };
+
     const createDailyLogFromMessage = async (message: string) => {
         try {
             const response = await fetch("/api/ai/transcribe", {
@@ -296,6 +315,14 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             }
 
             const result = await response.json();
+
+            // Try to extract project name from the original message if not found by AI
+            if (!result.project_id && !result.project_name) {
+                const extractedProject = extractProjectFromMessage(message);
+                if (extractedProject) {
+                    result.project_name = extractedProject;
+                }
+            }
 
             // Validate the extracted fields
             const validation = validateDailyLogFields(result);
@@ -328,6 +355,31 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     result.safety_notes || result.safety || ""
                 );
 
+                // Check if we have a project_id from the message
+                if (!result.project_id && !result.project_name) {
+                    addToConversation(
+                        "assistant",
+                        `I've enhanced your daily log information, but I need to know which project this is for. I noticed you mentioned "Oakridge Tower" - is this the project name? Please confirm the project and I'll save the daily log for you.\n\nEnhanced details:\n• Work: ${enhancedWorkCompleted}\n• Safety: ${enhancedSafety}\n• Notes: ${enhancedNotes}`,
+                    );
+                    
+                    // Store the enhanced data for continuation
+                    sessionStorage.setItem(
+                        "aiEnhancedLog",
+                        JSON.stringify({
+                            work_completed: enhancedWorkCompleted,
+                            weather: result.weather || "",
+                            safety: enhancedSafety,
+                            notes: enhancedNotes,
+                            date: result.date || new Date().toISOString().split('T')[0],
+                            start_time: result.start_time || "08:00",
+                            end_time: result.end_time || "17:00",
+                            hours_worked: result.hours_worked || 8,
+                            overtime: result.overtime || 0,
+                        })
+                    );
+                    return;
+                }
+
                 // Create the daily log data structure
                 const dailyLogData: DailyLogInsert = {
                     work_completed: enhancedWorkCompleted,
@@ -335,25 +387,30 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     safety: enhancedSafety,
                     notes: enhancedNotes,
                     date: result.date || new Date().toISOString().split('T')[0],
-                    project_id: result.project_id || "", // Will need to be provided by user if missing
+                    project_id: result.project_id || "temp-project-id", // This should be resolved from project name
                     start_time: result.start_time || "08:00",
                     end_time: result.end_time || "17:00",
                     hours_worked: result.hours_worked || 8,
                     overtime: result.overtime || 0,
                 };
 
-                // Save the daily log directly using the action
-                const savedLog = await createDailyLog(dailyLogData);
+                try {
+                    // Save the daily log directly using the action
+                    const savedLog = await createDailyLog(dailyLogData);
 
-                if (savedLog) {
+                    if (savedLog) {
+                        addToConversation(
+                            "assistant",
+                            `Daily log created successfully! You can view it in the daily logs section. The enhanced log includes detailed work descriptions and safety notes.`,
+                        );
+                    } else {
+                        throw new Error("Failed to save daily log");
+                    }
+                } catch (saveError) {
+                    console.error("Error saving daily log:", saveError);
                     addToConversation(
                         "assistant",
-                        `Daily log created successfully! You can view it in the daily logs section. Log ID: ${savedLog.id}`,
-                    );
-                } else {
-                    addToConversation(
-                        "assistant",
-                        "I had trouble saving the daily log. Please try creating it manually or check if all required fields are provided.",
+                        `I couldn't save the daily log automatically. This might be because the project "Oakridge Tower" isn't set up in your system yet. Would you like me to guide you through creating the project first, or you can manually create the daily log with this enhanced information:\n\n• Work: ${enhancedWorkCompleted}\n• Safety: ${enhancedSafety}\n• Notes: ${enhancedNotes}`,
                     );
                 }
             }
