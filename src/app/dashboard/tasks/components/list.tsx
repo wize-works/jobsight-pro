@@ -406,8 +406,6 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     isOpen={showAddTaskModal}
                     onClose={() => setShowAddTaskModal(false)}
                     onSave={handleCreateTask}
-                    projects={projects}
-                    crews={crews}
                 />
             )}
 
@@ -421,8 +419,6 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     }}
                     task={selectedTask}
                     onSave={handleUpdateTask}
-                    projects={projects}
-                    crews={crews}
                 />
             )}
         </div>
