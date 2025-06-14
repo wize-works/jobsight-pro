@@ -1,3 +1,10 @@
+# [1.40.0](https://github.com/wize-works/jobsight-pro/compare/v1.39.1...v1.40.0) (2025-06-14)
+
+
+### Features
+
+* Enhance dashboard functionality by adding project crews data fetching, improving daily log modal, and refining task modal with dynamic project and crew loading ([0c9e813](https://github.com/wize-works/jobsight-pro/commit/0c9e813be8e2e19c56ba6e2d929822e8f5f5a609))
+
 ## [1.39.1](https://github.com/wize-works/jobsight-pro/compare/v1.39.0...v1.39.1) (2025-06-14)
 
 
