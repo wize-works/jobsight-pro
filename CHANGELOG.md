@@ -1,3 +1,10 @@
+## [1.40.1](https://github.com/wize-works/jobsight-pro/compare/v1.40.0...v1.40.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Remove unnecessary props from task modals to streamline component usage ([404a43a](https://github.com/wize-works/jobsight-pro/commit/404a43af2d1d870c3d0bd3326933cdaab7aeb994))
+
 # [1.40.0](https://github.com/wize-works/jobsight-pro/compare/v1.39.1...v1.40.0) (2025-06-14)
 
 
