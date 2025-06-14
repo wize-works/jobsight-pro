@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { transcribeVoiceNote } from '@/lib/ai/voice-to-text';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
@@ -26,9 +25,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const result = await transcribeVoiceNote(audioFile);
+        const transcriptionText = await transcribeVoiceNote(audioFile);
+        const structuredLog = await convertToStructuredLog(transcriptionText);
 
-        return NextResponse.json(result);
+        return NextResponse.json(structuredLog);
     } catch (error) {
         console.error('Transcription API error:', error);
         return NextResponse.json(
