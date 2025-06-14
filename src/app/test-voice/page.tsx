@@ -2,10 +2,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Mic, Square, Upload } from 'lucide-react';
 
 export default function TestVoicePage() {
   const [isRecording, setIsRecording] = useState(false);
@@ -87,31 +83,34 @@ export default function TestVoicePage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Voice Transcription Test</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <Button
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-header">
+          <h2 className="card-title text-2xl font-bold">
+            <i className="fas fa-microphone text-primary mr-2"></i>
+            Voice Transcription Test
+          </h2>
+        </div>
+        <div className="card-body space-y-4">
+          <div className="flex gap-4 flex-wrap">
+            <button
               onClick={isRecording ? stopRecording : startRecording}
-              variant={isRecording ? "destructive" : "default"}
+              className={`btn ${isRecording ? 'btn-error' : 'btn-primary'} gap-2`}
               disabled={isLoading}
             >
               {isRecording ? (
                 <>
-                  <Square className="w-4 h-4 mr-2" />
+                  <i className="fas fa-stop"></i>
                   Stop Recording
                 </>
               ) : (
                 <>
-                  <Mic className="w-4 h-4 mr-2" />
+                  <i className="fas fa-microphone"></i>
                   Start Recording
                 </>
               )}
-            </Button>
+            </button>
 
-            <div>
+            <div className="relative">
               <input
                 type="file"
                 accept="audio/*"
@@ -120,55 +119,64 @@ export default function TestVoicePage() {
                 id="audio-upload"
                 disabled={isLoading}
               />
-              <Button asChild variant="outline" disabled={isLoading}>
-                <label htmlFor="audio-upload">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Audio File
-                </label>
-              </Button>
+              <label htmlFor="audio-upload" className={`btn btn-outline gap-2 ${isLoading ? 'btn-disabled' : ''}`}>
+                <i className="fas fa-upload"></i>
+                Upload Audio File
+              </label>
             </div>
           </div>
 
           {isLoading && (
-            <div className="text-center text-muted-foreground">
+            <div className="text-center text-base-content/70 flex items-center justify-center gap-2">
+              <span className="loading loading-spinner loading-md"></span>
               Processing audio...
             </div>
           )}
 
           {error && (
-            <div className="text-red-500 text-sm">
-              {error}
+            <div className="alert alert-error">
+              <i className="fas fa-exclamation-circle"></i>
+              <span>{error}</span>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {transcription && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Transcription</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-header">
+            <h3 className="card-title">
+              <i className="fas fa-file-alt text-primary mr-2"></i>
+              Transcription
+            </h3>
+          </div>
+          <div className="card-body">
+            <textarea
               value={transcription}
               readOnly
-              className="min-h-[100px]"
+              className="textarea textarea-bordered w-full min-h-[100px] resize-none"
+              placeholder="Transcription will appear here..."
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {structuredLog && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Structured Log</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-muted p-4 rounded-md overflow-auto text-sm">
-              {JSON.stringify(structuredLog, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-header">
+            <h3 className="card-title">
+              <i className="fas fa-list-alt text-primary mr-2"></i>
+              Structured Log
+            </h3>
+          </div>
+          <div className="card-body">
+            <div className="mockup-code">
+              <pre className="text-sm overflow-auto">
+                <code>{JSON.stringify(structuredLog, null, 2)}</code>
+              </pre>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
