@@ -10,10 +10,10 @@ export function AIAssistantButton() {
   return (
     <>
       {/* Floating AI Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="btn btn-primary btn-circle btn-lg shadow-lg hover:shadow-xl transition-all duration-200 group"
+          className="btn btn-primary btn-circle btn-md sm:btn-lg shadow-lg hover:shadow-xl transition-all duration-200 group touch-manipulation"
           title="AI Assistant"
         >
           <i className="fas fa-robot text-xl group-hover:scale-110 transition-transform"></i>
