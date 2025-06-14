@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -18,6 +17,13 @@ import { Doughnut, Bar } from "react-chartjs-2"
 import { getDashboardData } from "@/app/actions/dashboard"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
+import ProjectModal from "./projects/components/modal-project"
+import { Project } from "@/types/projects"
+import { set } from "date-fns"
+import TaskModal from "./tasks/components/modal-task"
+import EquipmentNewModal from "./equipment/components/modal-new"
+import DailyLogModal from "./daily-logs/components/modal-log"
+import { DailyLogWithDetails } from "@/types/daily-logs"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -100,6 +106,10 @@ interface DashboardData {
 
 export default function Dashboard() {
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+    const [projectModal, setProjectModal] = useState(false);
+    const [taskModal, setTaskModal] = useState(false);
+    const [equipmentModal, setEquipmentModal] = useState(false);
+    const [dailyLogModal, setDailyLogModal] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -110,6 +120,7 @@ export default function Dashboard() {
                 status: project.status ?? "", // fallback to empty string if null
                 start_date: project.start_date ?? undefined,
                 end_date: project.end_date ?? undefined,
+                crewName: project.crewNames, // Map crewNames to crewName to match the expected type
             }));
 
             const fixedRecentActivity = rawData.recentActivity.map((activity: any) => ({
@@ -228,9 +239,37 @@ export default function Dashboard() {
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-2">Command Center</h1>
-                <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
+                <div className="flex flex-row items-center justify-between">
+                    <div className="">
+                        <h1 className="text-3xl font-bold mb-2">Command Center</h1>
+                        <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
+                    </div>
+                    <div className="">
+                        <button className="btn btn-primary btn-sm" onClick={() => setProjectModal(true)}>
+                            <i className="fas fa-diagram-project mr-2"></i>
+                            New Projects
+                        </button>
+                        <button className="btn btn-secondary btn-sm ml-2" onClick={() => setTaskModal(true)}>
+                            <i className="fas fa-tasks mr-2"></i>
+                            New Tasks
+                        </button>
+                        <button className="btn btn-info btn-sm ml-2" onClick={() => setDailyLogModal(true)}>
+                            <i className="fas fa-calendar-alt mr-2"></i>
+                            Daily Log
+                        </button>
+                        <button className="btn btn-accent btn-sm ml-2" onClick={() => setEquipmentModal(true)}>
+                            <i className="fas fa-users mr-2"></i>
+                            New Equipment
+                        </button>
+
+                    </div>
+                </div>
             </div>
+
+            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={() => setProjectModal(false)} />}
+            {<TaskModal isOpen={taskModal} onClose={() => setTaskModal(false)} task={null} />}
+            {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
+            {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
 
             {/* Key Performance Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

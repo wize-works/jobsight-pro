@@ -155,7 +155,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="text"
                                             name="name"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.name}
                                             onChange={handleInputChange}
                                             placeholder="Enter equipment name"
@@ -167,55 +167,31 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <label className="label">
                                             <span className="label-text font-medium">Type</span>
                                         </label>
-                                        <select
-                                            name="type"
-                                            className="select select-bordered select-secondary"
-                                            value={formData.type}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(equipmentTypeOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {equipmentTypeOptions.select(
+                                            formData.type,
+                                            (value) => setFormData(prev => ({ ...prev, type: value })),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(equipmentStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {equipmentStatusOptions.select(
+                                            formData.status,
+                                            (value) => setFormData(prev => ({ ...prev, status: value })),
+                                            "select select-bordered select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Condition</span>
                                         </label>
-                                        <select
-                                            name="condition"
-                                            className="select select-bordered select-secondary"
-                                            value={formData.condition}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(equipmentConditionOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {equipmentConditionOptions.select(
+                                            formData.condition,
+                                            (value) => setFormData(prev => ({ ...prev, condition: value })),
+                                            "select select-bordered select-secondary w-full"
+                                        )}
                                     </div>
                                 </div>
                                 <div className="form-control mt-4">
@@ -224,7 +200,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                     </label>
                                     <textarea
                                         name="description"
-                                        className="textarea textarea-bordered textarea-secondary"
+                                        className="textarea textarea-bordered textarea-secondary w-full"
                                         value={formData.description}
                                         onChange={handleInputChange}
                                         placeholder="Enter equipment description"
@@ -250,7 +226,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="text"
                                             name="serial_number"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.serial_number}
                                             onChange={handleInputChange}
                                             placeholder="Enter serial number"
@@ -264,7 +240,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="text"
                                             name="make"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.make}
                                             onChange={handleInputChange}
                                             placeholder="Enter manufacturer"
@@ -278,7 +254,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="text"
                                             name="model"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.model}
                                             onChange={handleInputChange}
                                             placeholder="Enter model"
@@ -292,7 +268,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="number"
                                             name="year"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.year}
                                             onChange={handleInputChange}
                                             min={1900}
@@ -319,7 +295,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="date"
                                             name="purchase_date"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.purchase_date}
                                             onChange={handleInputChange}
                                             disabled={loading}
@@ -332,7 +308,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="number"
                                             name="purchase_price"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.purchase_price}
                                             onChange={handleInputChange}
                                             placeholder="0.00"
@@ -348,7 +324,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="number"
                                             name="current_value"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.current_value}
                                             onChange={handleInputChange}
                                             placeholder="0.00"
@@ -364,7 +340,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="date"
                                             name="next_maintenance"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.next_maintenance}
                                             onChange={handleInputChange}
                                             disabled={loading}
@@ -414,7 +390,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         <input
                                             type="url"
                                             name="image_url"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.image_url}
                                             onChange={handleInputChange}
                                             placeholder="Enter image URL"

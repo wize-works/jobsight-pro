@@ -4,17 +4,17 @@ import { createTask, updateTask } from "@/app/actions/tasks";
 import { toast } from "@/hooks/use-toast";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
+import { getProjects } from "@/app/actions/projects";
+import { getCrews } from "@/app/actions/crews";
 
 interface TaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     task?: TaskWithDetails | null;
     onSave?: (task: Task) => void;
-    projects: Project[];
-    crews: Crew[];
 }
 
-export default function TaskModal({ isOpen, onClose, task, onSave, projects, crews }: TaskModalProps) {
+export default function TaskModal({ isOpen, onClose, task, onSave }: TaskModalProps) {
     const isEditing = !!task?.id;
 
     const [formData, setFormData] = useState({
@@ -29,8 +29,26 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
         assigned_to: "",
     });
 
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [crews, setCrews] = useState<Crew[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Fetch projects and crews when the modal is opened
+    useEffect(() => {
+        if (isOpen) {
+            const fetchData = async () => {
+                try {
+                    const [fetchedProjects, fetchedCrews] = await Promise.all([getProjects(), getCrews()]);
+                    setProjects(fetchedProjects);
+                    setCrews(fetchedCrews);
+                } catch (err) {
+                    console.error("Error fetching projects or crews:", err);
+                }
+            };
+            fetchData();
+        }
+    }, [isOpen]);
 
     // Reset form values when task prop changes
     useEffect(() => {
@@ -185,7 +203,7 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                 <div className="space-y-4">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Task Name *</span>
+                                            <span className="label-text">Task Name</span>
                                         </label>
                                         <input
                                             type="text"
@@ -201,7 +219,7 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="form-control">
                                             <label className="label">
-                                                <span className="label-text font-medium">Project *</span>
+                                                <span className="label-text">Project</span>
                                             </label>
                                             <select
                                                 name="project_id"
@@ -212,16 +230,14 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                                 disabled={loading}
                                             >
                                                 <option value="">Select a project</option>
-                                                {projects.map((project) => (
-                                                    <option key={project.id} value={project.id}>
-                                                        {project.name}
-                                                    </option>
+                                                {projects.map(project => (
+                                                    <option key={project.id} value={project.id}>{project.name}</option>
                                                 ))}
                                             </select>
                                         </div>
                                         <div className="form-control">
                                             <label className="label">
-                                                <span className="label-text font-medium">Assigned To</span>
+                                                <span className="label-text">Assigned To</span>
                                             </label>
                                             <select
                                                 name="assigned_to"
@@ -230,18 +246,16 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                                 onChange={handleInputChange}
                                                 disabled={loading}
                                             >
-                                                <option value="">Not Assigned</option>
-                                                {crews.map((crew) => (
-                                                    <option key={crew.id} value={crew.id}>
-                                                        {crew.name}
-                                                    </option>
+                                                <option value="">Unassigned</option>
+                                                {crews.map(crew => (
+                                                    <option key={crew.id} value={crew.id}>{crew.name}</option>
                                                 ))}
                                             </select>
                                         </div>
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Description</span>
+                                            <span className="label-text">Description</span>
                                         </label>
                                         <textarea
                                             name="description"
@@ -267,7 +281,7 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Start Date *</span>
+                                            <span className="label-text">Start Date</span>
                                         </label>
                                         <input
                                             type="date"
@@ -281,7 +295,7 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">End Date *</span>
+                                            <span className="label-text">End Date</span>
                                         </label>
                                         <input
                                             type="date"
@@ -295,16 +309,11 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Priority</span>
+                                            <span className="label-text">Priority</span>
                                         </label>
                                         {taskPriorityOptions.select(
                                             formData.priority,
-                                            (value: TaskPriority) => {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    priority: value
-                                                }));
-                                            },
+                                            (value: TaskPriority) => setFormData(prev => ({ ...prev, priority: value })),
                                             "select-secondary w-full"
                                         )}
                                     </div>
@@ -322,22 +331,17 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Status</span>
+                                            <span className="label-text">Status</span>
                                         </label>
                                         {taskStatusOptions.select(
                                             formData.status,
-                                            (value: TaskStatus) => {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    status: value
-                                                }));
-                                            },
+                                            (value: TaskStatus) => setFormData(prev => ({ ...prev, status: value })),
                                             "select-secondary w-full"
                                         )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
-                                            <span className="label-text font-medium">Progress (%)</span>
+                                            <span className="label-text">Progress</span>
                                         </label>
                                         <input
                                             type="number"
@@ -354,8 +358,8 @@ export default function TaskModal({ isOpen, onClose, task, onSave, projects, cre
                                 </div>
                                 <div className="mt-4">
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span>Progress</span>
-                                        <span>{formData.progress}%</span>
+                                        <span>0%</span>
+                                        <span>100%</span>
                                     </div>
                                     <input type="range" name="progress" min={0} max={100} value={formData.progress} className="range range-primary w-full" onChange={(e) => handleNumberChange(e)} />
                                 </div>
