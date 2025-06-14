@@ -3,10 +3,11 @@
 import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CreateDailyLogModal from "./modal-log";
 import { Equipment } from "@/types/equipment";
 import { CrewMember } from "@/types/crew-members";
+import { useSearchParams } from "next/navigation";
 
 interface DailyLogsListProps {
     logs: DailyLogWithDetails[];
@@ -16,12 +17,35 @@ interface DailyLogsListProps {
     equipments: Equipment[]
 }
 
-export default function DailyLogsList({ logs, crews, crewMembers, projects, equipments }: DailyLogsListProps) {
+export default function DailyLogsList({
+    logs,
+    crews,
+    crewMembers,
+    projects,
+    equipments,
+}: {
+    logs: DailyLogWithDetails[];
+    crews: Crew[];
+    crewMembers: CrewMember[];
+    projects: Project[];
+    equipments: Equipment[];
+}) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(logs);
     const [selectedLog, setSelectedLog] = useState<DailyLogWithDetails | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const searchParams = useSearchParams();
+
+    // Check for AI-generated data and auto-open modal
+    useEffect(() => {
+        const aiLogData = sessionStorage.getItem('aiGeneratedLog');
+        const aiParam = searchParams.get('ai');
+
+        if (aiLogData || aiParam === 'true') {
+            setIsCreateModalOpen(true);
+        }
+    }, [searchParams]);
 
     const handleNewLog = (newLog: DailyLogWithDetails) => {
         setFilteredLogs(prev => [newLog, ...prev]);

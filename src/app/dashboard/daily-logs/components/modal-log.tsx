@@ -84,15 +84,21 @@ export default function CreateDailyLogModal({
         if (aiLogData) {
             try {
                 const parsedData = JSON.parse(aiLogData);
+                console.log('Processing AI log data:', parsedData);
+                
                 // Pre-fill form with AI-generated data
                 if (parsedData.summary) {
                     setFormData(prev => ({ ...prev, work_completed: parsedData.summary }));
                 }
-                if (parsedData.work_completed && Array.isArray(parsedData.work_completed)) {
-                    setFormData(prev => ({
-                        ...prev,
-                        work_completed: parsedData.work_completed.join('. ')
-                    }));
+                if (parsedData.work_completed) {
+                    if (Array.isArray(parsedData.work_completed)) {
+                        setFormData(prev => ({
+                            ...prev,
+                            work_completed: parsedData.work_completed.join('. ')
+                        }));
+                    } else {
+                        setFormData(prev => ({ ...prev, work_completed: parsedData.work_completed }));
+                    }
                 }
                 if (parsedData.weather) {
                     setFormData(prev => ({ ...prev, weather: parsedData.weather }));
@@ -100,18 +106,22 @@ export default function CreateDailyLogModal({
                 if (parsedData.safety_notes) {
                     setFormData(prev => ({ ...prev, safety: parsedData.safety_notes }));
                 }
-                if (parsedData.issues && Array.isArray(parsedData.issues)) {
-                    setFormData(prev => ({
-                        ...prev,
-                        delays: parsedData.issues.join('. ')
-                    }));
+                if (parsedData.issues) {
+                    if (Array.isArray(parsedData.issues)) {
+                        setFormData(prev => ({
+                            ...prev,
+                            delays: parsedData.issues.join('. ')
+                        }));
+                    } else {
+                        setFormData(prev => ({ ...prev, delays: parsedData.issues }));
+                    }
                 }
 
                 // Handle materials
                 if (parsedData.materials_used && Array.isArray(parsedData.materials_used)) {
                     const aiMaterials = parsedData.materials_used.map((material: any, index: number) => ({
                         id: `ai-${index}`,
-                        name: material.name || '',
+                        name: material.name || material || '',
                         quantity: material.quantity || '0',
                         cost: 0,
                         quantityValue: parseFloat(material.quantity) || 0,
@@ -126,7 +136,7 @@ export default function CreateDailyLogModal({
                     const aiEquipment = parsedData.equipment_used.map((equip: any, index: number) => ({
                         id: `ai-equip-${index}`,
                         equipmentId: '',
-                        name: equip || '',
+                        name: equip.name || equip || '',
                         operator: '',
                         crewMemberId: null,
                         hours: 8,
@@ -137,6 +147,7 @@ export default function CreateDailyLogModal({
 
                 // Clear from session storage
                 sessionStorage.removeItem('aiGeneratedLog');
+                console.log('AI data processed and cleared from sessionStorage');
             } catch (err) {
                 console.error('Error parsing AI log data:', err);
             }

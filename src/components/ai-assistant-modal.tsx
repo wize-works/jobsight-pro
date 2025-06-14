@@ -178,11 +178,11 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
       const structuredData = {
         work_completed: result.work_completed || result.summary || message,
         weather: result.weather || '',
-        safety: result.safety_notes || result.safety || '',
-        delays: result.issues ? result.issues.join('. ') : '',
+        safety_notes: result.safety_notes || result.safety || '',
+        issues: result.issues || [],
         notes: result.notes || result.crew_notes || '',
-        materials: result.materials || [],
-        equipment: result.equipment || [],
+        materials_used: result.materials_used || result.materials || [],
+        equipment_used: result.equipment_used || result.equipment || [],
         source: 'ai_chat'
       };
       

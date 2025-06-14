@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
 
         const structuredLog = await convertToStructuredLog(transcriptionText);
 
+        console.log('Structured log result:', structuredLog);
         return NextResponse.json(structuredLog);
     } catch (error) {
         console.error('Transcription API error:', error);
