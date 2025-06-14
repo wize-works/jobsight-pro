@@ -1,3 +1,10 @@
+# [1.37.0](https://github.com/wize-works/jobsight-pro/compare/v1.36.1...v1.37.0) (2025-06-14)
+
+
+### Features
+
+* Add STRIPE_SECRET_KEY environment variable to Dockerfile ([7eca65f](https://github.com/wize-works/jobsight-pro/commit/7eca65fb59448c990c8db48f8ec17302e53caf88))
+
 ## [1.36.1](https://github.com/wize-works/jobsight-pro/compare/v1.36.0...v1.36.1) (2025-06-14)
 
 
