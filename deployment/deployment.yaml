@@ -157,6 +157,11 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: NEXT_PUBLIC_STRIPE_PUBLIC_KEY
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: OPENAI_API_KEY
 
           resources:
             requests:
