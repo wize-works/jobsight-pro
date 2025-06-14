@@ -153,7 +153,7 @@ export default function Dashboard() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="loading loading-spinner loading-lg mb-4"></div>
-                    <p className="text-lg">Loading your construction dashboard...</p>
+                    <p className="text-lg">Loading your command center dashboard...</p>
                 </div>
             </div>
         )
@@ -239,25 +239,25 @@ export default function Dashboard() {
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                <div className="flex flex-row items-center justify-between">
+                <div className="flex flex-col md:flex-row items-center justify-between">
                     <div className="">
                         <h1 className="text-3xl font-bold mb-2">Command Center</h1>
                         <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
                     </div>
-                    <div className="">
-                        <button className="btn btn-primary btn-sm" onClick={() => setProjectModal(true)}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 md:mt-0 w-full md:w-auto">
+                        <button className="btn btn-primary md:btn-sm" onClick={() => setProjectModal(true)}>
                             <i className="fas fa-diagram-project mr-2"></i>
                             New Projects
                         </button>
-                        <button className="btn btn-secondary btn-sm ml-2" onClick={() => setTaskModal(true)}>
+                        <button className="btn btn-secondary md:btn-sm" onClick={() => setTaskModal(true)}>
                             <i className="fas fa-tasks mr-2"></i>
                             New Tasks
                         </button>
-                        <button className="btn btn-info btn-sm ml-2" onClick={() => setDailyLogModal(true)}>
+                        <button className="btn btn-info md:btn-sm" onClick={() => setDailyLogModal(true)}>
                             <i className="fas fa-calendar-alt mr-2"></i>
                             Daily Log
                         </button>
-                        <button className="btn btn-accent btn-sm ml-2" onClick={() => setEquipmentModal(true)}>
+                        <button className="btn btn-accent md:btn-sm" onClick={() => setEquipmentModal(true)}>
                             <i className="fas fa-users mr-2"></i>
                             New Equipment
                         </button>
