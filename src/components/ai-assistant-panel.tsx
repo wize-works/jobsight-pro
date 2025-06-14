@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -19,7 +18,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     timestamp: Date;
   }>>([]);
   const [error, setError] = useState('');
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -108,7 +107,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
   const processVoiceInput = async (audioBlob: Blob) => {
     setIsProcessing(true);
     setError('');
-    
+
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
@@ -123,12 +122,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
       }
 
       const result = await response.json();
-      
+
       const userMessage = result.transcription || 'Voice message processed';
       addToConversation('user', userMessage);
-      
+
       await processMessage(userMessage);
-      
+
     } catch (err) {
       setError('Failed to process voice input: ' + (err as Error).message);
       console.error('Voice processing error:', err);
@@ -139,12 +138,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
   const processMessage = async (message: string) => {
     const lowerMessage = message.toLowerCase();
-    
+
     const dailyLogKeywords = [
       'daily log', 'create log', 'submit log', 'log my day', 
       'work completed', 'today we', 'daily report', 'site log'
     ];
-    
+
     const isDailyLogRequest = dailyLogKeywords.some(keyword => 
       lowerMessage.includes(keyword)
     );
@@ -154,6 +153,28 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     } else {
       await handleGeneralQuery(message);
     }
+  };
+
+  const validateDailyLogFields = (logData: any) => {
+    const missingFields = [];
+    const suggestions = [];
+
+    if (!logData.project_id && !logData.project_name) {
+      missingFields.push('project');
+      suggestions.push('Which project did you work on today?');
+    }
+
+    if (!logData.work_completed && !logData.summary && !logData.tasks_completed) {
+      missingFields.push('work completed');
+      suggestions.push('Can you describe what work was completed today?');
+    }
+
+    if (!logData.date) {
+      missingFields.push('date');
+      suggestions.push('What date was this work performed?');
+    }
+
+    return { missingFields, suggestions, isValid: missingFields.length === 0 };
   };
 
   const createDailyLogFromMessage = async (message: string) => {
@@ -171,25 +192,35 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
       }
 
       const result = await response.json();
-      
-      addToConversation('assistant', 'I\'ve created a structured daily log from your input. Taking you to the daily logs page to review and submit.');
-      
-      const structuredData = {
-        work_completed: result.work_completed || result.summary || message,
-        weather: result.weather || '',
-        safety_notes: result.safety_notes || result.safety || '',
-        issues: result.issues || [],
-        notes: result.notes || result.crew_notes || '',
-        materials_used: result.materials_used || result.materials || [],
-        equipment_used: result.equipment_used || result.equipment || [],
-        source: 'ai_chat'
-      };
-      
-      sessionStorage.setItem('aiGeneratedLog', JSON.stringify(structuredData));
-      
-      setTimeout(() => {
-        router.push('/dashboard/daily-logs?ai=true');
-      }, 1500);
+
+      // Validate the extracted fields
+      const validation = validateDailyLogFields(result);
+
+      if (!validation.isValid) {
+        // Ask for missing information
+        addToConversation('assistant', `I'd like to help you create a daily log, but I need some additional information:\n\n${validation.suggestions.join('\n')}\n\nPlease provide these details and I'll create the log for you.`);
+        // Store partial data for continuation
+        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result));
+      } else {
+        addToConversation('assistant', 'I\'ve created a structured daily log from your input. Taking you to the daily logs page to review and submit.');
+
+        const structuredData = {
+          work_completed: result.work_completed || result.summary || message,
+          weather: result.weather || '',
+          safety_notes: result.safety_notes || result.safety || '',
+          issues: result.issues || [],
+          notes: result.notes || result.crew_notes || '',
+          materials_used: result.materials_used || result.materials || [],
+          equipment_used: result.equipment_used || result.equipment || [],
+          source: 'ai_chat'
+        };
+
+        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(structuredData));
+
+        setTimeout(() => {
+          router.push('/dashboard/daily-logs?ai=true');
+        }, 1500);
+      }
     } catch (err) {
       const errorMsg = 'Failed to create daily log: ' + (err as Error).message;
       addToConversation('assistant', errorMsg);
@@ -213,7 +244,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
       const result = await response.json();
       addToConversation('assistant', result.response || 'I understand your request. How else can I help you today?');
-      
+
     } catch (err) {
       const errorMsg = 'Sorry, I had trouble processing your request: ' + (err as Error).message;
       addToConversation('assistant', errorMsg);
@@ -231,13 +262,13 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
   const handleSubmit = async () => {
     if (!textInput.trim() || isProcessing) return;
-    
+
     const message = textInput.trim();
     setTextInput('');
     setIsProcessing(true);
-    
+
     addToConversation('user', message);
-    
+
     try {
       await processMessage(message);
     } finally {
@@ -261,12 +292,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
           onClick={handleClose}
         />
       )}
-      
+
       {/* Sliding panel */}
       <div className={`fixed top-0 right-0 h-full w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       } flex flex-col border-l border-base-300`}>
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-base-300 bg-base-200">
           <div className="flex items-center gap-3">
@@ -350,7 +381,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -378,7 +409,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 rows={2}
               />
             </div>
-            
+
             <button
               className={`btn btn-sm btn-square ${isRecording ? 'btn-error animate-pulse' : 'btn-secondary'}`}
               onClick={isRecording ? stopRecording : startRecording}

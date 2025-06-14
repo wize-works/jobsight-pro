@@ -33,8 +33,7 @@ export async function POST(request: NextRequest) {
             transcriptionText = await transcribeVoiceNote(audioFile);
         } else if (contentType?.includes('application/json')) {
             // Handle text input
-            const body = await request.json();
-            const message = body.message || body.text; // Support both field names
+            const { message, action, existingData } = await request.json();
 
             if (!message) {
                 return NextResponse.json(
@@ -43,7 +42,12 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            transcriptionText = message;
+            // If continuing a daily log, combine with existing data
+            if (action === 'continue_daily_log' && existingData) {
+                transcriptionText = `Previous information: ${JSON.stringify(existingData)}\n\nAdditional information: ${message}`;
+            } else {
+                transcriptionText = message;
+            }
         } else {
             return NextResponse.json(
                 { error: 'Invalid content type. Expected multipart/form-data or application/json' },
