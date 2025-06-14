@@ -10,19 +10,17 @@ import DailyLogsList from "./components/list";
 
 export default async function DailyLogs() {
     // Fetch data on the server
-    const [logs, crews, crewMembers, projects, equipments] = await Promise.all([
+    const [logs, crews, projects] = await Promise.all([
         getDailyLogsWithDetails(),
         getCrews(),
-        getCrewMembers(),
         getProjects(),
-        getEquipments(),
     ]);
 
 
 
     return (
         <div className="container mx-auto">
-            <DailyLogsList logs={logs} crews={crews} crewMembers={crewMembers} projects={projects} equipments={equipments} />
+            <DailyLogsList logs={logs} crews={crews} projects={projects} />
         </div>
     );
 }

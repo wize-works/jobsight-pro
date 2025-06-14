@@ -12,23 +12,17 @@ import { useSearchParams } from "next/navigation";
 interface DailyLogsListProps {
     logs: DailyLogWithDetails[];
     crews: Crew[];
-    crewMembers: CrewMember[];
     projects: Project[];
-    equipments: Equipment[]
 }
 
 export default function DailyLogsList({
     logs,
     crews,
-    crewMembers,
     projects,
-    equipments,
 }: {
     logs: DailyLogWithDetails[];
     crews: Crew[];
-    crewMembers: CrewMember[];
     projects: Project[];
-    equipments: Equipment[];
 }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

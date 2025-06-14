@@ -442,7 +442,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     end_time: dailyLogData.end_time || "17:00",
                     hours_worked: dailyLogData.hours_worked || 8,
                     overtime: dailyLogData.overtime || 0,
-                };
+                } as DailyLogInsert;
 
                 try {
                     // Save the daily log directly using the action
@@ -548,7 +548,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
                 if (!projectId && (result.project_name || result.project)) {
                     const projectName = result.project_name || result.project;
-                    const matchingProject = projects.find(p => 
+                    const matchingProject = projects.find(p =>
                         p.name.toLowerCase().includes(projectName.toLowerCase()) ||
                         projectName.toLowerCase().includes(p.name.toLowerCase())
                     );
@@ -601,7 +601,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     end_time: result.end_time || "17:00",
                     hours_worked: result.hours_worked || 8,
                     overtime: result.overtime || 0,
-                };
+                } as DailyLogInsert;
 
                 try {
                     // Save the daily log directly using the action
@@ -649,7 +649,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             addToConversation(
                 "assistant",
                 result.response ||
-                    "I understand your request. How else can I help you today?",
+                "I understand your request. How else can I help you today?",
             );
         } catch (err) {
             const errorMsg =
@@ -698,9 +698,8 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         <>
             {/* Sliding panel */}
             <div
-                className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                } flex flex-col border-l border-base-300`}
+                className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? "translate-x-0" : "translate-x-full"
+                    } flex flex-col border-l border-base-300`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
@@ -775,11 +774,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                 className={`max-w-[80%] ${msg.type === "user" ? "order-2" : "order-1"}`}
                             >
                                 <div
-                                    className={`p-3 rounded-lg ${
-                                        msg.type === "user"
-                                            ? "bg-primary text-primary-content ml-2"
-                                            : "bg-base-200 text-base-content mr-2"
-                                    }`}
+                                    className={`p-3 rounded-lg ${msg.type === "user"
+                                        ? "bg-primary text-primary-content ml-2"
+                                        : "bg-base-200 text-base-content mr-2"
+                                        }`}
                                 >
                                     <p className="text-sm whitespace-pre-wrap">
                                         {msg.content}
@@ -790,11 +788,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                 </p>
                             </div>
                             <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                    msg.type === "user"
-                                        ? "order-1 bg-primary"
-                                        : "order-2 bg-secondary"
-                                }`}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === "user"
+                                    ? "order-1 bg-primary"
+                                    : "order-2 bg-secondary"
+                                    }`}
                             >
                                 <i
                                     className={`fas ${msg.type === "user" ? "fa-user" : "fa-robot"} text-xs text-white`}
