@@ -1,3 +1,11 @@
+## [1.40.2](https://github.com/wize-works/jobsight-pro/compare/v1.40.1...v1.40.2) (2025-06-14)
+
+
+### Bug Fixes
+
+* Adjust button styles for consistent sizing and spacing in dashboard and AI assistant components ([cf269c9](https://github.com/wize-works/jobsight-pro/commit/cf269c9789af73d245a8d918caf2dc97f2682526))
+* Update loading message and adjust layout for command center dashboard ([13ddf69](https://github.com/wize-works/jobsight-pro/commit/13ddf691e25bc302fc5d3f3bc493df68efc8b6df))
+
 ## [1.40.1](https://github.com/wize-works/jobsight-pro/compare/v1.40.0...v1.40.1) (2025-06-14)
 
 
