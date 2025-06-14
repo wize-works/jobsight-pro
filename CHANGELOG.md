@@ -1,3 +1,17 @@
+# [1.36.0](https://github.com/wize-works/jobsight-pro/compare/v1.35.0...v1.36.0) (2025-06-14)
+
+
+### Bug Fixes
+
+* added toast import ([ed12f17](https://github.com/wize-works/jobsight-pro/commit/ed12f176fdad7e063c06aadfb13322c45ed17178))
+
+
+### Features
+
+* add Stripe secrets to deployment configuration and Docker build arguments ([6ed41c7](https://github.com/wize-works/jobsight-pro/commit/6ed41c75f6b1f2ccbb94880ae423ddbd97688c0c))
+* add Stripe types for customers, invoices, subscriptions, and payment events; enhance type safety and integration with Supabase ([ea5cdcc](https://github.com/wize-works/jobsight-pro/commit/ea5cdcc199a5a9884a2a802c36d6bd2e98a4cb4b))
+* update pricing JSON with Stripe product IDs and add AI addon pricing; remove obsolete Stripe payment events types ([964e0b2](https://github.com/wize-works/jobsight-pro/commit/964e0b263be8b2dbe9d92464e03791381e444cbb))
+
 # [1.35.0](https://github.com/wize-works/jobsight-pro/compare/v1.34.0...v1.35.0) (2025-06-13)
 
 
