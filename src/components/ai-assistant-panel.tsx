@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createDailyLog } from "@/app/actions/daily-logs";
 import type { DailyLogInsert } from "@/types/daily-logs";
+import { getProjects } from "@/app/actions/projects";
+import type { Project } from "@/types/projects";
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -22,6 +24,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }>
     >([]);
     const [error, setError] = useState("");
+    const [projects, setProjects] = useState<Project[]>([]);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -36,6 +39,23 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     useEffect(() => {
         scrollToBottom();
     }, [conversation]);
+
+    useEffect(() => {
+        if (isOpen) {
+            scrollToBottom();
+            // Load projects when panel opens
+            loadProjects();
+        }
+    }, [isOpen, conversation]);
+
+    const loadProjects = async () => {
+        try {
+            const projectList = await getProjects();
+            setProjects(projectList);
+        } catch (error) {
+            console.error("Error loading projects:", error);
+        }
+    };
 
     // Load conversation from localStorage on mount
     useEffect(() => {
@@ -322,7 +342,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     ) => {
         try {
             let dailyLogData: any = {};
-            
+
             // Parse existing data
             if (enhancedDataStr) {
                 dailyLogData = JSON.parse(enhancedDataStr);
@@ -347,7 +367,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
             if (response.ok) {
                 const newData = await response.json();
-                
+
                 // Merge new data with existing data
                 dailyLogData = {
                     ...dailyLogData,
@@ -368,7 +388,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     "assistant",
                     `Thanks for the additional information! I still need a few more details:\n\n${validation.suggestions.join("\n")}\n\nOnce you provide these, I'll create the complete daily log for you.`,
                 );
-                
+
                 // Update stored data with new information
                 sessionStorage.setItem(
                     "aiGeneratedLog",
@@ -421,7 +441,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             "assistant",
                             `Excellent! Your daily log has been successfully created and saved. The log includes:\n\n• Enhanced work description\n• Safety notes\n• Project details\n\nYou can view it in the daily logs section. Is there anything else you'd like me to help you with?`,
                         );
-                        
+
                         // Clear the stored data since we're done
                         sessionStorage.removeItem("aiGeneratedLog");
                         sessionStorage.removeItem("aiEnhancedLog");
@@ -478,7 +498,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 if (result.work_completed || result.summary) hasInfo.push("work details");
                 if (result.weather) hasInfo.push("weather conditions");
                 if (result.safety_notes || result.safety) hasInfo.push("safety notes");
-                
+
                 let response = "I'm starting to create your daily log! ";
                 if (hasInfo.length > 0) {
                     response += `I've captured your ${hasInfo.join(", ")}, but I need some additional information:\n\n${validation.suggestions.join("\n")}\n\n`;
@@ -486,9 +506,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     response += `I need some information to create your daily log:\n\n${validation.suggestions.join("\n")}\n\n`;
                 }
                 response += "Just provide the missing details and I'll complete the log for you.";
-                
+
                 addToConversation("assistant", response);
-                
+
                 // Store partial data for continuation
                 sessionStorage.setItem(
                     "aiGeneratedLog",
@@ -511,13 +531,33 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     result.safety_notes || result.safety || ""
                 );
 
-                // Check if we have a project_id from the message
-                if (!result.project_id && !result.project_name) {
+                // Try to find matching project
+                let projectId = result.project_id;
+
+                if (!projectId && (result.project_name || result.project)) {
+                    const projectName = result.project_name || result.project;
+                    const matchingProject = projects.find(p => 
+                        p.name.toLowerCase().includes(projectName.toLowerCase()) ||
+                        projectName.toLowerCase().includes(p.name.toLowerCase())
+                    );
+
+                    if (matchingProject) {
+                        projectId = matchingProject.id;
+                        addToConversation(
+                            "assistant",
+                            `Found matching project: "${matchingProject.name}". Creating daily log...`,
+                        );
+                    }
+                }
+
+                // Check if we still don't have a project_id
+                if (!projectId) {
+                    const projectNames = projects.map(p => p.name).join(", ");
                     addToConversation(
                         "assistant",
-                        `I've enhanced your daily log information, but I need to know which project this is for. I noticed you mentioned "Oakridge Tower" - is this the project name? Please confirm the project and I'll save the daily log for you.\n\nEnhanced details:\n• Work: ${enhancedWorkCompleted}\n• Safety: ${enhancedSafety}\n• Notes: ${enhancedNotes}`,
+                        `I've enhanced your daily log information, but I couldn't find a matching project. Available projects: ${projectNames}.\n\nPlease specify which project this daily log is for, or would you like me to guide you through creating a new project?\n\nEnhanced details:\n• Work: ${enhancedWorkCompleted}\n• Safety: ${enhancedSafety}\n• Notes: ${enhancedNotes}`,
                     );
-                    
+
                     // Store the enhanced data for continuation
                     sessionStorage.setItem(
                         "aiEnhancedLog",
@@ -533,6 +573,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             overtime: result.overtime || 0,
                         })
                     );
+
                     return;
                 }
 
@@ -543,7 +584,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     safety: enhancedSafety,
                     notes: enhancedNotes,
                     date: result.date || new Date().toISOString().split('T')[0],
-                    project_id: result.project_id || "temp-project-id", // This should be resolved from project name
+                    project_id: projectId,
                     start_time: result.start_time || "08:00",
                     end_time: result.end_time || "17:00",
                     hours_worked: result.hours_worked || 8,
