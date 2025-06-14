@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -9,15 +9,17 @@ interface AIAssistantPanelProps {
 }
 
 export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
-    const [textInput, setTextInput] = useState('');
+    const [textInput, setTextInput] = useState("");
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [conversation, setConversation] = useState<Array<{
-        type: 'user' | 'assistant';
-        content: string;
-        timestamp: Date;
-    }>>([]);
-    const [error, setError] = useState('');
+    const [conversation, setConversation] = useState<
+        Array<{
+            type: "user" | "assistant";
+            content: string;
+            timestamp: Date;
+        }>
+    >([]);
+    const [error, setError] = useState("");
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -26,7 +28,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
     // Auto-scroll to bottom when new messages arrive
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
@@ -35,17 +37,19 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
     // Load conversation from localStorage on mount
     useEffect(() => {
-        const savedConversation = localStorage.getItem('aiAssistantConversation');
+        const savedConversation = localStorage.getItem(
+            "aiAssistantConversation",
+        );
         if (savedConversation) {
             try {
                 const parsed = JSON.parse(savedConversation);
                 const conversationWithDates = parsed.map((msg: any) => ({
                     ...msg,
-                    timestamp: new Date(msg.timestamp)
+                    timestamp: new Date(msg.timestamp),
                 }));
                 setConversation(conversationWithDates);
             } catch (err) {
-                console.error('Error loading conversation:', err);
+                console.error("Error loading conversation:", err);
             }
         }
     }, []);
@@ -53,19 +57,22 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     // Save conversation to localStorage whenever it changes
     useEffect(() => {
         if (conversation.length > 0) {
-            localStorage.setItem('aiAssistantConversation', JSON.stringify(conversation));
+            localStorage.setItem(
+                "aiAssistantConversation",
+                JSON.stringify(conversation),
+            );
         }
     }, [conversation]);
 
     const resetConversation = () => {
         setConversation([]);
-        setError('');
-        localStorage.removeItem('aiAssistantConversation');
+        setError("");
+        localStorage.removeItem("aiAssistantConversation");
     };
 
     const handleClose = () => {
-        setTextInput('');
-        setError('');
+        setTextInput("");
+        setError("");
         setIsRecording(false);
         setIsProcessing(false);
         onClose();
@@ -73,7 +80,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
     const startRecording = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+            });
             const mediaRecorder = new MediaRecorder(stream);
             mediaRecorderRef.current = mediaRecorder;
             audioChunksRef.current = [];
@@ -83,22 +92,29 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             };
 
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                const audioBlob = new Blob(audioChunksRef.current, {
+                    type: "audio/wav",
+                });
                 await processVoiceInput(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach((track) => track.stop());
             };
 
             mediaRecorder.start();
             setIsRecording(true);
-            setError('');
+            setError("");
         } catch (err) {
-            setError('Failed to start recording. Please check microphone permissions.');
-            console.error('Recording error:', err);
+            setError(
+                "Failed to start recording. Please check microphone permissions.",
+            );
+            console.error("Recording error:", err);
         }
     };
 
     const stopRecording = () => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        if (
+            mediaRecorderRef.current &&
+            mediaRecorderRef.current.state === "recording"
+        ) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
         }
@@ -106,14 +122,14 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
     const processVoiceInput = async (audioBlob: Blob) => {
         setIsProcessing(true);
-        setError('');
+        setError("");
 
         try {
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.wav');
+            formData.append("audio", audioBlob, "recording.wav");
 
-            const response = await fetch('/api/ai/transcribe', {
-                method: 'POST',
+            const response = await fetch("/api/ai/transcribe", {
+                method: "POST",
                 body: formData,
             });
 
@@ -123,14 +139,16 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
             const result = await response.json();
 
-            const userMessage = result.transcription || 'Voice message processed';
-            addToConversation('user', userMessage);
+            const userMessage =
+                result.transcription || "Voice message processed";
+            addToConversation("user", userMessage);
 
             await processMessage(userMessage);
-
         } catch (err) {
-            setError('Failed to process voice input: ' + (err as Error).message);
-            console.error('Voice processing error:', err);
+            setError(
+                "Failed to process voice input: " + (err as Error).message,
+            );
+            console.error("Voice processing error:", err);
         } finally {
             setIsProcessing(false);
         }
@@ -140,12 +158,18 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         const lowerMessage = message.toLowerCase();
 
         const dailyLogKeywords = [
-            'daily log', 'create log', 'submit log', 'log my day',
-            'work completed', 'today we', 'daily report', 'site log'
+            "daily log",
+            "create log",
+            "submit log",
+            "log my day",
+            "work completed",
+            "today we",
+            "daily report",
+            "site log",
         ];
 
-        const isDailyLogRequest = dailyLogKeywords.some(keyword =>
-            lowerMessage.includes(keyword)
+        const isDailyLogRequest = dailyLogKeywords.some((keyword) =>
+            lowerMessage.includes(keyword),
         );
 
         if (isDailyLogRequest) {
@@ -155,34 +179,112 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
+    // Helper functions to enhance user statements for professional daily logs
+    const enhanceWorkStatement = async (statement: string): Promise<string> => {
+        if (!statement || statement.length > 200) return statement; // Don't enhance if already detailed
+
+        try {
+            const response = await fetch("/api/ai/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `Enhance this brief work statement into a more detailed professional daily log entry. Keep it concise but add context typical for construction work: "${statement}"`,
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result.response || statement;
+            }
+        } catch (error) {
+            console.error("Error enhancing work statement:", error);
+        }
+
+        return statement;
+    };
+
+    const enhanceNotesStatement = async (notes: string): Promise<string> => {
+        if (!notes || notes.length > 150) return notes;
+
+        try {
+            const response = await fetch("/api/ai/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `Enhance these brief notes into more professional daily log notes for construction: "${notes}"`,
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result.response || notes;
+            }
+        } catch (error) {
+            console.error("Error enhancing notes:", error);
+        }
+
+        return notes;
+    };
+
+    const enhanceSafetyStatement = async (safety: string): Promise<string> => {
+        if (!safety || safety.length > 100) return safety;
+
+        try {
+            const response = await fetch("/api/ai/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: `Enhance this brief safety note into a more detailed safety observation for a construction daily log: "${safety}"`,
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result.response || safety;
+            }
+        } catch (error) {
+            console.error("Error enhancing safety statement:", error);
+        }
+
+        return safety;
+    };
+
     const validateDailyLogFields = (logData: any) => {
         const missingFields = [];
         const suggestions = [];
 
         if (!logData.project_id && !logData.project_name) {
-            missingFields.push('project');
-            suggestions.push('Which project did you work on today?');
+            missingFields.push("project");
+            suggestions.push("Which project did you work on today?");
         }
 
-        if (!logData.work_completed && !logData.summary && !logData.tasks_completed) {
-            missingFields.push('work completed');
-            suggestions.push('Can you describe what work was completed today?');
+        if (
+            !logData.work_completed &&
+            !logData.summary &&
+            !logData.tasks_completed
+        ) {
+            missingFields.push("work completed");
+            suggestions.push("Can you describe what work was completed today?");
         }
 
         if (!logData.date) {
-            missingFields.push('date');
-            suggestions.push('What date was this work performed?');
+            missingFields.push("date");
+            suggestions.push("What date was this work performed?");
         }
 
-        return { missingFields, suggestions, isValid: missingFields.length === 0 };
+        return {
+            missingFields,
+            suggestions,
+            isValid: missingFields.length === 0,
+        };
     };
 
     const createDailyLogFromMessage = async (message: string) => {
         try {
-            const response = await fetch('/api/ai/transcribe', {
-                method: 'POST',
+            const response = await fetch("/api/ai/transcribe", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ message }),
             });
@@ -198,42 +300,58 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
             if (!validation.isValid) {
                 // Ask for missing information
-                addToConversation('assistant', `I'd like to help you create a daily log, but I need some additional information:\n\n${validation.suggestions.join('\n')}\n\nPlease provide these details and I'll create the log for you.`);
+                addToConversation(
+                    "assistant",
+                    `I'd like to help you create a daily log, but I need some additional information:\n\n${validation.suggestions.join("\n")}\n\nPlease provide these details and I'll create the log for you.`,
+                );
                 // Store partial data for continuation
-                sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result));
+                sessionStorage.setItem(
+                    "aiGeneratedLog",
+                    JSON.stringify(result),
+                );
             } else {
-                addToConversation('assistant', 'I\'ve created a structured daily log from your input. Taking you to the daily logs page to review and submit.');
+                addToConversation(
+                    "assistant",
+                    "I've created a structured daily log from your input. Taking you to the daily logs page to review and submit.",
+                );
 
                 const structuredData = {
-                    work_completed: result.work_completed || result.summary || message,
-                    weather: result.weather || '',
-                    safety_notes: result.safety_notes || result.safety || '',
+                    work_completed:
+                        result.work_completed || result.summary || message,
+                    weather: result.weather || "",
+                    safety_notes: result.safety_notes || result.safety || "",
                     issues: result.issues || [],
-                    notes: result.notes || result.crew_notes || '',
-                    materials_used: result.materials_used || result.materials || [],
-                    equipment_used: result.equipment_used || result.equipment || [],
-                    source: 'ai_chat'
+                    notes: result.notes || result.crew_notes || "",
+                    materials_used:
+                        result.materials_used || result.materials || [],
+                    equipment_used:
+                        result.equipment_used || result.equipment || [],
+                    source: "ai_chat",
                 };
 
-                sessionStorage.setItem('aiGeneratedLog', JSON.stringify(structuredData));
+                sessionStorage.setItem(
+                    "aiGeneratedLog",
+                    JSON.stringify(structuredData),
+                );
 
                 setTimeout(() => {
-                    router.push('/dashboard/daily-logs?ai=true');
+                    router.push("/dashboard/daily-logs?ai=true");
                 }, 1500);
             }
         } catch (err) {
-            const errorMsg = 'Failed to create daily log: ' + (err as Error).message;
-            addToConversation('assistant', errorMsg);
-            console.error('Daily log creation error:', err);
+            const errorMsg =
+                "Failed to create daily log: " + (err as Error).message;
+            addToConversation("assistant", errorMsg);
+            console.error("Daily log creation error:", err);
         }
     };
 
     const handleGeneralQuery = async (message: string) => {
         try {
-            const response = await fetch('/api/ai/query', {
-                method: 'POST',
+            const response = await fetch("/api/ai/query", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ question: message }),
             });
@@ -243,31 +361,39 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             }
 
             const result = await response.json();
-            addToConversation('assistant', result.response || 'I understand your request. How else can I help you today?');
-
+            addToConversation(
+                "assistant",
+                result.response ||
+                    "I understand your request. How else can I help you today?",
+            );
         } catch (err) {
-            const errorMsg = 'Sorry, I had trouble processing your request: ' + (err as Error).message;
-            addToConversation('assistant', errorMsg);
-            console.error('General query error:', err);
+            const errorMsg =
+                "Sorry, I had trouble processing your request: " +
+                (err as Error).message;
+            addToConversation("assistant", errorMsg);
+            console.error("General query error:", err);
         }
     };
 
-    const addToConversation = (type: 'user' | 'assistant', content: string) => {
-        setConversation(prev => [...prev, {
-            type,
-            content,
-            timestamp: new Date()
-        }]);
+    const addToConversation = (type: "user" | "assistant", content: string) => {
+        setConversation((prev) => [
+            ...prev,
+            {
+                type,
+                content,
+                timestamp: new Date(),
+            },
+        ]);
     };
 
     const handleSubmit = async () => {
         if (!textInput.trim() || isProcessing) return;
 
         const message = textInput.trim();
-        setTextInput('');
+        setTextInput("");
         setIsProcessing(true);
 
-        addToConversation('user', message);
+        addToConversation("user", message);
 
         try {
             await processMessage(message);
@@ -277,7 +403,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSubmit();
         }
@@ -286,9 +412,11 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     return (
         <>
             {/* Sliding panel */}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'
-                } flex flex-col border-l border-base-300`}>
-
+            <div
+                className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+                    isOpen ? "translate-x-0" : "translate-x-full"
+                } flex flex-col border-l border-base-300`}
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
                     <div className="flex items-center gap-3">
@@ -296,8 +424,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             <i className="fas fa-robot text-sm"></i>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg">AI Assistant</h3>
-                            <p className="text-xs text-base-content/70">Always here to help</p>
+                            <h3 className="font-semibold text-lg">
+                                AI Assistant
+                            </h3>
+                            <p className="text-xs text-base-content/70">
+                                Always here to help
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -328,34 +460,60 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
                                 <i className="fas fa-comments text-2xl text-primary"></i>
                             </div>
-                            <p className="text-lg font-medium mb-2">Hi! I'm your AI assistant.</p>
+                            <p className="text-lg font-medium mb-2">
+                                Hi! I'm your AI assistant.
+                            </p>
                             <p className="text-sm text-base-content/70 mb-4">
-                                I can help you create daily logs, answer questions about your projects,
-                                and assist with various construction management tasks.
+                                I can help you create daily logs, answer
+                                questions about your projects, and assist with
+                                various construction management tasks.
                             </p>
                             <div className="text-xs text-base-content/50 space-y-1">
-                                <p>"Create a daily log for today's concrete work"</p>
-                                <p>"What safety issues were reported this week?"</p>
+                                <p>
+                                    "Create a daily log for today's concrete
+                                    work"
+                                </p>
+                                <p>
+                                    "What safety issues were reported this
+                                    week?"
+                                </p>
                             </div>
                         </div>
                     )}
 
                     {conversation.map((msg, index) => (
-                        <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] ${msg.type === 'user' ? 'order-2' : 'order-1'}`}>
-                                <div className={`p-3 rounded-lg ${msg.type === 'user'
-                                        ? 'bg-primary text-primary-content ml-2'
-                                        : 'bg-base-200 text-base-content mr-2'
-                                    }`}>
-                                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <div
+                            key={index}
+                            className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
+                        >
+                            <div
+                                className={`max-w-[80%] ${msg.type === "user" ? "order-2" : "order-1"}`}
+                            >
+                                <div
+                                    className={`p-3 rounded-lg ${
+                                        msg.type === "user"
+                                            ? "bg-primary text-primary-content ml-2"
+                                            : "bg-base-200 text-base-content mr-2"
+                                    }`}
+                                >
+                                    <p className="text-sm whitespace-pre-wrap">
+                                        {msg.content}
+                                    </p>
                                 </div>
                                 <p className="text-xs text-base-content/50 mt-1 px-3">
                                     {msg.timestamp.toLocaleTimeString()}
                                 </p>
                             </div>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === 'user' ? 'order-1 bg-primary' : 'order-2 bg-secondary'
-                                }`}>
-                                <i className={`fas ${msg.type === 'user' ? 'fa-user' : 'fa-robot'} text-xs text-white`}></i>
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    msg.type === "user"
+                                        ? "order-1 bg-primary"
+                                        : "order-2 bg-secondary"
+                                }`}
+                            >
+                                <i
+                                    className={`fas ${msg.type === "user" ? "fa-user" : "fa-robot"} text-xs text-white`}
+                                ></i>
                             </div>
                         </div>
                     ))}
@@ -400,12 +558,20 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                         </div>
 
                         <button
-                            className={`btn btn-sm btn-square ${isRecording ? 'btn-error animate-pulse' : 'btn-secondary'}`}
-                            onClick={isRecording ? stopRecording : startRecording}
+                            className={`btn btn-sm btn-square ${isRecording ? "btn-error animate-pulse" : "btn-secondary"}`}
+                            onClick={
+                                isRecording ? stopRecording : startRecording
+                            }
                             disabled={isProcessing}
-                            title={isRecording ? 'Stop recording' : 'Start voice recording'}
+                            title={
+                                isRecording
+                                    ? "Stop recording"
+                                    : "Start voice recording"
+                            }
                         >
-                            <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'} text-sm`}></i>
+                            <i
+                                className={`fas ${isRecording ? "fa-stop" : "fa-microphone"} text-sm`}
+                            ></i>
                         </button>
 
                         <button
