@@ -26,6 +26,7 @@ ENV AZURE_STORAGE_ENDPOINT=https://placeholder
 ENV RESEND_API_KEY=placeholder
 ENV OPENAI_API_KEY=placeholder
 ENV STRIPE_SECRET_KEY=placeholder
+ENV NEXT_PUBLIC_STRIPE_PUBLIC_KEY=placeholder
 
 # Build the app (generates .next folder)
 RUN npm run build
