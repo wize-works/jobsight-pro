@@ -1,13 +1,11 @@
-import { redirect } from 'next/navigation'
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
-import { getUserBusiness } from "@/app/actions/business"
-import type { Business } from "@/types/business"
-import { getActiveSubscription } from '../subscriptions-utils'
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getUserBusiness } from "@/app/actions/business";
+import type { Business } from "@/types/business";
+import { getActiveSubscription } from "../subscriptions-utils";
 
-export type WithBusinessResult = {
-    business: Business;
-    userId: string;
-}
+export type WithBusinessResult =
+    | { business: Business; userId: string }
+    | { redirectTo: string };
 
 export async function withBusinessServer(): Promise<WithBusinessResult> {
     const kindeSession = await getKindeServerSession();
@@ -15,47 +13,38 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
 
     if (!user?.id) {
         console.error("[withBusinessServer] No user ID found");
-        redirect('/');
+        return { redirectTo: "/" };
     }
 
     try {
         const businessResponse = await getUserBusiness(user.id);
 
-        // If the response indicates an authentication error
         if ('success' in businessResponse && !businessResponse.success) {
             console.error("[withBusinessServer] Business auth error:", businessResponse);
-
-            redirect("/register");
+            return { redirectTo: "/register" };
         }
 
-        // If no business found, redirect based on allowRegistration flag
         if (!businessResponse || 'success' in businessResponse) {
             console.error("[withBusinessServer] No business found for user:", user.id);
-
-            redirect("/register");
+            return { redirectTo: "/register" };
         }
 
-        // Check if user has an active subscription (optional check based on business requirements)
         try {
             const subscription = await getActiveSubscription(businessResponse.id);
-
             if (!subscription || subscription.status !== 'active') {
-                console.warn("[withBusinessServer] No active subscription found for user:", user.id);
-                // Allow access but could be modified based on business rules
-                redirect("/register"); // Uncomment if subscription is required for dashboard access
+                console.warn("[withBusinessServer] No active subscription for user:", user.id);
+                return { redirectTo: "/register" };
             }
         } catch (error) {
-            console.error("[withBusinessServer] Error checking subscription:", error);
-            // Continue without subscription check if there's an error
+            console.error("[withBusinessServer] Subscription check failed:", error);
         }
 
-        console.log("[withBusinessServer] Business found");
         return {
             business: businessResponse,
-            userId: user.id
+            userId: user.id,
         };
     } catch (error) {
-        console.error("[withBusinessServer] Error:", error);
-        redirect('/register');
+        console.error("[withBusinessServer] General error:", error);
+        return { redirectTo: "/register" };
     }
 }

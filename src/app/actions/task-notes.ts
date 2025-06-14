@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getTaskNotes = async (): Promise<TaskNote[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_notes", business.id);
 
@@ -26,7 +27,7 @@ export const getTaskNotes = async (): Promise<TaskNote[]> => {
 }
 
 export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_notes", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
 };
 
 export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     note = await applyCreated<TaskNoteInsert>(note);
 
@@ -58,7 +59,7 @@ export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | n
 }
 
 export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<TaskNote | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     note = await applyUpdated<TaskNoteUpdate>(note);
 
@@ -73,7 +74,7 @@ export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<
 }
 
 export const deleteTaskNote = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("task_notes", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteTaskNote = async (id: string): Promise<boolean> => {
 }
 
 export const searchTaskNotes = async (query: string): Promise<TaskNote[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_notes", business.id, "*", {
         filter: {

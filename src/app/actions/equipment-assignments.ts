@@ -8,9 +8,10 @@ import { ProjectCrew } from "@/types/project-crews";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getEquipmentAssignments = async (): Promise<EquipmentAssignment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_assignments", business.id);
 
@@ -27,7 +28,7 @@ export const getEquipmentAssignments = async (): Promise<EquipmentAssignment[]> 
 }
 
 export const getEquipmentAssignmentById = async (id: string): Promise<EquipmentAssignment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", { filter: { id: id } });
 
@@ -44,7 +45,7 @@ export const getEquipmentAssignmentById = async (id: string): Promise<EquipmentA
 };
 
 export const createEquipmentAssignment = async (assignment: EquipmentAssignmentInsert): Promise<EquipmentAssignment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     assignment = await applyCreated<EquipmentAssignmentInsert>(assignment);
 
@@ -59,7 +60,7 @@ export const createEquipmentAssignment = async (assignment: EquipmentAssignmentI
 }
 
 export const updateEquipmentAssignment = async (id: string, assignment: EquipmentAssignmentUpdate): Promise<EquipmentAssignment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     assignment = await applyUpdated<EquipmentAssignmentUpdate>(assignment);
 
@@ -74,7 +75,7 @@ export const updateEquipmentAssignment = async (id: string, assignment: Equipmen
 }
 
 export const deleteEquipmentAssignment = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("equipment_assignments", id, business.id);
 
@@ -87,7 +88,7 @@ export const deleteEquipmentAssignment = async (id: string): Promise<boolean> =>
 }
 
 export const searchEquipmentAssignments = async (query: string): Promise<EquipmentAssignment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", {
         filter: {
@@ -108,7 +109,7 @@ export const searchEquipmentAssignments = async (query: string): Promise<Equipme
 };
 
 export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<EquipmentAssignment[] | []> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data: assignData, error: assignError } = await fetchByBusiness("equipment_assignments", business.id, "*", {
         filter: { equipment_id: id },

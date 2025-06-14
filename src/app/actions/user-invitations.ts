@@ -6,6 +6,7 @@ import { UserInsert } from "@/types/users";
 import { Resend } from "resend";
 import { TeamInvitationEmail } from "@/components/email-examples";
 import { createUser } from "./users";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,7 +16,7 @@ export async function sendUserInvitation(
     role: string,
 ) {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Create the user in the database with invited status
         // Split the name into first and last name
@@ -129,7 +130,7 @@ export async function sendUserInvitation(
 
 export async function revokeUserInvitation(userId: string) {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -164,7 +165,7 @@ export async function revokeUserInvitation(userId: string) {
 
 export async function resendUserInvitation(userId: string) {
     try {
-        const { business, userId: currentUserId } = await withBusinessServer();
+        const { business, userId: currentUserId } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");

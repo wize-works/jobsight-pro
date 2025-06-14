@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_crews", business.id);
 
@@ -26,7 +27,7 @@ export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
 }
 
 export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_crews", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null
 };
 
 export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<ProjectCrew | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     crew = await applyCreated<ProjectCrewInsert>(crew);
 
@@ -58,7 +59,7 @@ export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<Projec
 }
 
 export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Promise<ProjectCrew | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     crew = await applyUpdated<ProjectCrewUpdate>(crew);
 
@@ -73,7 +74,7 @@ export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Pr
 }
 
 export const deleteProjectCrew = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("project_crews", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteProjectCrew = async (id: string): Promise<boolean> => {
 }
 
 export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
         filter: {
@@ -107,11 +108,12 @@ export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> 
 };
 
 export const addCrewToProject = async (projectId: string, crewId: string): Promise<ProjectCrew | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     let newCrew = {
         project_id: projectId,
         crew_id: crewId,
+        business_id: business.id,
     } as ProjectCrewInsert;
 
     newCrew = await applyCreated<ProjectCrewInsert>(newCrew);
@@ -127,7 +129,7 @@ export const addCrewToProject = async (projectId: string, crewId: string): Promi
 };
 
 export const removeCrewFromProject = async (projectId: string, crewId: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
         filter: { project_id: projectId, crew_id: crewId },

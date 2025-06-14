@@ -7,10 +7,11 @@ import { generateUploadUrl, createMedia } from "./media";
 import { MediaInsert } from "@/types/media";
 import { UserUpdate } from "@/types/users";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; error?: string; avatarUrl?: string }> => {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Get current user from database
         const currentUser = await getUserById(userId);

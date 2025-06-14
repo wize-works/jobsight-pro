@@ -15,6 +15,9 @@ export interface SubscriptionPlan {
     ai_addon_available: boolean;
     ai_addon_price?: number;
     features: string[];
+    stripe_product_id: string;
+    stripe_monthly_price_id: string;
+    stripe_annual_price_id: string;
 }
 
 export type BillingInterval = 'monthly' | 'annual';

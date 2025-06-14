@@ -6,10 +6,11 @@ import { getUserBusiness } from "@/app/actions/business";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all crew member assignments for the current business
 export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
         orderBy: {
@@ -30,7 +31,7 @@ export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]
 export const createCrewMemberAssignment = async (
     assignment: CrewMemberAssignmentInsert
 ): Promise<CrewMemberAssignment> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
 
@@ -45,7 +46,7 @@ export const createCrewMemberAssignment = async (
 };
 
 export const addCrewMemberToCrew = async (crewId: string, memberId: string): Promise<CrewMemberAssignment> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     let assignment = {
         crew_id: crewId,
@@ -69,7 +70,7 @@ export const updateCrewMemberAssignment = async (
     id: string,
     assignment: CrewMemberAssignmentUpdate
 ): Promise<CrewMemberAssignment> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     assignment = await applyUpdated<CrewMemberAssignmentUpdate>(assignment);
 
@@ -85,7 +86,7 @@ export const updateCrewMemberAssignment = async (
 
 // Delete a crew member assignment
 export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("crew_member_assignments", id, business.id);
 
@@ -101,7 +102,7 @@ export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> =
 export const searchCrewMemberAssignments = async (
     searchTerm: string
 ): Promise<CrewMemberAssignment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
         filter: {

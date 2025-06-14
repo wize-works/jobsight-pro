@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoice_items", business.id);
 
@@ -26,7 +27,7 @@ export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
 }
 
 export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null
 };
 
 export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<InvoiceItem | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     item = await applyCreated<InvoiceItemInsert>(item);
 
@@ -58,7 +59,7 @@ export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<Invoic
 }
 
 export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Promise<InvoiceItem | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     item = await applyUpdated<InvoiceItemUpdate>(item);
 
@@ -73,7 +74,7 @@ export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Pr
 }
 
 export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("invoice_items", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
 }
 
 export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
         filter: {
@@ -106,7 +107,7 @@ export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> 
 };
 
 export const getInvoiceItemsByInvoiceId = async (invoiceId: string): Promise<InvoiceItem[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
         filter: { invoice_id: { eq: invoiceId } },
@@ -126,7 +127,7 @@ export const getInvoiceItemsByInvoiceId = async (invoiceId: string): Promise<Inv
 }
 
 export const upsertInvoiceItems = async (items: InvoiceItemInsert[]): Promise<InvoiceItem[] | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     if (!items || items.length === 0) {
         return null;

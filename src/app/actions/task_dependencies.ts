@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getTaskDependencies = async (): Promise<TaskDependency[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_dependencies", business.id);
 
@@ -26,7 +27,7 @@ export const getTaskDependencies = async (): Promise<TaskDependency[]> => {
 }
 
 export const getTaskDependencyById = async (id: string): Promise<TaskDependency | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_dependencies", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getTaskDependencyById = async (id: string): Promise<TaskDependency 
 };
 
 export const createTaskDependency = async (dependency: TaskDependencyInsert): Promise<TaskDependency | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     dependency = await applyCreated<TaskDependencyInsert>(dependency);
 
@@ -58,7 +59,7 @@ export const createTaskDependency = async (dependency: TaskDependencyInsert): Pr
 }
 
 export const updateTaskDependency = async (id: string, dependency: TaskDependencyUpdate): Promise<TaskDependency | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     dependency = await applyUpdated<TaskDependencyUpdate>(dependency);
 
@@ -73,7 +74,7 @@ export const updateTaskDependency = async (id: string, dependency: TaskDependenc
 }
 
 export const deleteTaskDependency = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("task_dependencies", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteTaskDependency = async (id: string): Promise<boolean> => {
 }
 
 export const searchTaskDependencies = async (query: string): Promise<TaskDependency[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("task_dependencies", business.id, "*", {
         filter: {

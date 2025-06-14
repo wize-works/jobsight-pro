@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { Resend } from "resend";
 import { ProjectUpdateEmail, EquipmentAlertEmail } from "@/components/email-examples";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,7 +16,7 @@ export async function sendProjectUpdateNotification(
     updatedBy: string
 ) {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -98,7 +99,7 @@ export async function sendEquipmentAlert(
     priority: "low" | "medium" | "high" = "medium"
 ) {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");

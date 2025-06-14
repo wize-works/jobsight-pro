@@ -5,12 +5,13 @@ import { createServerClient } from "@/lib/supabase";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { Resend } from "resend";
 import EmailTemplate from "@/components/email-template";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmailVerification(userId: string) {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");

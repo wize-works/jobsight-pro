@@ -8,9 +8,10 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { triggerEquipmentNotification } from "@/lib/push/notification-triggers";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getEquipments = async (): Promise<Equipment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment", business.id);
 
@@ -27,7 +28,7 @@ export const getEquipments = async (): Promise<Equipment[]> => {
 }
 
 export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
         filter: { id: id },
@@ -46,7 +47,7 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
 };
 
 export const createEquipment = async (equipment: EquipmentInsert): Promise<Equipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     equipment = await applyCreated<EquipmentInsert>(equipment);
 
@@ -61,7 +62,7 @@ export const createEquipment = async (equipment: EquipmentInsert): Promise<Equip
 }
 
 export const updateEquipment = async (id: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
@@ -76,7 +77,7 @@ export const updateEquipment = async (id: string, equipment: EquipmentUpdate): P
 }
 
 export const deleteEquipment = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("equipment", id, business.id);
 
@@ -89,7 +90,7 @@ export const deleteEquipment = async (id: string): Promise<boolean> => {
 }
 
 export const searchEquipments = async (query: string): Promise<Equipment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
         filter: {
@@ -110,7 +111,7 @@ export const searchEquipments = async (query: string): Promise<Equipment[]> => {
 };
 
 export const setEquipmentStatus = async (id: string, status: EquipmentStatus): Promise<Equipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await updateWithBusinessCheck("equipment", id, { status } as EquipmentUpdate, business.id);
 
@@ -123,7 +124,7 @@ export const setEquipmentStatus = async (id: string, status: EquipmentStatus): P
 }
 
 export const setEquipmentLocation = async (equipment: EquipmentUpdate): Promise<Equipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     equipment = await applyUpdated<EquipmentUpdate>(equipment);
 

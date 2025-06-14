@@ -5,10 +5,11 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Client } from "@/types/clients";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getProjects = async (): Promise<Project[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("projects", business.id, "*", {
             orderBy: { column: "created_at", ascending: false },
@@ -32,7 +33,7 @@ export const getProjects = async (): Promise<Project[]> => {
 
 export const getProjectById = async (id: string): Promise<Project> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("projects", business.id, "*", {
             filter: { id },
@@ -56,7 +57,7 @@ export const getProjectById = async (id: string): Promise<Project> => {
 
 export const createProject = async (project: ProjectInsert): Promise<Project | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         project = await applyCreated<ProjectInsert>(project);
 
@@ -85,7 +86,7 @@ export const createProject = async (project: ProjectInsert): Promise<Project | n
 
 export const updateProject = async (id: string, project: ProjectUpdate): Promise<Project | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         project = await applyUpdated<ProjectUpdate>(project);
 
@@ -114,7 +115,7 @@ export const updateProject = async (id: string, project: ProjectUpdate): Promise
 
 export const deleteProject = async (id: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await deleteWithBusinessCheck("projects", id, business.id);
 
@@ -132,7 +133,7 @@ export const deleteProject = async (id: string): Promise<boolean> => {
 
 export const searchProjects = async (query: string): Promise<Project[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("projects", business.id, "*", {
             filter: {
@@ -162,7 +163,7 @@ export const searchProjects = async (query: string): Promise<Project[]> => {
 
 export const getProjectsByClientId = async (clientId: string): Promise<Project[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("projects", business.id, "*", {
             filter: { client_id: clientId },
@@ -187,7 +188,7 @@ export const getProjectsByClientId = async (clientId: string): Promise<Project[]
 
 export const setProjectLocation = async (project: ProjectUpdate): Promise<Project | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         project = await applyUpdated<ProjectUpdate>(project);
 
@@ -207,7 +208,7 @@ export const setProjectLocation = async (project: ProjectUpdate): Promise<Projec
 
 export const getProjectsWithDetails = async (): Promise<ProjectWithDetails[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("projects", business.id, "*", {
             orderBy: { column: "created_at", ascending: false },

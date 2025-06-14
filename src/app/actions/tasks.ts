@@ -5,10 +5,11 @@ import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getTasks = async (): Promise<Task[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("tasks", business.id);
 
@@ -30,7 +31,7 @@ export const getTasks = async (): Promise<Task[]> => {
 
 export const getTaskById = async (id: string): Promise<Task | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
             filter: { id },
@@ -54,7 +55,7 @@ export const getTaskById = async (id: string): Promise<Task | null> => {
 
 export const createTask = async (task: TaskInsert): Promise<Task | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         task = await applyCreated<TaskInsert>(task);
 
@@ -101,7 +102,7 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
 
 export const updateTask = async (id: string, task: TaskUpdate): Promise<Task> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
         console.log("updateTask called with id:", id, "and task:", task);
         task = await applyUpdated<TaskUpdate>(task);
 
@@ -121,7 +122,7 @@ export const updateTask = async (id: string, task: TaskUpdate): Promise<Task> =>
 
 export const deleteTask = async (id: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { error } = await deleteWithBusinessCheck("tasks", id, business.id);
 
@@ -139,7 +140,7 @@ export const deleteTask = async (id: string): Promise<boolean> => {
 
 export const searchTasks = async (query: string): Promise<Task[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
             filter: {
@@ -165,7 +166,7 @@ export const searchTasks = async (query: string): Promise<Task[]> => {
 
 export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
             filter: { project_id: id },
@@ -233,7 +234,7 @@ export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]
 
 export const getTasksWithDetails = async (): Promise<TaskWithDetails[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
             orderBy: { column: "status", ascending: false },

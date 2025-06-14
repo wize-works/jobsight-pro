@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_milestones", business.id);
 
@@ -26,7 +27,7 @@ export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
 }
 
 export const getProjectMilestoneById = async (id: string): Promise<ProjectMilestone | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
         filter: { id }
@@ -45,7 +46,7 @@ export const getProjectMilestoneById = async (id: string): Promise<ProjectMilest
 };
 
 export const createProjectMilestone = async (milestone: ProjectMilestoneInsert): Promise<ProjectMilestone | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     milestone = await applyCreated<ProjectMilestoneInsert>(milestone);
 
@@ -60,7 +61,7 @@ export const createProjectMilestone = async (milestone: ProjectMilestoneInsert):
 }
 
 export const updateProjectMilestone = async (id: string, milestone: ProjectMilestoneUpdate): Promise<ProjectMilestone | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     milestone = await applyUpdated<ProjectMilestoneUpdate>(milestone);
 
@@ -75,7 +76,7 @@ export const updateProjectMilestone = async (id: string, milestone: ProjectMiles
 }
 
 export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("project_milestones", id, business.id);
 
@@ -88,7 +89,7 @@ export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
 }
 
 export const searchProjectMilestones = async (query: string): Promise<ProjectMilestone[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
         filter: {
@@ -109,7 +110,7 @@ export const searchProjectMilestones = async (query: string): Promise<ProjectMil
 };
 
 export const getProjectMilestonesByProjectId = async (id: string): Promise<ProjectMilestone[] | []> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
         filter: { project_id: id },
