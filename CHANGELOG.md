@@ -1,3 +1,15 @@
+# [1.39.0](https://github.com/wize-works/jobsight-pro/compare/v1.38.0...v1.39.0) (2025-06-14)
+
+
+### Bug Fixes
+
+* Remove unnecessary class from drawer div in DashboardLayout ([7a82804](https://github.com/wize-works/jobsight-pro/commit/7a82804ea8322f340926d5d114f252147c7170cf))
+
+
+### Features
+
+* Refactor dashboard data fetching and improve UI components ([a2e00b3](https://github.com/wize-works/jobsight-pro/commit/a2e00b3d0e034e5f6038e17b5f6a46a66b826f72))
+
 # [1.38.0](https://github.com/wize-works/jobsight-pro/compare/v1.37.0...v1.38.0) (2025-06-14)
 
 
