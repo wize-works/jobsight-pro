@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { transcribeVoiceNote } from '@/lib/ai/voice-to-text';
+import { transcribeVoiceNote, convertToStructuredLog } from '@/lib/ai/voice-to-text';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 
 export async function POST(request: NextRequest) {
@@ -15,24 +15,48 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const formData = await request.formData();
-        const audioFile = formData.get('audio') as File;
+        const contentType = request.headers.get('content-type');
+        let transcriptionText = '';
 
-        if (!audioFile) {
+        if (contentType?.includes('multipart/form-data')) {
+            // Handle audio file upload
+            const formData = await request.formData();
+            const audioFile = formData.get('audio') as File;
+
+            if (!audioFile) {
+                return NextResponse.json(
+                    { error: 'Audio file is required' },
+                    { status: 400 }
+                );
+            }
+
+            transcriptionText = await transcribeVoiceNote(audioFile);
+        } else if (contentType?.includes('application/json')) {
+            // Handle text input
+            const { message } = await request.json();
+            
+            if (!message) {
+                return NextResponse.json(
+                    { error: 'Message is required' },
+                    { status: 400 }
+                );
+            }
+
+            transcriptionText = message;
+        } else {
             return NextResponse.json(
-                { error: 'Audio file is required' },
+                { error: 'Invalid content type. Expected multipart/form-data or application/json' },
                 { status: 400 }
             );
         }
 
-        const transcriptionText = await transcribeVoiceNote(audioFile);
         const structuredLog = await convertToStructuredLog(transcriptionText);
 
         return NextResponse.json(structuredLog);
     } catch (error) {
         console.error('Transcription API error:', error);
         return NextResponse.json(
-            { error: 'Failed to transcribe audio' },
+            { error: 'Failed to process input' },
             { status: 500 }
         );
     }
