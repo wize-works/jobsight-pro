@@ -1,9 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { sendPushNotification, subscribeUser, unsubscribeUser } from "@/lib/push/actions";
-import { sendNotification } from "web-push";
-import { set } from "zod";
 
 export default function PushManager() {
     const [isSupported, setIsSupported] = useState(false);
