@@ -286,12 +286,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
   return (
     <>
       {/* Sliding panel */}
-      <div className={`fixed top-0 right-0 h-full w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       } flex flex-col border-l border-base-300`}>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-base-300 bg-base-200">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center">
               <i className="fas fa-robot text-sm"></i>
@@ -323,7 +323,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
           {conversation.length === 0 && (
             <div className="text-center py-8">
               <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
@@ -379,7 +379,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
         {/* Error Display */}
         {error && (
-          <div className="mx-4 mb-2">
+          <div className="mx-3 sm:mx-4 mb-2">
             <div className="alert alert-error alert-sm">
               <i className="fas fa-exclamation-triangle text-sm"></i>
               <span className="text-sm">{error}</span>
@@ -388,7 +388,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         )}
 
         {/* Input Area */}
-        <div className="p-4 border-t border-base-300 bg-base-200">
+        <div className="p-3 sm:p-4 border-t border-base-300 bg-base-200">
           <div className="flex gap-2 items-end">
             <div className="flex-1">
               <textarea
