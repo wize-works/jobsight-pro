@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AIAssistantModalProps {
@@ -24,16 +24,46 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
   const audioChunksRef = useRef<Blob[]>([]);
   const router = useRouter();
 
+  // Load conversation from localStorage on mount
+  useEffect(() => {
+    const savedConversation = localStorage.getItem('aiAssistantConversation');
+    if (savedConversation) {
+      try {
+        const parsed = JSON.parse(savedConversation);
+        // Convert timestamp strings back to Date objects
+        const conversationWithDates = parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setConversation(conversationWithDates);
+      } catch (err) {
+        console.error('Error loading conversation:', err);
+      }
+    }
+  }, []);
+
+  // Save conversation to localStorage whenever it changes
+  useEffect(() => {
+    if (conversation.length > 0) {
+      localStorage.setItem('aiAssistantConversation', JSON.stringify(conversation));
+    }
+  }, [conversation]);
+
   const resetModal = () => {
     setTextInput('');
     setConversation([]);
     setError('');
     setIsRecording(false);
     setIsProcessing(false);
+    localStorage.removeItem('aiAssistantConversation');
   };
 
   const handleClose = () => {
-    resetModal();
+    // Don't reset the conversation, just close the modal
+    setTextInput('');
+    setError('');
+    setIsRecording(false);
+    setIsProcessing(false);
     onClose();
   };
 
@@ -144,14 +174,23 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
       
       addToConversation('assistant', 'I\'ve created a structured daily log from your input. Taking you to the daily logs page to review and submit.');
       
-      // Navigate to daily logs page with pre-filled data
-      if (result) {
-        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result));
-        setTimeout(() => {
-          router.push('/dashboard/daily-logs?ai=true');
-          handleClose();
-        }, 1500);
-      }
+      // Store the structured data properly for the daily logs page
+      const structuredData = {
+        work_completed: result.work_completed || result.summary || message,
+        weather: result.weather || '',
+        safety: result.safety_notes || result.safety || '',
+        delays: result.issues ? result.issues.join('. ') : '',
+        notes: result.notes || result.crew_notes || '',
+        materials: result.materials || [],
+        equipment: result.equipment || [],
+        source: 'ai_chat'
+      };
+      
+      sessionStorage.setItem('aiGeneratedLog', JSON.stringify(structuredData));
+      
+      setTimeout(() => {
+        router.push('/dashboard/daily-logs?ai=true');
+      }, 1500);
     } catch (err) {
       const errorMsg = 'Failed to create daily log: ' + (err as Error).message;
       addToConversation('assistant', errorMsg);
@@ -226,13 +265,25 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
             <i className="fas fa-robot text-2xl text-primary"></i>
             <h2 className="text-xl font-bold">AI Assistant</h2>
           </div>
-          <button
-            className="btn btn-sm btn-circle btn-ghost"
-            onClick={handleClose}
-            disabled={isProcessing}
-          >
-            <i className="fas fa-times"></i>
-          </button>
+          <div className="flex items-center gap-2">
+            {conversation.length > 0 && (
+              <button
+                className="btn btn-sm btn-ghost"
+                onClick={resetModal}
+                disabled={isProcessing}
+                title="Clear conversation"
+              >
+                <i className="fas fa-trash text-sm"></i>
+              </button>
+            )}
+            <button
+              className="btn btn-sm btn-circle btn-ghost"
+              onClick={handleClose}
+              disabled={isProcessing}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
         </div>
 
         {/* Conversation Area */}

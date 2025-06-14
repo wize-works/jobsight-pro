@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
-import AIAssistantFAB from "@/components/ai-assistant-fab";
+import { AIAssistantButton } from "@/components/ai-assistant-button";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { getUserById } from "@/app/actions/users";
 import { User } from "@/types/users";
@@ -71,7 +71,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <div className="fixed bottom-4 right-4 z-40">
                         <SyncStatusIndicator />
                     </div>
-                    <AIAssistantFAB />
+                    <AIAssistantButton />
                     {pathname === "/dashboard/map" ? (
                         <div className="pb-20 lg:pb-6">{children}</div>
                     ) : (
