@@ -312,16 +312,26 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             } else {
                 addToConversation(
                     "assistant",
-                    "I've created a structured daily log from your input. Taking you to the daily logs page to review and submit.",
+                    "I'm enhancing your statements and creating a structured daily log. This will take a moment...",
+                );
+
+                // Enhance the user's statements before saving
+                const enhancedWorkCompleted = await enhanceWorkStatement(
+                    result.work_completed || result.summary || message
+                );
+                const enhancedNotes = await enhanceNotesStatement(
+                    result.notes || result.crew_notes || ""
+                );
+                const enhancedSafety = await enhanceSafetyStatement(
+                    result.safety_notes || result.safety || ""
                 );
 
                 const structuredData = {
-                    work_completed:
-                        result.work_completed || result.summary || message,
+                    work_completed: enhancedWorkCompleted,
                     weather: result.weather || "",
-                    safety_notes: result.safety_notes || result.safety || "",
+                    safety_notes: enhancedSafety,
                     issues: result.issues || [],
-                    notes: result.notes || result.crew_notes || "",
+                    notes: enhancedNotes,
                     materials_used:
                         result.materials_used || result.materials || [],
                     equipment_used:
@@ -332,6 +342,11 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 sessionStorage.setItem(
                     "aiGeneratedLog",
                     JSON.stringify(structuredData),
+                );
+
+                addToConversation(
+                    "assistant",
+                    "Daily log enhanced and prepared! Taking you to the daily logs page to review and submit.",
                 );
 
                 setTimeout(() => {
