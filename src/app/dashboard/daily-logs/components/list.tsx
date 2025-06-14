@@ -4,7 +4,7 @@ import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
 import { useState, useEffect } from "react";
-import CreateDailyLogModal from "./modal-log";
+import DailyLogModal from "./modal-log";
 import { Equipment } from "@/types/equipment";
 import { CrewMember } from "@/types/crew-members";
 import { useSearchParams } from "next/navigation";
@@ -240,11 +240,7 @@ export default function DailyLogsList({
             </div>
 
             {/* Create Daily Log Modal */}
-            <CreateDailyLogModal
-                crews={crews}
-                crewMembers={crewMembers}
-                projects={projects}
-                equipments={equipments}
+            <DailyLogModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSave={handleNewLog}

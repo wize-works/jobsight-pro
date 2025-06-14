@@ -14,29 +14,31 @@ import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/type
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { CrewMember } from "@/types/crew-members";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getProjects } from "@/app/actions/projects";
+import { getCrews } from "@/app/actions/crews";
+import { getEquipments } from "@/app/actions/equipments";
+import { getCrewMembers } from "@/app/actions/crew-members";
 
 type CreateDailyLogModalProps = {
-    crews: Crew[];
-    projects: Project[];
-    equipments: Equipment[];
-    crewMembers?: CrewMember[];
     isOpen: boolean;
     onClose: () => void;
     onSave: (newLog: DailyLogWithDetails) => void;
 };
 
-export default function CreateDailyLogModal({
-    crews,
-    projects,
-    equipments,
-    crewMembers = [],
+export default function DailyLogModal({
     isOpen,
     onClose,
     onSave
-}: CreateDailyLogModalProps) {
+}: Omit<CreateDailyLogModalProps, 'crews' | 'projects' | 'equipments' | 'crewMembers'>) {
+    const [crews, setCrews] = useState<Crew[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [equipments, setEquipments] = useState<Equipment[]>([]);
+    const [crewMembers, setCrewMembers] = useState<CrewMember[]>([]);
     const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
     const [loading, setLoading] = useState(false);
+    const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         date: format(new Date(), "yyyy-MM-dd"),
         project_id: "",
@@ -78,6 +80,32 @@ export default function CreateDailyLogModal({
     const searchParams = useSearchParams();
     const user = getUser();
 
+    // Fetch crews, projects, equipments, and crewMembers
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoadingData(true);
+                const [fetchedCrews, fetchedProjects, fetchedEquipments, fetchedCrewMembers] = await Promise.all([
+                    getCrews(),
+                    getProjects(),
+                    getEquipments(),
+                    getCrewMembers()
+                ]);
+                setCrews(fetchedCrews);
+                setProjects(fetchedProjects);
+                setEquipments(fetchedEquipments);
+                setCrewMembers(fetchedCrewMembers);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setFetchError("Failed to load data. Please try again later.");
+            } finally {
+                setLoadingData(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
     // Check for AI-generated log data on component mount
     useEffect(() => {
         const aiLogData = sessionStorage.getItem('aiGeneratedLog');
@@ -85,7 +113,7 @@ export default function CreateDailyLogModal({
             try {
                 const parsedData = JSON.parse(aiLogData);
                 console.log('Processing AI log data:', parsedData);
-                
+
                 // Pre-fill form with AI-generated data
                 if (parsedData.summary) {
                     setFormData(prev => ({ ...prev, work_completed: parsedData.summary }));

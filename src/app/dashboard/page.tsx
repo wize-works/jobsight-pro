@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -18,6 +17,13 @@ import { Doughnut, Bar } from "react-chartjs-2"
 import { getDashboardData } from "@/app/actions/dashboard"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
+import ProjectModal from "./projects/components/modal-project"
+import { Project } from "@/types/projects"
+import { set } from "date-fns"
+import TaskModal from "./tasks/components/modal-task"
+import EquipmentNewModal from "./equipment/components/modal-new"
+import DailyLogModal from "./daily-logs/components/modal-log"
+import { DailyLogWithDetails } from "@/types/daily-logs"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -100,6 +106,10 @@ interface DashboardData {
 
 export default function Dashboard() {
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+    const [projectModal, setProjectModal] = useState(false);
+    const [taskModal, setTaskModal] = useState(false);
+    const [equipmentModal, setEquipmentModal] = useState(false);
+    const [dailyLogModal, setDailyLogModal] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -110,6 +120,7 @@ export default function Dashboard() {
                 status: project.status ?? "", // fallback to empty string if null
                 start_date: project.start_date ?? undefined,
                 end_date: project.end_date ?? undefined,
+                crewName: project.crewNames, // Map crewNames to crewName to match the expected type
             }));
 
             const fixedRecentActivity = rawData.recentActivity.map((activity: any) => ({
@@ -160,10 +171,10 @@ export default function Dashboard() {
                     dashboardData.projectStatusData.planning
                 ],
                 backgroundColor: [
-                    "#10B981", // Emerald
-                    "#3B82F6", // Blue
-                    "#F59E0B", // Amber
-                    "#8B5CF6", // Violet
+                    "#F87431", // primary
+                    "#02ACA3", // secondary
+                    "#C275B4", // accent
+                    "#5C95FF", // info
                 ],
                 borderWidth: 0,
                 cutout: "60%",
@@ -182,9 +193,9 @@ export default function Dashboard() {
                     dashboardData.taskStatusData.completed
                 ],
                 backgroundColor: [
-                    "#F59E0B", // Amber
-                    "#3B82F6", // Blue
-                    "#10B981", // Emerald
+                    "#F87431", // primary
+                    "#02ACA3", // secondary
+                    "#C275B4", // accent
                 ],
                 borderRadius: 4,
             },
@@ -201,9 +212,9 @@ export default function Dashboard() {
                     dashboardData.equipmentStatus.maintenance
                 ],
                 backgroundColor: [
-                    "#10B981", // Available - Green
-                    "#3B82F6", // In Use - Blue  
-                    "#EF4444", // Maintenance - Red
+                    "#F87431", // primary
+                    "#02ACA3", // secondary
+                    "#C275B4", // accent
                 ],
                 borderWidth: 0,
             },
@@ -228,13 +239,41 @@ export default function Dashboard() {
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-2">Construction Command Center</h1>
-                <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
+                <div className="flex flex-row items-center justify-between">
+                    <div className="">
+                        <h1 className="text-3xl font-bold mb-2">Command Center</h1>
+                        <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
+                    </div>
+                    <div className="">
+                        <button className="btn btn-primary btn-sm" onClick={() => setProjectModal(true)}>
+                            <i className="fas fa-diagram-project mr-2"></i>
+                            New Projects
+                        </button>
+                        <button className="btn btn-secondary btn-sm ml-2" onClick={() => setTaskModal(true)}>
+                            <i className="fas fa-tasks mr-2"></i>
+                            New Tasks
+                        </button>
+                        <button className="btn btn-info btn-sm ml-2" onClick={() => setDailyLogModal(true)}>
+                            <i className="fas fa-calendar-alt mr-2"></i>
+                            Daily Log
+                        </button>
+                        <button className="btn btn-accent btn-sm ml-2" onClick={() => setEquipmentModal(true)}>
+                            <i className="fas fa-users mr-2"></i>
+                            New Equipment
+                        </button>
+
+                    </div>
+                </div>
             </div>
+
+            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={() => setProjectModal(false)} />}
+            {<TaskModal isOpen={taskModal} onClose={() => setTaskModal(false)} task={null} />}
+            {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
+            {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
 
             {/* Key Performance Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="stat bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-lg">
+                <div className="stat bg-gradient-to-br from-primary/70 to-primary/100 text-primary-content rounded-lg shadow-lg">
                     <div className="stat-figure">
                         <i className="fas fa-project-diagram text-3xl opacity-80"></i>
                     </div>
@@ -243,7 +282,7 @@ export default function Dashboard() {
                     <div className="stat-desc text-blue-200">of {dashboardData.stats.totalProjects} total</div>
                 </div>
 
-                <div className="stat bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-lg shadow-lg">
+                <div className="stat bg-gradient-to-br from-secondary/70 to-secondary/100 text-secondary-content rounded-lg shadow-lg">
                     <div className="stat-figure">
                         <i className="fas fa-tasks text-3xl opacity-80"></i>
                     </div>
@@ -252,7 +291,7 @@ export default function Dashboard() {
                     <div className="stat-desc text-emerald-200">of {dashboardData.stats.totalTasks} total</div>
                 </div>
 
-                <div className="stat bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg shadow-lg">
+                <div className="stat bg-gradient-to-br from-accent/70 to-accent/100 text-accent-content rounded-lg shadow-lg">
                     <div className="stat-figure">
                         <i className="fas fa-tools text-3xl opacity-80"></i>
                     </div>
@@ -261,7 +300,7 @@ export default function Dashboard() {
                     <div className="stat-desc text-amber-200">{dashboardData.stats.totalEquipment} total units</div>
                 </div>
 
-                <div className="stat bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg">
+                <div className="stat bg-gradient-to-br from-info/70 to-info/100 text-info-content rounded-lg shadow-lg">
                     <div className="stat-figure">
                         <i className="fas fa-dollar-sign text-3xl opacity-80"></i>
                     </div>
@@ -310,6 +349,38 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* Financial Overview */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                    <h2 className="card-title text-lg">
+                        <i className="fas fa-chart-line text-primary mr-2"></i>
+                        Financial Overview
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div className="stat">
+                            <div className="stat-title">Total Revenue</div>
+                            <div className="stat-value text-success">{formatCurrency(dashboardData.financialOverview.totalRevenue)}</div>
+                        </div>
+                        <div className="stat">
+                            <div className="stat-title">Pending</div>
+                            <div className="stat-value text-warning">{formatCurrency(dashboardData.financialOverview.pendingRevenue)}</div>
+                        </div>
+                        <div className="stat">
+                            <div className="stat-title">Total Invoices</div>
+                            <div className="stat-value">{dashboardData.financialOverview.totalInvoices}</div>
+                        </div>
+                        <div className="stat">
+                            <div className="stat-title">Paid</div>
+                            <div className="stat-value text-success">{dashboardData.financialOverview.paidInvoices}</div>
+                        </div>
+                        <div className="stat">
+                            <div className="stat-title">Overdue</div>
+                            <div className="stat-value text-error">{dashboardData.financialOverview.overdueInvoices}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Project Progress & Critical Tasks */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card bg-base-100 shadow-lg">
@@ -320,7 +391,7 @@ export default function Dashboard() {
                         </h2>
                         <div className="space-y-3">
                             {dashboardData.projectsWithProgress.length > 0 ? (
-                                dashboardData.projectsWithProgress.map((project) => (
+                                dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
                                     <div key={project.id} className="border border-base-300 rounded-lg p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
@@ -362,7 +433,7 @@ export default function Dashboard() {
                         </h2>
                         <div className="space-y-3">
                             {dashboardData.criticalTasks.length > 0 ? (
-                                dashboardData.criticalTasks.map((task) => (
+                                dashboardData.criticalTasks.slice(0, 3).map((task) => (
                                     <div key={task.id} className={`border rounded-lg p-4 ${task.isOverdue ? 'border-error bg-error/5' : 'border-warning bg-warning/5'}`}>
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
@@ -401,7 +472,7 @@ export default function Dashboard() {
                         </h2>
                         <div className="space-y-3">
                             {dashboardData.teamMetrics.length > 0 ? (
-                                dashboardData.teamMetrics.map((team) => (
+                                dashboardData.teamMetrics.slice(0, 3).map((team) => (
                                     <div key={team.id} className="flex items-center justify-between p-3 border border-base-300 rounded-lg">
                                         <div>
                                             <h3 className="font-semibold">{team.name}</h3>
@@ -436,7 +507,7 @@ export default function Dashboard() {
                         </h2>
                         <div className="space-y-3">
                             {dashboardData.recentActivity.length > 0 ? (
-                                dashboardData.recentActivity.map((activity) => (
+                                dashboardData.recentActivity.slice(0, 3).map((activity) => (
                                     <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
                                         <p className="font-medium text-sm">{activity.message}</p>
                                         <div className="text-xs text-base-content/70 space-y-1">
@@ -458,66 +529,6 @@ export default function Dashboard() {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Financial Overview */}
-            <div className="card bg-base-100 shadow-lg">
-                <div className="card-body">
-                    <h2 className="card-title text-lg mb-4">
-                        <i className="fas fa-chart-line text-primary mr-2"></i>
-                        Financial Overview
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div className="stat">
-                            <div className="stat-title">Total Revenue</div>
-                            <div className="stat-value text-success">{formatCurrency(dashboardData.financialOverview.totalRevenue)}</div>
-                        </div>
-                        <div className="stat">
-                            <div className="stat-title">Pending</div>
-                            <div className="stat-value text-warning">{formatCurrency(dashboardData.financialOverview.pendingRevenue)}</div>
-                        </div>
-                        <div className="stat">
-                            <div className="stat-title">Total Invoices</div>
-                            <div className="stat-value">{dashboardData.financialOverview.totalInvoices}</div>
-                        </div>
-                        <div className="stat">
-                            <div className="stat-title">Paid</div>
-                            <div className="stat-value text-success">{dashboardData.financialOverview.paidInvoices}</div>
-                        </div>
-                        <div className="stat">
-                            <div className="stat-title">Overdue</div>
-                            <div className="stat-value text-error">{dashboardData.financialOverview.overdueInvoices}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="card bg-gradient-to-r from-base-200 to-base-300 shadow-lg">
-                <div className="card-body">
-                    <h2 className="card-title text-lg mb-4">
-                        <i className="fas fa-bolt text-primary mr-2"></i>
-                        Quick Actions
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Link href="/dashboard/projects" className="btn btn-primary btn-lg">
-                            <i className="fas fa-plus mr-2"></i>
-                            New Project
-                        </Link>
-                        <Link href="/dashboard/daily-logs" className="btn btn-secondary btn-lg">
-                            <i className="fas fa-clipboard-list mr-2"></i>
-                            Daily Log
-                        </Link>
-                        <Link href="/dashboard/invoices/new" className="btn btn-accent btn-lg">
-                            <i className="fas fa-file-invoice mr-2"></i>
-                            Create Invoice
-                        </Link>
-                        <Link href="/dashboard/equipment" className="btn btn-neutral btn-lg">
-                            <i className="fas fa-tools mr-2"></i>
-                            Equipment
-                        </Link>
                     </div>
                 </div>
             </div>

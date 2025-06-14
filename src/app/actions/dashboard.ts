@@ -1,4 +1,3 @@
-
 "use server";
 
 import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
@@ -112,21 +111,36 @@ export async function getDashboardData() {
         const pendingRevenue = invoices?.filter(i => i.status === 'pending' || i.status === 'sent').reduce((sum, inv) => sum + (inv.amount || 0), 0) || 0;
 
         // Project progress calculation
+        // Fetch project crews data
+        const { data: projectCrews, error: projectCrewsError } = await fetchByBusiness(
+            "project_crews",
+            business.id,
+            "*"
+        );
+
+        if (projectCrewsError) {
+            console.error("Error fetching project crews:", projectCrewsError);
+        }
+
+        // Map crews to projects using project_crews table
         const projectsWithProgress = projects?.map(project => {
             const projectTasks = tasks?.filter(t => t.project_id === project.id) || [];
             const completedProjectTasks = projectTasks.filter(t => t.status === 'completed');
             const progress = projectTasks.length > 0 ? (completedProjectTasks.length / projectTasks.length) * 100 : 0;
-            
+
             const client = clients?.find(c => c.id === project.client_id);
-            const crew = crews?.find(c => c.id === project.crew_id);
-            
+            const assignedCrews = projectCrews
+                ?.filter(pc => pc.project_id === project.id)
+                .map(pc => crews?.find(c => c.id === pc.crew_id)?.name)
+                .filter(Boolean) || [];
+
             return {
                 ...project,
                 progress: Math.round(progress),
                 taskCount: projectTasks.length,
                 completedTasks: completedProjectTasks.length,
                 clientName: client?.name || 'No Client',
-                crewName: crew?.name || 'No Crew Assigned'
+                crewNames: assignedCrews.length > 0 ? assignedCrews.join(', ') : 'No Crews Assigned'
             };
         }) || [];
 
@@ -134,14 +148,14 @@ export async function getDashboardData() {
         const recentActivity = (dailyLogs || []).slice(0, 8).map(log => {
             const project = projects?.find(p => p.id === log.project_id);
             const client = clients?.find(c => c.id === project?.client_id);
-            
+
             return {
                 id: log.id,
                 type: 'daily_log' as const,
                 message: log.notes || 'Daily log entry',
                 projectName: project?.name || 'Unknown Project',
                 clientName: client?.name || 'Unknown Client',
-                weather: log.weather_conditions,
+                weather: log.weather || 'No Weather Data',
                 timestamp: log.created_at,
                 projectId: log.project_id
             };
@@ -161,7 +175,7 @@ export async function getDashboardData() {
                 const project = projects?.find(p => p.id === task.project_id);
                 const crew = crews?.find(c => c.id === task.assigned_to);
                 const client = clients?.find(c => c.id === project?.client_id);
-                
+
                 return {
                     id: task.id,
                     name: task.name,
@@ -171,20 +185,20 @@ export async function getDashboardData() {
                     dueDate: task.end_date,
                     status: task.status,
                     priority: task.priority,
-                    isOverdue: new Date(task.end_date) < now
+                    isOverdue: task.end_date ? new Date(task.end_date) < now : false
                 };
             });
 
         // Equipment utilization data
-        const equipmentUtilization = equipment?.length > 0 ? 
-            Math.round((equipment.filter(e => e.status === 'in_use').length / equipment.length) * 100) : 0;
+        const equipmentUtilization = (equipment?.length ?? 0) > 0 ?
+            Math.round(((equipment ?? []).filter(e => e.status === 'in_use').length / (equipment ?? []).length) * 100) : 0;
 
         // Team productivity metrics
         const teamMetrics = crews?.map(crew => {
             const crewTasks = tasks?.filter(t => t.assigned_to === crew.id) || [];
             const completedCrewTasks = crewTasks.filter(t => t.status === 'completed');
             const productivity = crewTasks.length > 0 ? (completedCrewTasks.length / crewTasks.length) * 100 : 0;
-            
+
             return {
                 id: crew.id,
                 name: crew.name,
