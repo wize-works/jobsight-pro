@@ -2,7 +2,7 @@
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { DailyLogInsert, DailyLogWithDetails } from "@/types/daily-logs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createDailyLog } from "@/app/actions/daily-logs";
 import { createDailyLogMaterial } from "@/app/actions/daily-log-materials";
 import { createDailyLogEquipment } from "@/app/actions/daily-log-equipment";
@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/types/equipment";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { CrewMember } from "@/types/crew-members";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type CreateDailyLogModalProps = {
     crews: Crew[];
@@ -70,6 +71,8 @@ export default function CreateDailyLogModal({
         condition: string;
     }>>([]);
     const { getUser, isLoading } = useKindeAuth();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     if (isLoading) {
         return <div className="loading">Loading...</div>;
     }
@@ -82,7 +85,7 @@ export default function CreateDailyLogModal({
     const [error, setError] = useState<string | null>(null);
 
     // Check for AI-generated log data on component mount
-    useState(() => {
+    useEffect(() => {
         const aiLogData = sessionStorage.getItem('aiGeneratedLog');
         if (aiLogData) {
             try {
@@ -109,7 +112,7 @@ export default function CreateDailyLogModal({
                         delays: parsedData.issues.join('. ') 
                     }));
                 }
-                
+
                 // Handle materials
                 if (parsedData.materials_used && Array.isArray(parsedData.materials_used)) {
                     const aiMaterials = parsedData.materials_used.map((material: any, index: number) => ({
@@ -123,7 +126,7 @@ export default function CreateDailyLogModal({
                     }));
                     setMaterials(aiMaterials);
                 }
-                
+
                 // Handle equipment
                 if (parsedData.equipment_used && Array.isArray(parsedData.equipment_used)) {
                     const aiEquipment = parsedData.equipment_used.map((equip: any, index: number) => ({
@@ -137,14 +140,31 @@ export default function CreateDailyLogModal({
                     }));
                     setEquipment(aiEquipment);
                 }
-                
+
                 // Clear from session storage
                 sessionStorage.removeItem('aiGeneratedLog');
             } catch (err) {
                 console.error('Error parsing AI log data:', err);
             }
+        } else {
+             // Check for AI-generated content from URL parameters
+             const aiSummary = searchParams.get('ai_summary');
+             const aiTranscription = searchParams.get('ai_transcription');
+             const aiSafetyNotes = searchParams.get('ai_safety_notes');
+             const aiWeather = searchParams.get('ai_weather');
+             const aiCrewNotes = searchParams.get('ai_crew_notes');
+
+             if (aiSummary || aiTranscription) {
+                 setFormData(prev => ({
+                     ...prev,
+                     work_completed: aiSummary || aiTranscription || "",
+                     safety: aiSafetyNotes || "",
+                     weather: aiWeather || "",
+                     notes: aiCrewNotes || "",
+                 }));
+             }
         }
-    });
+    }, [searchParams]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
