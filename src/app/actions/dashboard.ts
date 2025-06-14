@@ -18,7 +18,7 @@ export async function getDashboardData() {
         const { data: projects, error: projectsError } = await fetchByBusiness(
             "projects",
             business.id,
-            "id, name, status, created_at"
+            ["id", "name", "status", "created_at"]
         );
 
         if (projectsError) {
@@ -29,7 +29,7 @@ export async function getDashboardData() {
         const { data: tasks, error: tasksError } = await fetchByBusiness(
             "tasks",
             business.id,
-            "id, name, status, due_date, project_id"
+            ["id", "name", "status", "end_date", "project_id"]
         );
 
         if (tasksError) {
@@ -40,7 +40,7 @@ export async function getDashboardData() {
         const { data: equipment, error: equipmentError } = await fetchByBusiness(
             "equipment",
             business.id,
-            "id, name, status"
+            ["id", "name", "status"]
         );
 
         if (equipmentError) {
@@ -51,28 +51,18 @@ export async function getDashboardData() {
         const { data: invoices, error: invoicesError } = await fetchByBusiness(
             "invoices",
             business.id,
-            "id, total_amount, status"
+            ["id", "amount", "status"]
         );
 
         if (invoicesError) {
             console.error("Error fetching invoices:", invoicesError);
         }
 
-        // Get recent activity from daily logs and tasks
-        const { data: recentLogs, error: logsError } = await supabase
-            .from("daily_logs")
-            .select(`
-                id,
-                notes,
-                created_at,
-                created_by,
-                project_id,
-                projects!inner(name),
-                users!inner(first_name, last_name)
-            `)
-            .eq("business_id", business.id)
-            .order("created_at", { ascending: false })
-            .limit(5);
+        const { data: recentLogs, error: logsError } = await fetchByBusiness(
+            "daily_logs",
+            business.id,
+            "*"
+        )
 
         if (logsError) {
             console.error("Error fetching recent logs:", logsError);
@@ -84,9 +74,9 @@ export async function getDashboardData() {
         const equipmentInUse = equipment?.filter(e => e.status === 'in_use').length || 0;
         const totalEquipment = equipment?.length || 1;
         const equipmentUtilization = Math.round((equipmentInUse / totalEquipment) * 100);
-        
+
         const unpaidInvoices = invoices?.filter(i => i.status === 'pending' || i.status === 'sent') || [];
-        const unpaidAmount = unpaidInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+        const unpaidAmount = unpaidInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
 
         // Project status distribution
         const projectStatusData = {
@@ -100,8 +90,8 @@ export async function getDashboardData() {
         const recentActivity = (recentLogs || []).map(log => ({
             id: log.id,
             type: 'log_created' as const,
-            message: `${log.users.first_name} ${log.users.last_name} added a daily log to ${log.projects.name}`,
-            user: `${log.users.first_name} ${log.users.last_name}`,
+            message: `${log.author_id} added a daily log to ${log.project_id}`,
+            user: `${log.author_id}`,
             timestamp: log.created_at,
             projectId: log.project_id
         }));
@@ -109,11 +99,11 @@ export async function getDashboardData() {
         // Get upcoming tasks (next 7 days)
         const upcomingDate = new Date();
         upcomingDate.setDate(upcomingDate.getDate() + 7);
-        
+
         const upcomingTasks = (tasks || [])
             .filter(task => {
-                if (!task.due_date) return false;
-                const dueDate = new Date(task.due_date);
+                if (!task.start_date) return false;
+                const dueDate = task.end_date ? new Date(task.end_date) : new Date(task.start_date);
                 return dueDate >= new Date() && dueDate <= upcomingDate;
             })
             .slice(0, 10)
@@ -123,7 +113,7 @@ export async function getDashboardData() {
                     id: task.id,
                     name: task.name,
                     projectName: project?.name || 'Unknown Project',
-                    dueDate: task.due_date,
+                    dueDate: task.end_date,
                     status: task.status
                 };
             });
@@ -143,7 +133,7 @@ export async function getDashboardData() {
 
     } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        
+
         // Return empty data structure on error
         return {
             stats: {
