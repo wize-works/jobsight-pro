@@ -17,7 +17,6 @@ import {
 import { Doughnut, Bar } from "react-chartjs-2"
 import { getDashboardData } from "@/app/actions/dashboard"
 import { formatCurrency, formatDate } from "@/utils/formatters"
-import { TaskStatus, taskStatusOptions } from "@/types/tasks"
 import { useEffect, useState } from "react"
 
 // Register ChartJS components
@@ -104,7 +103,35 @@ export default function Dashboard() {
 
     useEffect(() => {
         async function fetchData() {
-            const data: DashboardData = await getDashboardData()
+            const rawData = await getDashboardData()
+            // Fix: Ensure status is always a string for each project
+            const fixedProjectsWithProgress = rawData.projectsWithProgress.map((project) => ({
+                ...project,
+                status: project.status ?? "", // fallback to empty string if null
+                start_date: project.start_date ?? undefined,
+                end_date: project.end_date ?? undefined,
+            }));
+
+            const fixedRecentActivity = rawData.recentActivity.map((activity: any) => ({
+                ...activity,
+                timestamp: activity.timestamp ?? "", // fallback to empty string if null
+                weather: typeof activity.weather === "string" ? activity.weather : undefined, // ensure weather is string or undefined
+            }));
+
+            const fixedCriticalTasks = rawData.criticalTasks.map((task: any) => ({
+                ...task,
+                dueDate: task.dueDate ?? "", // fallback to empty string if null
+                status: task.status ?? "",   // fallback to empty string if null
+                // priority is optional, so only include if not null
+                ...(task.priority !== null ? { priority: task.priority } : {}),
+            }));
+
+            const data: DashboardData = {
+                ...rawData,
+                projectsWithProgress: fixedProjectsWithProgress,
+                recentActivity: fixedRecentActivity,
+                criticalTasks: fixedCriticalTasks,
+            };
             setDashboardData(data)
         }
         fetchData()
@@ -200,7 +227,7 @@ export default function Dashboard() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-primary-focus text-primary-content p-6 rounded-lg shadow-lg">
+            <div className="bg-base-100 p-6 rounded-lg shadow-lg">
                 <h1 className="text-3xl font-bold mb-2">Construction Command Center</h1>
                 <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
             </div>
