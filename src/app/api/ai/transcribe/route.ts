@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
             transcriptionText = await transcribeVoiceNote(audioFile);
         } else if (contentType?.includes('application/json')) {
             // Handle text input
-            const { message } = await request.json();
+            const body = await request.json();
+            const message = body.message || body.text; // Support both field names
             
             if (!message) {
                 return NextResponse.json(

@@ -20,6 +20,34 @@ export interface VoiceTranscriptionResult {
   };
 }
 
+export async function convertToStructuredLog(text: string) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: AI_MODELS.CHAT,
+      messages: [
+        {
+          role: 'system',
+          content: PROMPTS.VOICE_TO_LOG,
+        },
+        {
+          role: 'user',
+          content: `Convert this text into a structured daily log: "${text}"`,
+        },
+      ],
+      temperature: 0.3,
+    });
+
+    const structuredData = JSON.parse(
+      completion.choices[0]?.message?.content || '{}'
+    );
+
+    return structuredData;
+  } catch (error) {
+    console.error('Text to structured log error:', error);
+    throw new Error('Failed to convert text to structured log');
+  }
+}
+
 export async function transcribeVoiceNote(
   audioFile: File
 ): Promise<VoiceTranscriptionResult> {

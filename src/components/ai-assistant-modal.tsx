@@ -10,11 +10,14 @@ interface AIAssistantModalProps {
 }
 
 export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
-  const [mode, setMode] = useState<'home' | 'text' | 'voice'>('home');
   const [textInput, setTextInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [transcription, setTranscription] = useState('');
+  const [conversation, setConversation] = useState<Array<{
+    type: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+  }>>([]);
   const [error, setError] = useState('');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -22,9 +25,8 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
   const router = useRouter();
 
   const resetModal = () => {
-    setMode('home');
     setTextInput('');
-    setTranscription('');
+    setConversation([]);
     setError('');
     setIsRecording(false);
     setIsProcessing(false);
@@ -86,15 +88,14 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
       }
 
       const result = await response.json();
-      setTranscription(result.transcription);
       
-      // Navigate to daily logs page with pre-filled data
-      if (result.structuredLog) {
-        // Store the AI-generated log data in sessionStorage for the daily log form
-        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result.structuredLog));
-        router.push('/dashboard/daily-logs?ai=true');
-        handleClose();
-      }
+      // Add transcribed text to conversation
+      const userMessage = result.transcription || 'Voice message processed';
+      addToConversation('user', userMessage);
+      
+      // Process the transcribed text
+      await processMessage(userMessage);
+      
     } catch (err) {
       setError('Failed to process voice input: ' + (err as Error).message);
       console.error('Voice processing error:', err);
@@ -103,20 +104,36 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
     }
   };
 
-  const processTextInput = async () => {
-    if (!textInput.trim()) return;
+  const processMessage = async (message: string) => {
+    const lowerMessage = message.toLowerCase();
     
-    setIsProcessing(true);
-    setError('');
+    // Check if user wants to create a daily log
+    const dailyLogKeywords = [
+      'daily log', 'create log', 'submit log', 'log my day', 
+      'work completed', 'today we', 'daily report', 'site log'
+    ];
     
+    const isDailyLogRequest = dailyLogKeywords.some(keyword => 
+      lowerMessage.includes(keyword)
+    );
+
+    if (isDailyLogRequest) {
+      // Process as daily log creation
+      await createDailyLogFromMessage(message);
+    } else {
+      // Process as general AI query
+      await handleGeneralQuery(message);
+    }
+  };
+
+  const createDailyLogFromMessage = async (message: string) => {
     try {
-      // For now, we'll use the same transcribe endpoint with text
       const response = await fetch('/api/ai/transcribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: textInput }),
+        body: JSON.stringify({ message }),
       });
 
       if (!response.ok) {
@@ -125,17 +142,76 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
 
       const result = await response.json();
       
+      addToConversation('assistant', 'I\'ve created a structured daily log from your input. Taking you to the daily logs page to review and submit.');
+      
       // Navigate to daily logs page with pre-filled data
-      if (result.structuredLog) {
-        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result.structuredLog));
-        router.push('/dashboard/daily-logs?ai=true');
-        handleClose();
+      if (result) {
+        sessionStorage.setItem('aiGeneratedLog', JSON.stringify(result));
+        setTimeout(() => {
+          router.push('/dashboard/daily-logs?ai=true');
+          handleClose();
+        }, 1500);
       }
     } catch (err) {
-      setError('Failed to process text input: ' + (err as Error).message);
-      console.error('Text processing error:', err);
+      const errorMsg = 'Failed to create daily log: ' + (err as Error).message;
+      addToConversation('assistant', errorMsg);
+      console.error('Daily log creation error:', err);
+    }
+  };
+
+  const handleGeneralQuery = async (message: string) => {
+    try {
+      const response = await fetch('/api/ai/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question: message }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      addToConversation('assistant', result.response || 'I understand your request. How else can I help you today?');
+      
+    } catch (err) {
+      const errorMsg = 'Sorry, I had trouble processing your request: ' + (err as Error).message;
+      addToConversation('assistant', errorMsg);
+      console.error('General query error:', err);
+    }
+  };
+
+  const addToConversation = (type: 'user' | 'assistant', content: string) => {
+    setConversation(prev => [...prev, {
+      type,
+      content,
+      timestamp: new Date()
+    }]);
+  };
+
+  const handleSubmit = async () => {
+    if (!textInput.trim() || isProcessing) return;
+    
+    const message = textInput.trim();
+    setTextInput('');
+    setIsProcessing(true);
+    
+    // Add user message to conversation
+    addToConversation('user', message);
+    
+    try {
+      await processMessage(message);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
@@ -143,9 +219,9 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-2xl">
+      <div className="modal-box max-w-2xl h-[600px] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <i className="fas fa-robot text-2xl text-primary"></i>
             <h2 className="text-xl font-bold">AI Assistant</h2>
@@ -159,202 +235,119 @@ export function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
           </button>
         </div>
 
-        {/* Content */}
-        {mode === 'home' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <p className="text-lg mb-2">How would you like to create a daily log?</p>
-              <p className="text-sm text-base-content/70">
-                I can help you create structured daily logs from your input
+        {/* Conversation Area */}
+        <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+          {conversation.length === 0 && (
+            <div className="text-center text-base-content/70 py-8">
+              <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                <i className="fas fa-comments text-2xl"></i>
+              </div>
+              <p className="text-lg mb-2">Hi! I'm your AI assistant.</p>
+              <p className="text-sm">
+                I can help you create daily logs, answer questions about your projects, 
+                and assist with various construction management tasks.
               </p>
+              <div className="mt-4 text-xs text-base-content/50">
+                <p>Try saying: "Create a daily log for today's concrete work"</p>
+                <p>Or ask: "What safety issues were reported this week?"</p>
+              </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Text Input Option */}
-              <button
-                className="card bg-base-200 hover:bg-base-300 transition-colors p-6 text-left"
-                onClick={() => setMode('text')}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary text-primary-content rounded-full flex items-center justify-center">
-                    <i className="fas fa-keyboard text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Type Daily Log</h3>
-                    <p className="text-sm text-base-content/70">
-                      Describe your work in text and I'll structure it
-                    </p>
-                  </div>
+          {conversation.map((msg, index) => (
+            <div
+              key={index}
+              className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}
+            >
+              <div className="chat-image avatar">
+                <div className="w-8 rounded-full">
+                  {msg.type === 'user' ? (
+                    <div className="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center">
+                      <i className="fas fa-user text-xs"></i>
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 bg-secondary text-secondary-content rounded-full flex items-center justify-center">
+                      <i className="fas fa-robot text-xs"></i>
+                    </div>
+                  )}
                 </div>
-              </button>
+              </div>
+              <div className={`chat-bubble ${msg.type === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
+                {msg.content}
+              </div>
+              <div className="chat-footer opacity-50 text-xs">
+                {msg.timestamp.toLocaleTimeString()}
+              </div>
+            </div>
+          ))}
 
-              {/* Voice Input Option */}
-              <button
-                className="card bg-base-200 hover:bg-base-300 transition-colors p-6 text-left"
-                onClick={() => setMode('voice')}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-secondary text-secondary-content rounded-full flex items-center justify-center">
-                    <i className="fas fa-microphone text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">Voice Daily Log</h3>
-                    <p className="text-sm text-base-content/70">
-                      Speak your log and I'll transcribe and structure it
-                    </p>
-                  </div>
+          {isProcessing && (
+            <div className="chat chat-start">
+              <div className="chat-image avatar">
+                <div className="w-8 h-8 bg-secondary text-secondary-content rounded-full flex items-center justify-center">
+                  <span className="loading loading-spinner loading-xs"></span>
                 </div>
-              </button>
+              </div>
+              <div className="chat-bubble chat-bubble-secondary">
+                <span className="loading loading-dots loading-sm"></span>
+              </div>
             </div>
+          )}
+        </div>
 
-            <div className="text-center">
-              <p className="text-xs text-base-content/50">
-                More AI features coming soon: task completion, project summaries, and more
-              </p>
-            </div>
+        {/* Error Display */}
+        {error && (
+          <div className="alert alert-error mb-4 flex-shrink-0">
+            <i className="fas fa-exclamation-triangle"></i>
+            <span>{error}</span>
           </div>
         )}
 
-        {mode === 'text' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={() => setMode('home')}
-              >
-                <i className="fas fa-arrow-left"></i>
-              </button>
-              <h3 className="font-semibold">Type Your Daily Log</h3>
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">Describe your work day</span>
-              </label>
+        {/* Input Area */}
+        <div className="flex-shrink-0">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
               <textarea
-                className="textarea textarea-bordered h-32"
-                placeholder="e.g., Today we poured concrete for the foundation. Used 10 cubic yards of concrete. Had John, Mike, and Sarah on the crew. Weather was sunny and 75 degrees. Completed the west wall framing..."
+                className="textarea textarea-bordered w-full resize-none"
+                placeholder="Type your message or ask me anything..."
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
+                onKeyPress={handleKeyPress}
                 disabled={isProcessing}
+                rows={3}
               />
             </div>
+            
+            {/* Voice Recording Button */}
+            <button
+              className={`btn btn-square ${isRecording ? 'btn-error animate-pulse' : 'btn-secondary'}`}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing}
+              title={isRecording ? 'Stop recording' : 'Start voice recording'}
+            >
+              <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
+            </button>
 
-            {error && (
-              <div className="alert alert-error">
-                <i className="fas fa-exclamation-triangle"></i>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <button
-                className="btn btn-outline"
-                onClick={() => setMode('home')}
-                disabled={isProcessing}
-              >
-                Back
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={processTextInput}
-                disabled={!textInput.trim() || isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <span className="loading loading-spinner loading-sm"></span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-magic"></i>
-                    Create Daily Log
-                  </>
-                )}
-              </button>
-            </div>
+            {/* Send Button */}
+            <button
+              className="btn btn-primary btn-square"
+              onClick={handleSubmit}
+              disabled={!textInput.trim() || isProcessing}
+              title="Send message"
+            >
+              <i className="fas fa-paper-plane"></i>
+            </button>
           </div>
-        )}
 
-        {mode === 'voice' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={() => setMode('home')}
-              >
-                <i className="fas fa-arrow-left"></i>
-              </button>
-              <h3 className="font-semibold">Voice Daily Log</h3>
+          {isRecording && (
+            <div className="text-center mt-2">
+              <span className="text-sm text-error">
+                <i className="fas fa-circle animate-pulse mr-1"></i>
+                Recording... Click the stop button when finished
+              </span>
             </div>
-
-            <div className="text-center space-y-4">
-              <div className="w-24 h-24 mx-auto bg-secondary text-secondary-content rounded-full flex items-center justify-center">
-                <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'} text-3xl`}></i>
-              </div>
-
-              {!isRecording && !transcription && (
-                <p className="text-base-content/70">
-                  Click the button below to start recording your daily log
-                </p>
-              )}
-
-              {isRecording && (
-                <div className="space-y-2">
-                  <p className="text-lg font-medium text-error">Recording...</p>
-                  <p className="text-sm text-base-content/70">
-                    Speak clearly about your work, materials, crew, and any issues
-                  </p>
-                </div>
-              )}
-
-              {transcription && (
-                <div className="text-left">
-                  <h4 className="font-medium mb-2">Transcription:</h4>
-                  <div className="bg-base-200 p-3 rounded">
-                    {transcription}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {error && (
-              <div className="alert alert-error">
-                <i className="fas fa-exclamation-triangle"></i>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <div className="flex justify-center gap-4">
-              {!isRecording ? (
-                <button
-                  className="btn btn-secondary btn-lg"
-                  onClick={startRecording}
-                  disabled={isProcessing}
-                >
-                  <i className="fas fa-microphone mr-2"></i>
-                  Start Recording
-                </button>
-              ) : (
-                <button
-                  className="btn btn-error btn-lg"
-                  onClick={stopRecording}
-                  disabled={isProcessing}
-                >
-                  <i className="fas fa-stop mr-2"></i>
-                  Stop Recording
-                </button>
-              )}
-            </div>
-
-            {isProcessing && (
-              <div className="text-center">
-                <span className="loading loading-spinner loading-lg"></span>
-                <p className="mt-2">Processing your voice log...</p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
