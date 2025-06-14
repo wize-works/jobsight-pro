@@ -16,7 +16,6 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { getUserById } from "@/app/actions/users";
 import { User } from "@/types/users";
 import { Toaster } from "@/components/toaster";
-import { AIAssistantButton } from "@/components/ai-assistant-button";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading: isKindeLoading } = useKindeAuth();
@@ -85,7 +84,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
             {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
             <SyncStatusIndicator />
             <PushManager />
-            <AIAssistantButton />
             <Toaster />
         </div>
     );

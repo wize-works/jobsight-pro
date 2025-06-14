@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AIAssistantModal } from './ai-assistant-modal';
+import { AIAssistantPanel } from './ai-assistant-panel';
 
 export function AIAssistantButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,8 +20,8 @@ export function AIAssistantButton() {
         </button>
       </div>
 
-      {/* AI Assistant Modal */}
-      <AIAssistantModal
+      {/* AI Assistant Panel */}
+      <AIAssistantPanel
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
