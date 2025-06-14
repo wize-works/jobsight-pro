@@ -1,3 +1,10 @@
+## [1.36.1](https://github.com/wize-works/jobsight-pro/compare/v1.36.0...v1.36.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Add type definitions for web-push module ([4e967b4](https://github.com/wize-works/jobsight-pro/commit/4e967b4f06377eef0bb3d71db442e60c4c0894fb))
+
 # [1.36.0](https://github.com/wize-works/jobsight-pro/compare/v1.35.0...v1.36.0) (2025-06-14)
 
 
