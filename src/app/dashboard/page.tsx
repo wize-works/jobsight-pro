@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import { useState } from "react"
 import {
@@ -15,19 +13,58 @@ import {
     Title,
 } from "chart.js"
 import { Doughnut, Line, Bar } from "react-chartjs-2"
+import { getDashboardData } from "@/app/actions/dashboard"
+import { formatCurrency, formatDate } from "@/utils/formatters"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
 
-export default function Dashboard() {
-    const [timeRange, setTimeRange] = useState("week")
+interface DashboardData {
+    stats: {
+        activeProjects: number
+        pendingTasks: number
+        equipmentUtilization: number
+        unpaidInvoices: number
+        unpaidAmount: number
+    }
+    projectStatusData: {
+        inProgress: number
+        completed: number
+        onHold: number
+        planning: number
+    }
+    recentActivity: Array<{
+        id: string
+        type: 'task_completed' | 'log_created' | 'project_created' | 'equipment_assigned'
+        message: string
+        user: string
+        timestamp: string
+        projectId?: string
+        taskId?: string
+    }>
+    upcomingTasks: Array<{
+        id: string
+        name: string
+        projectName: string
+        dueDate: string
+        status: 'pending' | 'scheduled' | 'in_progress' | 'upcoming'
+    }>
+}
+
+export default async function Dashboard() {
+    const dashboardData = await getDashboardData()
 
     // Project Status Chart Data
     const projectStatusData = {
         labels: ["In Progress", "Completed", "On Hold", "Planning"],
         datasets: [
             {
-                data: [12, 8, 3, 5],
+                data: [
+                    dashboardData.projectStatusData.inProgress,
+                    dashboardData.projectStatusData.completed,
+                    dashboardData.projectStatusData.onHold,
+                    dashboardData.projectStatusData.planning
+                ],
                 backgroundColor: [
                     "#5C95FF", // accent
                     "#34A432", // success
@@ -39,66 +76,20 @@ export default function Dashboard() {
         ],
     }
 
-    // Task Completion Chart Data
-    const taskCompletionData = {
-        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        datasets: [
-            {
-                label: "Completed Tasks",
-                data: [5, 8, 12, 7, 10, 4, 6],
-                backgroundColor: "#02ACA3", // secondary
-                borderColor: "#02ACA3", // secondary
-                borderWidth: 2,
-            },
-            {
-                label: "Created Tasks",
-                data: [7, 11, 15, 9, 12, 8, 10],
-                backgroundColor: "#F87431", // primary
-                borderColor: "#F87431", // primary
-                borderWidth: 2,
-            },
-        ],
-    }
-
-    // Revenue Chart Data
-    const revenueData = {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-            {
-                label: "Revenue",
-                data: [12500, 19200, 15700, 18300, 24100, 27800],
-                borderColor: "#02ACA3", // secondary
-                backgroundColor: "rgba(2, 172, 163, 0.1)",
-                fill: true,
-                tension: 0.4,
-            },
-        ],
+    const getStatusBadgeClass = (status: string) => {
+        switch (status) {
+            case 'pending': return 'badge-warning'
+            case 'scheduled': return 'badge-info'
+            case 'in_progress': return 'badge-primary'
+            case 'upcoming': return 'badge-secondary'
+            default: return 'badge-ghost'
+        }
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Dashboard</h1>
-                <div className="flex gap-2">
-                    <button
-                        className={`btn btn-sm ${timeRange === "week" ? "btn-primary" : "btn-outline"}`}
-                        onClick={() => setTimeRange("week")}
-                    >
-                        Week
-                    </button>
-                    <button
-                        className={`btn btn-sm ${timeRange === "month" ? "btn-primary" : "btn-outline"}`}
-                        onClick={() => setTimeRange("month")}
-                    >
-                        Month
-                    </button>
-                    <button
-                        className={`btn btn-sm ${timeRange === "year" ? "btn-primary" : "btn-outline"}`}
-                        onClick={() => setTimeRange("year")}
-                    >
-                        Year
-                    </button>
-                </div>
             </div>
 
             {/* Stats Cards */}
@@ -108,14 +99,11 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-sm text-base-content/70">Active Projects</p>
-                                <h3 className="text-2xl font-bold">12</h3>
+                                <h3 className="text-2xl font-bold">{dashboardData.stats.activeProjects}</h3>
                             </div>
                             <div className="rounded-full bg-primary/10 p-3">
                                 <i className="fas fa-project-diagram text-primary"></i>
                             </div>
-                        </div>
-                        <div className="text-xs text-success flex items-center mt-2">
-                            <i className="fas fa-arrow-up mr-1"></i> 8% from last month
                         </div>
                     </div>
                 </div>
@@ -125,14 +113,11 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-sm text-base-content/70">Pending Tasks</p>
-                                <h3 className="text-2xl font-bold">43</h3>
+                                <h3 className="text-2xl font-bold">{dashboardData.stats.pendingTasks}</h3>
                             </div>
                             <div className="rounded-full bg-secondary/10 p-3">
                                 <i className="fas fa-tasks text-secondary"></i>
                             </div>
-                        </div>
-                        <div className="text-xs text-error flex items-center mt-2">
-                            <i className="fas fa-arrow-up mr-1"></i> 12% from last month
                         </div>
                     </div>
                 </div>
@@ -142,14 +127,11 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-sm text-base-content/70">Equipment Usage</p>
-                                <h3 className="text-2xl font-bold">78%</h3>
+                                <h3 className="text-2xl font-bold">{dashboardData.stats.equipmentUtilization}%</h3>
                             </div>
                             <div className="rounded-full bg-accent/10 p-3">
                                 <i className="fas fa-truck text-accent"></i>
                             </div>
-                        </div>
-                        <div className="text-xs text-success flex items-center mt-2">
-                            <i className="fas fa-arrow-up mr-1"></i> 5% from last month
                         </div>
                     </div>
                 </div>
@@ -159,14 +141,14 @@ export default function Dashboard() {
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-sm text-base-content/70">Unpaid Invoices</p>
-                                <h3 className="text-2xl font-bold">$24,500</h3>
+                                <h3 className="text-2xl font-bold">{formatCurrency(dashboardData.stats.unpaidAmount)}</h3>
                             </div>
                             <div className="rounded-full bg-warning/10 p-3">
                                 <i className="fas fa-file-invoice-dollar text-warning"></i>
                             </div>
                         </div>
-                        <div className="text-xs text-error flex items-center mt-2">
-                            <i className="fas fa-arrow-up mr-1"></i> 15% from last month
+                        <div className="text-xs text-base-content/70 mt-2">
+                            {dashboardData.stats.unpaidInvoices} invoice{dashboardData.stats.unpaidInvoices !== 1 ? 's' : ''}
                         </div>
                     </div>
                 </div>
@@ -183,26 +165,18 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="card bg-base-100 shadow-sm">
+                <div className="card bg-base-100 shadow-sm lg:col-span-2">
                     <div className="card-body">
-                        <h3 className="card-title text-lg mb-4">Task Completion</h3>
-                        <div className="h-64">
-                            <Bar data={taskCompletionData} options={{ maintainAspectRatio: false }} />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <h3 className="card-title text-lg mb-4">Revenue</h3>
-                        <div className="h-64">
-                            <Line data={revenueData} options={{ maintainAspectRatio: false }} />
+                        <h3 className="card-title text-lg mb-4">Project Overview</h3>
+                        <div className="text-center text-base-content/70 py-12">
+                            <i className="fas fa-chart-bar text-4xl mb-4"></i>
+                            <p>Task completion and revenue charts coming soon</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Recent Activity */}
+            {/* Recent Activity & Upcoming Tasks */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card bg-base-100 shadow-sm">
                     <div className="card-body">
@@ -214,77 +188,28 @@ export default function Dashboard() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="flex gap-3">
-                                <div className="avatar">
-                                    <div className="w-10 rounded-full">
-                                        <img src="/placeholder.svg?height=40&width=40&query=avatar1" alt="User avatar" />
+                            {dashboardData.recentActivity.length > 0 ? (
+                                dashboardData.recentActivity.map((activity) => (
+                                    <div key={activity.id} className="flex gap-3">
+                                        <div className="avatar">
+                                            <div className="w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <i className="fas fa-user text-primary text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{activity.message}</p>
+                                            <p className="text-xs text-base-content/70">
+                                                {activity.user} • {formatDate(activity.timestamp)}
+                                            </p>
+                                        </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-base-content/70 py-8">
+                                    <i className="fas fa-clock text-2xl mb-2"></i>
+                                    <p>No recent activity</p>
                                 </div>
-                                <div>
-                                    <p className="font-medium">
-                                        John Doe completed task{" "}
-                                        <Link href="#" className="link link-primary">
-                                            Foundation inspection
-                                        </Link>
-                                    </p>
-                                    <p className="text-xs text-base-content/70">2 hours ago</p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <div className="avatar">
-                                    <div className="w-10 rounded-full">
-                                        <img src="/placeholder.svg?height=40&width=40&query=avatar2" alt="User avatar" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="font-medium">
-                                        Sarah Johnson added a new daily log to{" "}
-                                        <Link href="#" className="link link-primary">
-                                            Main Street Project
-                                        </Link>
-                                    </p>
-                                    <p className="text-xs text-base-content/70">4 hours ago</p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <div className="avatar">
-                                    <div className="w-10 rounded-full">
-                                        <img src="/placeholder.svg?height=40&width=40&query=avatar3" alt="User avatar" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="font-medium">
-                                        Mike Wilson created a new project{" "}
-                                        <Link href="#" className="link link-primary">
-                                            Riverside Apartments
-                                        </Link>
-                                    </p>
-                                    <p className="text-xs text-base-content/70">Yesterday at 3:45 PM</p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <div className="avatar">
-                                    <div className="w-10 rounded-full">
-                                        <img src="/placeholder.svg?height=40&width=40&query=avatar4" alt="User avatar" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="font-medium">
-                                        Emily Clark assigned equipment{" "}
-                                        <Link href="#" className="link link-primary">
-                                            Excavator #103
-                                        </Link>{" "}
-                                        to{" "}
-                                        <Link href="#" className="link link-primary">
-                                            Downtown Project
-                                        </Link>
-                                    </p>
-                                    <p className="text-xs text-base-content/70">Yesterday at 1:30 PM</p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -300,50 +225,44 @@ export default function Dashboard() {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="table table-zebra">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Project</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Concrete pouring</td>
-                                        <td>Main Street</td>
-                                        <td>Today</td>
-                                        <td>
-                                            <span className="badge badge-warning">Pending</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Electrical inspection</td>
-                                        <td>Riverside Apts</td>
-                                        <td>Tomorrow</td>
-                                        <td>
-                                            <span className="badge badge-info">Scheduled</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Framing</td>
-                                        <td>Downtown Project</td>
-                                        <td>May 22</td>
-                                        <td>
-                                            <span className="badge badge-primary">In Progress</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Final walkthrough</td>
-                                        <td>Johnson Residence</td>
-                                        <td>May 25</td>
-                                        <td>
-                                            <span className="badge badge-secondary">Upcoming</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            {dashboardData.upcomingTasks.length > 0 ? (
+                                <table className="table table-zebra">
+                                    <thead>
+                                        <tr>
+                                            <th>Task</th>
+                                            <th>Project</th>
+                                            <th>Due Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dashboardData.upcomingTasks.map((task) => (
+                                            <tr key={task.id}>
+                                                <td>
+                                                    <Link 
+                                                        href={`/dashboard/tasks/${task.id}`}
+                                                        className="link link-primary"
+                                                    >
+                                                        {task.name}
+                                                    </Link>
+                                                </td>
+                                                <td>{task.projectName}</td>
+                                                <td>{formatDate(task.dueDate)}</td>
+                                                <td>
+                                                    <span className={`badge ${getStatusBadgeClass(task.status)}`}>
+                                                        {task.status.replace('_', ' ')}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="text-center text-base-content/70 py-8">
+                                    <i className="fas fa-tasks text-2xl mb-2"></i>
+                                    <p>No upcoming tasks</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
