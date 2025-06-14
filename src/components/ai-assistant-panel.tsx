@@ -26,6 +26,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     const [error, setError] = useState("");
     const [projects, setProjects] = useState<Project[]>([]);
 
+    // Multi-turn conversation state
+    const [conversationState, setConversationState] = useState<string | null>(null);
+
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,11 +60,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
-    // Load conversation from localStorage on mount
     useEffect(() => {
-        const savedConversation = localStorage.getItem(
-            "aiAssistantConversation",
-        );
+        // Load conversation from localStorage on mount
+        const savedConversation = localStorage.getItem("aiAssistantConversation");
         if (savedConversation) {
             try {
                 const parsed = JSON.parse(savedConversation);
@@ -76,13 +77,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     }, []);
 
-    // Save conversation to localStorage whenever it changes
     useEffect(() => {
+        // Save conversation to localStorage whenever it changes
         if (conversation.length > 0) {
-            localStorage.setItem(
-                "aiAssistantConversation",
-                JSON.stringify(conversation),
-            );
+            localStorage.setItem("aiAssistantConversation", JSON.stringify(conversation));
         }
     }, [conversation]);
 
@@ -176,38 +174,263 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
-    const processMessage = async (message: string) => {
-        const lowerMessage = message.toLowerCase();
+    // Fetch open projects dynamically
+    const fetchOpenProjects = async () => {
+        try {
+            const response = await fetch("/actions/get-open-projects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auth_id: "user-auth-id" }), // Replace with actual auth_id
+            });
 
-        // Check if there's a pending daily log conversation
-        const partialData = sessionStorage.getItem("aiGeneratedLog");
-        const enhancedData = sessionStorage.getItem("aiEnhancedLog");
+            if (!response.ok) {
+                throw new Error(`Failed to fetch open projects: ${response.status}`);
+            }
 
-        if (partialData || enhancedData) {
-            // Continue the daily log conversation
-            await continueDailyLogConversation(message, partialData, enhancedData);
-            return;
+            const openProjects = await response.json();
+            return openProjects;
+        } catch (error) {
+            console.error("Error fetching open projects:", error);
+            return null;
         }
+    };
 
-        const dailyLogKeywords = [
-            "daily log",
-            "create log",
-            "submit log",
-            "log my day",
-            "work completed",
-            "today we",
-            "daily report",
-            "site log",
-        ];
+    // Fetch daily logs summary dynamically
+    const fetchDailyLogsSummary = async (date: string) => {
+        try {
+            const response = await fetch("/actions/get-daily-logs-summary", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auth_id: "user-auth-id", date }), // Replace with actual auth_id
+            });
 
-        const isDailyLogRequest = dailyLogKeywords.some((keyword) =>
-            lowerMessage.includes(keyword),
+            if (!response.ok) {
+                throw new Error(`Failed to fetch daily logs summary: ${response.status}`);
+            }
+
+            const dailyLogsSummary = await response.json();
+            return dailyLogsSummary;
+        } catch (error) {
+            console.error("Error fetching daily logs summary:", error);
+            return null;
+        }
+    };
+
+    // Handle open projects query
+    const handleOpenProjectsQuery = async () => {
+        const openProjects = await fetchOpenProjects();
+
+        if (openProjects && openProjects.length > 0) {
+            const projectList = openProjects.map((project: any) => project.name).join(", ");
+            addToConversation(
+                "assistant",
+                `Here are your open projects: ${projectList}`
+            );
+        } else {
+            addToConversation(
+                "assistant",
+                "I couldn't find any open projects. Please try again later."
+            );
+        }
+    };
+
+    // Handle daily logs summary query
+    const handleDailyLogsSummaryQuery = async (date: string) => {
+        const dailyLogsSummary = await fetchDailyLogsSummary(date);
+
+        if (dailyLogsSummary && dailyLogsSummary.length > 0) {
+            const summaryList = dailyLogsSummary
+                .map((log: any) => `• ${log.summary}`)
+                .join("\n");
+
+            addToConversation(
+                "assistant",
+                `Here are today's daily logs:\n${summaryList}`
+            );
+        } else {
+            addToConversation(
+                "assistant",
+                "I couldn't find any daily logs for today."
+            );
+        }
+    };
+
+    // Call OpenAI to interpret user input and generate a response
+    const callOpenAI = async (message: string, context: any) => {
+        try {
+            const response = await fetch("/actions/openai-query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: `You are an AI assistant. Here is the context: ${JSON.stringify(context)}. User says: ${message}. Respond appropriately.`,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to get response from OpenAI: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.response;
+        } catch (error) {
+            console.error("Error calling OpenAI:", error);
+            return "I'm sorry, I couldn't process your request. Please try again later.";
+        }
+    };
+
+    // Update processMessage to use OpenAI
+    const processMessage = async (message: string) => {
+        try {
+            const context = {
+                userRole, // User's role
+                recentInteractions: conversation.slice(-5), // Last 5 messages for context
+                projects, // List of projects
+            };
+
+            const aiResponse = await callOpenAI(message, context);
+            addToConversation("assistant", aiResponse);
+        } catch (error) {
+            console.error("Error processing message:", error);
+            addToConversation(
+                "assistant",
+                "I'm sorry, I encountered an issue while processing your request. Could you try rephrasing it?"
+            );
+        }
+    };
+
+    // User feedback loop
+    const handleFeedback = async (messageId: number, feedback: "positive" | "negative") => {
+        try {
+            const response = await fetch("/actions/store-feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message_id: messageId,
+                    feedback_type: feedback,
+                    auth_id: "user-auth-id", // Replace with actual auth_id from context or state
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to store feedback: ${response.status}`);
+            }
+
+            addToConversation("assistant", "Thank you for your feedback!");
+        } catch (error) {
+            console.error("Error storing feedback:", error);
+            addToConversation("assistant", "Sorry, we couldn't process your feedback. Please try again later.");
+        }
+    };
+
+    // Render feedback buttons
+    const renderFeedbackButtons = (messageId: number) => (
+        <div className="feedback-buttons">
+            <button onClick={() => handleFeedback(messageId, "positive")}>👍</button>
+            <button onClick={() => handleFeedback(messageId, "negative")}>👎</button>
+        </div>
+    );
+
+    // Enhanced error recovery
+    const processMessageEnhanced = async (message: string) => {
+        try {
+            const context = {
+                userRole, // User's role
+                recentInteractions: conversation.slice(-5), // Last 5 messages for context
+                projects, // List of projects
+            };
+
+            const aiResponse = await callOpenAI(message, context);
+            addToConversation("assistant", aiResponse);
+        } catch (error) {
+            console.error("Error processing message:", error);
+            addToConversation(
+                "assistant",
+                "I'm sorry, I encountered an issue while processing your request. Could you try rephrasing it?"
+            );
+        }
+    };
+
+    // Fetch project details dynamically
+    const fetchProjectDetails = async (projectId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch project details: ${response.status}`);
+            }
+            const projectDetails = await response.json();
+            return projectDetails;
+        } catch (error) {
+            console.error("Error fetching project details:", error);
+            return null;
+        }
+    };
+
+    // Fetch project statuses dynamically
+    const fetchProjectStatuses = async () => {
+        try {
+            const response = await fetch("/actions/get-project-statuses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auth_id: "user-auth-id" }), // Replace with actual auth_id
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch project statuses: ${response.status}`);
+            }
+
+            const projectStatuses = await response.json();
+            return projectStatuses;
+        } catch (error) {
+            console.error("Error fetching project statuses:", error);
+            return null;
+        }
+    };
+
+    // Handle project-related queries
+    const handleProjectQuery = async (message: string) => {
+        const project = projects.find((p) =>
+            message.toLowerCase().includes(p.name.toLowerCase())
         );
 
-        if (isDailyLogRequest) {
-            await createDailyLogFromMessage(message);
+        if (project) {
+            const projectDetails = await fetchProjectDetails(project.id);
+            if (projectDetails) {
+                addToConversation(
+                    "assistant",
+                    `Here are the details for project ${project.name}: ${JSON.stringify(projectDetails)}`
+                );
+            } else {
+                addToConversation(
+                    "assistant",
+                    "I couldn't retrieve the project details. Please try again later."
+                );
+            }
         } else {
-            await handleGeneralQuery(message);
+            addToConversation(
+                "assistant",
+                "I couldn't find the project you're referring to. Could you clarify?"
+            );
+        }
+    };
+
+    // Handle project status queries
+    const handleProjectStatusQuery = async () => {
+        const projectStatuses = await fetchProjectStatuses();
+
+        if (projectStatuses && projectStatuses.length > 0) {
+            const statusMessage = projectStatuses
+                .map((project: any) => `${project.name}: ${project.status}`)
+                .join("\n");
+
+            addToConversation(
+                "assistant",
+                `Here are the statuses of your projects:\n${statusMessage}`
+            );
+        } else {
+            addToConversation(
+                "assistant",
+                "I couldn't retrieve your project statuses. Please try again later."
+            );
         }
     };
 
@@ -631,14 +854,39 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
-    const handleGeneralQuery = async (message: string) => {
+    const generateDynamicPrompt = (userRole: string, recentInteractions: string[]): string => {
+        let basePrompt = "You are an AI assistant for a construction management platform.";
+
+        // Adjust prompt based on user role
+        if (userRole === "Project Manager") {
+            basePrompt += " Focus on providing project summaries, task updates, and risk assessments.";
+        } else if (userRole === "Foreman") {
+            basePrompt += " Focus on daily logs, safety notes, and crew management.";
+        } else {
+            basePrompt += " Provide general assistance for construction-related queries.";
+        }
+
+        // Incorporate recent interactions
+        if (recentInteractions.length > 0) {
+            basePrompt += ` Recent interactions include: ${recentInteractions.join(", ")}.`;
+        }
+
+        return basePrompt;
+    };
+
+    const handleGeneralQuery = async (message: string, userRole: string, recentInteractions: string[]) => {
         try {
+            const dynamicPrompt = generateDynamicPrompt(userRole, recentInteractions);
+
             const response = await fetch("/api/ai/query", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ question: message }),
+                body: JSON.stringify({
+                    question: message,
+                    prompt: dynamicPrompt,
+                }),
             });
 
             if (!response.ok) {
@@ -648,8 +896,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             const result = await response.json();
             addToConversation(
                 "assistant",
-                result.response ||
-                "I understand your request. How else can I help you today?",
+                result.response || "I understand your request. How else can I help you today?",
             );
         } catch (err) {
             const errorMsg =
@@ -671,6 +918,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         ]);
     };
 
+    const userRole = "Project Manager"; // Example role, replace with actual user role logic
+    const recentInteractions = conversation.map((msg) => msg.content).slice(-5); // Last 5 messages
+
     const handleSubmit = async () => {
         if (!textInput.trim() || isProcessing) return;
 
@@ -681,7 +931,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         addToConversation("user", message);
 
         try {
-            await processMessage(message);
+            await handleGeneralQuery(message, userRole, recentInteractions);
         } finally {
             setIsProcessing(false);
         }
