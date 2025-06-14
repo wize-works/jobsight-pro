@@ -56,7 +56,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     }, [user?.id, isKindeLoading]);
 
     return (
-        <div className="drawer lg:drawer-open">
+        <div className="">
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content flex flex-col bg-base-200">
                 <Navbar
