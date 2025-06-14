@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createDailyLog } from "@/app/actions/daily-logs";
+import type { DailyLogInsert } from "@/types/daily-logs";
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -326,32 +328,34 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                     result.safety_notes || result.safety || ""
                 );
 
-                const structuredData = {
+                // Create the daily log data structure
+                const dailyLogData: DailyLogInsert = {
                     work_completed: enhancedWorkCompleted,
                     weather: result.weather || "",
-                    safety_notes: enhancedSafety,
-                    issues: result.issues || [],
+                    safety: enhancedSafety,
                     notes: enhancedNotes,
-                    materials_used:
-                        result.materials_used || result.materials || [],
-                    equipment_used:
-                        result.equipment_used || result.equipment || [],
-                    source: "ai_chat",
+                    date: result.date || new Date().toISOString().split('T')[0],
+                    project_id: result.project_id || "", // Will need to be provided by user if missing
+                    start_time: result.start_time || "08:00",
+                    end_time: result.end_time || "17:00",
+                    hours_worked: result.hours_worked || 8,
+                    overtime: result.overtime || 0,
                 };
 
-                sessionStorage.setItem(
-                    "aiGeneratedLog",
-                    JSON.stringify(structuredData),
-                );
+                // Save the daily log directly using the action
+                const savedLog = await createDailyLog(dailyLogData);
 
-                addToConversation(
-                    "assistant",
-                    "Daily log enhanced and prepared! Taking you to the daily logs page to review and submit.",
-                );
-
-                setTimeout(() => {
-                    router.push("/dashboard/daily-logs?ai=true");
-                }, 1500);
+                if (savedLog) {
+                    addToConversation(
+                        "assistant",
+                        `Daily log created successfully! You can view it in the daily logs section. Log ID: ${savedLog.id}`,
+                    );
+                } else {
+                    addToConversation(
+                        "assistant",
+                        "I had trouble saving the daily log. Please try creating it manually or check if all required fields are provided.",
+                    );
+                }
             }
         } catch (err) {
             const errorMsg =
