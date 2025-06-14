@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/wize-works/jobsight-pro/compare/v1.37.0...v1.38.0) (2025-06-14)
+
+
+### Features
+
+* Add NEXT_PUBLIC_STRIPE_PUBLIC_KEY environment variable to Dockerfile ([a2df091](https://github.com/wize-works/jobsight-pro/commit/a2df091d53f5f2c83fa0581528875b7fe93d041a))
+
 # [1.37.0](https://github.com/wize-works/jobsight-pro/compare/v1.36.1...v1.37.0) (2025-06-14)
 
 
