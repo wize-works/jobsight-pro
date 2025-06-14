@@ -34,6 +34,9 @@ export default function CreateDailyLogModal({
     onClose,
     onSave
 }: CreateDailyLogModalProps) {
+    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         date: format(new Date(), "yyyy-MM-dd"),
         project_id: "",
@@ -73,16 +76,7 @@ export default function CreateDailyLogModal({
     const { getUser, isLoading } = useKindeAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
-    if (isLoading) {
-        return <div className="loading">Loading...</div>;
-    }
     const user = getUser();
-    if (!user) {
-        throw new Error("User not authenticated");
-    }
-    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     // Check for AI-generated log data on component mount
     useEffect(() => {
@@ -95,9 +89,9 @@ export default function CreateDailyLogModal({
                     setFormData(prev => ({ ...prev, work_completed: parsedData.summary }));
                 }
                 if (parsedData.work_completed && Array.isArray(parsedData.work_completed)) {
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        work_completed: parsedData.work_completed.join('. ') 
+                    setFormData(prev => ({
+                        ...prev,
+                        work_completed: parsedData.work_completed.join('. ')
                     }));
                 }
                 if (parsedData.weather) {
@@ -107,9 +101,9 @@ export default function CreateDailyLogModal({
                     setFormData(prev => ({ ...prev, safety: parsedData.safety_notes }));
                 }
                 if (parsedData.issues && Array.isArray(parsedData.issues)) {
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        delays: parsedData.issues.join('. ') 
+                    setFormData(prev => ({
+                        ...prev,
+                        delays: parsedData.issues.join('. ')
                     }));
                 }
 
@@ -147,24 +141,24 @@ export default function CreateDailyLogModal({
                 console.error('Error parsing AI log data:', err);
             }
         } else {
-             // Check for AI-generated content from URL parameters
-             const aiSummary = searchParams.get('ai_summary');
-             const aiTranscription = searchParams.get('ai_transcription');
-             const aiSafetyNotes = searchParams.get('ai_safety_notes');
-             const aiWeather = searchParams.get('ai_weather');
-             const aiCrewNotes = searchParams.get('ai_crew_notes');
+            // Check for AI-generated content from URL parameters
+            const aiSummary = searchParams.get('ai_summary');
+            const aiTranscription = searchParams.get('ai_transcription');
+            const aiSafetyNotes = searchParams.get('ai_safety_notes');
+            const aiWeather = searchParams.get('ai_weather');
+            const aiCrewNotes = searchParams.get('ai_crew_notes');
 
-             if (aiSummary || aiTranscription) {
-                 setFormData(prev => ({
-                     ...prev,
-                     work_completed: aiSummary || aiTranscription || "",
-                     safety: aiSafetyNotes || "",
-                     weather: aiWeather || "",
-                     notes: aiCrewNotes || "",
-                 }));
-             }
+            if (aiSummary || aiTranscription) {
+                setFormData(prev => ({
+                    ...prev,
+                    work_completed: aiSummary || aiTranscription || "",
+                    safety: aiSafetyNotes || "",
+                    weather: aiWeather || "",
+                    notes: aiCrewNotes || "",
+                }));
+            }
         }
-    }, [searchParams]);
+    }, [searchParams.toString()]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -353,7 +347,7 @@ export default function CreateDailyLogModal({
 
             // Create the main daily log
             const dailyLogData = {
-                author_id: user.id,
+                author_id: user?.id,
                 project_id: formData.project_id,
                 crew_id: formData.crew_id || null,
                 date: formData.date,
@@ -490,6 +484,14 @@ export default function CreateDailyLogModal({
         resetForm();
         onClose();
     };
+
+
+    if (isLoading) {
+        return <div className="loading">Loading...</div>;
+    }
+    if (!user) {
+        throw new Error("User not authenticated");
+    }
 
     if (!isOpen) return null;
 

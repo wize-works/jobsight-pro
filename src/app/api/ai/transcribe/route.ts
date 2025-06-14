@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         }
 
         const contentType = request.headers.get('content-type');
-        let transcriptionText = '';
+        let transcriptionText = undefined;
 
         if (contentType?.includes('multipart/form-data')) {
             // Handle audio file upload
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             // Handle text input
             const body = await request.json();
             const message = body.message || body.text; // Support both field names
-            
+
             if (!message) {
                 return NextResponse.json(
                     { error: 'Message is required' },
