@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_metadata", business.id);
 
@@ -26,7 +27,7 @@ export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
 }
 
 export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | 
 };
 
 export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promise<MediaMetadata | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     metadata = await applyCreated<MediaMetadataInsert>(metadata);
 
@@ -58,7 +59,7 @@ export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promis
 }
 
 export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpdate): Promise<MediaMetadata | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     metadata = await applyUpdated<MediaMetadataUpdate>(metadata);
 
@@ -73,7 +74,7 @@ export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpd
 }
 
 export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("media_metadata", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
 }
 
 export const searchMediaMetadatas = async (query: string): Promise<MediaMetadata[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", {
         filter: {

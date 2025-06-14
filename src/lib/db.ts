@@ -148,6 +148,35 @@ export async function fetchByBusiness<T extends TableName>(
     return { data: data as unknown as Tables[T]["Row"][], error }
 }
 
+export async function fetchWithBusinessById<T extends TableName>(
+    table: T,
+    id: string,
+    businessId: string,
+    columns: Array<keyof Tables[T]["Row"]> | "*" = "*",
+    options?: {
+        client?: SupabaseClient<Database>
+    }
+): Promise<{
+    data: Tables[T]["Row"] | null
+    error: Error | null
+}> {
+    const supabase = options?.client || createServerClient()
+    if (!supabase) {
+        return { data: null, error: new Error("Supabase client not initialized") }
+    }
+
+    const columnList: string = Array.isArray(columns) ? (columns as string[]).join(",") : columns;
+
+    const { data, error } = await supabase
+        .from(table)
+        .select(columnList)
+        .eq("id", id)
+        .eq("business_id", businessId)
+        .single()
+
+    return { data: data as unknown as Tables[T]["Row"], error }
+}
+
 // Update insertWithBusiness to include userId parameter
 export async function insertWithBusiness<T extends TableName>(
     table: T,

@@ -6,10 +6,11 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createServerClient } from "@/lib/supabase";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getUsers = async (): Promise<User[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         if (!business || !business.id) {
             console.error("No business found or business ID is missing");
@@ -36,7 +37,7 @@ export const getUsers = async (): Promise<User[]> => {
 
 export const getUserById = async (id: string): Promise<User | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("users", business.id, "*", {
             filter: { auth_id: id },  // this should be moved to the correct field in the future, but for now we use auth_id
@@ -61,7 +62,7 @@ export const getUserById = async (id: string): Promise<User | null> => {
 
 export const getUserByAuthId = async (authId: string): Promise<User | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("users", business.id, "*", {
             filter: { auth_id: authId },
@@ -111,7 +112,7 @@ export const getSelfByAuthId = async (authId: string): Promise<User | null> => {
 
 export const createUser = async (user: UserInsert): Promise<User | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         user = await applyCreated<UserInsert>(user);
 
@@ -152,7 +153,7 @@ export const createSelf = async (user: UserInsert): Promise<User | null> => {
 
 export const updateUser = async (id: string, user: UserUpdate): Promise<User | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         user = await applyUpdated<UserUpdate>(user);
 
@@ -172,7 +173,7 @@ export const updateUser = async (id: string, user: UserUpdate): Promise<User | n
 
 export const updateUserByAuthId = async (authId: string, user: UserUpdate): Promise<User | null> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         // First get the user by auth_id to get their database ID
         const currentUser = await getUserById(authId);
@@ -191,7 +192,7 @@ export const updateUserByAuthId = async (authId: string, user: UserUpdate): Prom
 
 export const deleteUser = async (id: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { error } = await deleteWithBusinessCheck("users", id, business.id);
 
@@ -209,7 +210,7 @@ export const deleteUser = async (id: string): Promise<boolean> => {
 
 export const searchUsers = async (query: string): Promise<User[]> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness("users", business.id, "*", {
             filter: {

@@ -1,0 +1,133 @@
+
+Missing business_id in subscription metadata
+Error processing webhook: Error: Stripe: Argument "subscription_exposed_id" must be a string, but got: undefined (on API request to `GET /v1/subscriptions/{subscription_exposed_id}`)
+    at Array.reduce (<anonymous>)
+    at new Promise (<anonymous>)
+    at POST (src/app/api/webhooks/stripe/route.ts:112:56)
+  110 |       case 'invoice.payment_failed': {
+  111 |         const invoice = event.data.object as any;
+> 112 |         const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+      |                                                        ^
+  113 |         const businessId = subscription.metadata?.business_id;
+  114 |
+  115 |         if (!businessId) {
+ POST /api/webhooks/stripe 500 in 255ms
+ POST /api/webhooks/stripe 200 in 554ms
+ POST /api/webhooks/stripe 200 in 1267ms
+ GET /dashboard/business?subscription=success 200 in 202ms
+ GET /manifest.webmanifest 200 in 138ms
+enqueue: task added to queue
+processQueue: task executed successfully
+ GET /api/auth/setup 200 in 278ms
+enqueue: task added to queue
+processQueue: task executed successfully
+ GET /api/auth/setup 200 in 183ms
+enqueue: task added to queue
+processQueue: task executed successfully
+ GET /api/auth/setup 200 in 111ms
+Error checking active subscription: {
+  code: 'PGRST116',
+  details: 'The result contains 2 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+[withBusinessServer] No active subscription found for user: kp_6a5893a966d442d2a3fa6290547f340c
+[withBusinessServer] Error checking subscription: Error: NEXT_REDIRECT
+    at withBusinessServer (src/lib/auth/with-business-server.ts:45:25)
+    at async getUserById (src/app/actions/users.ts:39:29)
+  43 |                 console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+  44 |                 // Allow access but could be modified based on business rules
+> 45 |                 redirect("/register"); // Uncomment if subscription is required for dashboard access
+     |                         ^
+  46 |             }
+  47 |         } catch (error) {
+  48 |             console.error("[withBusinessServer] Error checking subscription:", error); {
+  digest: 'NEXT_REDIRECT;push;/register;307;'
+}
+[withBusinessServer] Business found
+ POST /dashboard/business?subscription=success 200 in 1088ms
+ POST /dashboard/business?subscription=success 200 in 469ms
+Error checking active subscription: {
+  code: 'PGRST116',
+  details: 'The result contains 2 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+[withBusinessServer] No active subscription found for user: kp_6a5893a966d442d2a3fa6290547f340c
+[withBusinessServer] Error checking subscription: Error: NEXT_REDIRECT
+    at withBusinessServer (src/lib/auth/with-business-server.ts:45:25)
+    at async getUsers (src/app/actions/users.ts:12:29)
+  43 |                 console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+  44 |                 // Allow access but could be modified based on business rules
+> 45 |                 redirect("/register"); // Uncomment if subscription is required for dashboard access
+     |                         ^
+  46 |             }
+  47 |         } catch (error) {
+  48 |             console.error("[withBusinessServer] Error checking subscription:", error); {
+  digest: 'NEXT_REDIRECT;push;/register;307;'
+}
+[withBusinessServer] Business found
+ POST /dashboard/business?subscription=success 200 in 955ms
+Error checking active subscription: {
+  code: 'PGRST116',
+  details: 'The result contains 2 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+[withBusinessServer] No active subscription found for user: kp_6a5893a966d442d2a3fa6290547f340c
+[withBusinessServer] Error checking subscription: Error: NEXT_REDIRECT
+    at withBusinessServer (src/lib/auth/with-business-server.ts:45:25)
+    at async getProjects (src/app/actions/projects.ts:11:29)
+  43 |                 console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+  44 |                 // Allow access but could be modified based on business rules
+> 45 |                 redirect("/register"); // Uncomment if subscription is required for dashboard access
+     |                         ^
+  46 |             }
+  47 |         } catch (error) {
+  48 |             console.error("[withBusinessServer] Error checking subscription:", error); {
+  digest: 'NEXT_REDIRECT;push;/register;307;'
+}
+[withBusinessServer] Business found
+ POST /dashboard/business?subscription=success 200 in 948ms
+Error checking active subscription: {
+  code: 'PGRST116',
+  details: 'The result contains 2 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+[withBusinessServer] No active subscription found for user: kp_6a5893a966d442d2a3fa6290547f340c
+[withBusinessServer] Error checking subscription: Error: NEXT_REDIRECT
+    at withBusinessServer (src/lib/auth/with-business-server.ts:45:25)
+    at async getEquipments (src/app/actions/equipments.ts:13:25)
+  43 |                 console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+  44 |                 // Allow access but could be modified based on business rules
+> 45 |                 redirect("/register"); // Uncomment if subscription is required for dashboard access
+     |                         ^
+  46 |             }
+  47 |         } catch (error) {
+  48 |             console.error("[withBusinessServer] Error checking subscription:", error); {
+  digest: 'NEXT_REDIRECT;push;/register;307;'
+}
+[withBusinessServer] Business found
+ POST /dashboard/business?subscription=success 200 in 966ms
+Error checking active subscription: {
+  code: 'PGRST116',
+  details: 'The result contains 2 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+[withBusinessServer] No active subscription found for user: kp_6a5893a966d442d2a3fa6290547f340c
+[withBusinessServer] Error checking subscription: Error: NEXT_REDIRECT
+    at withBusinessServer (src/lib/auth/with-business-server.ts:45:25)
+    at async getCurrentSubscription (src/app/actions/subscriptions.ts:20:29)
+  43 |                 console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+  44 |                 // Allow access but could be modified based on business rules
+> 45 |                 redirect("/register"); // Uncomment if subscription is required for dashboard access
+     |                         ^
+  46 |             }
+  47 |         } catch (error) {
+  48 |             console.error("[withBusinessServer] Error checking subscription:", error); {
+  digest: 'NEXT_REDIRECT;push;/register;307;'
+}
+[withBusinessServer] Business found
+ POST /dashboard/business?subscription=success 200 in 815ms

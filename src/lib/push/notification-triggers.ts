@@ -4,6 +4,7 @@
 import { sendPushNotificationToUser, sendPushNotificationToBusiness } from './actions';
 import { createNotification } from '@/app/actions/notifications';
 import { withBusinessServer } from '@/lib/auth/with-business-server';
+import { ensureBusinessOrRedirect } from '../auth/ensure-business';
 
 export async function triggerProjectNotification(
     projectId: string,
@@ -12,7 +13,7 @@ export async function triggerProjectNotification(
     assignedUserIds?: string[]
 ) {
     try {
-        const { userId } = await withBusinessServer();
+        const { userId } = await ensureBusinessOrRedirect();
 
         const title = `Project ${action}`;
         const body = `${projectName} has been ${action}`;
@@ -54,7 +55,7 @@ export async function triggerTaskNotification(
     assignedUserId?: string
 ) {
     try {
-        const { userId } = await withBusinessServer();
+        const { userId } = await ensureBusinessOrRedirect();
 
         const title = `Task ${action}`;
         const body = `"${taskTitle}" in ${projectName} has been ${action}`;
@@ -93,7 +94,7 @@ export async function triggerEquipmentNotification(
     assignedUserId?: string
 ) {
     try {
-        const { userId } = await withBusinessServer();
+        const { userId } = await ensureBusinessOrRedirect();
 
         const title = `Equipment ${action.replace('_', ' ')}`;
         const body = `${equipmentName}: ${action.replace('_', ' ')}`;
@@ -132,7 +133,7 @@ export async function triggerInvoiceNotification(
     action: 'created' | 'sent' | 'paid' | 'overdue'
 ) {
     try {
-        const { userId } = await withBusinessServer();
+        const { userId } = await ensureBusinessOrRedirect();
 
         const title = `Invoice ${action}`;
         const body = `Invoice ${invoiceNumber} for ${clientName} is ${action}`;
@@ -154,7 +155,7 @@ export async function triggerSystemNotification(
     url?: string
 ) {
     try {
-        const { userId } = await withBusinessServer();
+        const { userId } = await ensureBusinessOrRedirect();
 
         // Notify entire business
         await sendPushNotificationToBusiness(title, message, {}, url, userId);

@@ -91,6 +91,9 @@ jobs:
             --build-arg NEXT_PUBLIC_CLARITY_ID=${{ secrets.NEXT_PUBLIC_CLARITY_ID }} \
             --build-arg RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
             --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
+            --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            --build-arg NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} \
+            --build-arg STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} \
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.version=${{ needs.release.outputs.version }} \
             -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} \
@@ -158,6 +161,9 @@ jobs:
             --from-literal=NEXT_PUBLIC_CLARITY_ID="${{ secrets.NEXT_PUBLIC_CLARITY_ID }}" \
             --from-literal=RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
             --from-literal=SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" \
+            --from-literal=STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+            --from-literal=STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+            --from-literal=NEXT_PUBLIC_STRIPE_PUBLIC_KEY="${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Convert kubeconfig to use Azure CLI token

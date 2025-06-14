@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getMediaTags = async (): Promise<MediaTag[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_tags", business.id);
 
@@ -26,7 +27,7 @@ export const getMediaTags = async (): Promise<MediaTag[]> => {
 }
 
 export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_tags", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
 };
 
 export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     tag = await applyCreated<MediaTagInsert>(tag);
 
@@ -58,7 +59,7 @@ export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | nu
 }
 
 export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<MediaTag | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     tag = await applyUpdated<MediaTagUpdate>(tag);
 
@@ -73,7 +74,7 @@ export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<M
 }
 
 export const deleteMediaTag = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("media_tags", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteMediaTag = async (id: string): Promise<boolean> => {
 }
 
 export const searchMediaTags = async (query: string): Promise<MediaTag[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media_tags", business.id, "*", {
         filter: {

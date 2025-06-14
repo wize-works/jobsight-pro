@@ -5,9 +5,10 @@ import { Invoice, InvoiceInsert, InvoiceUpdate, InvoiceWithClient, InvoiceWithDe
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getInvoices = async (): Promise<Invoice[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoices", business.id);
 
@@ -24,7 +25,7 @@ export const getInvoices = async (): Promise<Invoice[]> => {
 }
 
 export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoices", business.id, "*", { filter: { id: id } });
 
@@ -41,7 +42,7 @@ export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
 };
 
 export const createInvoice = async (invoice: InvoiceInsert): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     invoice = await applyCreated<InvoiceInsert>(invoice);
 
@@ -56,7 +57,7 @@ export const createInvoice = async (invoice: InvoiceInsert): Promise<Invoice | n
 }
 
 export const updateInvoice = async (id: string, invoice: InvoiceUpdate): Promise<Invoice | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     invoice = await applyUpdated<InvoiceUpdate>(invoice);
 
@@ -71,7 +72,7 @@ export const updateInvoice = async (id: string, invoice: InvoiceUpdate): Promise
 }
 
 export const deleteInvoice = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("invoices", id, business.id);
 
@@ -84,7 +85,7 @@ export const deleteInvoice = async (id: string): Promise<boolean> => {
 }
 
 export const searchInvoices = async (query: string): Promise<Invoice[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoices", business.id, "*", {
         filter: {
@@ -105,7 +106,7 @@ export const searchInvoices = async (query: string): Promise<Invoice[]> => {
 };
 
 export const getInvoicesWithClient = async (): Promise<InvoiceWithClient[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoices", business.id);
 
@@ -141,7 +142,7 @@ export const getInvoicesWithClient = async (): Promise<InvoiceWithClient[]> => {
 };
 
 export const getInvoiceWitDetailsById = async (id: string): Promise<InvoiceWithDetails | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("invoices", business.id, "*", { filter: { id: id } });
 

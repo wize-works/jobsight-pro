@@ -5,9 +5,10 @@ import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } f
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_log_equipment", business.id);
 
@@ -24,7 +25,7 @@ export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
 }
 
 export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEquipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
         filter: { id },
@@ -42,7 +43,7 @@ export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEqui
 };
 
 export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert): Promise<DailyLogEquipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     equipment = await applyCreated<DailyLogEquipmentInsert>(equipment);
 
@@ -57,7 +58,7 @@ export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert
 }
 
 export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEquipmentUpdate): Promise<DailyLogEquipment | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     equipment = await applyUpdated<DailyLogEquipmentUpdate>(equipment);
 
@@ -72,7 +73,7 @@ export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEqu
 }
 
 export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("daily_log_equipment", id, business.id);
 
@@ -85,7 +86,7 @@ export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogEquipments = async (query: string): Promise<DailyLogEquipment[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
         filter: {

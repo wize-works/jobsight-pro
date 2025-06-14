@@ -5,10 +5,11 @@ import { Notification, NotificationInsert, NotificationUpdate } from "@/types/no
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all notifications for the current business
 export const getNotifications = async (): Promise<Notification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
         orderBy: { column: "created_at", ascending: false },
@@ -28,7 +29,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
 
 // Get a specific notification by ID
 export const getNotificationById = async (id: string): Promise<Notification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
         filter: { id },
@@ -48,7 +49,7 @@ export const getNotificationById = async (id: string): Promise<Notification | nu
 
 // Create a new notification
 export const createNotification = async (notification: NotificationInsert): Promise<Notification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     notification = await applyCreated<NotificationInsert>(notification);
 
@@ -64,7 +65,7 @@ export const createNotification = async (notification: NotificationInsert): Prom
 
 // Update an existing notification
 export const updateNotification = async (id: string, notification: NotificationUpdate): Promise<Notification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     notification = await applyUpdated<NotificationUpdate>(notification);
 
@@ -80,7 +81,7 @@ export const updateNotification = async (id: string, notification: NotificationU
 
 // Delete a notification
 export const deleteNotification = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("notifications", id, business.id);
 
@@ -94,7 +95,7 @@ export const deleteNotification = async (id: string): Promise<boolean> => {
 
 // Get notifications for a specific user
 export const getNotificationsByUserId = async (userId: string): Promise<Notification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
         filter: { user_id: userId },
@@ -115,7 +116,7 @@ export const getNotificationsByUserId = async (userId: string): Promise<Notifica
 
 // Mark a notification as read
 export const markNotificationAsRead = async (id: string): Promise<Notification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const notification: NotificationUpdate = {
         read: true,
@@ -134,7 +135,7 @@ export const markNotificationAsRead = async (id: string): Promise<Notification |
 
 // Get unread notifications for a user
 export const getUnreadNotifications = async (userId: string): Promise<Notification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
         filter: {
@@ -158,7 +159,7 @@ export const getUnreadNotifications = async (userId: string): Promise<Notificati
 
 // Mark all notifications as read for a user
 export const markAllNotificationsAsRead = async (userId: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const now = new Date().toISOString();
     const { data: unreadNotifications, error } = await fetchByBusiness("notifications", business.id, "*", {

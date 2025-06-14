@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getEquipmentSpecifications = async (): Promise<EquipmentSpecification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_specifications", business.id);
 
@@ -26,7 +27,7 @@ export const getEquipmentSpecifications = async (): Promise<EquipmentSpecificati
 }
 
 export const getEquipmentSpecificationById = async (id: string): Promise<EquipmentSpecification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_specifications", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getEquipmentSpecificationById = async (id: string): Promise<Equipme
 };
 
 export const createEquipmentSpecification = async (spec: EquipmentSpecificationInsert): Promise<EquipmentSpecification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     spec = await applyCreated<EquipmentSpecificationInsert>(spec);
 
@@ -58,7 +59,7 @@ export const createEquipmentSpecification = async (spec: EquipmentSpecificationI
 }
 
 export const updateEquipmentSpecification = async (id: string, spec: EquipmentSpecificationUpdate): Promise<EquipmentSpecification | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     spec = await applyUpdated<EquipmentSpecificationUpdate>(spec);
 
@@ -73,7 +74,7 @@ export const updateEquipmentSpecification = async (id: string, spec: EquipmentSp
 }
 
 export const deleteEquipmentSpecification = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("equipment_specifications", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteEquipmentSpecification = async (id: string): Promise<boolean>
 }
 
 export const searchEquipmentSpecifications = async (query: string): Promise<EquipmentSpecification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_specifications", business.id, "*", {
         filter: {
@@ -107,7 +108,7 @@ export const searchEquipmentSpecifications = async (query: string): Promise<Equi
 };
 
 export const getEquipmentSpecificationsByEquipmentId = async (id: string): Promise<EquipmentSpecification[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_specifications", business.id, "*", {
         filter: { equipment_id: id },

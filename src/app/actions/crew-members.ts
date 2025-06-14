@@ -8,9 +8,10 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getCrewMembers = async (): Promise<CrewMember[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("crew_members", business.id);
 
@@ -27,7 +28,7 @@ export const getCrewMembers = async (): Promise<CrewMember[]> => {
 }
 
 export const getCrewMemberById = async (id: string): Promise<CrewMember | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
         filter: { id },
@@ -46,7 +47,7 @@ export const getCrewMemberById = async (id: string): Promise<CrewMember | null> 
 };
 
 export const createCrewMember = async (crewMember: CrewMemberInsert): Promise<CrewMember> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     crewMember = await applyCreated<CrewMemberInsert>(crewMember);
 
@@ -61,7 +62,7 @@ export const createCrewMember = async (crewMember: CrewMemberInsert): Promise<Cr
 };
 
 export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate): Promise<CrewMember> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     crewMember = await applyUpdated<CrewMemberUpdate>(crewMember);
 
@@ -76,7 +77,7 @@ export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate)
 };
 
 export const deleteCrewMember = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("crew_members", id, business.id);
 
@@ -92,7 +93,7 @@ export const deleteCrewMember = async (id: string): Promise<boolean> => {
 };
 
 export const searchCrewMembers = async (searchTerm: string): Promise<CrewMember[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
         filter: {
@@ -123,7 +124,7 @@ export const searchCrewMembers = async (searchTerm: string): Promise<CrewMember[
 
 
 export const getCrewMembersByCrewId = async (id: string): Promise<CrewMember[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data: assignments, error: assignmentsError } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
         filter: { crew_id: id },

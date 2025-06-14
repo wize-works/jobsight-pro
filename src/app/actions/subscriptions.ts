@@ -14,10 +14,11 @@ import type {
     BillingInterval,
 } from "@/types/subscription";
 import { revalidatePath } from "next/cache";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export async function getCurrentSubscription(): Promise<BusinessSubscription | null> {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         const { data, error } = await fetchByBusiness(
             "business_subscriptions",
@@ -154,7 +155,7 @@ export async function cancelSubscription(): Promise<{
     error?: string;
 }> {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         const currentSubscription = await getCurrentSubscription();
         if (!currentSubscription) {

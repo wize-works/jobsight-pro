@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getEquipmentUsages = async (): Promise<EquipmentUsage[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_usage", business.id);
 
@@ -26,7 +27,7 @@ export const getEquipmentUsages = async (): Promise<EquipmentUsage[]> => {
 }
 
 export const getEquipmentUsageById = async (id: string): Promise<EquipmentUsage | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_usage", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getEquipmentUsageById = async (id: string): Promise<EquipmentUsage 
 };
 
 export const createEquipmentUsage = async (usage: EquipmentUsageInsert): Promise<EquipmentUsage | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     usage = await applyCreated<EquipmentUsageInsert>(usage);
 
@@ -58,7 +59,7 @@ export const createEquipmentUsage = async (usage: EquipmentUsageInsert): Promise
 }
 
 export const updateEquipmentUsage = async (id: string, usage: EquipmentUsageUpdate): Promise<EquipmentUsage | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     usage = await applyUpdated<EquipmentUsageUpdate>(usage);
 
@@ -73,7 +74,7 @@ export const updateEquipmentUsage = async (id: string, usage: EquipmentUsageUpda
 }
 
 export const deleteEquipmentUsage = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("equipment_usage", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteEquipmentUsage = async (id: string): Promise<boolean> => {
 }
 
 export const searchEquipmentUsages = async (query: string): Promise<EquipmentUsage[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_usage", business.id, "*", {
         filter: {
@@ -107,7 +108,7 @@ export const searchEquipmentUsages = async (query: string): Promise<EquipmentUsa
 };
 
 export const getEquipmentUsagesByEquipmentId = async (id: string): Promise<EquipmentUsage[]> => {
-    const businessAuth = await withBusinessServer();
+    const businessAuth = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("equipment_usage", businessAuth.business.id, "*", {
         filter: { equipment_id: id },
@@ -127,7 +128,7 @@ export const getEquipmentUsagesByEquipmentId = async (id: string): Promise<Equip
 };
 
 export const getEquipmentUsagesWithDetailsByEquipmentId = async (id: string): Promise<EquipmentUsageWithDetails[]> => {
-    const businessAuth = await withBusinessServer();
+    const businessAuth = await ensureBusinessOrRedirect();
     const usages = await getEquipmentUsagesByEquipmentId(id);
 
     if (!usages || usages.length === 0) {

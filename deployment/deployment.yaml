@@ -75,7 +75,6 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: KINDE_POST_LOGIN_REDIRECT_URL
-            
             - name: OPENWEATHER_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -143,6 +142,21 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: SENTRY_AUTH_TOKEN
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: STRIPE_SECRET_KEY
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: STRIPE_WEBHOOK_SECRET
+            - name: NEXT_PUBLIC_STRIPE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_STRIPE_PUBLIC_KEY
 
           resources:
             requests:

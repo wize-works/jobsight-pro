@@ -69,7 +69,10 @@ export default function CreateDailyLogModal({
         hours: number;
         condition: string;
     }>>([]);
-    const { getUser } = useKindeAuth();
+    const { getUser, isLoading } = useKindeAuth();
+    if (isLoading) {
+        return <div className="loading">Loading...</div>;
+    }
     const user = getUser();
     if (!user) {
         throw new Error("User not authenticated");

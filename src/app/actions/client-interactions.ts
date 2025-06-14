@@ -6,10 +6,11 @@ import type { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdat
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all client interactions for the current business
 export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         orderBy: { column: "created_at", ascending: false },
@@ -29,7 +30,7 @@ export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
 
 // Get a single client interaction by ID
 export const getClientInteractionById = async (id: string): Promise<ClientInteraction> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         filter: { id },
@@ -51,7 +52,7 @@ export const getClientInteractionById = async (id: string): Promise<ClientIntera
 export const createClientInteraction = async (
     interaction: ClientInteractionInsert
 ): Promise<ClientInteraction> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     interaction = await applyCreated<ClientInteractionInsert>(interaction);
 
@@ -70,7 +71,7 @@ export const updateClientInteraction = async (
     id: string,
     interaction: ClientInteractionUpdate
 ): Promise<ClientInteraction> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     interaction = await applyUpdated<ClientInteractionUpdate>(interaction);
 
@@ -86,7 +87,7 @@ export const updateClientInteraction = async (
 
 // Delete a client interaction
 export const deleteClientInteraction = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("client_interactions", id, business.id);
 
@@ -99,7 +100,7 @@ export const deleteClientInteraction = async (id: string): Promise<boolean> => {
 };
 
 export const getClientInteractionsByClientId = async (clientId: string): Promise<ClientInteraction[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
         filter: { client_id: clientId },

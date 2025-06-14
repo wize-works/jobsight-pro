@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getSubtasks = async (): Promise<Subtask[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("subtasks", business.id);
 
@@ -26,7 +27,7 @@ export const getSubtasks = async (): Promise<Subtask[]> => {
 }
 
 export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("subtasks", business.id, "*", { filter: { id: id } });
 
@@ -43,7 +44,7 @@ export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
 };
 
 export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     subtask = await applyCreated<SubtaskInsert>(subtask);
 
@@ -58,7 +59,7 @@ export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | n
 }
 
 export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise<Subtask | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     subtask = await applyUpdated<SubtaskUpdate>(subtask);
 
@@ -73,7 +74,7 @@ export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise
 }
 
 export const deleteSubtask = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("subtasks", id, business.id);
 
@@ -86,7 +87,7 @@ export const deleteSubtask = async (id: string): Promise<boolean> => {
 }
 
 export const searchSubtasks = async (query: string): Promise<Subtask[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("subtasks", business.id, "*", {
         filter: {

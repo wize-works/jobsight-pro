@@ -15,9 +15,10 @@ import {
 } from '@azure/storage-blob';
 import { createServerClient } from "@/lib/supabase";
 import { EquipmentUpdate } from "@/types/equipment";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getMedias = async (): Promise<Media[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media", business.id);
 
@@ -34,7 +35,7 @@ export const getMedias = async (): Promise<Media[]> => {
 }
 
 export const getMediaById = async (id: string): Promise<Media | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media", business.id, "*", { filter: { id: id } });
 
@@ -51,7 +52,7 @@ export const getMediaById = async (id: string): Promise<Media | null> => {
 };
 
 export const createMedia = async (media: MediaInsert): Promise<Media | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     media = await applyCreated<MediaInsert>(media);
 
@@ -66,7 +67,7 @@ export const createMedia = async (media: MediaInsert): Promise<Media | null> => 
 }
 
 export const updateMedia = async (id: string, media: MediaUpdate): Promise<Media | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     media = await applyUpdated<MediaUpdate>(media);
 
@@ -81,7 +82,7 @@ export const updateMedia = async (id: string, media: MediaUpdate): Promise<Media
 }
 
 export const deleteMedia = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("media", id, business.id);
 
@@ -94,7 +95,7 @@ export const deleteMedia = async (id: string): Promise<boolean> => {
 }
 
 export const searchMedias = async (query: string): Promise<Media[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("media", business.id, "*", {
         filter: {
@@ -115,7 +116,7 @@ export const searchMedias = async (query: string): Promise<Media[]> => {
 };
 
 export const getMediaByEquipmentId = async (equipmentId: string, type: string): Promise<Media[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data: linkData, error: linkError } = await fetchByBusiness("media_links", business.id, "*", {
         filter: { linked_id: equipmentId, linked_type: "equipment" },
@@ -156,7 +157,7 @@ export const getMediaByEquipmentId = async (equipmentId: string, type: string): 
 }
 
 export const getMediaByProjectId = async (projectId: string, type: string): Promise<Media[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data: linkData, error: linkError } = await fetchByBusiness("media_links", business.id, "*", {
         filter: { linked_id: projectId, linked_type: "project" },
@@ -193,7 +194,7 @@ export const getMediaByProjectId = async (projectId: string, type: string): Prom
 
 export const linkMediaToEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Check if link already exists
         const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
@@ -237,7 +238,7 @@ export const linkMediaToEquipment = async (mediaId: string, equipmentId: string)
 
 export const setEquipmentPrimaryImage = async (equipmentId: string, mediaId: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         // Get the media item to get its URL
         const { data: mediaData } = await fetchByBusiness("media", business.id, "*", {
@@ -272,7 +273,7 @@ export const setEquipmentPrimaryImage = async (equipmentId: string, mediaId: str
 
 export const uploadEquipmentImage = async (equipmentId: string, file: File): Promise<boolean> => {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Generate upload URL
         const uploadData = await generateUploadUrl("images", file.name);
@@ -332,7 +333,7 @@ export const uploadEquipmentImage = async (equipmentId: string, file: File): Pro
 
 export const unlinkMediaFromEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         // Find the link to delete
         const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
@@ -371,7 +372,6 @@ const credentials = new StorageSharedKeyCredential(account || "", accountKey || 
 const blobServiceClient = new BlobServiceClient(endpoint || "", credentials);
 
 export async function generateUploadUrl(type: MediaType, filename: string): Promise<{ uploadUrl: string; fileUrl: string; fileName: string } | null> {
-    const { business } = await withBusinessServer();
 
     const timestamp = Date.now();
     const safeFilename = `${timestamp}-${filename.replace(/[^a-zA-Z0-9_.-]/g, "_").toLowerCase()}`;
@@ -404,7 +404,7 @@ export async function generateUploadUrl(type: MediaType, filename: string): Prom
 
 export const linkMediaToProject = async (mediaId: string, projectId: string): Promise<boolean> => {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Check if link already exists
         const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
@@ -447,7 +447,7 @@ export const linkMediaToProject = async (mediaId: string, projectId: string): Pr
 
 export const unlinkMediaFromProject = async (mediaId: string, projectId: string): Promise<boolean> => {
     try {
-        const { business } = await withBusinessServer();
+        const { business } = await ensureBusinessOrRedirect();
 
         // Find the link to delete
         const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
@@ -480,7 +480,7 @@ export const unlinkMediaFromProject = async (mediaId: string, projectId: string)
 
 export const uploadProjectMedia = async (projectId: string, file: File, type: MediaType, description?: string): Promise<boolean> => {
     try {
-        const { business, userId } = await withBusinessServer();
+        const { business, userId } = await ensureBusinessOrRedirect();
 
         // Generate upload URL
         const uploadData = await generateUploadUrl(type, file.name);

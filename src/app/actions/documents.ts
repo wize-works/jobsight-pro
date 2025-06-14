@@ -10,9 +10,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getDocuments = async (): Promise<Document[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("documents", business.id);
 
@@ -29,7 +30,7 @@ export const getDocuments = async (): Promise<Document[]> => {
 }
 
 export const getDocumentById = async (id: string): Promise<Document | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("documents", business.id, "*", {
         filter: { id: id }
@@ -48,7 +49,7 @@ export const getDocumentById = async (id: string): Promise<Document | null> => {
 };
 
 export const createDocument = async (doc: DocumentInsert): Promise<Document | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     doc = await applyCreated<DocumentInsert>(doc);
 
@@ -63,7 +64,7 @@ export const createDocument = async (doc: DocumentInsert): Promise<Document | nu
 }
 
 export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<Document | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     doc = await applyUpdated<DocumentUpdate>(doc);
 
@@ -78,7 +79,7 @@ export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<D
 }
 
 export const deleteDocument = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("documents", id, business.id);
 
@@ -91,7 +92,7 @@ export const deleteDocument = async (id: string): Promise<boolean> => {
 }
 
 export const searchDocuments = async (query: string): Promise<Document[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("documents", business.id, "*", {
         filter: {

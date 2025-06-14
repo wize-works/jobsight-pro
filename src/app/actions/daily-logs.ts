@@ -7,9 +7,10 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 export const getDailyLogs = async (): Promise<DailyLog[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_logs", business.id);
 
@@ -26,7 +27,7 @@ export const getDailyLogs = async (): Promise<DailyLog[]> => {
 }
 
 export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
         filter: { id: id }
@@ -45,7 +46,7 @@ export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
 };
 
 export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     log = await applyCreated<DailyLogInsert>(log);
 
@@ -60,7 +61,7 @@ export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | nu
 }
 
 export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<DailyLog | null> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     log = await applyUpdated<DailyLogUpdate>(log);
 
@@ -75,7 +76,7 @@ export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<D
 }
 
 export const deleteDailyLog = async (id: string): Promise<boolean> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { error } = await deleteWithBusinessCheck("daily_logs", id, business.id);
 
@@ -88,7 +89,7 @@ export const deleteDailyLog = async (id: string): Promise<boolean> => {
 }
 
 export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
         filter: {
@@ -109,7 +110,7 @@ export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
 };
 
 export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
         orderBy: { column: "date", ascending: false },
@@ -196,7 +197,7 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
 }
 
 export const getDailyLogWithDetailsById = async (id: string): Promise<DailyLogWithDetails> => {
-    const { business } = await withBusinessServer();
+    const { business } = await ensureBusinessOrRedirect();
 
     const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
         filter: { id: id },
