@@ -11,9 +11,11 @@ import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
+import { AIAssistantButton } from "@/components/ai-assistant-button";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { getUserById } from "@/app/actions/users";
 import { User } from "@/types/users";
+import { Toaster } from "@/components/toaster";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading: isKindeLoading } = useKindeAuth();
@@ -68,6 +70,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <div className="fixed bottom-4 right-4 z-40">
                         <SyncStatusIndicator />
                     </div>
+                    <AIAssistantButton />
                     {pathname === "/dashboard/map" ? (
                         <div className="pb-20 lg:pb-6">{children}</div>
                     ) : (
@@ -79,6 +82,9 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {isMobile && <BottomNav />}
             </div>
             {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
+            <SyncStatusIndicator />
+            <PushManager />
+            <Toaster />
         </div>
     );
 }

@@ -2,7 +2,7 @@
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { DailyLogInsert, DailyLogWithDetails } from "@/types/daily-logs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createDailyLog } from "@/app/actions/daily-logs";
 import { createDailyLogMaterial } from "@/app/actions/daily-log-materials";
 import { createDailyLogEquipment } from "@/app/actions/daily-log-equipment";
@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/types/equipment";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { CrewMember } from "@/types/crew-members";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type CreateDailyLogModalProps = {
     crews: Crew[];
@@ -33,6 +34,9 @@ export default function CreateDailyLogModal({
     onClose,
     onSave
 }: CreateDailyLogModalProps) {
+    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         date: format(new Date(), "yyyy-MM-dd"),
         project_id: "",
@@ -70,16 +74,102 @@ export default function CreateDailyLogModal({
         condition: string;
     }>>([]);
     const { getUser, isLoading } = useKindeAuth();
-    if (isLoading) {
-        return <div className="loading">Loading...</div>;
-    }
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const user = getUser();
-    if (!user) {
-        throw new Error("User not authenticated");
-    }
-    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+
+    // Check for AI-generated log data on component mount
+    useEffect(() => {
+        const aiLogData = sessionStorage.getItem('aiGeneratedLog');
+        if (aiLogData) {
+            try {
+                const parsedData = JSON.parse(aiLogData);
+                console.log('Processing AI log data:', parsedData);
+                
+                // Pre-fill form with AI-generated data
+                if (parsedData.summary) {
+                    setFormData(prev => ({ ...prev, work_completed: parsedData.summary }));
+                }
+                if (parsedData.work_completed) {
+                    if (Array.isArray(parsedData.work_completed)) {
+                        setFormData(prev => ({
+                            ...prev,
+                            work_completed: parsedData.work_completed.join('. ')
+                        }));
+                    } else {
+                        setFormData(prev => ({ ...prev, work_completed: parsedData.work_completed }));
+                    }
+                }
+                if (parsedData.weather) {
+                    setFormData(prev => ({ ...prev, weather: parsedData.weather }));
+                }
+                if (parsedData.safety_notes) {
+                    setFormData(prev => ({ ...prev, safety: parsedData.safety_notes }));
+                }
+                if (parsedData.issues) {
+                    if (Array.isArray(parsedData.issues)) {
+                        setFormData(prev => ({
+                            ...prev,
+                            delays: parsedData.issues.join('. ')
+                        }));
+                    } else {
+                        setFormData(prev => ({ ...prev, delays: parsedData.issues }));
+                    }
+                }
+
+                // Handle materials
+                if (parsedData.materials_used && Array.isArray(parsedData.materials_used)) {
+                    const aiMaterials = parsedData.materials_used.map((material: any, index: number) => ({
+                        id: `ai-${index}`,
+                        name: material.name || material || '',
+                        quantity: material.quantity || '0',
+                        cost: 0,
+                        quantityValue: parseFloat(material.quantity) || 0,
+                        quantityUnit: material.unit || '',
+                        supplier: ''
+                    }));
+                    setMaterials(aiMaterials);
+                }
+
+                // Handle equipment
+                if (parsedData.equipment_used && Array.isArray(parsedData.equipment_used)) {
+                    const aiEquipment = parsedData.equipment_used.map((equip: any, index: number) => ({
+                        id: `ai-equip-${index}`,
+                        equipmentId: '',
+                        name: equip.name || equip || '',
+                        operator: '',
+                        crewMemberId: null,
+                        hours: 8,
+                        condition: 'good'
+                    }));
+                    setEquipment(aiEquipment);
+                }
+
+                // Clear from session storage
+                sessionStorage.removeItem('aiGeneratedLog');
+                console.log('AI data processed and cleared from sessionStorage');
+            } catch (err) {
+                console.error('Error parsing AI log data:', err);
+            }
+        } else {
+            // Check for AI-generated content from URL parameters
+            const aiSummary = searchParams.get('ai_summary');
+            const aiTranscription = searchParams.get('ai_transcription');
+            const aiSafetyNotes = searchParams.get('ai_safety_notes');
+            const aiWeather = searchParams.get('ai_weather');
+            const aiCrewNotes = searchParams.get('ai_crew_notes');
+
+            if (aiSummary || aiTranscription) {
+                setFormData(prev => ({
+                    ...prev,
+                    work_completed: aiSummary || aiTranscription || "",
+                    safety: aiSafetyNotes || "",
+                    weather: aiWeather || "",
+                    notes: aiCrewNotes || "",
+                }));
+            }
+        }
+    }, [searchParams.toString()]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -268,7 +358,7 @@ export default function CreateDailyLogModal({
 
             // Create the main daily log
             const dailyLogData = {
-                author_id: user.id,
+                author_id: user?.id,
                 project_id: formData.project_id,
                 crew_id: formData.crew_id || null,
                 date: formData.date,
@@ -405,6 +495,14 @@ export default function CreateDailyLogModal({
         resetForm();
         onClose();
     };
+
+
+    if (isLoading) {
+        return <div className="loading">Loading...</div>;
+    }
+    if (!user) {
+        throw new Error("User not authenticated");
+    }
 
     if (!isOpen) return null;
 

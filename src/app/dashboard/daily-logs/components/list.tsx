@@ -1,34 +1,53 @@
 "use client";
+
 import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CreateDailyLogModal from "./modal-log";
 import { Equipment } from "@/types/equipment";
 import { CrewMember } from "@/types/crew-members";
+import { useSearchParams } from "next/navigation";
 
 interface DailyLogsListProps {
-    initialLogs: DailyLogWithDetails[];
-    initialCrews: Crew[];
-    initialCrewMembers: CrewMember[];
-    initialProjects: Project[];
-    initialEquipments: Equipment[]
+    logs: DailyLogWithDetails[];
+    crews: Crew[];
+    crewMembers: CrewMember[];
+    projects: Project[];
+    equipments: Equipment[]
 }
 
-export default function DailyLogsList({ initialLogs, initialCrews, initialCrewMembers, initialProjects, initialEquipments }: DailyLogsListProps) {
+export default function DailyLogsList({
+    logs,
+    crews,
+    crewMembers,
+    projects,
+    equipments,
+}: {
+    logs: DailyLogWithDetails[];
+    crews: Crew[];
+    crewMembers: CrewMember[];
+    projects: Project[];
+    equipments: Equipment[];
+}) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [logs, setLogs] = useState<DailyLogWithDetails[]>(initialLogs);
-    const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(initialLogs);
+    const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(logs);
     const [selectedLog, setSelectedLog] = useState<DailyLogWithDetails | null>(null);
-    const [crews] = useState<Crew[]>(initialCrews);
-    const [crewMembers] = useState<CrewMember[]>(initialCrewMembers);
-    const [projects] = useState<Project[]>(initialProjects);
-    const [equipments] = useState<Equipment[]>(initialEquipments);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const searchParams = useSearchParams();
+
+    // Check for AI-generated data and auto-open modal
+    useEffect(() => {
+        const aiLogData = sessionStorage.getItem('aiGeneratedLog');
+        const aiParam = searchParams.get('ai');
+
+        if (aiLogData || aiParam === 'true') {
+            setIsCreateModalOpen(true);
+        }
+    }, [searchParams]);
 
     const handleNewLog = (newLog: DailyLogWithDetails) => {
-        setLogs(prev => [newLog, ...prev]);
         setFilteredLogs(prev => [newLog, ...prev]);
     };
 
