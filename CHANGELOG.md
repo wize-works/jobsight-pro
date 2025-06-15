@@ -1,3 +1,10 @@
+# [1.41.0](https://github.com/wize-works/jobsight-pro/compare/v1.40.2...v1.41.0) (2025-06-15)
+
+
+### Features
+
+* enhance message input handling and focus management in AI assistant panel ([41fb231](https://github.com/wize-works/jobsight-pro/commit/41fb2318072677a76fe3aefbd52339a8fb32cd18))
+
 ## [1.40.2](https://github.com/wize-works/jobsight-pro/compare/v1.40.1...v1.40.2) (2025-06-14)
 
 
