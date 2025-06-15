@@ -151,48 +151,84 @@ export async function createDailyLogFromAI(data: {
     try {
         const { business } = await ensureBusinessOrRedirect();
 
-        // Enhance the work summary using AI
-        const enhancementPrompt = `Take this brief work summary and structure it into proper daily log format:
+        // Enhanced AI prompt to extract all available information
+        const enhancementPrompt = `Analyze this construction work summary and extract ALL available information into a structured format:
 
 "${data.workSummary}"
 
-Extract and organize into:
-- Work completed (bullet points)
-- Materials used (if mentioned)
-- Safety notes (if mentioned)
-- Issues or delays (if mentioned)
-- Weather conditions (if mentioned)
+Return a JSON object with the following fields (use null for missing information, don't make up data):
 
-Keep the tone professional but preserve the original meaning. If information is missing, don't make it up.`;
+{
+  "work_completed": "Brief summary of work done",
+  "work_planned": "Work planned for tomorrow/next day if mentioned",
+  "start_time": "Start time in HH:MM format if mentioned",
+  "end_time": "End time in HH:MM format if mentioned", 
+  "hours_worked": number (calculate from start/end time or extract if mentioned),
+  "overtime": number (overtime hours if mentioned),
+  "weather": "Weather conditions if mentioned",
+  "safety": "Safety notes, incidents, or observations",
+  "quality": "Quality notes or inspections mentioned",
+  "delays": "Any delays, issues, or problems mentioned",
+  "crew_info": "Crew name, size, or members if mentioned",
+  "materials": ["array", "of", "materials", "mentioned"],
+  "equipment": ["array", "of", "equipment", "used"]
+}
+
+Only include information that is actually present in the input. Be precise and factual.`;
 
         const completion = await openai.chat.completions.create({
             model: AI_MODELS.CHAT,
             messages: [
-                { role: "system", content: "You are a construction daily log assistant. Structure work summaries into organized daily logs." },
+                { role: "system", content: "You are a construction daily log assistant. Extract structured data from work summaries. Return only valid JSON." },
                 { role: "user", content: enhancementPrompt }
             ],
-            temperature: 0.2,
-            max_tokens: 500,
+            temperature: 0.1,
+            max_tokens: 800,
         });
 
-        const enhancedSummary = completion.choices[0]?.message?.content || data.workSummary;
+        let extractedData;
+        try {
+            const aiResponse = completion.choices[0]?.message?.content?.trim();
+            extractedData = JSON.parse(aiResponse || "{}");
+        } catch (error) {
+            console.error("Failed to parse AI response as JSON:", error);
+            extractedData = { work_completed: data.workSummary };
+        }
 
-        // Create the daily log using existing action
+        // Calculate hours worked if start and end times are provided
+        let hoursWorked = extractedData.hours_worked || 0;
+        if (extractedData.start_time && extractedData.end_time && !hoursWorked) {
+            try {
+                const start = new Date(`2024-01-01 ${extractedData.start_time}`);
+                const end = new Date(`2024-01-01 ${extractedData.end_time}`);
+                hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            } catch (error) {
+                console.error("Error calculating hours worked:", error);
+            }
+        }
+
+        // Calculate overtime (anything over 8 hours)
+        let overtime = extractedData.overtime || 0;
+        if (hoursWorked > 8 && !overtime) {
+            overtime = hoursWorked - 8;
+        }
+
+        // Create the daily log using existing action with enhanced data
         const result = await createDailyLog({
             project_id: data.projectId,
-            crew_id: "", // enhance with AI if mentioned
+            crew_id: "", // TODO: Match crew_info to actual crew IDs from database
             date: new Date().toISOString().split('T')[0],
-            work_completed: enhancedSummary,
-            work_planned: "", // enhance with ai
-            start_time: "", // if provided, enhance with AI
-            end_time: "", // if provided, enhance with AI
-            hours_worked: 0, // calculate based on start and end time if provided or get value if available 
-            overtime: 0, // calculate based on hours worked if provided or get value if available
-            weather: "", // enhance with AI if mentioned
-            safety: "", // enhance with AI if mentioned
-            quality: "", // enhance with AI if mentioned
-            delays: "", // enhance with AI if mentioned
-            notes: `Created via AI Assistant from: "${data.workSummary}"`,
+            work_completed: extractedData.work_completed || data.workSummary,
+            work_planned: extractedData.work_planned || "",
+            start_time: extractedData.start_time || "",
+            end_time: extractedData.end_time || "",
+            hours_worked: hoursWorked,
+            overtime: overtime,
+            weather: extractedData.weather || "",
+            safety: extractedData.safety || "",
+            quality: extractedData.quality || "",
+            delays: extractedData.delays || "",
+            notes: `Created via AI Assistant from: "${data.workSummary}"${extractedData.materials?.length ? `\n\nMaterials mentioned: ${extractedData.materials.join(', ')}` : ''}${extractedData.equipment?.length ? `\n\nEquipment mentioned: ${extractedData.equipment.join(', ')}` : ''}${extractedData.crew_info ? `\n\nCrew info: ${extractedData.crew_info}` : ''}`,
             author_id: data.userId,
             created_by: data.userId,
             updated_by: data.userId,
