@@ -144,34 +144,17 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         try {
             // Convert conversation to the format expected by the action
             const conversationHistory = conversation.slice(-5).map(msg => ({
-                role: msg.type === "user" ? "user" : "assistant" as const,
-                content: msg.content
+                role: msg.type, // Explicitly use "user" or "assistant" from msg.type
+                content: msg.content,
+                timestamp: msg.timestamp.toISOString()
             }));
 
             const result = await processAIQuery(message, conversationHistory);
 
-            // Handle different types of AI responses
-            if (result.action === 'create_daily_log' && result.data) {
-                addToConversation("assistant", "I'm creating a daily log for this work. Let me structure your information...");
-
-                const logResult = await createDailyLogFromAI(result.data);
-
-                if (logResult.success) {
-                    const successMessage = `Great! I've created your daily log for ${result.data.projectName}. You can view it in your daily logs or make any adjustments needed.`;
-                    addToConversation("assistant", successMessage);
-
-                    // Optionally navigate to the daily log
-                    if (logResult.logId) {
-                        setTimeout(() => {
-                            router.push(`/dashboard/daily-logs/${logResult.logId}`);
-                        }, 2000);
-                    }
-                } else {
-                    addToConversation("assistant", `I had trouble saving the daily log: ${logResult.error}. You can try creating it manually with the enhanced information I provided.`);
-                }
-            } else if (result.action === 'navigate' && result.path) {
+            // Ensure result.path is defined before using it
+            if (result.action === 'navigate' && result.path) {
                 addToConversation("assistant", result.response);
-                setTimeout(() => router.push(result.path), 1500);
+                setTimeout(() => router.push(result.path!), 1500); // Use non-null assertion after the check
             } else {
                 addToConversation("assistant", result.response);
             }
@@ -200,9 +183,8 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     return (
         <>
             {/* Sliding panel */}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-                isOpen ? 'translate-x-0' : 'translate-x-full'
-            } flex flex-col border-l border-base-300`}
+            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'
+                } flex flex-col border-l border-base-300`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
@@ -268,11 +250,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                 className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[85%] p-3 rounded-lg ${
-                                        msg.type === 'user'
-                                            ? 'bg-primary text-primary-content ml-2'
-                                            : 'bg-base-200 text-base-content mr-2'
-                                    }`}
+                                    className={`max-w-[85%] p-3 rounded-lg ${msg.type === 'user'
+                                        ? 'bg-primary text-primary-content ml-2'
+                                        : 'bg-base-200 text-base-content mr-2'
+                                        }`}
                                 >
                                     <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
                                     <div className="text-xs opacity-70 mt-1">
@@ -280,14 +261,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                     </div>
                                 </div>
                                 <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                        msg.type === 'user' ? 'order-1 bg-primary' : 'order-2 bg-secondary'
-                                    }`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === 'user' ? 'order-1 bg-primary' : 'order-2 bg-secondary'
+                                        }`}
                                 >
                                     <i
-                                        className={`fas ${
-                                            msg.type === 'user' ? 'fa-user' : 'fa-brain'
-                                        } text-xs text-white`}
+                                        className={`fas ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
+                                            } text-xs text-white`}
                                     ></i>
                                 </div>
                             </div>
@@ -330,9 +309,8 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             <button
                                 type="button"
                                 onClick={isRecording ? stopRecording : startRecording}
-                                className={`btn btn-sm btn-square ${
-                                    isRecording ? 'btn-error' : 'btn-secondary'
-                                }`}
+                                className={`btn btn-sm btn-square ${isRecording ? 'btn-error' : 'btn-secondary'
+                                    }`}
                                 disabled={isProcessing}
                             >
                                 <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
