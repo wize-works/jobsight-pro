@@ -25,6 +25,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
     const router = useRouter();
 
     const scrollToBottom = () => {
@@ -168,6 +169,13 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e as unknown as React.FormEvent);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!textInput.trim() || isProcessing) return;
@@ -176,6 +184,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         setTextInput("");
         addToConversation("user", message);
         await processQuery(message);
+
+        // Refocus the message input box after submission
+        messageInputRef.current?.focus();
     };
 
     if (!isOpen) return null;
@@ -183,9 +194,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
     return (
         <>
             {/* Sliding panel */}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'
-                } flex flex-col border-l border-base-300`}
-            >
+            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`} style={{ maxWidth: '100vw', overflow: 'hidden' }}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
                     <div className="flex items-center gap-3">
@@ -297,8 +306,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                         <form onSubmit={handleSubmit} className="flex gap-2 items-end">
                             <div className="flex-1">
                                 <textarea
+                                    ref={messageInputRef}
                                     value={textInput}
                                     onChange={(e) => setTextInput(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     placeholder="Ask about projects, create daily logs..."
                                     className="textarea textarea-bordered textarea-sm w-full resize-none"
                                     disabled={isProcessing}
