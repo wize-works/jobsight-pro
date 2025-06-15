@@ -4,9 +4,8 @@
 import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
-import { getProjectsByBusiness } from "./projects";
-import { getDailyLogsByProject } from "./daily-logs";
-import { getTasksByProject } from "./tasks";
+import { getProjects } from "./projects";
+import { DailyLogInsert } from "@/types/daily-logs";
 
 interface AIQueryResult {
     response: string;
@@ -28,8 +27,8 @@ export async function processAIQuery(
         const { business, userId } = await ensureBusinessOrRedirect();
 
         // Get context data
-        const projects = await getProjectsByBusiness();
-        
+        const projects = await getProjects();
+
         // Build system prompt with context
         const systemPrompt = `You are a helpful construction project management assistant for ${business.name}. 
 
@@ -69,12 +68,12 @@ Current conversation context: The user has been talking about construction work 
         }
 
         // Check if this is a daily log creation request
-        if (message.toLowerCase().includes('daily log') || 
+        if (message.toLowerCase().includes('daily log') ||
             message.toLowerCase().includes('work today') ||
             message.toLowerCase().includes('completed today')) {
-            
+
             // Try to extract project and work details
-            const projectMatch = projects.find(p => 
+            const projectMatch = projects.find(p =>
                 message.toLowerCase().includes(p.name.toLowerCase()) ||
                 message.toLowerCase().includes(p.name.toLowerCase().replace(/\s+/g, ''))
             );
@@ -136,9 +135,9 @@ export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string; 
         return { text: response.text };
     } catch (error) {
         console.error("Transcription error:", error);
-        return { 
+        return {
             text: "",
-            error: "Failed to transcribe audio. Please try again." 
+            error: "Failed to transcribe audio. Please try again."
         };
     }
 }
@@ -181,25 +180,36 @@ Keep the tone professional but preserve the original meaning. If information is 
         // Create the daily log using existing action
         const result = await createDailyLog({
             project_id: data.projectId,
-            log_date: new Date().toISOString().split('T')[0],
-            work_summary: enhancedSummary,
+            crew_id: "", // enhance with AI if mentioned
+            date: new Date().toISOString().split('T')[0],
+            work_completed: enhancedSummary,
+            work_planned: "", // enhance with ai
+            start_time: "", // if provided, enhance with AI
+            end_time: "", // if provided, enhance with AI
+            hours_worked: 0, // calculate based on start and end time if provided or get value if available 
+            overtime: 0, // calculate based on hours worked if provided or get value if available
+            weather: "", // enhance with AI if mentioned
+            safety: "", // enhance with AI if mentioned
+            quality: "", // enhance with AI if mentioned
+            delays: "", // enhance with AI if mentioned
             notes: `Created via AI Assistant from: "${data.workSummary}"`,
+            author_id: data.userId,
             created_by: data.userId,
             updated_by: data.userId,
             business_id: business.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-        });
+        } as DailyLogInsert);
 
-        if (result.success && result.data) {
+        if (result && result.id) {
             return {
                 success: true,
-                logId: result.data.id
+                logId: result.id
             };
         } else {
             return {
                 success: false,
-                error: result.error || "Failed to create daily log"
+                error: "Failed to create daily log"
             };
         }
 
