@@ -5,6 +5,8 @@ import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
 import { getProjects } from "./projects";
+import { getClients } from "./clients";
+import { getCrews } from "./crews";
 import { DailyLogInsert } from "@/types/daily-logs";
 
 interface AIQueryResult {
@@ -28,6 +30,8 @@ export async function processAIQuery(
 
         // Get context data
         const projects = await getProjects();
+        const clients = await getClients();
+        const crews = await getCrews();
 
         // Build system prompt with context
         const systemPrompt = `You are a helpful construction project management assistant for ${business.name}. 
@@ -38,6 +42,10 @@ Your capabilities:
 3. Help with project management tasks
 
 Available projects: ${projects.map(p => p.name).join(', ')}
+
+Available clients: ${clients.map(c => c.name).join(', ')}
+
+Available crews: ${crews.map(c => c.name).join(', ')}
 
 When a user wants to create a daily log, respond with action: "create_daily_log" and include the structured data.
 When answering questions, provide helpful responses based on the context.
