@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getMediaTags = async (): Promise<MediaTag[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("media_tags", business.id);
+export const getMediaTags = async (businessId: string): Promise<MediaTag[]> => {
+
+
+    const { data, error } = await fetchByBusiness("media_tags", businessId);
 
     if (error) {
         console.error("Error fetching media tags:", error);
@@ -26,10 +26,10 @@ export const getMediaTags = async (): Promise<MediaTag[]> => {
     return data as unknown as MediaTag[];
 }
 
-export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getMediaTagById = async (businessId: string, id: string): Promise<MediaTag | null> => {
 
-    const { data, error } = await fetchByBusiness("media_tags", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("media_tags", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching media tag by ID:", error);
@@ -43,12 +43,12 @@ export const getMediaTagById = async (id: string): Promise<MediaTag | null> => {
     return null;
 };
 
-export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createMediaTag = async (businessId: string, tag: MediaTagInsert): Promise<MediaTag | null> => {
+
 
     tag = await applyCreated<MediaTagInsert>(tag);
 
-    const { data, error } = await insertWithBusiness("media_tags", tag, business.id);
+    const { data, error } = await insertWithBusiness("media_tags", tag, businessId);
 
     if (error) {
         console.error("Error creating media tag:", error);
@@ -58,12 +58,12 @@ export const createMediaTag = async (tag: MediaTagInsert): Promise<MediaTag | nu
     return data as unknown as MediaTag;
 }
 
-export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<MediaTag | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateMediaTag = async (businessId: string, id: string, tag: MediaTagUpdate): Promise<MediaTag | null> => {
+
 
     tag = await applyUpdated<MediaTagUpdate>(tag);
 
-    const { data, error } = await updateWithBusinessCheck("media_tags", id, tag, business.id);
+    const { data, error } = await updateWithBusinessCheck("media_tags", id, tag, businessId);
 
     if (error) {
         console.error("Error updating media tag:", error);
@@ -73,10 +73,10 @@ export const updateMediaTag = async (id: string, tag: MediaTagUpdate): Promise<M
     return data as unknown as MediaTag;
 }
 
-export const deleteMediaTag = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteMediaTag = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("media_tags", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("media_tags", id, businessId);
 
     if (error) {
         console.error("Error deleting media tag:", error);
@@ -86,10 +86,10 @@ export const deleteMediaTag = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchMediaTags = async (query: string): Promise<MediaTag[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchMediaTags = async (businessId: string, query: string): Promise<MediaTag[]> => {
 
-    const { data, error } = await fetchByBusiness("media_tags", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("media_tags", businessId, "*", {
         filter: {
             or: [
                 { tag: { ilike: `%${query}%` } },

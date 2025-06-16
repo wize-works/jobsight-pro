@@ -5,8 +5,10 @@ import { toast } from "@/hooks/use-toast";
 import { User, UserRole, userRoleOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useEffect, useState } from "react";
+import { useBusiness } from "@/lib/business-context";
 
 export default function UsersPermissionsTab() {
+    const { businessId } = useBusiness();
     const [users, setUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -24,7 +26,7 @@ export default function UsersPermissionsTab() {
     const loadUsers = async () => {
         try {
             setLoadingUsers(true);
-            const usersData = await getUsers();
+            const usersData = await getUsers(businessId);
             setUsers(usersData);
         } catch (error) {
             console.error("Error loading users:", error);
@@ -46,7 +48,7 @@ export default function UsersPermissionsTab() {
         setInviting(true);
         try {
             const fullName = `${inviteFirstName} ${inviteLastName}`.trim();
-            const result = await sendUserInvitation(inviteEmail, fullName, inviteRole);
+            const result = await sendUserInvitation(businessId, inviteEmail, fullName, inviteRole);
 
             if (result.success && result.user) {
                 setUsers(prev => [...prev, result.user]);
@@ -86,11 +88,11 @@ export default function UsersPermissionsTab() {
 
             if (userStatus === 'invited') {
                 // Revoke invitation for invited users
-                const result = await revokeUserInvitation(userId);
+                const result = await revokeUserInvitation(businessId, userId);
                 success = result.success;
             } else {
                 // Delete user for active users
-                success = await deleteUser(userId);
+                success = await deleteUser(businessId, userId);
             }
 
             if (success) {
@@ -116,7 +118,7 @@ export default function UsersPermissionsTab() {
 
     const handleResendInvitation = async (userId: string, userEmail: string) => {
         try {
-            const result = await resendUserInvitation(userId);
+            const result = await resendUserInvitation(businessId, userId);
 
             if (result.success) {
                 toast.success({

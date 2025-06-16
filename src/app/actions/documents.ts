@@ -10,12 +10,11 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getDocuments = async (): Promise<Document[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDocuments = async (businessId: string): Promise<Document[]> => {
 
-    const { data, error } = await fetchByBusiness("documents", business.id);
+
+    const { data, error } = await fetchByBusiness("documents", businessId);
 
     if (error) {
         console.error("Error fetching documents:", error);
@@ -29,10 +28,10 @@ export const getDocuments = async (): Promise<Document[]> => {
     return data as unknown as Document[];
 }
 
-export const getDocumentById = async (id: string): Promise<Document | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDocumentById = async (businessId: string, id: string): Promise<Document | null> => {
 
-    const { data, error } = await fetchByBusiness("documents", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("documents", businessId, "*", {
         filter: { id: id }
     });
 
@@ -48,12 +47,12 @@ export const getDocumentById = async (id: string): Promise<Document | null> => {
     return null;
 };
 
-export const createDocument = async (doc: DocumentInsert): Promise<Document | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createDocument = async (businessId: string, doc: DocumentInsert): Promise<Document | null> => {
+
 
     doc = await applyCreated<DocumentInsert>(doc);
 
-    const { data, error } = await insertWithBusiness("documents", doc, business.id);
+    const { data, error } = await insertWithBusiness("documents", doc, businessId);
 
     if (error) {
         console.error("Error creating document:", error);
@@ -63,12 +62,12 @@ export const createDocument = async (doc: DocumentInsert): Promise<Document | nu
     return data as unknown as Document;
 }
 
-export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<Document | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateDocument = async (businessId: string, id: string, doc: DocumentUpdate): Promise<Document | null> => {
+
 
     doc = await applyUpdated<DocumentUpdate>(doc);
 
-    const { data, error } = await updateWithBusinessCheck("documents", id, doc, business.id);
+    const { data, error } = await updateWithBusinessCheck("documents", id, doc, businessId);
 
     if (error) {
         console.error("Error updating document:", error);
@@ -78,10 +77,10 @@ export const updateDocument = async (id: string, doc: DocumentUpdate): Promise<D
     return data as unknown as Document;
 }
 
-export const deleteDocument = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteDocument = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("documents", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("documents", id, businessId);
 
     if (error) {
         console.error("Error deleting document:", error);
@@ -91,10 +90,10 @@ export const deleteDocument = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchDocuments = async (query: string): Promise<Document[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchDocuments = async (businessId: string, query: string): Promise<Document[]> => {
 
-    const { data, error } = await fetchByBusiness("documents", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("documents", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

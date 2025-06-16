@@ -7,22 +7,48 @@ import {
     useKindeBrowserClient,
 } from "@kinde-oss/kinde-auth-nextjs";
 import { User } from "@/types/users";
+import { getUserByAuthId } from "../actions/users";
+import { useEffect, useState } from "react";
+import { get } from "http";
+import { useBusiness } from "@/lib/business-context";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
-    userData: User | null;
-    isLoadingUser?: boolean;
 };
 
 export const Navbar = ({
     sidebarCollapsed,
     setSidebarCollapsed,
-    userData,
-    isLoadingUser = false,
 }: NavbarProps) => {
+    const { businessId, loading } = useBusiness();
     const isMobile = useIsMobile();
     const { user: kindeUser } = useKindeBrowserClient();
+    const [userData, setUserData] = useState<User | null>(null);
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+    useEffect(() => {
+        if (!businessId || !kindeUser?.id || loading) {
+            console.error("Invalid or missing businessId or kindeUser.id");
+            setUserData(null);
+            setIsLoadingUser(true);
+            return;
+        }
+
+        const loadUserData = async () => {
+            try {
+                const dbUser = await getUserByAuthId(businessId, kindeUser.id);
+                setUserData(dbUser);
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                setUserData(null);
+            } finally {
+                setIsLoadingUser(false);
+            }
+        };
+
+        loadUserData();
+    }, [kindeUser?.id, businessId, loading]);
 
     const handleSidebarToggle = () => {
         localStorage.setItem(

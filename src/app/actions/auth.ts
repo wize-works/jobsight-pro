@@ -1,4 +1,3 @@
-
 "use server";
 
 import { createServerClient } from "@/lib/supabase";
@@ -49,7 +48,7 @@ export async function sendPasswordResetEmail(email: string) {
             to: email,
             subject: "Reset Your JobSight Pro Password",
             react: PasswordResetEmail({
-                recipientName: user.first_name 
+                recipientName: user.first_name
                     ? `${user.first_name} ${user.last_name || ""}`.trim()
                     : user.email,
                 resetUrl: resetUrl,
@@ -82,7 +81,7 @@ export async function sendPasswordResetEmail(email: string) {
 export async function verifyResetToken(token: string) {
     try {
         const decoded = JSON.parse(Buffer.from(token, "base64").toString());
-        
+
         // Check if token is expired
         if (new Date(decoded.expiresAt) < new Date()) {
             return {

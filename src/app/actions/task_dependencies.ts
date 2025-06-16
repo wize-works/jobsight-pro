@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getTaskDependencies = async (): Promise<TaskDependency[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("task_dependencies", business.id);
+export const getTaskDependencies = async (businessId: string): Promise<TaskDependency[]> => {
+
+
+    const { data, error } = await fetchByBusiness("task_dependencies", businessId);
 
     if (error) {
         console.error("Error fetching task dependencies:", error);
@@ -26,10 +26,10 @@ export const getTaskDependencies = async (): Promise<TaskDependency[]> => {
     return data as unknown as TaskDependency[];
 }
 
-export const getTaskDependencyById = async (id: string): Promise<TaskDependency | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getTaskDependencyById = async (businessId: string, id: string): Promise<TaskDependency | null> => {
 
-    const { data, error } = await fetchByBusiness("task_dependencies", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("task_dependencies", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching task dependency by ID:", error);
@@ -43,12 +43,12 @@ export const getTaskDependencyById = async (id: string): Promise<TaskDependency 
     return null;
 };
 
-export const createTaskDependency = async (dependency: TaskDependencyInsert): Promise<TaskDependency | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createTaskDependency = async (businessId: string, dependency: TaskDependencyInsert): Promise<TaskDependency | null> => {
+
 
     dependency = await applyCreated<TaskDependencyInsert>(dependency);
 
-    const { data, error } = await insertWithBusiness("task_dependencies", dependency, business.id);
+    const { data, error } = await insertWithBusiness("task_dependencies", dependency, businessId);
 
     if (error) {
         console.error("Error creating task dependency:", error);
@@ -58,12 +58,12 @@ export const createTaskDependency = async (dependency: TaskDependencyInsert): Pr
     return data as unknown as TaskDependency;
 }
 
-export const updateTaskDependency = async (id: string, dependency: TaskDependencyUpdate): Promise<TaskDependency | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateTaskDependency = async (businessId: string, id: string, dependency: TaskDependencyUpdate): Promise<TaskDependency | null> => {
+
 
     dependency = await applyUpdated<TaskDependencyUpdate>(dependency);
 
-    const { data, error } = await updateWithBusinessCheck("task_dependencies", id, dependency, business.id);
+    const { data, error } = await updateWithBusinessCheck("task_dependencies", id, dependency, businessId);
 
     if (error) {
         console.error("Error updating task dependency:", error);
@@ -73,10 +73,10 @@ export const updateTaskDependency = async (id: string, dependency: TaskDependenc
     return data as unknown as TaskDependency;
 }
 
-export const deleteTaskDependency = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteTaskDependency = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("task_dependencies", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("task_dependencies", id, businessId);
 
     if (error) {
         console.error("Error deleting task dependency:", error);
@@ -86,10 +86,10 @@ export const deleteTaskDependency = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchTaskDependencies = async (query: string): Promise<TaskDependency[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchTaskDependencies = async (businessId: string, query: string): Promise<TaskDependency[]> => {
 
-    const { data, error } = await fetchByBusiness("task_dependencies", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("task_dependencies", businessId, "*", {
         filter: {
             or: [
                 { task_id: { ilike: `%${query}%` } },

@@ -29,6 +29,7 @@ import MilestoneModal from "../components/modal-milestone";
 import ProjectEditModal from "../components/modal-edit";
 import TaskModal from "../components/modal-task";
 import MediaModal from "../components/modal-media";
+import { useBusiness } from "@/lib/business-context";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -61,6 +62,7 @@ type ProjectDetailParams = {
 };
 
 export default function ProjectDetail(params: ProjectDetailParams) {
+    const { businessId } = useBusiness();
     const [issueModalOpen, setIssueModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
@@ -97,17 +99,17 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     setClient(client);
                     setContacts(contacts);
                 } else if (project && project.client_id) {
-                    const clientData = await getClientById(project.client_id);
+                    const clientData = await getClientById(businessId, project.client_id);
                     setClient(clientData);
 
-                    const contactsData = await getClientContactsByClientId(project.client_id);
+                    const contactsData = await getClientContactsByClientId(businessId, project.client_id);
                     setContacts(contactsData);
                 } else {
                     setClient(null);
                 }
 
                 if (project && project.manager_id) {
-                    const managerData = await getCrewMemberById(project.manager_id);
+                    const managerData = await getCrewMemberById(businessId, project.manager_id);
                     setManager(managerData as CrewMember);
                 } else {
                     setManager({} as CrewMember);
@@ -138,11 +140,11 @@ export default function ProjectDetail(params: ProjectDetailParams) {
     const handleMilestoneSave = async (milestone: ProjectMilestone) => {
         if (selectedMilestone) {
             console.log("Updating milestone:", milestone);
-            await updateProjectMilestone(selectedMilestone.id, milestone);
+            await updateProjectMilestone(businessId, selectedMilestone.id, milestone);
             setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
         } else {
             console.log("Creating new milestone:", milestone);
-            await createProjectMilestone(milestone);
+            await createProjectMilestone(businessId, milestone);
             setMilestones((prev) => [...prev, milestone]);
         }
         setMilestoneModalOpen(false);
@@ -157,13 +159,13 @@ export default function ProjectDetail(params: ProjectDetailParams) {
 
     const handleTaskSave = async (task: Task) => {
         if (selectedTask) {
-            await updateTask(selectedTask.id, task);
+            await updateTask(businessId, selectedTask.id, task);
             setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, ...task } as TaskWithDetails : t));
         } else {
-            await createTask(task);
+            await createTask(businessId, task);
             // We need to fetch the updated task list since the new task might have additional details
             if (project) {
-                const updatedTasks = await getTasksByProjectId(project.id);
+                const updatedTasks = await getTasksByProjectId(businessId, project.id);
                 setTasks(updatedTasks);
             }
         }
@@ -564,8 +566,8 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                     name="progress"
                                     value={progress || 0}
                                     onChange={(e) => setProgress(Number(e.target.value))}
-                                    onMouseUp={(e) => updateProject(project.id, { id: project.id, progress: progress } as ProjectInsert)}
-                                    onTouchEnd={(e) => updateProject(project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                    onMouseUp={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                    onTouchEnd={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
                                 />
                             </div>
                             <div className="stats stats-vertical shadow">

@@ -6,14 +6,18 @@ import { getCrewMembers } from "@/app/actions/crew-members";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import DailyLogsList from "./components/list";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 
 export default async function DailyLogs() {
+    const { business } = await withBusinessServer();
+    const businessId = business.id;
+
     // Fetch data on the server
     const [logs, crews, projects] = await Promise.all([
-        getDailyLogsWithDetails(),
-        getCrews(),
-        getProjects(),
+        getDailyLogsWithDetails(businessId),
+        getCrews(businessId),
+        getProjects(businessId),
     ]);
 
 

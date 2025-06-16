@@ -5,6 +5,7 @@ import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
 import { updateEquipment } from "@/app/actions/equipments";
 import { createEquipmentSpecification, updateEquipmentSpecification } from "@/app/actions/equipment-specifications";
+import { useBusiness } from "@/lib/business-context";
 
 // Use only the fields needed for the form UI
 interface SpecFormState {
@@ -13,6 +14,7 @@ interface SpecFormState {
 }
 
 export default function EditEquipment({ initialEquipment, initialSpecifications }: { initialEquipment: EquipmentWithDetails, initialSpecifications: EquipmentSpecification[] }) {
+    const { businessId } = useBusiness();
     const [equipment, setEquipment] = useState<Partial<EquipmentWithDetails>>(initialEquipment);
     const [specifications, setSpecifications] = useState<EquipmentSpecification[]>(initialSpecifications);
     const router = useRouter();
@@ -61,7 +63,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
             throw new Error("Equipment ID is required to update equipment.");
         }
         const equipmentModel = equipment as EquipmentUpdate;
-        await updateEquipment(equipment.id, equipmentModel);
+        await updateEquipment(businessId, equipment.id, equipmentModel);
         router.push("/dashboard/equipment");
     };
 
@@ -308,7 +310,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                 className="btn btn-sm btn-outline btn-secondary"
                                                 onClick={async () => {
                                                     if (!spec.id) {
-                                                        await createEquipmentSpecification({
+                                                        await createEquipmentSpecification(businessId, {
                                                             equipment_id: equipment.id ?? "",
                                                             name: spec.name,
                                                             value: spec.value,
@@ -320,7 +322,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                             updated_by: null
                                                         });
                                                     } else {
-                                                        await updateEquipmentSpecification(spec.id, { ...spec, name: spec.name, value: spec.value });
+                                                        await updateEquipmentSpecification(businessId, spec.id, { ...spec, name: spec.name, value: spec.value });
                                                     }
                                                 }}
                                                 title="Update"

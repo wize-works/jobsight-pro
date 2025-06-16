@@ -4,21 +4,21 @@ import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
 import { getCrews } from "@/app/actions/crews";
 import { getProjects } from "@/app/actions/projects";
 import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
-import { get } from "http";
-import { getClientById } from "@/app/actions/clients";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function DailyLogPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const { business } = await withBusinessServer();
 
     try {
         // Fetch all required data in parallel
         const [log, crews, projects] = await Promise.all([
-            getDailyLogWithDetailsById(id),
-            getCrews(),
-            getProjects()
+            getDailyLogWithDetailsById(business.id, id),
+            getCrews(business.id),
+            getProjects(business.id)
         ]);
 
-        const crewMembers = await getCrewMembersByCrewId(log?.crew_id || "");
+        const crewMembers = await getCrewMembersByCrewId(business.id, log?.crew_id || "");
 
         // Make sure we have a valid log with materials and equipment arrays
         if (!log) {

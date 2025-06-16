@@ -4,17 +4,17 @@ import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId } from "@/app/actions/client-interactions";
 import { getProjectsByClientId } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { useBusiness } from "@/lib/business-context";
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: clientId } = await params;
-    const kindeSession = await getKindeServerSession()
-    const user = await kindeSession.getUser()
+    const { businessId } = await useBusiness();
 
     const [client, projects, contacts, interactions] = await Promise.all([
-        getClientById(clientId),
-        getProjectsByClientId(clientId),
-        getClientContactsByClientId(clientId),
-        getClientInteractionsByClientId(clientId)
+        getClientById(businessId, clientId),
+        getProjectsByClientId(businessId, clientId),
+        getClientContactsByClientId(businessId, clientId),
+        getClientInteractionsByClientId(businessId, clientId)
     ]);
 
     if (!client) {

@@ -1,9 +1,10 @@
 "use server";
 
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { EquipmentUpdate } from "@/types/equipment";
 import { Media, MediaInsert, MediaType, MediaUpdate } from "@/types/media";
 import { MediaLink, MediaLinkInsert } from "@/types/media_links";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import {
@@ -13,356 +14,7 @@ import {
     BlobSASPermissions,
     SASProtocol,
 } from '@azure/storage-blob';
-import { createServerClient } from "@/lib/supabase";
-import { EquipmentUpdate } from "@/types/equipment";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getMedias = async (): Promise<Media[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("media", business.id);
-
-    if (error) {
-        console.error("Error fetching medias:", error);
-        return [];
-    }
-
-    if (!data || data.length === 0) {
-        return [] as Media[];
-    }
-
-    return data as unknown as Media[];
-}
-
-export const getMediaById = async (id: string): Promise<Media | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("media", business.id, "*", { filter: { id: id } });
-
-    if (error) {
-        console.error("Error fetching media by ID:", error);
-        return null;
-    }
-
-    if (data && data[0]) {
-        return data[0] as unknown as Media;
-    }
-
-    return null;
-};
-
-export const createMedia = async (media: MediaInsert): Promise<Media | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    media = await applyCreated<MediaInsert>(media);
-
-    const { data, error } = await insertWithBusiness("media", media, business.id);
-
-    if (error) {
-        console.error("Error creating media:", error);
-        return null;
-    }
-
-    return data as unknown as Media;
-}
-
-export const updateMedia = async (id: string, media: MediaUpdate): Promise<Media | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    media = await applyUpdated<MediaUpdate>(media);
-
-    const { data, error } = await updateWithBusinessCheck("media", id, media, business.id);
-
-    if (error) {
-        console.error("Error updating media:", error);
-        return null;
-    }
-
-    return data as unknown as Media;
-}
-
-export const deleteMedia = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("media", id, business.id);
-
-    if (error) {
-        console.error("Error deleting media:", error);
-        return false;
-    }
-
-    return true;
-}
-
-export const searchMedias = async (query: string): Promise<Media[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("media", business.id, "*", {
-        filter: {
-            or: [
-                { name: { ilike: `%${query}%` } },
-                { description: { ilike: `%${query}%` } },
-            ],
-        },
-        orderBy: { column: "name", ascending: true },
-    });
-
-    if (error) {
-        console.error("Error searching medias:", error);
-        return [];
-    }
-
-    return data as unknown as Media[];
-};
-
-export const getMediaByEquipmentId = async (equipmentId: string, type: string): Promise<Media[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", business.id, "*", {
-        filter: { linked_id: equipmentId, linked_type: "equipment" },
-        orderBy: { column: "created_at", ascending: false },
-    });
-
-    if (linkError) {
-        console.error("Error fetching media links by equipment ID:", linkError);
-        return [];
-    }
-
-    if (!linkData || linkData.length === 0) {
-        return [];
-    }
-
-    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
-
-    if (mediaIds.length === 0) {
-        return [];
-    }
-    // Build filter object dynamically
-    const filter: any = { id: { in: mediaIds } };
-    if (type && type.trim() !== "") {
-        filter.type = type;
-    }
-
-    const { data, error } = await fetchByBusiness("media", business.id, "*", {
-        filter,
-        orderBy: { column: "created_at", ascending: false },
-    });
-
-    if (error) {
-        console.error("Error fetching medias by equipment ID:", error);
-        return [];
-    }
-
-    return data as unknown as Media[];
-}
-
-export const getMediaByProjectId = async (projectId: string, type: string): Promise<Media[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", business.id, "*", {
-        filter: { linked_id: projectId, linked_type: "project" },
-        orderBy: { column: "created_at", ascending: false },
-    });
-
-    if (linkError) {
-        console.error("Error fetching media links by equipment ID:", linkError);
-        return [];
-    }
-
-    if (!linkData || linkData.length === 0) {
-        return [];
-    }
-
-    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
-
-    if (mediaIds.length === 0) {
-        return [];
-    }
-
-    const { data, error } = await fetchByBusiness("media", business.id, "*", {
-        filter: { id: { in: mediaIds }, type: type },
-        orderBy: { column: "created_at", ascending: false },
-    });
-
-    if (error) {
-        console.error("Error fetching medias by equipment ID:", error);
-        return [];
-    }
-
-    return data as unknown as Media[];
-}
-
-export const linkMediaToEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
-    try {
-        const { business, userId } = await ensureBusinessOrRedirect();
-
-        // Check if link already exists
-        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
-            filter: {
-                media_id: mediaId,
-                linked_id: equipmentId,
-                linked_type: "equipment"
-            }
-        });
-
-        if (existingLinks && existingLinks.length > 0) {
-            console.log("Media already linked to equipment");
-            return true;
-        }
-
-        // Create new link using insertWithBusiness
-        let newLink = {
-            media_id: mediaId,
-            linked_id: equipmentId,
-            linked_type: "equipment"
-        };
-
-        newLink = await applyCreated<MediaLink>(newLink);
-
-
-        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, business.id, {
-            userId: userId
-        });
-
-        if (error) {
-            console.error("Error linking media to equipment:", error);
-            return false;
-        }
-
-        return true;
-    } catch (error) {
-        console.error("Error linking media to equipment:", error);
-        return false;
-    }
-};
-
-export const setEquipmentPrimaryImage = async (equipmentId: string, mediaId: string): Promise<boolean> => {
-    try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        // Get the media item to get its URL
-        const { data: mediaData } = await fetchByBusiness("media", business.id, "*", {
-            filter: { id: mediaId }
-        });
-
-        if (!mediaData || mediaData.length === 0) {
-            console.error("Media not found");
-            return false;
-        }
-
-        const media = mediaData[0] as unknown as Media;
-
-        let equipmentUpdate = {
-            image_url: media.url,
-        } as EquipmentUpdate;
-        equipmentUpdate = await applyUpdated<EquipmentUpdate>(equipmentUpdate);
-        // Update equipment with the new image URL
-        const { error } = await updateWithBusinessCheck("equipment", equipmentId, equipmentUpdate, business.id);
-
-        if (error) {
-            console.error("Error setting equipment primary image:", error);
-            return false;
-        }
-
-        return true;
-    } catch (error) {
-        console.error("Error setting equipment primary image:", error);
-        return false;
-    }
-};
-
-export const uploadEquipmentImage = async (equipmentId: string, file: File): Promise<boolean> => {
-    try {
-        const { business, userId } = await ensureBusinessOrRedirect();
-
-        // Generate upload URL
-        const uploadData = await generateUploadUrl("images", file.name);
-        if (!uploadData) {
-            throw new Error("Failed to generate upload URL");
-        }
-
-        // Upload file to Azure Blob Storage
-        const uploadResponse = await fetch(uploadData.uploadUrl, {
-            method: 'PUT',
-            body: file,
-            headers: {
-                'x-ms-blob-type': 'BlockBlob',
-                'Content-Type': file.type,
-            },
-        });
-
-        if (!uploadResponse.ok) {
-            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
-        }
-
-        // Create media record
-        const mediaData: MediaInsert = {
-            name: file.name,
-            description: `Primary image for equipment`,
-            type: "image",
-            url: uploadData.fileUrl,
-            size: file.size,
-            id: "",
-            business_id: business.id,
-            project_id: null,
-            uploaded_by: userId,
-            uploaded_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            created_by: userId,
-            updated_at: new Date().toISOString(),
-            updated_by: userId
-        };
-
-        const media = await createMedia(mediaData);
-        if (!media) {
-            throw new Error("Failed to create media record");
-        }
-
-        // Link media to equipment
-        await linkMediaToEquipment(media.id, equipmentId);
-
-        // Set as primary image
-        await setEquipmentPrimaryImage(equipmentId, media.id);
-
-        return true;
-    } catch (error) {
-        console.error("Error uploading equipment image:", error);
-        return false;
-    }
-};
-
-export const unlinkMediaFromEquipment = async (mediaId: string, equipmentId: string): Promise<boolean> => {
-    try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        // Find the link to delete
-        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
-            filter: {
-                media_id: mediaId,
-                linked_id: equipmentId,
-                linked_type: "equipment"
-            }
-        });
-
-        if (!existingLinks || existingLinks.length === 0) {
-            console.log("No media link found to remove");
-            return true;
-        }
-
-        // Delete the link using deleteWithBusinessCheck
-        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, business.id);
-
-        if (error) {
-            console.error("Error unlinking media from equipment:", error);
-            return false;
-        }
-
-        return true;
-    } catch (error) {
-        console.error("Error unlinking media from equipment:", error);
-        return false;
-    }
-};
 
 const account = process.env.AZURE_STORAGE_ACCOUNT;
 const accountKey = process.env.AZURE_STORAGE_KEY;
@@ -402,12 +54,353 @@ export async function generateUploadUrl(type: MediaType, filename: string): Prom
     };
 }
 
-export const linkMediaToProject = async (mediaId: string, projectId: string): Promise<boolean> => {
+export const getMedias = async (businessId: string): Promise<Media[]> => {
+    const { data, error } = await fetchByBusiness("media", businessId);
+
+    if (error) {
+        console.error("Error fetching medias:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [] as Media[];
+    }
+
+    return data as unknown as Media[];
+}
+
+export const getMediaById = async (businessId: string, id: string): Promise<Media | null> => {
+    const { data, error } = await fetchByBusiness("media", businessId, "*", { filter: { id: id } });
+
+    if (error) {
+        console.error("Error fetching media by ID:", error);
+        return null;
+    }
+
+    if (data && data[0]) {
+        return data[0] as unknown as Media;
+    }
+
+    return null;
+};
+
+export const createMedia = async (businessId: string, media: MediaInsert): Promise<Media | null> => {
+
+
+    media = await applyCreated<MediaInsert>(media);
+
+    const { data, error } = await insertWithBusiness("media", media, businessId);
+
+    if (error) {
+        console.error("Error creating media:", error);
+        return null;
+    }
+
+    return data as unknown as Media;
+}
+
+export const updateMedia = async (businessId: string, id: string, media: MediaUpdate): Promise<Media | null> => {
+
+
+    media = await applyUpdated<MediaUpdate>(media);
+
+    const { data, error } = await updateWithBusinessCheck("media", id, media, businessId);
+
+    if (error) {
+        console.error("Error updating media:", error);
+        return null;
+    }
+
+    return data as unknown as Media;
+}
+
+export const deleteMedia = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("media", id, businessId);
+
+    if (error) {
+        console.error("Error deleting media:", error);
+        return false;
+    }
+
+    return true;
+}
+
+export const searchMedias = async (businessId: string, query: string): Promise<Media[]> => {
+
+
+    const { data, error } = await fetchByBusiness("media", businessId, "*", {
+        filter: {
+            or: [
+                { name: { ilike: `%${query}%` } },
+                { description: { ilike: `%${query}%` } },
+            ],
+        },
+        orderBy: { column: "name", ascending: true },
+    });
+
+    if (error) {
+        console.error("Error searching medias:", error);
+        return [];
+    }
+
+    return data as unknown as Media[];
+};
+
+export const getMediaByEquipmentId = async (businessId: string, equipmentId: string, type: string): Promise<Media[]> => {
+
+
+    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+        filter: { linked_id: equipmentId, linked_type: "equipment" },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (linkError) {
+        console.error("Error fetching media links by equipment ID:", linkError);
+        return [];
+    }
+
+    if (!linkData || linkData.length === 0) {
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+    if (mediaIds.length === 0) {
+        return [];
+    }
+    // Build filter object dynamically
+    const filter: any = { id: { in: mediaIds } };
+    if (type && type.trim() !== "") {
+        filter.type = type;
+    }
+
+    const { data, error } = await fetchByBusiness("media", businessId, "*", {
+        filter,
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching medias by equipment ID:", error);
+        return [];
+    }
+
+    return data as unknown as Media[];
+}
+
+export const getMediaByProjectId = async (businessId: string, projectId: string, type: string): Promise<Media[]> => {
+
+
+    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+        filter: { linked_id: projectId, linked_type: "project" },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (linkError) {
+        console.error("Error fetching media links by equipment ID:", linkError);
+        return [];
+    }
+
+    if (!linkData || linkData.length === 0) {
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+    if (mediaIds.length === 0) {
+        return [];
+    }
+
+    const { data, error } = await fetchByBusiness("media", businessId, "*", {
+        filter: { id: { in: mediaIds }, type: type },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching medias by equipment ID:", error);
+        return [];
+    }
+
+    return data as unknown as Media[];
+}
+
+export const linkMediaToEquipment = async (businessId: string, mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         // Check if link already exists
-        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+        const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: equipmentId,
+                linked_type: "equipment"
+            }
+        });
+
+        if (existingLinks && existingLinks.length > 0) {
+            console.log("Media already linked to equipment");
+            return true;
+        }
+
+        // Create new link using insertWithBusiness
+        let newLink = {
+            media_id: mediaId,
+            linked_id: equipmentId,
+            linked_type: "equipment"
+        };
+
+        newLink = await applyCreated<MediaLink>(newLink);
+
+
+        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, businessId, {
+            userId: userId
+        });
+
+        if (error) {
+            console.error("Error linking media to equipment:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking media to equipment:", error);
+        return false;
+    }
+};
+
+export const setEquipmentPrimaryImage = async (businessId: string, equipmentId: string, mediaId: string): Promise<boolean> => {
+    try {
+
+
+        // Get the media item to get its URL
+        const { data: mediaData } = await fetchByBusiness("media", businessId, "*", {
+            filter: { id: mediaId }
+        });
+
+        if (!mediaData || mediaData.length === 0) {
+            console.error("Media not found");
+            return false;
+        }
+
+        const media = mediaData[0] as unknown as Media;
+
+        let equipmentUpdate = {
+            image_url: media.url,
+        } as EquipmentUpdate;
+        equipmentUpdate = await applyUpdated<EquipmentUpdate>(equipmentUpdate);
+        // Update equipment with the new image URL
+        const { error } = await updateWithBusinessCheck("equipment", equipmentId, equipmentUpdate, businessId);
+
+        if (error) {
+            console.error("Error setting equipment primary image:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error setting equipment primary image:", error);
+        return false;
+    }
+};
+
+export const uploadEquipmentImage = async (businessId: string, equipmentId: string, file: File): Promise<boolean> => {
+    const { business, userId } = await withBusinessServer();
+    try {
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl("images", file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: `Primary image for equipment`,
+            type: "image",
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to equipment
+        await linkMediaToEquipment(businessId, media.id, equipmentId);
+
+        // Set as primary image
+        await setEquipmentPrimaryImage(businessId, equipmentId, media.id);
+
+        return true;
+    } catch (error) {
+        console.error("Error uploading equipment image:", error);
+        return false;
+    }
+};
+
+export const unlinkMediaFromEquipment = async (businessId: string, mediaId: string, equipmentId: string): Promise<boolean> => {
+    try {
+
+
+        // Find the link to delete
+        const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: equipmentId,
+                linked_type: "equipment"
+            }
+        });
+
+        if (!existingLinks || existingLinks.length === 0) {
+            console.log("No media link found to remove");
+            return true;
+        }
+
+        // Delete the link using deleteWithBusinessCheck
+        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, businessId);
+
+        if (error) {
+            console.error("Error unlinking media from equipment:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error unlinking media from equipment:", error);
+        return false;
+    }
+};
+
+export const linkMediaToProject = async (businessId: string, mediaId: string, projectId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Check if link already exists
+        const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
             filter: {
                 media_id: mediaId,
                 linked_id: projectId,
@@ -429,7 +422,7 @@ export const linkMediaToProject = async (mediaId: string, projectId: string): Pr
 
         newLink = await applyCreated<MediaLink>(newLink);
 
-        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, business.id, {
+        const { data, error } = await insertWithBusiness("media_links", newLink as MediaLinkInsert, businessId, {
             userId: userId
         });
 
@@ -445,12 +438,12 @@ export const linkMediaToProject = async (mediaId: string, projectId: string): Pr
     }
 };
 
-export const unlinkMediaFromProject = async (mediaId: string, projectId: string): Promise<boolean> => {
+export const unlinkMediaFromProject = async (businessId: string, mediaId: string, projectId: string): Promise<boolean> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         // Find the link to delete
-        const { data: existingLinks } = await fetchByBusiness("media_links", business.id, "*", {
+        const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
             filter: {
                 media_id: mediaId,
                 linked_id: projectId,
@@ -464,7 +457,7 @@ export const unlinkMediaFromProject = async (mediaId: string, projectId: string)
         }
 
         // Delete the link using deleteWithBusinessCheck
-        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, business.id);
+        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, businessId);
 
         if (error) {
             console.error("Error unlinking media from project:", error);
@@ -478,9 +471,9 @@ export const unlinkMediaFromProject = async (mediaId: string, projectId: string)
     }
 };
 
-export const uploadProjectMedia = async (projectId: string, file: File, type: MediaType, description?: string): Promise<boolean> => {
+export const uploadProjectMedia = async (businessId: string, projectId: string, file: File, type: MediaType, description?: string): Promise<boolean> => {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         // Generate upload URL
         const uploadData = await generateUploadUrl(type, file.name);
@@ -510,7 +503,7 @@ export const uploadProjectMedia = async (projectId: string, file: File, type: Me
             url: uploadData.fileUrl,
             size: file.size,
             id: "",
-            business_id: business.id,
+            business_id: businessId,
             project_id: projectId,
             uploaded_by: userId,
             uploaded_at: new Date().toISOString(),
@@ -520,13 +513,13 @@ export const uploadProjectMedia = async (projectId: string, file: File, type: Me
             updated_by: userId
         };
 
-        const media = await createMedia(mediaData);
+        const media = await createMedia(businessId, mediaData);
         if (!media) {
             throw new Error("Failed to create media record");
         }
 
         // Link media to project
-        await linkMediaToProject(media.id, projectId);
+        await linkMediaToProject(businessId, media.id, projectId);
 
         return true;
     } catch (error) {

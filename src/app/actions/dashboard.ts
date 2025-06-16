@@ -1,12 +1,11 @@
 "use server";
 
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { fetchByBusiness } from "@/lib/db";
 import { createServerClient } from "@/lib/supabase";
 
-export async function getDashboardData() {
+export async function getDashboardData(businessId: string) {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -16,7 +15,7 @@ export async function getDashboardData() {
         // Get comprehensive project data with relationships
         const { data: projects, error: projectsError } = await fetchByBusiness(
             "projects",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -27,7 +26,7 @@ export async function getDashboardData() {
         // Get tasks with detailed information
         const { data: tasks, error: tasksError } = await fetchByBusiness(
             "tasks",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -38,7 +37,7 @@ export async function getDashboardData() {
         // Get equipment data
         const { data: equipment, error: equipmentError } = await fetchByBusiness(
             "equipment",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -49,7 +48,7 @@ export async function getDashboardData() {
         // Get crews data
         const { data: crews, error: crewsError } = await fetchByBusiness(
             "crews",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -60,7 +59,7 @@ export async function getDashboardData() {
         // Get clients data
         const { data: clients, error: clientsError } = await fetchByBusiness(
             "clients",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -71,7 +70,7 @@ export async function getDashboardData() {
         // Get daily logs for recent activity
         const { data: dailyLogs, error: logsError } = await fetchByBusiness(
             "daily_logs",
-            business.id,
+            businessId,
             "*",
             {
                 orderBy: { column: "created_at", ascending: false },
@@ -86,7 +85,7 @@ export async function getDashboardData() {
         // Get invoices for financial data
         const { data: invoices, error: invoicesError } = await fetchByBusiness(
             "invoices",
-            business.id,
+            businessId,
             "*"
         );
 
@@ -114,7 +113,7 @@ export async function getDashboardData() {
         // Fetch project crews data
         const { data: projectCrews, error: projectCrewsError } = await fetchByBusiness(
             "project_crews",
-            business.id,
+            businessId,
             "*"
         );
 

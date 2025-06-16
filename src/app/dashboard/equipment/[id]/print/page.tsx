@@ -9,21 +9,24 @@ import { EquipmentUsage } from "@/types/equipment_usage";
 import { EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const equipment = await getEquipmentById(id);
+    const { business } = await withBusinessServer();
+    const equipment = await getEquipmentById(business.id, id)
+    const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
+        getEquipmentMaintenancesByEquipmentId(business.id, id),
+        getEquipmentUsagesByEquipmentId(business.id, id),
+        getEquipmentAssignmentsByEquipmentId(business.id, id),
+        getEquipmentSpecificationsByEquipmentId(business.id, id),
+        getMediaByEquipmentId(business.id, id, "documents"),
+    ]);
+    ;
+
     if (!equipment) {
         return <div className="p-8 text-center">Equipment not found.</div>;
     }
-    const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
-        getEquipmentMaintenancesByEquipmentId(id),
-        getEquipmentUsagesByEquipmentId(id),
-        getEquipmentAssignmentsByEquipmentId(id),
-        getEquipmentSpecificationsByEquipmentId(id),
-        getMediaByEquipmentId(id, "documents"),
-    ]);
-
     // Find the most recent active assignment
     let assignedTo = "Unassigned";
     if (assignments && assignments.length > 0) {

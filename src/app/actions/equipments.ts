@@ -8,12 +8,11 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { triggerEquipmentNotification } from "@/lib/push/notification-triggers";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getEquipments = async (): Promise<Equipment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipments = async (businessId: string): Promise<Equipment[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment", business.id);
+
+    const { data, error } = await fetchByBusiness("equipment", businessId);
 
     if (error) {
         console.error("Error fetching equipments:", error);
@@ -27,10 +26,10 @@ export const getEquipments = async (): Promise<Equipment[]> => {
     return data;
 }
 
-export const getEquipmentById = async (id: string): Promise<Equipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentById = async (businessId: string, id: string): Promise<Equipment | null> => {
 
-    const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment", businessId, "*", {
         filter: { id: id },
     });
 
@@ -46,12 +45,12 @@ export const getEquipmentById = async (id: string): Promise<Equipment | null> =>
     return null;
 };
 
-export const createEquipment = async (equipment: EquipmentInsert): Promise<Equipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createEquipment = async (businessId: string, equipment: EquipmentInsert): Promise<Equipment | null> => {
+
 
     equipment = await applyCreated<EquipmentInsert>(equipment);
 
-    const { data, error } = await insertWithBusiness("equipment", equipment, business.id);
+    const { data, error } = await insertWithBusiness("equipment", equipment, businessId);
 
     if (error) {
         console.error("Error creating equipment:", error);
@@ -61,12 +60,12 @@ export const createEquipment = async (equipment: EquipmentInsert): Promise<Equip
     return data as unknown as Equipment;
 }
 
-export const updateEquipment = async (id: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateEquipment = async (businessId: string, id: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
+
 
     equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
-    const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, business.id);
+    const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, businessId);
 
     if (error) {
         console.error("Error updating equipment:", error);
@@ -76,10 +75,10 @@ export const updateEquipment = async (id: string, equipment: EquipmentUpdate): P
     return data as unknown as Equipment;
 }
 
-export const deleteEquipment = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteEquipment = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("equipment", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("equipment", id, businessId);
 
     if (error) {
         console.error("Error deleting equipment:", error);
@@ -89,10 +88,10 @@ export const deleteEquipment = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchEquipments = async (query: string): Promise<Equipment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchEquipments = async (businessId: string, query: string): Promise<Equipment[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -110,10 +109,10 @@ export const searchEquipments = async (query: string): Promise<Equipment[]> => {
     return data as unknown as Equipment[];
 };
 
-export const setEquipmentStatus = async (id: string, status: EquipmentStatus): Promise<Equipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const setEquipmentStatus = async (businessId: string, id: string, status: EquipmentStatus): Promise<Equipment | null> => {
 
-    const { data, error } = await updateWithBusinessCheck("equipment", id, { status } as EquipmentUpdate, business.id);
+
+    const { data, error } = await updateWithBusinessCheck("equipment", id, { status } as EquipmentUpdate, businessId);
 
     if (error) {
         console.error("Error setting equipment status:", error);
@@ -123,12 +122,12 @@ export const setEquipmentStatus = async (id: string, status: EquipmentStatus): P
     return data as unknown as Equipment;
 }
 
-export const setEquipmentLocation = async (equipment: EquipmentUpdate): Promise<Equipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const setEquipmentLocation = async (businessId: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
+
 
     equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
-    const { data, error } = await updateWithBusinessCheck("equipment", equipment.id, equipment, business.id);
+    const { data, error } = await updateWithBusinessCheck("equipment", equipment.id, equipment, businessId);
 
     if (error) {
         console.error("Error setting equipment location:", error);

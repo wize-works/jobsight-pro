@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
@@ -6,6 +7,7 @@ import { CrewMember } from "@/types/crew-members";
 import { createProject } from "@/app/actions/projects";
 import { getClients } from "@/app/actions/clients";
 import { getCrewMembers } from "@/app/actions/crew-members";
+import { useBusiness } from "@/lib/business-context";
 
 interface ProjectModalProps {
     isOpen: boolean;
@@ -18,6 +20,7 @@ export default function ProjectModal({
     onClose,
     onSave,
 }: ProjectModalProps) {
+    const { businessId } = useBusiness();
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -41,8 +44,8 @@ export default function ProjectModal({
         const fetchData = async () => {
             try {
                 const [clientsData, managersData] = await Promise.all([
-                    getClients(),
-                    getCrewMembers()
+                    getClients(businessId),
+                    getCrewMembers(businessId)
                 ]);
                 setClients(clientsData);
                 setManagers(managersData);
@@ -131,7 +134,7 @@ export default function ProjectModal({
                 status: formData.status,
             } as ProjectInsert;
 
-            const newProject = await createProject(projectData);
+            const newProject = await createProject(businessId, projectData);
 
             if (newProject) {
                 toast.success({

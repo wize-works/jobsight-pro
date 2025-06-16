@@ -19,6 +19,7 @@ import {
     LineChart,
     Line,
 } from "recharts"
+import { withBusinessServer } from "@/lib/auth/with-business-server"
 
 // Mock data for date ranges
 const dateRanges = [
@@ -74,7 +75,12 @@ const sampleProjectData = [
     { name: "Project E", revenue: 145000, cost: 110000, profit: 35000 },
 ]
 
-export default function CustomReportPage() {
+export default async function CustomReportPage() {
+    const { business } = await withBusinessServer()
+    const businessId = business.id
+
+    // Use `businessId` for any server-side actions here
+
     const [dateRange, setDateRange] = useState("last30days")
     const [customDateRange, setCustomDateRange] = useState({ start: "", end: "" })
     const [dataSource, setDataSource] = useState("projects")

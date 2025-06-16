@@ -44,6 +44,10 @@ export default function MorePage() {
                     <i className="fal fa-images fa-fw fa-lg mr-3"></i>
                     Media Library
                 </Link>
+                <Link href="/dashboard/map" className="btn btn-ghost justify-start">
+                    <i className="fal fa-map-marker-alt fa-fw fa-lg mr-3"></i>
+                    Map
+                </Link>
 
                 <div className="divider mb-0">Settings</div>
                 <Link href="/dashboard/profile" className="btn btn-ghost justify-start">

@@ -12,6 +12,7 @@ import { Crew } from "@/types/crews";
 import toast from "react-hot-toast";
 import KanbanPage from "./kanban";
 import TaskModal from "./modal-task"; // Add this import
+import { useBusiness } from "@/lib/business-context";
 
 interface TasksComponentProps {
     tasks: TaskWithDetails[];
@@ -21,6 +22,7 @@ interface TasksComponentProps {
 
 export default function TasksComponent({ tasks: initialTasks, projects, crews }: TasksComponentProps) {
     const router = useRouter();
+    const { businessId } = useBusiness();
     const [tasks, setTasks] = useState(initialTasks);
     const [filteredTasks, setFilteredTasks] = useState(initialTasks);
     const [searchQuery, setSearchQuery] = useState("");
@@ -145,7 +147,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
         if (!confirm("Are you sure you want to delete this task?")) return;
 
         try {
-            await deleteTask(taskId);
+            await deleteTask(businessId, taskId);
             setTasks(prev => prev.filter(task => task.id !== taskId));
             toast.success("Task deleted successfully!");
             router.refresh();

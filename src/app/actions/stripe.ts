@@ -8,7 +8,7 @@ import { getSubscriptionPlans } from "./subscriptions";
 import type { StripeCustomerInsert } from "@/types/stripe-customers";
 import type { StripeSubscriptionInsert } from "@/types/stripe-subscriptions";
 import { revalidatePath } from "next/cache";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 
 export async function createStripeCustomer(): Promise<{
     success: boolean;
@@ -16,7 +16,7 @@ export async function createStripeCustomer(): Promise<{
     error?: string;
 }> {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -66,6 +66,7 @@ export async function createStripeCustomer(): Promise<{
 }
 
 export async function createCheckoutSession(
+    businessId: string,
     planId: string,
     billingInterval: "monthly" | "annual"
 ): Promise<{
@@ -74,7 +75,7 @@ export async function createCheckoutSession(
     error?: string;
 }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         // Get subscription plans
         const plans = await getSubscriptionPlans();
@@ -117,7 +118,7 @@ export async function createCheckoutSession(
             success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/business?subscription=success`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/business?subscription=cancelled`,
             metadata: {
-                business_id: business.id,
+                business_id: businessId,
                 plan_id: planId,
                 billing_interval: billingInterval,
             },
@@ -130,13 +131,13 @@ export async function createCheckoutSession(
     }
 }
 
-export async function createBillingPortalSession(): Promise<{
+export async function createBillingPortalSession(businessId: string): Promise<{
     success: boolean;
     sessionUrl?: string;
     error?: string;
 }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -148,7 +149,7 @@ export async function createBillingPortalSession(): Promise<{
         const { data: customer, error } = await supabase
             .from("stripe_customers")
             .select("stripe_customer_id")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .single();
 
         if (error || !customer) {
@@ -169,6 +170,7 @@ export async function createBillingPortalSession(): Promise<{
 }
 
 export async function updateStripeSubscription(
+    businessId: string,
     planId: string,
     billingInterval: "monthly" | "annual"
 ): Promise<{
@@ -176,7 +178,7 @@ export async function updateStripeSubscription(
     error?: string;
 }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -204,7 +206,7 @@ export async function updateStripeSubscription(
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active")
             .single();
 
@@ -240,7 +242,7 @@ export async function updateStripeSubscription(
                 plan_id: planId,
                 updated_at: new Date().toISOString(),
             })
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active");
 
         revalidatePath("/dashboard/business");
@@ -251,13 +253,13 @@ export async function updateStripeSubscription(
     }
 }
 
-export async function getStripeSubscription(): Promise<{
+export async function getStripeSubscription(businessId: string): Promise<{
     success: boolean;
     subscription?: any;
     error?: string;
 }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -269,7 +271,7 @@ export async function getStripeSubscription(): Promise<{
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active")
             .single();
 
@@ -289,12 +291,12 @@ export async function getStripeSubscription(): Promise<{
     }
 }
 
-export async function cancelStripeSubscription(): Promise<{
+export async function cancelStripeSubscription(businessId: string): Promise<{
     success: boolean;
     error?: string;
 }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
 
         if (!supabase) {
@@ -306,7 +308,7 @@ export async function cancelStripeSubscription(): Promise<{
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active")
             .single();
 
@@ -335,7 +337,7 @@ export async function cancelStripeSubscription(): Promise<{
                 end_date: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             })
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active");
 
         revalidatePath("/dashboard/business");

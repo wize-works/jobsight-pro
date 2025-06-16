@@ -5,13 +5,13 @@ import { PushSubscription, PushSubscriptionInsert, PushSubscriptionUpdate } from
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 
 // Get all push subscriptions for a user
-export const getPushSubscriptions = async (userId: string): Promise<PushSubscription[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getPushSubscriptions = async (businessId: string, userId: string): Promise<PushSubscription[]> => {
 
-    const { data, error } = await fetchByBusiness("push_subscriptions", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("push_subscriptions", businessId, "*", {
         filter: { user_id: userId },
     });
 
@@ -28,11 +28,11 @@ export const getPushSubscriptions = async (userId: string): Promise<PushSubscrip
 };
 
 // Create a new push subscription
-export const createPushSubscription = async (subscription: PushSubscriptionInsert): Promise<PushSubscription | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createPushSubscription = async (businessId: string, subscription: PushSubscriptionInsert): Promise<PushSubscription | null> => {
+
 
     // Check if the subscription already exists
-    const { data: existingSub } = await fetchByBusiness("push_subscriptions", business.id, "*", {
+    const { data: existingSub } = await fetchByBusiness("push_subscriptions", businessId, "*", {
         filter: {
             user_id: subscription.user_id,
             endpoint: subscription.endpoint
@@ -45,7 +45,7 @@ export const createPushSubscription = async (subscription: PushSubscriptionInser
             "push_subscriptions",
             (existingSub[0] as unknown as PushSubscription).id,
             await applyUpdated<PushSubscriptionUpdate>(subscription),
-            business.id
+            businessId
         );
 
         if (error) {
@@ -60,7 +60,7 @@ export const createPushSubscription = async (subscription: PushSubscriptionInser
     const { data, error } = await insertWithBusiness(
         "push_subscriptions",
         await applyCreated<PushSubscriptionInsert>(subscription),
-        business.id
+        businessId
     );
 
     if (error) {
@@ -72,10 +72,10 @@ export const createPushSubscription = async (subscription: PushSubscriptionInser
 };
 
 // Delete a push subscription
-export const deletePushSubscription = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deletePushSubscription = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("push_subscriptions", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("push_subscriptions", id, businessId);
 
     if (error) {
         console.error("Error deleting push subscription:", error);
@@ -86,11 +86,11 @@ export const deletePushSubscription = async (id: string): Promise<boolean> => {
 };
 
 // Delete a push subscription by endpoint
-export const deletePushSubscriptionByEndpoint = async (userId: string, endpoint: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deletePushSubscriptionByEndpoint = async (businessId: string, userId: string, endpoint: string): Promise<boolean> => {
+
 
     // Find the subscription first
-    const { data: subscriptions } = await fetchByBusiness("push_subscriptions", business.id, "*", {
+    const { data: subscriptions } = await fetchByBusiness("push_subscriptions", businessId, "*", {
         filter: {
             user_id: userId,
             endpoint
@@ -103,7 +103,7 @@ export const deletePushSubscriptionByEndpoint = async (userId: string, endpoint:
 
     // Delete all matching subscriptions (should typically be just one)
     const deletePromises = (subscriptions as unknown as PushSubscription[]).map((sub) =>
-        deleteWithBusinessCheck("push_subscriptions", sub.id, business.id)
+        deleteWithBusinessCheck("push_subscriptions", sub.id, businessId)
     );
 
     try {
@@ -116,8 +116,8 @@ export const deletePushSubscriptionByEndpoint = async (userId: string, endpoint:
 };
 
 // Update a push subscription's last used timestamp
-export const updatePushSubscriptionLastUsed = async (id: string): Promise<PushSubscription | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updatePushSubscriptionLastUsed = async (businessId: string, id: string): Promise<PushSubscription | null> => {
+
 
     const update = {
         last_used_at: new Date().toISOString(),
@@ -127,7 +127,7 @@ export const updatePushSubscriptionLastUsed = async (id: string): Promise<PushSu
         "push_subscriptions",
         id,
         update,
-        business.id
+        businessId
     );
 
     if (error) {

@@ -6,6 +6,7 @@ import { Crew, CrewInsert, CrewWithDetails, CrewWithStats } from "@/types/crews"
 import { createCrew } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./card";
+import { useBusiness } from "@/lib/business-context";
 
 const statusOptions: {
     [key: string]: { label: string; value: string };
@@ -20,6 +21,7 @@ interface CrewListProps {
 };
 
 export default function CrewsList({ initialCrews }: CrewListProps) {
+    const { businessId } = useBusiness();
     const [crews, setCrews] = useState<CrewWithDetails[]>(initialCrews || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -29,15 +31,29 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
         typeof window !== "undefined" && localStorage.getItem("crewsViewType") === "list" ? "list" : "grid"
     );
     const [newCrew, setNewCrew] = useState<{
+        id: string;
+        business_id: string;
+        leader_id: string | null;
         name: string;
-        notes?: string;
-        specialty?: string;
-        status?: string;
+        specialty: string;
+        status: string;
+        notes: string;
+        created_by: string | null;
+        created_at: string;
+        updated_by: string | null;
+        updated_at: string;
     }>({
+        id: "generated-id", // Replace with actual ID generation logic
+        business_id: businessId,
+        leader_id: null,
         name: "",
-        notes: "",
         specialty: "",
         status: "active",
+        notes: "",
+        created_by: null,
+        created_at: new Date().toISOString(),
+        updated_by: null,
+        updated_at: new Date().toISOString(),
     });
 
     const filteredCrews = crews.filter((crew) => {
@@ -47,20 +63,26 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
     });
 
     const handleAddCrew = async () => {
-
         setIsSubmitting(true);
 
         try {
-            const created = await createCrew(newCrew as CrewInsert);
+            const created = await createCrew(businessId, newCrew);
             if (created) {
                 setCrews(prev => [...prev, created as CrewWithDetails]);
             }
 
             setNewCrew({
+                id: "generated-id",
+                business_id: businessId,
+                leader_id: null,
                 name: "",
-                notes: "",
                 specialty: "",
                 status: "active",
+                notes: "",
+                created_by: null,
+                created_at: new Date().toISOString(),
+                updated_by: null,
+                updated_at: new Date().toISOString(),
             });
             toast.success("Crew created successfully!");
             setShowAddCrewModal(false);
@@ -128,14 +150,7 @@ export default function CrewsList({ initialCrews }: CrewListProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCrews.map((crew) => (
                         <div key={crew.id}>
-                            <CrewCard
-                                crew={crew}
-                                onEdit={() => { }}
-                                onDelete={() => { }}
-                                onView={() => { }}
-                                onAdd={() => { }}
-                                onRemove={() => { }}
-                                onStatusChange={() => { }} />
+                            <CrewCard crew={crew} />
                         </div>
                     ))}
                 </div>

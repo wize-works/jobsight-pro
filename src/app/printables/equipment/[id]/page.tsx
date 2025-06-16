@@ -11,19 +11,21 @@ import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 import QRCode from "@/components/qrcode";
 import { getCrewById } from "@/app/actions/crews";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const equipment = await getEquipmentById(id);
+    const { business } = await withBusinessServer();
+    const equipment = await getEquipmentById(business.id, id);
     if (!equipment) {
         return <div className="p-8 text-center">Equipment not found.</div>;
     }
     const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
-        getEquipmentMaintenancesByEquipmentId(id),
-        getEquipmentUsagesWithDetailsByEquipmentId(id),
-        getEquipmentAssignmentsByEquipmentId(id),
-        getEquipmentSpecificationsByEquipmentId(id),
-        getMediaByEquipmentId(id, "documents"),
+        getEquipmentMaintenancesByEquipmentId(business.id, id),
+        getEquipmentUsagesWithDetailsByEquipmentId(business.id, id),
+        getEquipmentAssignmentsByEquipmentId(business.id, id),
+        getEquipmentSpecificationsByEquipmentId(business.id, id),
+        getMediaByEquipmentId(business.id, id, "documents"),
     ]);
 
 

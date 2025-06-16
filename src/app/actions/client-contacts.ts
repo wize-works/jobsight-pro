@@ -4,15 +4,11 @@ import type { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all client contacts for the current business
-export const getClientContacts = async (): Promise<ClientContact[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
+export const getClientContacts = async (businessId: string): Promise<ClientContact[]> => {
+    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
         orderBy: { column: "name", ascending: true },
     });
 
@@ -29,10 +25,8 @@ export const getClientContacts = async (): Promise<ClientContact[]> => {
 };
 
 // Get a single client contact by ID
-export const getClientContactById = async (id: string): Promise<ClientContact> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
+export const getClientContactById = async (businessId: string, id: string): Promise<ClientContact> => {
+    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
         filter: { id },
     });
 
@@ -49,14 +43,13 @@ export const getClientContactById = async (id: string): Promise<ClientContact> =
 
 // Update a client contact
 export const updateClientContact = async (
+    businessId: string,
     id: string,
     contact: ClientContactUpdate
 ): Promise<ClientContact> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     contact = await applyUpdated<ClientContactUpdate>(contact);
 
-    const { data, error } = await updateWithBusinessCheck("client_contacts", id, contact, business.id);
+    const { data, error } = await updateWithBusinessCheck("client_contacts", id, contact, businessId);
 
     if (error) {
         console.error("Error updating client contact:", error);
@@ -68,13 +61,12 @@ export const updateClientContact = async (
 
 // Create a new client contact
 export const createClientContact = async (
+    businessId: string,
     contact: ClientContactInsert
 ): Promise<ClientContact> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     contact = await applyUpdated<ClientContactInsert>(contact);
 
-    const { data, error } = await insertWithBusiness("client_contacts", contact, business.id);
+    const { data, error } = await insertWithBusiness("client_contacts", contact, businessId);
 
     if (error) {
         console.error("Error creating client contact:", error);
@@ -85,10 +77,8 @@ export const createClientContact = async (
 };
 
 // Delete a client contact by ID
-export const deleteClientContactById = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("client_contacts", id, business.id);
+export const deleteClientContactById = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("client_contacts", id, businessId);
 
     if (error) {
         console.error("Error deleting client contact:", error);
@@ -99,10 +89,8 @@ export const deleteClientContactById = async (id: string): Promise<boolean> => {
 };
 
 // Search client contacts by query (name, email, etc.)
-export const searchClientContacts = async (query: string): Promise<ClientContact[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
+export const searchClientContacts = async (businessId: string, query: string): Promise<ClientContact[]> => {
+    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -124,10 +112,8 @@ export const searchClientContacts = async (query: string): Promise<ClientContact
     return data;
 };
 
-export const getClientContactsByClientId = async (clientId: string): Promise<ClientContact[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_contacts", business.id, "*", {
+export const getClientContactsByClientId = async (businessId: string, clientId: string): Promise<ClientContact[]> => {
+    const { data, error } = await fetchByBusiness("client_contacts", businessId, "*", {
         filter: { client_id: clientId },
         orderBy: { column: "name", ascending: true },
     });

@@ -5,16 +5,12 @@ import { revalidatePath } from "next/cache";
 import type { ClientInsert, ClientUpdate, Client } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Project } from "@/types/projects";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getClientById = async (id: string): Promise<Client> => {
+export const getClientById = async (businessId: string, id: string): Promise<Client> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("clients", business.id, "*", {
+        const { data, error } = await fetchByBusiness("clients", businessId, "*", {
             filter: { id },
         });
 
@@ -31,13 +27,11 @@ export const getClientById = async (id: string): Promise<Client> => {
         console.error("Error in getClientById:", err);
         throw new Error("Failed to fetch client by ID");
     }
-}
+};
 
-export const getClients = async (): Promise<Client[]> => {
+export const getClients = async (businessId: string): Promise<Client[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("clients", business.id, "*", {
+        const { data, error } = await fetchByBusiness("clients", businessId, "*", {
             orderBy: { column: "name", ascending: true },
         });
 
@@ -57,10 +51,10 @@ export const getClients = async (): Promise<Client[]> => {
     }
 }
 
-export const getClientsWithStats = async (): Promise<Client[]> => {
+export const getClientsWithStats = async (businessId: string,): Promise<Client[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-        const { data: clients, error: clientErrors } = await fetchByBusiness("clients", business.id, "*", {
+
+        const { data: clients, error: clientErrors } = await fetchByBusiness("clients", businessId, "*", {
             orderBy: { column: "name", ascending: true },
         });
 
@@ -70,7 +64,7 @@ export const getClientsWithStats = async (): Promise<Client[]> => {
 
         const clientIds = clients.map((client) => client.id);
 
-        const { data: projects } = await fetchByBusiness("projects", business.id, "*", {
+        const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
             filter: { client_id: { in: clientIds } },
         });
 
@@ -92,13 +86,13 @@ export const getClientsWithStats = async (): Promise<Client[]> => {
     }
 }
 
-export const createClient = async (client: ClientInsert): Promise<Client> => {
+export const createClient = async (businessId: string, client: ClientInsert): Promise<Client> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         client = await applyCreated<ClientInsert>(client);
 
-        const { data, error } = await insertWithBusiness("clients", client, business.id);
+        const { data, error } = await insertWithBusiness("clients", client, businessId);
 
         if (error) {
             console.error("Error creating client:", error);
@@ -112,13 +106,11 @@ export const createClient = async (client: ClientInsert): Promise<Client> => {
     }
 }
 
-export const updateClient = async (id: string, client: ClientUpdate): Promise<Client> => {
+export const updateClient = async (businessId: string, id: string, client: ClientUpdate): Promise<Client> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         client = await applyUpdated<ClientUpdate>(client);
 
-        const { data, error } = await updateWithBusinessCheck("clients", id, client, business.id);
+        const { data, error } = await updateWithBusinessCheck("clients", id, client, businessId);
 
         if (error) {
             console.error("Error updating client:", error);
@@ -132,11 +124,11 @@ export const updateClient = async (id: string, client: ClientUpdate): Promise<Cl
     }
 }
 
-export const deleteClient = async (id: string): Promise<boolean> => {
+export const deleteClient = async (businessId: string, id: string): Promise<boolean> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await deleteWithBusinessCheck("clients", id, business.id);
+
+        const { data, error } = await deleteWithBusinessCheck("clients", id, businessId);
 
         if (error) {
             console.error("Error deleting client:", error);
@@ -150,11 +142,11 @@ export const deleteClient = async (id: string): Promise<boolean> => {
     }
 }
 
-export const searchClients = async (query: string): Promise<Client[]> => {
+export const searchClients = async (businessId: string, query: string): Promise<Client[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("clients", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("clients", businessId, "*", {
             filter: {
                 or: [
                     { name: { ilike: `%${query}%` } },
@@ -181,19 +173,17 @@ export const searchClients = async (query: string): Promise<Client[]> => {
     }
 };
 
-export const updateClientNotes = async (id: string, notes: string): Promise<Client> => {
+export const updateClientNotes = async (businessId: string, id: string, notes: string): Promise<Client> => {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
-
         const { data, error } = await updateWithBusinessCheck(
             "clients",
             id,
             {
                 notes,
                 updated_at: new Date().toISOString(),
-                updated_by: userId
+                updated_by: "system" // Replace with actual userId if available
             } as ClientUpdate,
-            business.id
+            businessId
         );
 
         if (error) {

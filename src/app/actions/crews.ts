@@ -16,12 +16,9 @@ import { DailyLog } from "@/types/daily-logs";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getCrews = async (): Promise<Crew[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crews", business.id, "*", {
+export const getCrews = async (businessId: string): Promise<Crew[]> => {
+    const { data, error } = await fetchByBusiness("crews", businessId, "*", {
         orderBy: { column: "name", ascending: true },
     });
     if (error) {
@@ -34,10 +31,8 @@ export const getCrews = async (): Promise<Crew[]> => {
     return data;
 };
 
-export const getCrewById = async (id: string): Promise<Crew> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crews", business.id, "*", { filter: { id } });
+export const getCrewById = async (businessId: string, id: string): Promise<Crew> => {
+    const { data, error } = await fetchByBusiness("crews", businessId, "*", { filter: { id } });
 
     if (error) {
         console.error("Error fetching crew by ID:", error);
@@ -49,14 +44,12 @@ export const getCrewById = async (id: string): Promise<Crew> => {
     }
 
     throw new Error("Crew not found");
-}
+};
 
-export const createCrew = async (crew: CrewInsert): Promise<Crew> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const createCrew = async (businessId: string, crew: CrewInsert): Promise<Crew> => {
     crew = await applyCreated<CrewInsert>(crew);
 
-    const { data, error } = await insertWithBusiness("crews", crew, business.id);
+    const { data, error } = await insertWithBusiness("crews", crew, businessId);
 
     if (error) {
         console.error("Error creating crew:", error);
@@ -65,12 +58,10 @@ export const createCrew = async (crew: CrewInsert): Promise<Crew> => {
     return data;
 };
 
-export const updateCrew = async (id: string, crew: CrewUpdate): Promise<Crew> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const updateCrew = async (businessId: string, id: string, crew: CrewUpdate): Promise<Crew> => {
     crew = await applyUpdated<CrewUpdate>(crew);
 
-    const { data, error } = await updateWithBusinessCheck("crews", id, crew, business.id);
+    const { data, error } = await updateWithBusinessCheck("crews", id, crew, businessId);
 
     if (error) {
         console.error("Error updating crew:", error);
@@ -79,10 +70,8 @@ export const updateCrew = async (id: string, crew: CrewUpdate): Promise<Crew> =>
     return data;
 }
 
-export const deleteCrewById = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("crews", id, business.id);
+export const deleteCrewById = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("crews", id, businessId);
 
     if (error) {
         console.error("Error deleting crew:", error);
@@ -91,10 +80,8 @@ export const deleteCrewById = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchCrews = async (query: string): Promise<Crew[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crews", business.id, "*", {
+export const searchCrews = async (businessId: string, query: string): Promise<Crew[]> => {
+    const { data, error } = await fetchByBusiness("crews", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -115,39 +102,35 @@ export const searchCrews = async (query: string): Promise<Crew[]> => {
     return data;
 };
 
-export const getCrewsWithDetails = async (): Promise<CrewWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const crews = await getCrews();
+export const getCrewsWithDetails = async (businessId: string): Promise<CrewWithDetails[]> => {
+    const crews = await getCrews(businessId);
     if (!crews || crews.length === 0) {
         return [];
     }
 
     const crewIds = crews.map((crew) => crew.id);
     const leaderIds = crews.map((crew) => crew.leader_id).filter((id) => id !== null);
-    const { data: leaderData } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data: leaderData } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: { in: leaderIds } },
     });
 
-    const { data: members } = await fetchByBusiness("crew_member_assignments", business.id, ["id", "crew_id"], {
+    const { data: members } = await fetchByBusiness("crew_member_assignments", businessId, ["id", "crew_id"], {
         filter: { crew_id: { in: crewIds } },
     });
 
     const today = new Date().toISOString().slice(0, 10); // Get today's date in YYYY-MM-DD format
-    const { data: projectCrewsData } = await fetchByBusiness("project_crews", business.id, "*", {
+    const { data: projectCrewsData } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { crew_id: { in: crewIds }, start_date: { lte: today }, end_date: { gte: today } },
     });
 
     const projectIds = projectCrewsData?.map((pc) => pc.project_id) || [];
-    const { data: projectsData } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
     });
 
     const data = crews.map((crew) => {
         const projectId = projectCrewsData?.find((pc) => pc.crew_id === crew.id)?.project_id || null;
         const activeProjects = projectCrewsData?.filter((pc) => pc.crew_id === crew.id).length || 0;
-        const crewLogs = []; // Placeholder, as logs are not fetched here
-        const totalHours = 0; // Placeholder, as logs are not fetched here
         return {
             ...crew,
             member_count: members?.filter((member) => member.crew_id === crew.id).length ?? 0,
@@ -155,33 +138,32 @@ export const getCrewsWithDetails = async (): Promise<CrewWithDetails[]> => {
             current_project_id: projectId,
             current_project: projectsData?.find((project) => project.id === projectId)?.name || "No Current Project",
             active_projects: activeProjects,
-            total_hours: totalHours,
+            total_hours: 0, // Placeholder for total_hours
         }
     });
-    return data || [];
+
+    return data;
 };
 
-export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetails> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const crew = await getCrewById(id);
+export const getCrewWithDetailsById = async (businessId: string, id: string): Promise<CrewWithDetails> => {
+    const crew = await getCrewById(businessId, id);
     if (!crew) {
         throw new Error("Crew not found");
     }
 
     let leaderName = "No Assigned Leader";
     if (crew.leader_id !== null) {
-        const { data: leader, error: leaderError } = await fetchByBusiness("crew_members", business.id, "*", { filter: { id: crew.leader_id } });
+        const { data: leader, error: leaderError } = await fetchByBusiness("crew_members", businessId, "*", { filter: { id: crew.leader_id } });
         leaderName = leaderError ? "No Assigned Leader" : !leader ? "No Assigned Leader" : leader[0]?.name || "No Assigned Leader";
     }
 
-    const { data: members } = await fetchByBusiness("crew_member_assignments", business.id, ["id", "crew_id"], {
+    const { data: members } = await fetchByBusiness("crew_member_assignments", businessId, ["id", "crew_id"], {
         filter: { crew_id: crew.id },
     });
     const memberCount = members?.length || 0;
 
     const today = new Date().toISOString().slice(0, 10); // Get today's date in YYYY-MM-DD format
-    const { data: projectCrewsData } = await fetchByBusiness("project_crews", business.id, "*", {
+    const { data: projectCrewsData } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { crew_id: crew.id },
     });
 
@@ -190,13 +172,13 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
     const projectCrews = projectCrewsData?.filter((pc) => pc.start_date <= today && (pc.end_date === null || pc.end_date >= today)) || [];
 
     const projectIds = projectCrews?.map((pc) => pc.project_id) || [];
-    const { data: projects } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
     });
     const projectName = projects?.find((project) => project.id === projectCrews[0]?.project_id)?.name || "No Current Project";
     const projectId = projectCrews?.find((pc) => pc.crew_id === crew.id)?.project_id || null;
 
-    const { data: crewLogs } = await fetchByBusiness("daily_logs", business.id, "*", {
+    const { data: crewLogs } = await fetchByBusiness("daily_logs", businessId, "*", {
         filter: { crew_id: crew.id }
     });
     const totalHours = (crewLogs || []).reduce((acc, log) => acc + (log.hours_worked || 0), 0);
@@ -214,22 +196,20 @@ export const getCrewWithDetailsById = async (id: string): Promise<CrewWithDetail
     return data;
 };
 
-export const getCrewMembersByCrewId = async (crewId: string): Promise<CrewMember[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const getCrewMembersByCrewId = async (businessId: string, crewId: string): Promise<CrewMember[]> => {
     if (!crewId) {
         console.error("Crew ID is required to fetch crew members by crew ID.");
         throw new Error("Crew ID is required.");
     }
 
-    const { data: crewData, error: crewError } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
+    const { data: crewData, error: crewError } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
         filter: { crew_id: crewId },
     });
 
     const crewMemberIds = crewData?.map((assignment) => assignment.crew_member_id) || [];
 
 
-    const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data, error } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: { in: crewMemberIds } },
         orderBy: { column: "name", ascending: true },
     });
@@ -244,10 +224,9 @@ export const getCrewMembersByCrewId = async (crewId: string): Promise<CrewMember
     return data;
 }
 
-export const getCrewSchedule = async (crewId: string): Promise<ProjectCrewWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getCrewSchedule = async (businessId: string, crewId: string): Promise<ProjectCrewWithDetails[]> => {
 
-    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", business.id, "*", {
+    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { crew_id: crewId },
     });
     if (error) {
@@ -264,7 +243,7 @@ export const getCrewSchedule = async (crewId: string): Promise<ProjectCrewWithDe
     }
     const projectIds = projectCrewsData.map((pc) => pc.project_id) || [];
 
-    const { data: projectsData } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
     });
 
@@ -277,10 +256,9 @@ export const getCrewSchedule = async (crewId: string): Promise<ProjectCrewWithDe
     return data;
 }
 
-export const getCrewScheduleHistory = async (crewId: string): Promise<ProjectCrewWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getCrewScheduleHistory = async (businessId: string, crewId: string): Promise<ProjectCrewWithDetails[]> => {
 
-    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", business.id, "*", {
+    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { crew_id: crewId, end_date: { neq: null, lt: new Date().toISOString() } },
         orderBy: { column: "start_date", ascending: false },
     });
@@ -298,7 +276,7 @@ export const getCrewScheduleHistory = async (crewId: string): Promise<ProjectCre
     }
     const projectIds = projectCrewsData.map((pc) => pc.project_id) || [];
 
-    const { data: projectsData } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
     });
 
@@ -310,10 +288,9 @@ export const getCrewScheduleHistory = async (crewId: string): Promise<ProjectCre
     return data;
 }
 
-export const getCrewScheduleCurrent = async (crewId: string): Promise<ProjectCrewWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getCrewScheduleCurrent = async (businessId: string, crewId: string): Promise<ProjectCrewWithDetails[]> => {
 
-    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", business.id, "*", {
+    const { data: projectCrewsData, error } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: {
             crew_id: crewId,
             end_date: { neq: null, gte: new Date().toISOString() }
@@ -334,7 +311,7 @@ export const getCrewScheduleCurrent = async (crewId: string): Promise<ProjectCre
     }
     const projectIds = projectCrewsData.map((pc) => pc.project_id) || [];
 
-    const { data: projectsData } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
     });
 
@@ -346,10 +323,8 @@ export const getCrewScheduleCurrent = async (crewId: string): Promise<ProjectCre
     return data;
 }
 
-export const getCrewEquipment = async (crewId: string): Promise<EquipmentAssignmentWithEquipmentDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", {
+export const getCrewEquipment = async (businessId: string, crewId: string): Promise<EquipmentAssignmentWithEquipmentDetails[]> => {
+    const { data, error } = await fetchByBusiness("equipment_assignments", businessId, "*", {
         filter: { crew_id: crewId },
     });
 
@@ -363,7 +338,7 @@ export const getCrewEquipment = async (crewId: string): Promise<EquipmentAssignm
     }
 
     const equipmentIds = data.map((assignment) => assignment.equipment_id);
-    const { data: equipmentData } = await fetchByBusiness("equipment", business.id, "*", {
+    const { data: equipmentData } = await fetchByBusiness("equipment", businessId, "*", {
         filter: { id: { in: equipmentIds } },
     });
 
@@ -390,26 +365,27 @@ export const getCrewEquipment = async (crewId: string): Promise<EquipmentAssignm
     return equipmentAssignments;
 };
 
-export const assignCrewLeader = async (crewId: string, leaderId: string): Promise<Crew> => {
-    const { business, userId } = await ensureBusinessOrRedirect();
+export const assignCrewLeader = async (businessId: string, crewId: string, leaderId: string): Promise<Crew> => {
 
     // First get the current crew data
-    const crew = await getCrewById(crewId);
+    const crew = await getCrewById(businessId, crewId);
     if (!crew) {
         console.error("Crew not found");
         throw new Error("Crew not found");
     }
 
+
+
     // Update the crew with new leader_id
-    const updateData: CrewUpdate = {
+    let updateData: CrewUpdate = {
         ...crew,
         leader_id: leaderId,
-        updated_at: new Date().toISOString(),
-        updated_by: userId || ""
     };
 
+    updateData = await applyUpdated<CrewUpdate>(updateData);
+
     // Perform the update
-    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, business.id);
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, businessId);
 
     if (error) {
         console.error("Error assigning crew leader:", error);
@@ -419,11 +395,9 @@ export const assignCrewLeader = async (crewId: string, leaderId: string): Promis
     return data;
 }
 
-export const updateCrewNotes = async (crewId: string, notes: string): Promise<Crew> => {
-    const { business, userId } = await ensureBusinessOrRedirect();
-
+export const updateCrewNotes = async (businessId: string, crewId: string, notes: string): Promise<Crew> => {
     // First get the current crew data
-    let crew = await getCrewById(crewId);
+    let crew = await getCrewById(businessId, crewId);
     if (!crew) {
         console.error("Crew not found");
         throw new Error("Crew not found");
@@ -438,7 +412,7 @@ export const updateCrewNotes = async (crewId: string, notes: string): Promise<Cr
     };
 
     // Perform the update
-    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, business.id);
+    const { data, error } = await updateWithBusinessCheck("crews", crewId, updateData, businessId);
 
     if (error) {
         console.error("Error updating crew notes:", error);
@@ -448,10 +422,8 @@ export const updateCrewNotes = async (crewId: string, notes: string): Promise<Cr
     return data;
 }
 
-export const getCrewsByProjectId = async (id: string): Promise<CrewWithMemberInfo[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data: projectCrews, error: projectCrewsError } = await fetchByBusiness("project_crews", business.id, "*", {
+export const getCrewsByProjectId = async (businessId: string, id: string): Promise<CrewWithMemberInfo[]> => {
+    const { data: projectCrews, error: projectCrewsError } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { project_id: id },
         orderBy: { column: "start_date", ascending: false },
     });
@@ -462,7 +434,7 @@ export const getCrewsByProjectId = async (id: string): Promise<CrewWithMemberInf
 
     const crewIds = projectCrews.map((pc) => pc.crew_id);
 
-    const { data: crews, error } = await fetchByBusiness("crews", business.id, "*", {
+    const { data: crews, error } = await fetchByBusiness("crews", businessId, "*", {
         filter: { id: { in: crewIds } },
         orderBy: { column: "name", ascending: true },
     });
@@ -473,12 +445,12 @@ export const getCrewsByProjectId = async (id: string): Promise<CrewWithMemberInf
     }
 
     const leaderIds = crews.map((crew) => crew.leader_id).filter((id) => id !== null);
-    const { data: leaders } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data: leaders } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: { in: leaderIds } },
     });
 
 
-    const { data: crewMembersData } = await fetchByBusiness("crew_member_assignments", business.id, ["id", "crew_id"], {
+    const { data: crewMembersData } = await fetchByBusiness("crew_member_assignments", businessId, ["id", "crew_id"], {
         filter: { crew_id: { in: crewIds } },
     });
 
@@ -492,10 +464,9 @@ export const getCrewsByProjectId = async (id: string): Promise<CrewWithMemberInf
     return crewWithMembers;
 };
 
-export const getAvailableCrews = async (): Promise<CrewWithMemberInfo[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getAvailableCrews = async (businessId: string): Promise<CrewWithMemberInfo[]> => {
 
-    const { data, error } = await fetchByBusiness("crews", business.id, "*", {
+    const { data, error } = await fetchByBusiness("crews", businessId, "*", {
         filter: { status: { in: ["available"] } },
         orderBy: { column: "name", ascending: true },
     });
@@ -510,12 +481,12 @@ export const getAvailableCrews = async (): Promise<CrewWithMemberInfo[]> => {
     }
     const crewIds = data.map((crew) => crew.id);
     const leaderIds = data.map((crew) => crew.leader_id).filter((id) => id !== null);
-    const { data: leaders } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data: leaders } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: { in: leaderIds } },
     });
 
 
-    const { data: crewMembersData } = await fetchByBusiness("crew_member_assignments", business.id, ["id", "crew_id", "crew_member_id"], {
+    const { data: crewMembersData } = await fetchByBusiness("crew_member_assignments", businessId, ["id", "crew_id", "crew_member_id"], {
         filter: { crew_id: { in: crewIds } },
     });
 
@@ -530,12 +501,11 @@ export const getAvailableCrews = async (): Promise<CrewWithMemberInfo[]> => {
     return crewWithMembers;
 }
 
-export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate): Promise<CrewMember | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateCrewMember = async (businessId: string, id: string, crewMember: CrewMemberUpdate): Promise<CrewMember | null> => {
 
     crewMember = await applyUpdated<CrewMemberUpdate>(crewMember);
 
-    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, business.id);
+    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, businessId);
 
     if (error) {
         console.error("Error updating crew member:", error);
@@ -545,10 +515,9 @@ export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate)
     return data as unknown as CrewMember;
 }
 
-export const deleteCrewMember = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteCrewMember = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("crew_members", id, business.id);
+    const { error } = await deleteWithBusinessCheck("crew_members", id, businessId);
 
     if (error) {
         console.error("Error deleting crew member:", error);

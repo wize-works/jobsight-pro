@@ -4,7 +4,6 @@
 import { sendPushNotificationToUser, sendPushNotificationToBusiness } from './actions';
 import { createNotification } from '@/app/actions/notifications';
 import { withBusinessServer } from '@/lib/auth/with-business-server';
-import { ensureBusinessOrRedirect } from '../auth/ensure-business';
 
 export async function triggerProjectNotification(
     projectId: string,
@@ -13,7 +12,7 @@ export async function triggerProjectNotification(
     assignedUserIds?: string[]
 ) {
     try {
-        const { userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         const title = `Project ${action}`;
         const body = `${projectName} has been ${action}`;
@@ -22,16 +21,18 @@ export async function triggerProjectNotification(
         // Create in-app notification for assigned users
         if (assignedUserIds && assignedUserIds.length > 0) {
             for (const userId of assignedUserIds) {
-                await createNotification({
-                    user_id: userId,
-                    title,
-                    message: body,
-                    type: 'projectUpdates',
-                    //related_entity_type: 'project',
-                    //related_entity_id: projectId,
-                    read: false,
-                    read_at: null
-                });
+                await createNotification(
+                    business.id,
+                    {
+                        user_id: userId,
+                        title,
+                        message: body,
+                        type: 'projectUpdates',
+                        //related_entity_type: 'project',
+                        //related_entity_id: projectId,
+                        read: false,
+                        read_at: null
+                    });
 
                 // Send push notification
                 await sendPushNotificationToUser(userId, title, body, { projectId }, url);
@@ -55,7 +56,7 @@ export async function triggerTaskNotification(
     assignedUserId?: string
 ) {
     try {
-        const { userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         const title = `Task ${action}`;
         const body = `"${taskTitle}" in ${projectName} has been ${action}`;
@@ -63,16 +64,18 @@ export async function triggerTaskNotification(
 
         if (assignedUserId) {
             // Create in-app notification
-            await createNotification({
-                user_id: assignedUserId,
-                title,
-                message: body,
-                type: 'taskAssignments',
-                //related_entity_type: 'task',
-                //related_entity_id: taskId,
-                read: false,
-                read_at: null,
-            });
+            await createNotification(
+                business.id,
+                {
+                    user_id: assignedUserId,
+                    title,
+                    message: body,
+                    type: 'taskAssignments',
+                    //related_entity_type: 'task',
+                    //related_entity_id: taskId,
+                    read: false,
+                    read_at: null,
+                });
 
             // Send push notification
             await sendPushNotificationToUser(assignedUserId, title, body, { taskId }, url);
@@ -94,7 +97,7 @@ export async function triggerEquipmentNotification(
     assignedUserId?: string
 ) {
     try {
-        const { userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         const title = `Equipment ${action.replace('_', ' ')}`;
         const body = `${equipmentName}: ${action.replace('_', ' ')}`;
@@ -102,16 +105,18 @@ export async function triggerEquipmentNotification(
 
         if (assignedUserId) {
             // Create in-app notification
-            await createNotification({
-                user_id: assignedUserId,
-                title,
-                message: body,
-                type: 'equipmentAlerts',
-                //related_entity_type: 'equipment',
-                //related_entity_id: equipmentId,
-                read: false,
-                read_at: null,
-            });
+            await createNotification(
+                business.id,
+                {
+                    user_id: assignedUserId,
+                    title,
+                    message: body,
+                    type: 'equipmentAlerts',
+                    //related_entity_type: 'equipment',
+                    //related_entity_id: equipmentId,
+                    read: false,
+                    read_at: null,
+                });
 
             // Send push notification
             await sendPushNotificationToUser(assignedUserId, title, body, { equipmentId }, url);
@@ -133,7 +138,7 @@ export async function triggerInvoiceNotification(
     action: 'created' | 'sent' | 'paid' | 'overdue'
 ) {
     try {
-        const { userId } = await ensureBusinessOrRedirect();
+        const { userId } = await withBusinessServer();
 
         const title = `Invoice ${action}`;
         const body = `Invoice ${invoiceNumber} for ${clientName} is ${action}`;
@@ -155,7 +160,7 @@ export async function triggerSystemNotification(
     url?: string
 ) {
     try {
-        const { userId } = await ensureBusinessOrRedirect();
+        const { userId } = await withBusinessServer();
 
         // Notify entire business
         await sendPushNotificationToBusiness(title, message, {}, url, userId);

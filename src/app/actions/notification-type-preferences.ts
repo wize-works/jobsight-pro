@@ -11,13 +11,13 @@ import {
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 
 // Get type-specific preferences for all notification types for a user
-export const getAllNotificationTypePreferences = async (userId: string): Promise<UserNotificationTypePreference[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getAllNotificationTypePreferences = async (businessId: string, userId: string): Promise<UserNotificationTypePreference[]> => {
 
-    const { data, error } = await fetchByBusiness("user_notification_type_preferences", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("user_notification_type_preferences", businessId, "*", {
         filter: { user_id: userId },
         orderBy: { column: "notification_type", ascending: true },
     });
@@ -36,12 +36,13 @@ export const getAllNotificationTypePreferences = async (userId: string): Promise
 
 // Get preferences for a specific notification type for a user
 export const getNotificationTypePreference = async (
+    businessId: string,
     userId: string,
     notificationType: NotificationTypeOptions
 ): Promise<UserNotificationTypePreference | null> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("user_notification_type_preferences", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("user_notification_type_preferences", businessId, "*", {
         filter: {
             user_id: userId,
             notification_type: notificationType
@@ -62,14 +63,15 @@ export const getNotificationTypePreference = async (
 
 // Update preferences for a specific notification type for a user
 export const updateNotificationTypePreference = async (
+    businessId: string,
     userId: string,
     notificationType: NotificationTypeOptions,
     preferences: UserNotificationTypePreferenceUpdate
 ): Promise<UserNotificationTypePreference | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+
 
     // Check if preferences exist for this type
-    const { data: existingPrefs } = await fetchByBusiness("user_notification_type_preferences", business.id, "*", {
+    const { data: existingPrefs } = await fetchByBusiness("user_notification_type_preferences", businessId, "*", {
         filter: {
             user_id: userId,
             notification_type: notificationType
@@ -84,7 +86,7 @@ export const updateNotificationTypePreference = async (
             "user_notification_type_preferences",
             (existingPrefs[0] as unknown as UserNotificationTypePreference).id,
             preferences,
-            business.id
+            businessId
         );
 
         if (error) {
@@ -104,7 +106,7 @@ export const updateNotificationTypePreference = async (
         const { data, error } = await insertWithBusiness(
             "user_notification_type_preferences",
             await applyCreated<UserNotificationTypePreferenceInsert>(newPrefs),
-            business.id
+            businessId
         );
 
         if (error) {
@@ -118,13 +120,14 @@ export const updateNotificationTypePreference = async (
 
 // Delete preferences for a specific notification type for a user
 export const deleteNotificationTypePreference = async (
+    businessId: string,
     userId: string,
     notificationType: NotificationTypeOptions
 ): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+
 
     // Find the preference first
-    const { data: existingPrefs } = await fetchByBusiness("user_notification_type_preferences", business.id, "*", {
+    const { data: existingPrefs } = await fetchByBusiness("user_notification_type_preferences", businessId, "*", {
         filter: {
             user_id: userId,
             notification_type: notificationType
@@ -138,7 +141,7 @@ export const deleteNotificationTypePreference = async (
     const { error } = await deleteWithBusinessCheck(
         "user_notification_type_preferences",
         (existingPrefs[0] as unknown as UserNotificationTypePreference).id,
-        business.id
+        businessId
     );
 
     if (error) {
@@ -150,8 +153,8 @@ export const deleteNotificationTypePreference = async (
 };
 
 // Initialize default notification type preferences for a new user
-export const initializeDefaultNotificationTypePreferences = async (userId: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const initializeDefaultNotificationTypePreferences = async (businessId: string, userId: string): Promise<boolean> => {
+
 
     try {
         // Create default preferences for each notification type
@@ -167,7 +170,7 @@ export const initializeDefaultNotificationTypePreferences = async (userId: strin
             return insertWithBusiness(
                 "user_notification_type_preferences",
                 await applyCreated<UserNotificationTypePreferenceInsert>(defaultPrefs),
-                business.id
+                businessId
             );
         });
 
@@ -181,14 +184,15 @@ export const initializeDefaultNotificationTypePreferences = async (userId: strin
 
 // Get notification types that a user has enabled for a specific channel
 export const getEnabledNotificationTypes = async (
+    businessId: string,
     userId: string,
     channel: 'email' | 'push' | 'in_app'
 ): Promise<NotificationTypeOptions[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+
 
     const channelField = `${channel}_enabled`;
 
-    const { data, error } = await fetchByBusiness("user_notification_type_preferences", business.id, "*", {
+    const { data, error } = await fetchByBusiness("user_notification_type_preferences", businessId, "*", {
         filter: {
             user_id: userId,
             [channelField]: true

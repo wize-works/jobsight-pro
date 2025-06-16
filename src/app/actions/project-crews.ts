@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("project_crews", business.id);
+export const getProjectCrews = async (businessId: string): Promise<ProjectCrew[]> => {
+
+
+    const { data, error } = await fetchByBusiness("project_crews", businessId);
 
     if (error) {
         console.error("Error fetching project crews:", error);
@@ -26,10 +26,10 @@ export const getProjectCrews = async (): Promise<ProjectCrew[]> => {
     return data as unknown as ProjectCrew[];
 }
 
-export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getProjectCrewById = async (businessId: string, id: string): Promise<ProjectCrew | null> => {
 
-    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("project_crews", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching project crew by ID:", error);
@@ -43,12 +43,12 @@ export const getProjectCrewById = async (id: string): Promise<ProjectCrew | null
     return null;
 };
 
-export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<ProjectCrew | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createProjectCrew = async (businessId: string, crew: ProjectCrewInsert): Promise<ProjectCrew | null> => {
+
 
     crew = await applyCreated<ProjectCrewInsert>(crew);
 
-    const { data, error } = await insertWithBusiness("project_crews", crew, business.id);
+    const { data, error } = await insertWithBusiness("project_crews", crew, businessId);
 
     if (error) {
         console.error("Error creating project crew:", error);
@@ -58,12 +58,12 @@ export const createProjectCrew = async (crew: ProjectCrewInsert): Promise<Projec
     return data as unknown as ProjectCrew;
 }
 
-export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Promise<ProjectCrew | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateProjectCrew = async (businessId: string, id: string, crew: ProjectCrewUpdate): Promise<ProjectCrew | null> => {
+
 
     crew = await applyUpdated<ProjectCrewUpdate>(crew);
 
-    const { data, error } = await updateWithBusinessCheck("project_crews", id, crew, business.id);
+    const { data, error } = await updateWithBusinessCheck("project_crews", id, crew, businessId);
 
     if (error) {
         console.error("Error updating project crew:", error);
@@ -73,10 +73,10 @@ export const updateProjectCrew = async (id: string, crew: ProjectCrewUpdate): Pr
     return data as unknown as ProjectCrew;
 }
 
-export const deleteProjectCrew = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteProjectCrew = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("project_crews", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("project_crews", id, businessId);
 
     if (error) {
         console.error("Error deleting project crew:", error);
@@ -86,10 +86,10 @@ export const deleteProjectCrew = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchProjectCrews = async (businessId: string, query: string): Promise<ProjectCrew[]> => {
 
-    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: {
             or: [
                 { project_id: { ilike: `%${query}%` } },
@@ -107,18 +107,18 @@ export const searchProjectCrews = async (query: string): Promise<ProjectCrew[]> 
     return data as unknown as ProjectCrew[];
 };
 
-export const addCrewToProject = async (projectId: string, crewId: string): Promise<ProjectCrew | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const addCrewToProject = async (businessId: string, projectId: string, crewId: string): Promise<ProjectCrew | null> => {
+
 
     let newCrew = {
         project_id: projectId,
         crew_id: crewId,
-        business_id: business.id,
+        business_id: businessId,
     } as ProjectCrewInsert;
 
     newCrew = await applyCreated<ProjectCrewInsert>(newCrew);
 
-    const createdCrew = await createProjectCrew(newCrew);
+    const createdCrew = await createProjectCrew(businessId, newCrew);
 
     if (!createdCrew) {
         console.error("Failed to add crew to project");
@@ -128,10 +128,10 @@ export const addCrewToProject = async (projectId: string, crewId: string): Promi
     return createdCrew;
 };
 
-export const removeCrewFromProject = async (projectId: string, crewId: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const removeCrewFromProject = async (businessId: string, projectId: string, crewId: string): Promise<boolean> => {
 
-    const { data, error } = await fetchByBusiness("project_crews", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_crews", businessId, "*", {
         filter: { project_id: projectId, crew_id: crewId },
     }) as { data: ProjectCrew[], error: any };
 
@@ -147,7 +147,7 @@ export const removeCrewFromProject = async (projectId: string, crewId: string): 
         console.warn("Multiple crews found for the specified project and crew ID, removing the first one");
     }
 
-    const success = await deleteProjectCrew(data[0].id);
+    const success = await deleteProjectCrew(businessId, data[0].id);
 
     if (!success) {
         console.error("Failed to remove crew from project");

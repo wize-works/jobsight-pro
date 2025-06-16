@@ -5,12 +5,14 @@ import { useState, useEffect } from "react"
 import { getMediaByProjectId } from "@/app/actions/media"
 import { Media } from "@/types/media"
 import Link from "next/link"
+import { useBusiness } from "@/lib/business-context"
 
 interface MediaTabProps {
     projectId: string
 }
 
 export default function MediaTab({ projectId }: MediaTabProps) {
+    const { businessId } = useBusiness();
     const [mediaItems, setMediaItems] = useState<Media[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedType, setSelectedType] = useState<string>("all")
@@ -24,10 +26,10 @@ export default function MediaTab({ projectId }: MediaTabProps) {
             setLoading(true)
             // Get all media types for this project
             const [images, videos, documents, audio] = await Promise.all([
-                getMediaByProjectId(projectId, "images"),
-                getMediaByProjectId(projectId, "videos"),
-                getMediaByProjectId(projectId, "documents"),
-                getMediaByProjectId(projectId, "audios")
+                getMediaByProjectId(businessId, projectId, "images"),
+                getMediaByProjectId(businessId, projectId, "videos"),
+                getMediaByProjectId(businessId, projectId, "documents"),
+                getMediaByProjectId(businessId, projectId, "audios")
             ])
 
             const allMedia = [...images, ...videos, ...documents, ...audio]

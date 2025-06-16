@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { MediaType } from "@/types/media";
 import { uploadProjectMedia } from "@/app/actions/media";
+import { useBusiness } from "@/lib/business-context";
 
 interface MediaModalProps {
     isOpen: boolean;
@@ -13,6 +14,7 @@ interface MediaModalProps {
 }
 
 export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: MediaModalProps) {
+    const { businessId } = useBusiness();
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -135,6 +137,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
             const fileType = getFileTypeFromFile(formData.file);
 
             const success = await uploadProjectMedia(
+                businessId,
                 projectId,
                 formData.file,
                 formData.type || fileType,

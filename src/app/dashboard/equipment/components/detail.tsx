@@ -18,6 +18,7 @@ import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
 import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 
 interface EquipmentDetailProps {
     equipment: Equipment;
@@ -37,6 +38,7 @@ export default function EquipmentDetail({
     documents,
 }: EquipmentDetailProps) {
     const [mounted, setMounted] = useState(false);
+    const { businessId } = useBusiness();
     useEffect(() => {
         setMounted(true);
     }
@@ -67,11 +69,11 @@ export default function EquipmentDetail({
             const mediaArray = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
 
             for (const media of mediaArray) {
-                await linkMediaToEquipment(media.id, equipment.id);
+                await linkMediaToEquipment(businessId, media.id, equipment.id);
             }
 
             // Refresh media list
-            const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+            const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
             setEquipmentMedia(updatedMedia);
 
             toast.success({
@@ -94,10 +96,10 @@ export default function EquipmentDetail({
         if (confirm("Are you sure you want to remove this media from the equipment?")) {
             setIsLoadingMedia(true);
             try {
-                await unlinkMediaFromEquipment(mediaId, equipment.id);
+                await unlinkMediaFromEquipment(businessId, mediaId, equipment.id);
 
                 // Refresh media list
-                const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+                const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
                 setEquipmentMedia(updatedMedia);
 
                 toast.success({
@@ -120,7 +122,7 @@ export default function EquipmentDetail({
     const handleSetPrimaryImage = async (mediaId: string) => {
         setIsLoadingMedia(true);
         try {
-            await setEquipmentPrimaryImage(equipment.id, mediaId);
+            await setEquipmentPrimaryImage(businessId, equipment.id, mediaId);
 
             toast.success({
                 title: "Success",
@@ -156,7 +158,7 @@ export default function EquipmentDetail({
 
         setIsUploadingImage(true);
         try {
-            await uploadEquipmentImage(equipment.id, file);
+            await uploadEquipmentImage(businessId, equipment.id, file);
 
             toast.success({
                 title: "Success",
@@ -164,7 +166,7 @@ export default function EquipmentDetail({
             });
 
             // Refresh media list and page
-            const updatedMedia = await getMediaByEquipmentId(equipment.id, "");
+            const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
             setEquipmentMedia(updatedMedia);
             window.location.reload();
         } catch (error) {
@@ -349,7 +351,7 @@ export default function EquipmentDetail({
                                     <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
                                         const { latitude, longitude } = position.coords;
                                         setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
-                                        setEquipmentLocation({ id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
+                                        setEquipmentLocation(businessId, { id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
                                     })}>
                                         <i className="fas fa-map-marker-alt"></i>
                                     </button>

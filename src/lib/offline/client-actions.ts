@@ -7,7 +7,6 @@ import {
     updateWithBusinessCheck,
     deleteWithBusinessCheck,
 } from "@/lib/db";
-import { ensureBusinessOrRedirect } from "../auth/ensure-business";
 
 export interface SyncResult {
     success: boolean;
@@ -19,8 +18,9 @@ export interface SyncResult {
 export async function syncQueueToServer(
     businessId: string,
 ): Promise<SyncResult> {
+    const { business } = await withBusinessServer();
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         if (business.id !== businessId) {
             throw new Error("Business ID mismatch");

@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getTaskNotes = async (): Promise<TaskNote[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("task_notes", business.id);
+export const getTaskNotes = async (businessId: string): Promise<TaskNote[]> => {
+
+
+    const { data, error } = await fetchByBusiness("task_notes", businessId);
 
     if (error) {
         console.error("Error fetching task notes:", error);
@@ -26,10 +26,10 @@ export const getTaskNotes = async (): Promise<TaskNote[]> => {
     return data as unknown as TaskNote[];
 }
 
-export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getTaskNoteById = async (businessId: string, id: string): Promise<TaskNote | null> => {
 
-    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("task_notes", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching task note by ID:", error);
@@ -43,12 +43,12 @@ export const getTaskNoteById = async (id: string): Promise<TaskNote | null> => {
     return null;
 };
 
-export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createTaskNote = async (businessId: string, note: TaskNoteInsert): Promise<TaskNote | null> => {
+
 
     note = await applyCreated<TaskNoteInsert>(note);
 
-    const { data, error } = await insertWithBusiness("task_notes", note, business.id);
+    const { data, error } = await insertWithBusiness("task_notes", note, businessId);
 
     if (error) {
         console.error("Error creating task note:", error);
@@ -58,12 +58,12 @@ export const createTaskNote = async (note: TaskNoteInsert): Promise<TaskNote | n
     return data as unknown as TaskNote;
 }
 
-export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<TaskNote | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateTaskNote = async (businessId: string, id: string, note: TaskNoteUpdate): Promise<TaskNote | null> => {
+
 
     note = await applyUpdated<TaskNoteUpdate>(note);
 
-    const { data, error } = await updateWithBusinessCheck("task_notes", id, note, business.id);
+    const { data, error } = await updateWithBusinessCheck("task_notes", id, note, businessId);
 
     if (error) {
         console.error("Error updating task note:", error);
@@ -73,10 +73,10 @@ export const updateTaskNote = async (id: string, note: TaskNoteUpdate): Promise<
     return data as unknown as TaskNote;
 }
 
-export const deleteTaskNote = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteTaskNote = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("task_notes", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("task_notes", id, businessId);
 
     if (error) {
         console.error("Error deleting task note:", error);
@@ -86,10 +86,10 @@ export const deleteTaskNote = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchTaskNotes = async (query: string): Promise<TaskNote[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchTaskNotes = async (businessId: string, query: string): Promise<TaskNote[]> => {
 
-    const { data, error } = await fetchByBusiness("task_notes", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("task_notes", businessId, "*", {
         filter: {
             or: [
                 { note: { ilike: `%${query}%` } },

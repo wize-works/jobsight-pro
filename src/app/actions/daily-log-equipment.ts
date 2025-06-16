@@ -2,15 +2,11 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id);
+export const getDailyLogEquipments = async (businessId: string): Promise<DailyLogEquipment[]> => {
+    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId);
 
     if (error) {
         console.error("Error fetching daily log equipments:", error);
@@ -22,12 +18,10 @@ export const getDailyLogEquipments = async (): Promise<DailyLogEquipment[]> => {
     }
 
     return data as unknown as DailyLogEquipment[];
-}
+};
 
-export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEquipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+export const getDailyLogEquipmentById = async (businessId: string, id: string): Promise<DailyLogEquipment | null> => {
+    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId, "*", {
         filter: { id },
     });
 
@@ -42,12 +36,10 @@ export const getDailyLogEquipmentById = async (id: string): Promise<DailyLogEqui
     throw new Error("Daily log equipment not found");
 };
 
-export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert): Promise<DailyLogEquipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const createDailyLogEquipment = async (businessId: string, equipment: DailyLogEquipmentInsert): Promise<DailyLogEquipment | null> => {
     equipment = await applyCreated<DailyLogEquipmentInsert>(equipment);
 
-    const { data, error } = await insertWithBusiness("daily_log_equipment", equipment, business.id);
+    const { data, error } = await insertWithBusiness("daily_log_equipment", equipment, businessId);
 
     if (error) {
         console.error("Error creating daily log equipment:", error);
@@ -55,14 +47,12 @@ export const createDailyLogEquipment = async (equipment: DailyLogEquipmentInsert
     }
 
     return data as unknown as DailyLogEquipment;
-}
+};
 
-export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEquipmentUpdate): Promise<DailyLogEquipment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const updateDailyLogEquipment = async (businessId: string, id: string, equipment: DailyLogEquipmentUpdate): Promise<DailyLogEquipment | null> => {
     equipment = await applyUpdated<DailyLogEquipmentUpdate>(equipment);
 
-    const { data, error } = await updateWithBusinessCheck("daily_log_equipment", id, equipment, business.id);
+    const { data, error } = await updateWithBusinessCheck("daily_log_equipment", id, equipment, businessId);
 
     if (error) {
         console.error("Error updating daily log equipment:", error);
@@ -70,12 +60,10 @@ export const updateDailyLogEquipment = async (id: string, equipment: DailyLogEqu
     }
 
     return data as unknown as DailyLogEquipment;
-}
+};
 
-export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("daily_log_equipment", id, business.id);
+export const deleteDailyLogEquipment = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("daily_log_equipment", id, businessId);
 
     if (error) {
         console.error("Error deleting daily log equipment:", error);
@@ -83,12 +71,10 @@ export const deleteDailyLogEquipment = async (id: string): Promise<boolean> => {
     }
 
     return true;
-}
+};
 
-export const searchDailyLogEquipments = async (query: string): Promise<DailyLogEquipment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+export const searchDailyLogEquipments = async (businessId: string, query: string): Promise<DailyLogEquipment[]> => {
+    const { data, error } = await fetchByBusiness("daily_log_equipment", businessId, "*", {
         filter: {
             or: [
                 { equipment_id: { ilike: `%${query}%` } },

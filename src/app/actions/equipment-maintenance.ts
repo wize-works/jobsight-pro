@@ -7,12 +7,11 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getEquipmentMaintenances = async (): Promise<EquipmentMaintenance[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentMaintenances = async (businessId: string): Promise<EquipmentMaintenance[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment_maintenance", business.id);
+
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId);
 
     if (error) {
         console.error("Error fetching equipment maintenances:", error);
@@ -26,10 +25,10 @@ export const getEquipmentMaintenances = async (): Promise<EquipmentMaintenance[]
     return data as unknown as EquipmentMaintenance[];
 }
 
-export const getEquipmentMaintenanceById = async (id: string): Promise<EquipmentMaintenance | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentMaintenanceById = async (businessId: string, id: string): Promise<EquipmentMaintenance | null> => {
 
-    const { data, error } = await fetchByBusiness("equipment_maintenance", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, "*", {
         filter: { id: id },
         orderBy: { column: "created_at", ascending: false },
     });
@@ -46,12 +45,12 @@ export const getEquipmentMaintenanceById = async (id: string): Promise<Equipment
     return null;
 };
 
-export const createEquipmentMaintenance = async (maintenance: EquipmentMaintenanceInsert): Promise<EquipmentMaintenance | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createEquipmentMaintenance = async (businessId: string, maintenance: EquipmentMaintenanceInsert): Promise<EquipmentMaintenance | null> => {
+
 
     maintenance = await applyCreated<EquipmentMaintenanceInsert>(maintenance);
 
-    const { data, error } = await insertWithBusiness("equipment_maintenance", maintenance, business.id);
+    const { data, error } = await insertWithBusiness("equipment_maintenance", maintenance, businessId);
 
     if (error) {
         console.error("Error creating equipment maintenance:", error);
@@ -61,12 +60,12 @@ export const createEquipmentMaintenance = async (maintenance: EquipmentMaintenan
     return data as unknown as EquipmentMaintenance;
 }
 
-export const updateEquipmentMaintenance = async (id: string, maintenance: EquipmentMaintenanceUpdate): Promise<EquipmentMaintenance | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateEquipmentMaintenance = async (businessId: string, id: string, maintenance: EquipmentMaintenanceUpdate): Promise<EquipmentMaintenance | null> => {
+
 
     maintenance = await applyUpdated<EquipmentMaintenanceUpdate>(maintenance);
 
-    const { data, error } = await updateWithBusinessCheck("equipment_maintenance", id, maintenance, business.id);
+    const { data, error } = await updateWithBusinessCheck("equipment_maintenance", id, maintenance, businessId);
 
     if (error) {
         console.error("Error updating equipment maintenance:", error);
@@ -76,10 +75,10 @@ export const updateEquipmentMaintenance = async (id: string, maintenance: Equipm
     return data as unknown as EquipmentMaintenance;
 }
 
-export const deleteEquipmentMaintenance = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteEquipmentMaintenance = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("equipment_maintenance", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("equipment_maintenance", id, businessId);
 
     if (error) {
         console.error("Error deleting equipment maintenance:", error);
@@ -89,10 +88,10 @@ export const deleteEquipmentMaintenance = async (id: string): Promise<boolean> =
     return true;
 }
 
-export const searchEquipmentMaintenances = async (query: string): Promise<EquipmentMaintenance[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchEquipmentMaintenances = async (businessId: string, query: string): Promise<EquipmentMaintenance[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment_maintenance", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, "*", {
         filter: {
             or: [
                 { description: { ilike: `%${query}%` } },
@@ -110,10 +109,10 @@ export const searchEquipmentMaintenances = async (query: string): Promise<Equipm
     return data as unknown as EquipmentMaintenance[];
 };
 
-export const getEquipmentMaintenancesByEquipmentId = async (id: string): Promise<EquipmentMaintenance[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentMaintenancesByEquipmentId = async (businessId: string, id: string): Promise<EquipmentMaintenance[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment_maintenance", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment_maintenance", businessId, "*", {
         filter: { equipment_id: id },
         orderBy: { column: "created_at", ascending: false },
     });

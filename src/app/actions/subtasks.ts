@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getSubtasks = async (): Promise<Subtask[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("subtasks", business.id);
+export const getSubtasks = async (businessId: string): Promise<Subtask[]> => {
+
+
+    const { data, error } = await fetchByBusiness("subtasks", businessId);
 
     if (error) {
         console.error("Error fetching subtasks:", error);
@@ -26,10 +26,10 @@ export const getSubtasks = async (): Promise<Subtask[]> => {
     return data as unknown as Subtask[];
 }
 
-export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getSubtaskById = async (businessId: string, id: string): Promise<Subtask | null> => {
 
-    const { data, error } = await fetchByBusiness("subtasks", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("subtasks", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching subtask by ID:", error);
@@ -43,12 +43,12 @@ export const getSubtaskById = async (id: string): Promise<Subtask | null> => {
     return null;
 };
 
-export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createSubtask = async (businessId: string, subtask: SubtaskInsert): Promise<Subtask | null> => {
+
 
     subtask = await applyCreated<SubtaskInsert>(subtask);
 
-    const { data, error } = await insertWithBusiness("subtasks", subtask, business.id);
+    const { data, error } = await insertWithBusiness("subtasks", subtask, businessId);
 
     if (error) {
         console.error("Error creating subtask:", error);
@@ -58,12 +58,12 @@ export const createSubtask = async (subtask: SubtaskInsert): Promise<Subtask | n
     return data as unknown as Subtask;
 }
 
-export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise<Subtask | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateSubtask = async (businessId: string, id: string, subtask: SubtaskUpdate): Promise<Subtask | null> => {
+
 
     subtask = await applyUpdated<SubtaskUpdate>(subtask);
 
-    const { data, error } = await updateWithBusinessCheck("subtasks", id, subtask, business.id);
+    const { data, error } = await updateWithBusinessCheck("subtasks", id, subtask, businessId);
 
     if (error) {
         console.error("Error updating subtask:", error);
@@ -73,10 +73,10 @@ export const updateSubtask = async (id: string, subtask: SubtaskUpdate): Promise
     return data as unknown as Subtask;
 }
 
-export const deleteSubtask = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteSubtask = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("subtasks", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("subtasks", id, businessId);
 
     if (error) {
         console.error("Error deleting subtask:", error);
@@ -86,10 +86,10 @@ export const deleteSubtask = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchSubtasks = async (query: string): Promise<Subtask[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchSubtasks = async (businessId: string, query: string): Promise<Subtask[]> => {
 
-    const { data, error } = await fetchByBusiness("subtasks", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("subtasks", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },

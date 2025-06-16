@@ -18,8 +18,10 @@ import type {
     BillingInterval,
 } from "@/types/subscription";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 
 export const TabSubscription = () => {
+    const { businessId } = useBusiness();
     const [currentSubscription, setCurrentSubscription] =
         useState<BusinessSubscription | null>(null);
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -36,7 +38,7 @@ export const TabSubscription = () => {
         try {
             setIsLoading(true);
             const [subscription, subscriptionPlans] = await Promise.all([
-                getCurrentSubscription(),
+                getCurrentSubscription(businessId),
                 getSubscriptionPlans(),
             ]);
 
@@ -75,6 +77,7 @@ export const TabSubscription = () => {
             if (currentSubscription?.stripe_subscription_id) {
                 // User has existing Stripe subscription, update it
                 const result = await updateStripeSubscription(
+                    businessId,
                     planId,
                     billingInterval,
                 );
@@ -86,6 +89,7 @@ export const TabSubscription = () => {
             } else {
                 // New Stripe customer, redirect to checkout
                 const result = await createCheckoutSession(
+                    businessId,
                     planId,
                     billingInterval,
                 );
@@ -123,7 +127,7 @@ export const TabSubscription = () => {
         try {
             // For Stripe subscriptions, redirect to billing portal
             if (currentSubscription?.stripe_subscription_id) {
-                const result = await createBillingPortalSession();
+                const result = await createBillingPortalSession(businessId);
                 if (result.success && result.sessionUrl) {
                     window.location.href = result.sessionUrl;
                 } else {
@@ -134,7 +138,7 @@ export const TabSubscription = () => {
                 }
             } else {
                 // For local-only subscriptions (like personal plan)
-                const result = await cancelSubscription();
+                const result = await cancelSubscription(businessId);
                 if (result.success) {
                     showToast("Subscription cancelled successfully", "success");
                     await loadData();
@@ -156,7 +160,7 @@ export const TabSubscription = () => {
     const handleManageBilling = async () => {
         setIsLoading(true);
         try {
-            const result = await createBillingPortalSession();
+            const result = await createBillingPortalSession(businessId);
             if (result.success && result.sessionUrl) {
                 window.location.href = result.sessionUrl;
             } else {
@@ -268,9 +272,8 @@ export const TabSubscription = () => {
                     return (
                         <div
                             key={plan.id}
-                            className={`card bg-base-100 shadow-xl relative ${
-                                isCurrentPlan ? "ring-2 ring-primary" : ""
-                            } ${isPopular ? "border-accent border-2" : ""}`}
+                            className={`card bg-base-100 shadow-xl relative ${isCurrentPlan ? "ring-2 ring-primary" : ""
+                                } ${isPopular ? "border-accent border-2" : ""}`}
                         >
                             {isPopular && (
                                 <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
@@ -337,13 +340,12 @@ export const TabSubscription = () => {
                                         </button>
                                     ) : (
                                         <button
-                                            className={`btn btn-block ${
-                                                plan.id === "starter"
+                                            className={`btn btn-block ${plan.id === "starter"
                                                     ? "btn-outline"
                                                     : isPopular
-                                                      ? "btn-accent"
-                                                      : "btn-primary"
-                                            }`}
+                                                        ? "btn-accent"
+                                                        : "btn-primary"
+                                                }`}
                                             onClick={() =>
                                                 handlePlanChange(plan.id)
                                             }

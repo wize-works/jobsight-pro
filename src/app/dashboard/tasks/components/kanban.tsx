@@ -7,6 +7,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { formatDate } from "@/utils/formatters";
+import { useBusiness } from "@/lib/business-context";
 
 interface KanbanPageProps {
     tasks?: TaskWithDetails[];
@@ -31,6 +32,7 @@ interface TaskCardProps {
 }
 
 function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardProps) {
+    const { businessId } = useBusiness();
     const [isDragging, setIsDragging] = useState(false);
 
     const projectName = projects.find(p => p.id === task.project_id)?.name || task.project_name || "Unknown Project";
@@ -47,6 +49,10 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
 
     const handleDragEnd = () => {
         setIsDragging(false);
+    };
+
+    const handleTaskUpdate = async (updates: Partial<TaskWithDetails>) => {
+        await onTaskUpdate(task.id, { ...updates });
     };
 
     return (
@@ -230,11 +236,12 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
 }
 
 export default function KanbanPage({ tasks = [], projects = [], crews = [] }: KanbanPageProps) {
+    const { businessId } = useBusiness();
     const [taskList, setTaskList] = useState(tasks);
 
     const handleTaskUpdate = async (taskId: string, updates: Partial<TaskWithDetails>) => {
         try {
-            const updatedTask = await updateTask(taskId, updates as TaskUpdate);
+            const updatedTask = await updateTask(businessId, taskId, updates as TaskUpdate);
             setTaskList(prev =>
                 prev.map(task =>
                     task.id === taskId ? { ...task, ...updates } : task

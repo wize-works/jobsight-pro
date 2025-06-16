@@ -3,16 +3,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import { fetchByBusiness, insertWithBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from "@/lib/db";
 import type { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all client interactions for the current business
-export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
+export const getClientInteractions = async (businessId: string): Promise<ClientInteraction[]> => {
+    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
         orderBy: { column: "created_at", ascending: false },
     });
 
@@ -29,10 +25,8 @@ export const getClientInteractions = async (): Promise<ClientInteraction[]> => {
 };
 
 // Get a single client interaction by ID
-export const getClientInteractionById = async (id: string): Promise<ClientInteraction> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
+export const getClientInteractionById = async (businessId: string, id: string): Promise<ClientInteraction> => {
+    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
         filter: { id },
     });
 
@@ -50,13 +44,12 @@ export const getClientInteractionById = async (id: string): Promise<ClientIntera
 
 // Create a new client interaction
 export const createClientInteraction = async (
+    businessId: string,
     interaction: ClientInteractionInsert
 ): Promise<ClientInteraction> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     interaction = await applyCreated<ClientInteractionInsert>(interaction);
 
-    const { data, error } = await insertWithBusiness("client_interactions", { ...interaction }, business.id);
+    const { data, error } = await insertWithBusiness("client_interactions", { ...interaction }, businessId);
 
     if (error) {
         console.error("Error creating client interaction:", error);
@@ -68,14 +61,13 @@ export const createClientInteraction = async (
 
 // Update an existing client interaction
 export const updateClientInteraction = async (
+    businessId: string,
     id: string,
     interaction: ClientInteractionUpdate
 ): Promise<ClientInteraction> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     interaction = await applyUpdated<ClientInteractionUpdate>(interaction);
 
-    const { data, error } = await updateWithBusinessCheck("client_interactions", id, interaction, business.id);
+    const { data, error } = await updateWithBusinessCheck("client_interactions", id, interaction, businessId);
 
     if (error) {
         console.error("Error updating client interaction:", error);
@@ -86,10 +78,8 @@ export const updateClientInteraction = async (
 };
 
 // Delete a client interaction
-export const deleteClientInteraction = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("client_interactions", id, business.id);
+export const deleteClientInteraction = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("client_interactions", id, businessId);
 
     if (error) {
         console.error("Error deleting client interaction:", error);
@@ -99,10 +89,8 @@ export const deleteClientInteraction = async (id: string): Promise<boolean> => {
     return true;
 };
 
-export const getClientInteractionsByClientId = async (clientId: string): Promise<ClientInteraction[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("client_interactions", business.id, "*", {
+export const getClientInteractionsByClientId = async (businessId: string, clientId: string): Promise<ClientInteraction[]> => {
+    const { data, error } = await fetchByBusiness("client_interactions", businessId, "*", {
         filter: { client_id: clientId },
         orderBy: { column: "created_at", ascending: false },
     });

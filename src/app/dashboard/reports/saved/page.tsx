@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { withBusinessServer } from '@/lib/auth/with-business-server';
 
 // Mock data for saved reports
 const savedReports = [
@@ -84,7 +85,12 @@ const savedReports = [
     },
 ]
 
-export default function SavedReportsPage() {
+export default async function SavedReportsPage() {
+    const { business } = await withBusinessServer();
+    const businessId = business.id;
+
+    // Use `businessId` for any server-side actions here
+
     const [searchQuery, setSearchQuery] = useState("")
     const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
     const [showScheduledOnly, setShowScheduledOnly] = useState(false)

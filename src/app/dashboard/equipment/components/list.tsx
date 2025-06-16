@@ -7,8 +7,10 @@ import type { Equipment, EquipmentStatus } from "@/types/equipment";
 import { equipmentStatusOptions } from "@/types/equipment";
 import { EquipmentCard } from "./card";
 import EquipmentNewModal from "./modal-new";
+import { useBusiness } from "@/lib/business-context";
 
 export default function EquipmentList({ initialEquipments }: { initialEquipments: Equipment[] }) {
+    const { businessId } = useBusiness();
     const [equipments, setEquipments] = useState<Equipment[]>(initialEquipments || []);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -34,7 +36,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
     // Search handler
     const handleSearch = async () => {
         if (searchTerm.trim() === "") return;
-        const results = await searchEquipments(searchTerm);
+        const results = await searchEquipments(businessId, searchTerm);
         setEquipments(results);
     };
 

@@ -7,12 +7,9 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getDailyLogImages = async (): Promise<DailyLogImage[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_images", business.id);
+export const getDailyLogImages = async (businessId: string): Promise<DailyLogImage[]> => {
+    const { data, error } = await fetchByBusiness("daily_log_images", businessId);
 
     if (error) {
         console.error("Error fetching daily log images:", error);
@@ -24,12 +21,10 @@ export const getDailyLogImages = async (): Promise<DailyLogImage[]> => {
     }
 
     return data as unknown as DailyLogImage[];
-}
+};
 
-export const getDailyLogImageById = async (id: string): Promise<DailyLogImage | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_images", business.id, "*", {
+export const getDailyLogImageById = async (businessId: string, id: string): Promise<DailyLogImage | null> => {
+    const { data, error } = await fetchByBusiness("daily_log_images", businessId, "*", {
         filter: { id: id }
     });
 
@@ -45,12 +40,10 @@ export const getDailyLogImageById = async (id: string): Promise<DailyLogImage | 
     return null;
 };
 
-export const createDailyLogImage = async (image: DailyLogImageInsert): Promise<DailyLogImage | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const createDailyLogImage = async (businessId: string, image: DailyLogImageInsert): Promise<DailyLogImage | null> => {
     image = await applyCreated<DailyLogImageInsert>(image);
 
-    const { data, error } = await insertWithBusiness("daily_log_images", image, business.id);
+    const { data, error } = await insertWithBusiness("daily_log_images", image, businessId);
 
     if (error) {
         console.error("Error creating daily log image:", error);
@@ -58,14 +51,12 @@ export const createDailyLogImage = async (image: DailyLogImageInsert): Promise<D
     }
 
     return data as unknown as DailyLogImage;
-}
+};
 
-export const updateDailyLogImage = async (id: string, image: DailyLogImageUpdate): Promise<DailyLogImage | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const updateDailyLogImage = async (businessId: string, id: string, image: DailyLogImageUpdate): Promise<DailyLogImage | null> => {
     image = await applyUpdated<DailyLogImageUpdate>(image);
 
-    const { data, error } = await updateWithBusinessCheck("daily_log_images", id, image, business.id);
+    const { data, error } = await updateWithBusinessCheck("daily_log_images", id, image, businessId);
 
     if (error) {
         console.error("Error updating daily log image:", error);
@@ -73,12 +64,10 @@ export const updateDailyLogImage = async (id: string, image: DailyLogImageUpdate
     }
 
     return data as unknown as DailyLogImage;
-}
+};
 
-export const deleteDailyLogImage = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("daily_log_images", id, business.id);
+export const deleteDailyLogImage = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("daily_log_images", id, businessId);
 
     if (error) {
         console.error("Error deleting daily log image:", error);
@@ -86,12 +75,10 @@ export const deleteDailyLogImage = async (id: string): Promise<boolean> => {
     }
 
     return true;
-}
+};
 
-export const searchDailyLogImages = async (query: string): Promise<DailyLogImage[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("daily_log_images", business.id, "*", {
+export const searchDailyLogImages = async (businessId: string, query: string): Promise<DailyLogImage[]> => {
+    const { data, error } = await fetchByBusiness("daily_log_images", businessId, "*", {
         filter: {
             or: [
                 { image_url: { ilike: `%${query}%` } },

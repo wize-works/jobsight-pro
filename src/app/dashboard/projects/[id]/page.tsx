@@ -22,6 +22,7 @@ import MediaTab from "../components/tab-media";
 import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import ProjectDetail from "../components/detail";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 const formatDate = (dateString: string): string => {
     if (!dateString) return "Not set";
@@ -44,28 +45,29 @@ const formatCurrency = (amount: number): string => {
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const { business } = await withBusinessServer();
 
     const [project, milestones, tasks, crews, issues, documents] = await Promise.all([
-        getProjectById(id),
-        getProjectMilestonesByProjectId(id),
-        getTasksByProjectId(id),
-        getCrewsByProjectId(id),
-        getProjectIssuesWithDetailsByProjectId(id),
-        getMediaByProjectId(id, "document")
+        getProjectById(business.id, id),
+        getProjectMilestonesByProjectId(business.id, id),
+        getTasksByProjectId(business.id, id),
+        getCrewsByProjectId(business.id, id),
+        getProjectIssuesWithDetailsByProjectId(business.id, id),
+        getMediaByProjectId(business.id, id, "document")
     ]);
 
     let client: Client | null = null;
     let contacts: ClientContact[] = [];
 
     if (project && project.client_id) {
-        client = await getClientById(project.client_id);
+        client = await getClientById(business.id, project.client_id);
 
-        contacts = await getClientContactsByClientId(project.client_id);
+        contacts = await getClientContactsByClientId(business.id, project.client_id);
     }
 
     let manager: CrewMember | null = null;
     if (project && project.manager_id) {
-        manager = await getCrewMemberById(project.manager_id);
+        manager = await getCrewMemberById(business.id, project.manager_id);
     }
 
     if (!project) {

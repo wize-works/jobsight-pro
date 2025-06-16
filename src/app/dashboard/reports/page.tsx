@@ -19,6 +19,7 @@ import {
     AreaChart,
     Area,
 } from "recharts"
+import { withBusinessServer } from "@/lib/auth/with-business-server"
 
 // Mock data for reports
 const projectStatusData = [
@@ -151,7 +152,10 @@ const reportTemplates = [
     },
 ]
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+    const { business } = await withBusinessServer()
+    const businessId = business.id
+
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
     const [activeReport, setActiveReport] = useState<string | null>("monthly-revenue")
 

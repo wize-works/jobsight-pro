@@ -18,6 +18,7 @@ import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { getEquipments } from "@/app/actions/equipments";
 import { getCrewMembers } from "@/app/actions/crew-members";
+import { useBusiness } from "@/lib/business-context";
 
 type CreateDailyLogModalProps = {
     isOpen: boolean;
@@ -30,6 +31,7 @@ export default function DailyLogModal({
     onClose,
     onSave
 }: Omit<CreateDailyLogModalProps, 'crews' | 'projects' | 'equipments' | 'crewMembers'>) {
+    const { businessId } = useBusiness();
     const [crews, setCrews] = useState<Crew[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -86,10 +88,10 @@ export default function DailyLogModal({
             try {
                 setLoadingData(true);
                 const [fetchedCrews, fetchedProjects, fetchedEquipments, fetchedCrewMembers] = await Promise.all([
-                    getCrews(),
-                    getProjects(),
-                    getEquipments(),
-                    getCrewMembers()
+                    getCrews(businessId),
+                    getProjects(businessId),
+                    getEquipments(businessId),
+                    getCrewMembers(businessId)
                 ]);
                 setCrews(fetchedCrews);
                 setProjects(fetchedProjects);
@@ -403,7 +405,7 @@ export default function DailyLogModal({
                 weather: formData.weather || null,
             };
 
-            const createdLog = await createDailyLog(dailyLogData as DailyLogInsert);
+            const createdLog = await createDailyLog(businessId, dailyLogData as DailyLogInsert);
 
             if (!createdLog) {
                 throw new Error("Failed to create daily log");
@@ -424,7 +426,7 @@ export default function DailyLogModal({
                         notes: null,
                     } as DailyLogMaterialInsert;
 
-                    return await createDailyLogMaterial(materialData);
+                    return await createDailyLogMaterial(businessId, materialData);
                 });
 
             // Create equipment if any
@@ -442,7 +444,7 @@ export default function DailyLogModal({
                         condition: equip.condition || null,
                     } as DailyLogEquipmentInsert;
 
-                    return await createDailyLogEquipment(equipmentData);
+                    return await createDailyLogEquipment(businessId, equipmentData);
                 });
 
             // Wait for all materials and equipment to be created

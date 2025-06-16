@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("project_milestones", business.id);
+export const getProjectMilestones = async (businessId: string): Promise<ProjectMilestone[]> => {
+
+
+    const { data, error } = await fetchByBusiness("project_milestones", businessId);
 
     if (error) {
         console.error("Error fetching project milestones:", error);
@@ -26,10 +26,10 @@ export const getProjectMilestones = async (): Promise<ProjectMilestone[]> => {
     return data as unknown as ProjectMilestone[];
 }
 
-export const getProjectMilestoneById = async (id: string): Promise<ProjectMilestone | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getProjectMilestoneById = async (businessId: string, id: string): Promise<ProjectMilestone | null> => {
 
-    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_milestones", businessId, "*", {
         filter: { id }
     });
 
@@ -45,12 +45,12 @@ export const getProjectMilestoneById = async (id: string): Promise<ProjectMilest
     return null;
 };
 
-export const createProjectMilestone = async (milestone: ProjectMilestoneInsert): Promise<ProjectMilestone | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createProjectMilestone = async (businessId: string, milestone: ProjectMilestoneInsert): Promise<ProjectMilestone | null> => {
+
 
     milestone = await applyCreated<ProjectMilestoneInsert>(milestone);
 
-    const { data, error } = await insertWithBusiness("project_milestones", milestone, business.id);
+    const { data, error } = await insertWithBusiness("project_milestones", milestone, businessId);
 
     if (error) {
         console.error("Error creating project milestone:", error);
@@ -60,12 +60,12 @@ export const createProjectMilestone = async (milestone: ProjectMilestoneInsert):
     return data as unknown as ProjectMilestone;
 }
 
-export const updateProjectMilestone = async (id: string, milestone: ProjectMilestoneUpdate): Promise<ProjectMilestone | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateProjectMilestone = async (businessId: string, id: string, milestone: ProjectMilestoneUpdate): Promise<ProjectMilestone | null> => {
+
 
     milestone = await applyUpdated<ProjectMilestoneUpdate>(milestone);
 
-    const { data, error } = await updateWithBusinessCheck("project_milestones", id, milestone, business.id);
+    const { data, error } = await updateWithBusinessCheck("project_milestones", id, milestone, businessId);
 
     if (error) {
         console.error("Error updating project milestone:", error);
@@ -75,10 +75,10 @@ export const updateProjectMilestone = async (id: string, milestone: ProjectMiles
     return data as unknown as ProjectMilestone;
 }
 
-export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteProjectMilestone = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("project_milestones", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("project_milestones", id, businessId);
 
     if (error) {
         console.error("Error deleting project milestone:", error);
@@ -88,10 +88,10 @@ export const deleteProjectMilestone = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchProjectMilestones = async (query: string): Promise<ProjectMilestone[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchProjectMilestones = async (businessId: string, query: string): Promise<ProjectMilestone[]> => {
 
-    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_milestones", businessId, "*", {
         filter: {
             or: [
                 { name: { ilike: `%${query}%` } },
@@ -109,10 +109,10 @@ export const searchProjectMilestones = async (query: string): Promise<ProjectMil
     return data as unknown as ProjectMilestone[];
 };
 
-export const getProjectMilestonesByProjectId = async (id: string): Promise<ProjectMilestone[] | []> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getProjectMilestonesByProjectId = async (businessId: string, id: string): Promise<ProjectMilestone[] | []> => {
 
-    const { data, error } = await fetchByBusiness("project_milestones", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_milestones", businessId, "*", {
         filter: { project_id: id },
         orderBy: { column: "due_date", ascending: false },
     });

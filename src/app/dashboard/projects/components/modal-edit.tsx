@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
@@ -6,6 +8,7 @@ import { updateProject } from "@/app/actions/projects";
 import { formatDate } from "@/utils/formatters";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
+import { useBusiness } from "@/lib/business-context";
 
 interface ProjectEditModalProps {
     isOpen: boolean;
@@ -20,6 +23,7 @@ export default function ProjectEditModal({
     project,
     onSave
 }: ProjectEditModalProps) {
+    const { businessId } = useBusiness();
     const [formData, setFormData] = useState({
         name: project.name || "",
         description: project.description || "",
@@ -54,7 +58,7 @@ export default function ProjectEditModal({
 
         const fetchManagers = async () => {
             try {
-                const crewMembers = await getCrewMembers();
+                const crewMembers = await getCrewMembers(businessId);
                 setManagers(crewMembers);
             } catch (error) {
                 console.error("Error fetching managers:", error);
@@ -131,7 +135,7 @@ export default function ProjectEditModal({
                 status: formData.status,
             } as ProjectInsert;
 
-            const updatedProject = await updateProject(project.id, projectData);
+            const updatedProject = await updateProject(businessId, project.id, projectData);
 
             if (updatedProject) {
                 toast.success({

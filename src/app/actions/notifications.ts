@@ -5,13 +5,13 @@ import { Notification, NotificationInsert, NotificationUpdate } from "@/types/no
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 
 // Get all notifications for the current business
-export const getNotifications = async (): Promise<Notification[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getNotifications = async (businessId: string): Promise<Notification[]> => {
 
-    const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("notifications", businessId, "*", {
         orderBy: { column: "created_at", ascending: false },
     });
 
@@ -28,10 +28,10 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 // Get a specific notification by ID
-export const getNotificationById = async (id: string): Promise<Notification | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getNotificationById = async (businessId: string, id: string): Promise<Notification | null> => {
 
-    const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("notifications", businessId, "*", {
         filter: { id },
     });
 
@@ -48,12 +48,12 @@ export const getNotificationById = async (id: string): Promise<Notification | nu
 };
 
 // Create a new notification
-export const createNotification = async (notification: NotificationInsert): Promise<Notification | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createNotification = async (businessId: string, notification: NotificationInsert): Promise<Notification | null> => {
+
 
     notification = await applyCreated<NotificationInsert>(notification);
 
-    const { data, error } = await insertWithBusiness("notifications", notification, business.id);
+    const { data, error } = await insertWithBusiness("notifications", notification, businessId);
 
     if (error) {
         console.error("Error creating notification:", error);
@@ -64,12 +64,12 @@ export const createNotification = async (notification: NotificationInsert): Prom
 };
 
 // Update an existing notification
-export const updateNotification = async (id: string, notification: NotificationUpdate): Promise<Notification | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateNotification = async (businessId: string, id: string, notification: NotificationUpdate): Promise<Notification | null> => {
+
 
     notification = await applyUpdated<NotificationUpdate>(notification);
 
-    const { data, error } = await updateWithBusinessCheck("notifications", id, notification, business.id);
+    const { data, error } = await updateWithBusinessCheck("notifications", id, notification, businessId);
 
     if (error) {
         console.error("Error updating notification:", error);
@@ -80,10 +80,10 @@ export const updateNotification = async (id: string, notification: NotificationU
 };
 
 // Delete a notification
-export const deleteNotification = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteNotification = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("notifications", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("notifications", id, businessId);
 
     if (error) {
         console.error("Error deleting notification:", error);
@@ -94,10 +94,10 @@ export const deleteNotification = async (id: string): Promise<boolean> => {
 };
 
 // Get notifications for a specific user
-export const getNotificationsByUserId = async (userId: string): Promise<Notification[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getNotificationsByUserId = async (businessId: string, userId: string): Promise<Notification[]> => {
 
-    const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("notifications", businessId, "*", {
         filter: { user_id: userId },
         orderBy: { column: "created_at", ascending: false },
     });
@@ -115,15 +115,15 @@ export const getNotificationsByUserId = async (userId: string): Promise<Notifica
 };
 
 // Mark a notification as read
-export const markNotificationAsRead = async (id: string): Promise<Notification | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const markNotificationAsRead = async (businessId: string, id: string): Promise<Notification | null> => {
+
 
     const notification: NotificationUpdate = {
         read: true,
         read_at: new Date().toISOString(),
     };
 
-    const { data, error } = await updateWithBusinessCheck("notifications", id, notification, business.id);
+    const { data, error } = await updateWithBusinessCheck("notifications", id, notification, businessId);
 
     if (error) {
         console.error("Error marking notification as read:", error);
@@ -134,10 +134,10 @@ export const markNotificationAsRead = async (id: string): Promise<Notification |
 };
 
 // Get unread notifications for a user
-export const getUnreadNotifications = async (userId: string): Promise<Notification[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getUnreadNotifications = async (businessId: string, userId: string): Promise<Notification[]> => {
 
-    const { data, error } = await fetchByBusiness("notifications", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("notifications", businessId, "*", {
         filter: {
             user_id: userId,
             read: false
@@ -158,11 +158,11 @@ export const getUnreadNotifications = async (userId: string): Promise<Notificati
 };
 
 // Mark all notifications as read for a user
-export const markAllNotificationsAsRead = async (userId: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const markAllNotificationsAsRead = async (businessId: string, userId: string): Promise<boolean> => {
+
 
     const now = new Date().toISOString();
-    const { data: unreadNotifications, error } = await fetchByBusiness("notifications", business.id, "*", {
+    const { data: unreadNotifications, error } = await fetchByBusiness("notifications", businessId, "*", {
         filter: {
             user_id: userId,
             read: false
@@ -183,7 +183,7 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<boolea
         updateWithBusinessCheck("notifications", notification.id, {
             read: true,
             read_at: now
-        }, business.id)
+        }, businessId)
     );
 
     try {

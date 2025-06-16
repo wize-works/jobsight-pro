@@ -9,6 +9,7 @@ import { createEquipmentUsage, updateEquipmentUsage } from '@/app/actions/equipm
 import { getProjects } from '@/app/actions/projects';
 import { getCrewsWithDetails } from '@/app/actions/crews';
 import { toast } from '@/hooks/use-toast';
+import { useBusiness } from '@/lib/business-context';
 
 interface UsageModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
@@ -43,8 +45,8 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
         const fetchData = async () => {
             try {
                 const [projectsData, crewsData] = await Promise.all([
-                    getProjects(),
-                    getCrewsWithDetails()
+                    getProjects(businessId),
+                    getCrewsWithDetails(businessId)
                 ]);
                 setProjects(projectsData);
                 setCrews(crewsData);
@@ -110,7 +112,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
             } as unknown as EquipmentUsage;
 
             if (usage?.id) {
-                await updateEquipmentUsage(usage.id, {
+                await updateEquipmentUsage(businessId, usage.id, {
                     ...usageData,
                     id: usage.id,
                 });
@@ -119,7 +121,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
                     description: "Usage record updated successfully"
                 });
             } else {
-                await createEquipmentUsage({
+                await createEquipmentUsage(businessId, {
                     ...usageData,
                 });
                 toast.success({

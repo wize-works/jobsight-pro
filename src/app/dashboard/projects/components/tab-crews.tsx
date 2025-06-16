@@ -1,3 +1,5 @@
+"use client";
+
 import { getCrewsByProjectId, getAvailableCrews } from "@/app/actions/crews";
 import { getCrewMemberById } from "@/app/actions/crew-members";
 import { Crew, CrewWithMemberInfo } from "@/types/crews";
@@ -5,8 +7,10 @@ import { set } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { removeCrewFromProject } from "@/app/actions/project-crews";
+import { useBusiness } from "@/lib/business-context";
 
 export default function CrewsTab({ projectId, crews }: { projectId: string, crews: CrewWithMemberInfo[] }) {
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
     const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]);
 
@@ -14,7 +18,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
         async function loadCrews() {
             try {
                 setLoading(true);
-                const available = await getAvailableCrews();
+                const available = await getAvailableCrews(businessId);
 
                 setAvailableCrews(available);
 
@@ -26,7 +30,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
         }
 
         loadCrews();
-    }, [crews]);
+    }, [crews, businessId]);
 
 
     if (loading) {
@@ -110,7 +114,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                                             View
                                         </Link>
                                         <button className="btn btn-sm btn-error" onClick={async () => {
-                                            await removeCrewFromProject(projectId, crew.id);
+                                            await removeCrewFromProject(businessId, projectId, crew.id);
                                         }}>
                                             <i className="fas fa-user-minus"></i>
                                             Remove

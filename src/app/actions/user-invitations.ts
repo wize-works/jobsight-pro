@@ -6,17 +6,18 @@ import { UserInsert } from "@/types/users";
 import { Resend } from "resend";
 import { TeamInvitationEmail } from "@/components/email-examples";
 import { createUser } from "./users";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendUserInvitation(
+    businessId: string,
     email: string,
     name: string,
     role: string,
 ) {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         // Create the user in the database with invited status
         // Split the name into first and last name
@@ -30,11 +31,11 @@ export async function sendUserInvitation(
             email: email,
             role: role as "admin" | "manager" | "member",
             status: "invited",
-            business_id: business.id,
+            business_id: businessId,
             auth_id: `invited_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         } as UserInsert;
 
-        const createdUser = await createUser(newUser);
+        const createdUser = await createUser(businessId, newUser);
         if (!createdUser) {
             throw new Error("Failed to create user invitation record");
         }
@@ -44,7 +45,7 @@ export async function sendUserInvitation(
             JSON.stringify({
                 userId: createdUser.id,
                 email: email,
-                businessId: business.id,
+                businessId: businessId,
                 expiresAt: new Date(
                     Date.now() + 7 * 24 * 60 * 60 * 1000,
                 ).toISOString(), // 7 days
@@ -128,9 +129,9 @@ export async function sendUserInvitation(
     }
 }
 
-export async function revokeUserInvitation(userId: string) {
+export async function revokeUserInvitation(businessId: string, userId: string) {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -141,14 +142,14 @@ export async function revokeUserInvitation(userId: string) {
             .from("users")
             .update({ status: "revoked" })
             .eq("id", userId)
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "invited");
 
         if (error) {
             throw error;
         }
 
-        console.log(`Invitation ${userId} revoked for business ${business.id}`);
+        console.log(`Invitation ${userId} revoked for business ${businessId}`);
 
         return {
             success: true,
@@ -163,9 +164,9 @@ export async function revokeUserInvitation(userId: string) {
     }
 }
 
-export async function resendUserInvitation(userId: string) {
+export async function resendUserInvitation(businessId: string, userId: string) {
     try {
-        const { business, userId: currentUserId } = await ensureBusinessOrRedirect();
+        const { business, userId: currentUserId } = await withBusinessServer();
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -176,7 +177,7 @@ export async function resendUserInvitation(userId: string) {
             .from("users")
             .select("*")
             .eq("id", userId)
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .single();
 
         if (userError || !user) {
@@ -194,7 +195,7 @@ export async function resendUserInvitation(userId: string) {
             JSON.stringify({
                 userId: user.id,
                 email: user.email,
-                businessId: business.id,
+                businessId: businessId,
                 expiresAt: new Date(
                     Date.now() + 7 * 24 * 60 * 60 * 1000,
                 ).toISOString(),

@@ -15,7 +15,7 @@ import { BusinessSubscription } from "@/types/subscription";
 
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile");
-    const { business, loading, error, refreshBusiness } = useBusiness();
+    const { business, businessId, loading, error, refreshBusiness } = useBusiness();
     const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userCount, setUserCount] = useState(0);
@@ -25,14 +25,14 @@ export default function BusinessPage() {
 
 
     useEffect(() => {
-        if (business && !dataLoaded && !loading) {
+        if (businessId && !dataLoaded && !loading) {
             async function fetchData() {
                 try {
                     const [users, projects, equipment, businessSubscription] = await Promise.all([
-                        getUsers(),
-                        getProjects(),
-                        getEquipments(),
-                        getCurrentSubscription()
+                        getUsers(businessId),
+                        getProjects(businessId),
+                        getEquipments(businessId),
+                        getCurrentSubscription(businessId)
                     ]);
                     setUserCount(users.length);
                     setProjectCount(projects.length);
@@ -49,7 +49,7 @@ export default function BusinessPage() {
         if (!business) {
             refreshBusiness();
         }
-    }, [business, loading, dataLoaded]);
+    }, [businessId, business, loading, dataLoaded]);
 
     useEffect(() => {
         if (business && !dataLoaded) {

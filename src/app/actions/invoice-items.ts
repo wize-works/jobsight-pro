@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("invoice_items", business.id);
+export const getInvoiceItems = async (businessId: string): Promise<InvoiceItem[]> => {
+
+
+    const { data, error } = await fetchByBusiness("invoice_items", businessId);
 
     if (error) {
         console.error("Error fetching invoice items:", error);
@@ -26,10 +26,10 @@ export const getInvoiceItems = async (): Promise<InvoiceItem[]> => {
     return data as unknown as InvoiceItem[];
 }
 
-export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getInvoiceItemById = async (businessId: string, id: string): Promise<InvoiceItem | null> => {
 
-    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("invoice_items", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching invoice item by ID:", error);
@@ -43,12 +43,12 @@ export const getInvoiceItemById = async (id: string): Promise<InvoiceItem | null
     return null;
 };
 
-export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<InvoiceItem | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createInvoiceItem = async (businessId: string, item: InvoiceItemInsert): Promise<InvoiceItem | null> => {
+
 
     item = await applyCreated<InvoiceItemInsert>(item);
 
-    const { data, error } = await insertWithBusiness("invoice_items", item, business.id);
+    const { data, error } = await insertWithBusiness("invoice_items", item, businessId);
 
     if (error) {
         console.error("Error creating invoice item:", error);
@@ -58,12 +58,12 @@ export const createInvoiceItem = async (item: InvoiceItemInsert): Promise<Invoic
     return data as unknown as InvoiceItem;
 }
 
-export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Promise<InvoiceItem | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateInvoiceItem = async (businessId: string, id: string, item: InvoiceItemUpdate): Promise<InvoiceItem | null> => {
+
 
     item = await applyUpdated<InvoiceItemUpdate>(item);
 
-    const { data, error } = await updateWithBusinessCheck("invoice_items", id, item, business.id);
+    const { data, error } = await updateWithBusinessCheck("invoice_items", id, item, businessId);
 
     if (error) {
         console.error("Error updating invoice item:", error);
@@ -73,10 +73,10 @@ export const updateInvoiceItem = async (id: string, item: InvoiceItemUpdate): Pr
     return data as unknown as InvoiceItem;
 }
 
-export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteInvoiceItem = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("invoice_items", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("invoice_items", id, businessId);
 
     if (error) {
         console.error("Error deleting invoice item:", error);
@@ -86,10 +86,10 @@ export const deleteInvoiceItem = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchInvoiceItems = async (businessId: string, query: string): Promise<InvoiceItem[]> => {
 
-    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("invoice_items", businessId, "*", {
         filter: {
             or: [
                 { description: { ilike: `%${query}%` } },
@@ -106,10 +106,10 @@ export const searchInvoiceItems = async (query: string): Promise<InvoiceItem[]> 
     return data as unknown as InvoiceItem[];
 };
 
-export const getInvoiceItemsByInvoiceId = async (invoiceId: string): Promise<InvoiceItem[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getInvoiceItemsByInvoiceId = async (businessId: string, invoiceId: string): Promise<InvoiceItem[]> => {
 
-    const { data, error } = await fetchByBusiness("invoice_items", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("invoice_items", businessId, "*", {
         filter: { invoice_id: { eq: invoiceId } },
         orderBy: { column: "created_at", ascending: true },
     });
@@ -126,19 +126,19 @@ export const getInvoiceItemsByInvoiceId = async (invoiceId: string): Promise<Inv
     return data as unknown as InvoiceItem[];
 }
 
-export const upsertInvoiceItems = async (items: InvoiceItemInsert[]): Promise<InvoiceItem[] | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const upsertInvoiceItems = async (businessId: string, items: InvoiceItemInsert[]): Promise<InvoiceItem[] | null> => {
+
 
     if (!items || items.length === 0) {
         return null;
     }
 
     const createdItems: InvoiceItem[] = [];
-    console.log("items: ", items);
+
     for (let item of items) {
         if (!item.id) {
             item = await applyCreated<InvoiceItemInsert>(item);
-            const createdItem = await createInvoiceItem(item);
+            const createdItem = await createInvoiceItem(businessId, item);
             if (createdItem) {
                 createdItems.push(createdItem);
             }
@@ -146,7 +146,7 @@ export const upsertInvoiceItems = async (items: InvoiceItemInsert[]): Promise<In
             throw new Error("Invoice item must have an ID for upsert operation");
         } else {
             item = await applyUpdated<InvoiceItemUpdate>(item);
-            const updatedItem = await updateInvoiceItem(item.id, item);
+            const updatedItem = await updateInvoiceItem(businessId, item.id, item);
             if (updatedItem) {
                 createdItems.push(updatedItem);
             }

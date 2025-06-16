@@ -1,10 +1,10 @@
 "use server";
 
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
+
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export const applyUpdated = async <T extends Object>(model: any): Promise<T> => {
-    const business = await ensureBusinessOrRedirect();
+    const business = await withBusinessServer();
 
     Object.assign(model, {
         business_id: business?.business.id || null,

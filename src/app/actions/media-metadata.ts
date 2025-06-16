@@ -7,12 +7,12 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("media_metadata", business.id);
+export const getMediaMetadatas = async (businessId: string): Promise<MediaMetadata[]> => {
+
+
+    const { data, error } = await fetchByBusiness("media_metadata", businessId);
 
     if (error) {
         console.error("Error fetching media metadatas:", error);
@@ -26,10 +26,10 @@ export const getMediaMetadatas = async (): Promise<MediaMetadata[]> => {
     return data as unknown as MediaMetadata[];
 }
 
-export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getMediaMetadataById = async (businessId: string, id: string): Promise<MediaMetadata | null> => {
 
-    const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("media_metadata", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching media metadata by ID:", error);
@@ -43,12 +43,12 @@ export const getMediaMetadataById = async (id: string): Promise<MediaMetadata | 
     return null;
 };
 
-export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promise<MediaMetadata | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createMediaMetadata = async (businessId: string, metadata: MediaMetadataInsert): Promise<MediaMetadata | null> => {
+
 
     metadata = await applyCreated<MediaMetadataInsert>(metadata);
 
-    const { data, error } = await insertWithBusiness("media_metadata", metadata, business.id);
+    const { data, error } = await insertWithBusiness("media_metadata", metadata, businessId);
 
     if (error) {
         console.error("Error creating media metadata:", error);
@@ -58,12 +58,12 @@ export const createMediaMetadata = async (metadata: MediaMetadataInsert): Promis
     return data as unknown as MediaMetadata;
 }
 
-export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpdate): Promise<MediaMetadata | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateMediaMetadata = async (businessId: string, id: string, metadata: MediaMetadataUpdate): Promise<MediaMetadata | null> => {
+
 
     metadata = await applyUpdated<MediaMetadataUpdate>(metadata);
 
-    const { data, error } = await updateWithBusinessCheck("media_metadata", id, metadata, business.id);
+    const { data, error } = await updateWithBusinessCheck("media_metadata", id, metadata, businessId);
 
     if (error) {
         console.error("Error updating media metadata:", error);
@@ -73,10 +73,10 @@ export const updateMediaMetadata = async (id: string, metadata: MediaMetadataUpd
     return data as unknown as MediaMetadata;
 }
 
-export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteMediaMetadata = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("media_metadata", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("media_metadata", id, businessId);
 
     if (error) {
         console.error("Error deleting media metadata:", error);
@@ -86,10 +86,10 @@ export const deleteMediaMetadata = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchMediaMetadatas = async (query: string): Promise<MediaMetadata[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchMediaMetadatas = async (businessId: string, query: string): Promise<MediaMetadata[]> => {
 
-    const { data, error } = await fetchByBusiness("media_metadata", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("media_metadata", businessId, "*", {
         filter: {
             or: [
                 { key: { ilike: `%${query}%` } },

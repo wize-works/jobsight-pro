@@ -4,27 +4,9 @@ import { useState } from "react";
 
 export const CrewCard = ({
     crew,
-    onEdit,
-    onDelete,
-    onView,
-    onAdd,
-    onRemove,
-    onStatusChange,
 }: {
     crew: CrewWithDetails;
-    onEdit: (crew: Crew) => void;
-    onDelete: (crewId: string) => void;
-    onView: (crewId: string) => void;
-    onAdd: (crewId: string) => void;
-    onRemove: (crewId: string) => void;
-    onStatusChange: (crewId: string, status: string) => void;
 }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isViewing, setIsViewing] = useState(false);
-    const [isAdding, setIsAdding] = useState(false);
-    const [isRemoving, setIsRemoving] = useState(false);
-    const [status, setStatus] = useState(crew.status);
 
     return (
         <div key={crew.id} className="card bg-base-100 shadow-lg rounded-lg">

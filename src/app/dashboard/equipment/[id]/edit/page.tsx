@@ -3,10 +3,13 @@ import EditEquipment from "../../components/edit";
 import { getEquipmentById } from "@/app/actions/equipments";
 import Link from "next/link";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function EditEquipmentPage({ params }: { params: Promise<{ id: string }> }) {
     const equipmentId = (await params).id;
-    const equipment = await getEquipmentById(equipmentId);
+    const { business } = await withBusinessServer();
+
+    const equipment = await getEquipmentById(business.id, equipmentId);
     if (!equipment) {
         return (
             <div className="flex flex-col items-center justify-center h-64">
@@ -15,7 +18,7 @@ export default async function EditEquipmentPage({ params }: { params: Promise<{ 
             </div>
         );
     }
-    const equipmentSpecifications = await getEquipmentSpecificationsByEquipmentId(equipmentId);
+    const equipmentSpecifications = await getEquipmentSpecificationsByEquipmentId(business.id, equipmentId);
 
     return (
         <div className="">

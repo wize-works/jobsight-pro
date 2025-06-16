@@ -10,6 +10,7 @@ import { getProjects, setProjectLocation } from '@/app/actions/projects';
 import { toast } from '@/hooks/use-toast';
 import { set } from 'zod';
 import { getEquipments, setEquipmentLocation } from '@/app/actions/equipments';
+import { useBusiness } from "@/lib/business-context";
 
 const defaultIcon = new DivIcon({
     className: 'fas fa -map-marker-alt fa-xl',
@@ -37,6 +38,7 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ location }: MapComponentProps) {
+    const { businessId } = useBusiness();
     const [projects, setProjects] = useState<Project[]>([]);
     const [equipments, setEquipments] = useState<Equipment[]>([]);
     const [markers, setMarkers] = useState<L.LatLng[]>([]);
@@ -45,16 +47,16 @@ export default function MapComponent({ location }: MapComponentProps) {
 
     useEffect(() => {
         const fetchEquipment = async () => {
-            const fetchedEquipment = await getEquipments();
+            const fetchedEquipment = await getEquipments(businessId);
             setEquipments(fetchedEquipment);
         };
         const fetchProjects = async () => {
-            const fetchedProjects = await getProjects();
+            const fetchedProjects = await getProjects(businessId);
             setProjects(fetchedProjects);
         };
         fetchEquipment();
         fetchProjects();
-    }, []);
+    }, [businessId]);
 
     function ClickHandler({ onMapClick }: { onMapClick: (latlng: L.LatLng) => void }) {
         useMapEvents({
@@ -103,8 +105,10 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         <form onSubmit={async (e) => {
                                             e.preventDefault();
                                             if (selectedProjectId) {
+                                                // Corrected setProjectLocation call
                                                 const project = await setProjectLocation({
                                                     id: selectedProjectId,
+                                                    business_id: businessId,
                                                     location: `Lat: ${marker.lat}, Lon: ${marker.lng}`
                                                 } as Project);
                                                 if (!project) {
@@ -148,7 +152,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         <form onSubmit={async (e) => {
                                             e.preventDefault();
                                             if (selectedEquipmentId) {
-                                                const equipment = await setEquipmentLocation({
+                                                const equipment = await setEquipmentLocation(businessId, {
                                                     id: selectedEquipmentId,
                                                     location: `Lat: ${marker.lat}, Lon: ${marker.lng}`
                                                 } as Equipment);

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { getMedias, searchMedias } from "@/app/actions/media"
 import { Media } from "@/types/media"
+import { useBusiness } from "@/lib/business-context"
 
 interface MediaSelectorProps {
     multiple?: boolean
@@ -23,6 +24,7 @@ export default function MediaSelector({
     projectId,
     mediaType,
 }: MediaSelectorProps) {
+    const { businessId } = useBusiness();
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedItems, setSelectedItems] = useState<string[]>(initialSelected)
     const [mediaItems, setMediaItems] = useState<Media[]>([])
@@ -38,7 +40,7 @@ export default function MediaSelector({
         const handleSearch = async () => {
             if (searchQuery.trim()) {
                 try {
-                    const results = await searchMedias(searchQuery)
+                    const results = await searchMedias(businessId, searchQuery)
                     setMediaItems(filterMedia(results))
                 } catch (error) {
                     console.error("Error searching media:", error)
@@ -55,7 +57,7 @@ export default function MediaSelector({
     const loadMediaItems = async () => {
         try {
             setLoading(true)
-            const data = await getMedias()
+            const data = await getMedias(businessId)
             setMediaItems(filterMedia(data))
         } catch (error) {
             console.error("Error loading media:", error)

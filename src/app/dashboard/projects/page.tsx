@@ -7,9 +7,11 @@ import { progressBar } from "@/utils/progress";
 import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
 import Loading from "@/app/loading";
 import ProjectModal from "./components/modal-project";
+import { useBusiness } from "@/lib/business-context";
 
 
 export default function ProjectsPage() {
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
     const [viewType, setViewType] = useState<"grid" | "list">(
@@ -40,12 +42,12 @@ export default function ProjectsPage() {
     useEffect(() => {
         const fetchProjects = async () => {
             setLoading(true);
-            const projectsData = await getProjectsWithDetails();
+            const projectsData = await getProjectsWithDetails(businessId);
             setProjects(projectsData);
             setLoading(false);
         }
         fetchProjects();
-    }, []);
+    }, [businessId]);
 
     const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
@@ -62,9 +64,9 @@ export default function ProjectsPage() {
 
     const handleProjectSave = async (project: any) => {
         if (project.id) {
-            updateProject(project.id, project);
+            updateProject(businessId, project.id, project);
         } else {
-            createProject(project);
+            createProject(businessId, project);
         }
         setShowAddProjectModal(false);
     };
