@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "@/hooks/use-toast";
 import { uploadUserAvatar } from "@/app/actions/user-avatar";
 import { getUserById } from "@/app/actions/users";
+import { useBusiness } from "@/lib/business-context";
 
 type NotificationType =
     | "projectUpdates"
@@ -39,6 +40,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+    const { businessId } = useBusiness();
     const { user, isLoading } = useKindeAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -94,7 +96,7 @@ export default function ProfilePage() {
         if (!user?.id) return;
 
         try {
-            const dbUser = await getUserById(user.id);
+            const dbUser = await getUserById(businessId, user.id);
             if (dbUser) {
                 setCurrentUser(dbUser);
                 setAvatarUrl(dbUser.avatar_url);
@@ -162,7 +164,7 @@ export default function ProfilePage() {
         setIsUploadingAvatar(true);
 
         try {
-            const result = await uploadUserAvatar(file);
+            const result = await uploadUserAvatar(businessId, file);
 
             if (result.success && result.avatarUrl) {
                 setAvatarUrl(result.avatarUrl);

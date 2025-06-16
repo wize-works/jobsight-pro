@@ -24,6 +24,7 @@ import TaskModal from "./tasks/components/modal-task"
 import EquipmentNewModal from "./equipment/components/modal-new"
 import DailyLogModal from "./daily-logs/components/modal-log"
 import { DailyLogWithDetails } from "@/types/daily-logs"
+import { useBusiness } from "@/lib/business-context"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -105,6 +106,7 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
+    const { businessId, loading } = useBusiness();
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
     const [projectModal, setProjectModal] = useState(false);
     const [taskModal, setTaskModal] = useState(false);
@@ -113,42 +115,52 @@ export default function Dashboard() {
 
     useEffect(() => {
         async function fetchData() {
-            const rawData = await getDashboardData()
-            // Fix: Ensure status is always a string for each project
-            const fixedProjectsWithProgress = rawData.projectsWithProgress.map((project) => ({
-                ...project,
-                status: project.status ?? "", // fallback to empty string if null
-                start_date: project.start_date ?? undefined,
-                end_date: project.end_date ?? undefined,
-                crewName: project.crewNames, // Map crewNames to crewName to match the expected type
-            }));
+            if (!businessId || loading) {
+                console.error("Invalid or missing businessId");
+                return;
+            }
 
-            const fixedRecentActivity = rawData.recentActivity.map((activity: any) => ({
-                ...activity,
-                timestamp: activity.timestamp ?? "", // fallback to empty string if null
-                weather: typeof activity.weather === "string" ? activity.weather : undefined, // ensure weather is string or undefined
-            }));
+            try {
+                const rawData = await getDashboardData(businessId);
+                // Fix: Ensure status is always a string for each project
+                const fixedProjectsWithProgress = rawData.projectsWithProgress.map((project) => ({
+                    ...project,
+                    status: project.status ?? "", // fallback to empty string if null
+                    start_date: project.start_date ?? undefined,
+                    end_date: project.end_date ?? undefined,
+                    crewName: project.crewNames, // Map crewNames to crewName to match the expected type
+                }));
 
-            const fixedCriticalTasks = rawData.criticalTasks.map((task: any) => ({
-                ...task,
-                dueDate: task.dueDate ?? "", // fallback to empty string if null
-                status: task.status ?? "",   // fallback to empty string if null
-                // priority is optional, so only include if not null
-                ...(task.priority !== null ? { priority: task.priority } : {}),
-            }));
+                const fixedRecentActivity = rawData.recentActivity.map((activity: any) => ({
+                    ...activity,
+                    timestamp: activity.timestamp ?? "", // fallback to empty string if null
+                    weather: typeof activity.weather === "string" ? activity.weather : undefined, // ensure weather is string or undefined
+                }));
 
-            const data: DashboardData = {
-                ...rawData,
-                projectsWithProgress: fixedProjectsWithProgress,
-                recentActivity: fixedRecentActivity,
-                criticalTasks: fixedCriticalTasks,
-            };
-            setDashboardData(data)
+                const fixedCriticalTasks = rawData.criticalTasks.map((task: any) => ({
+                    ...task,
+                    dueDate: task.dueDate ?? "", // fallback to empty string if null
+                    status: task.status ?? "",   // fallback to empty string if null
+                    // priority is optional, so only include if not null
+                    ...(task.priority !== null ? { priority: task.priority } : {}),
+                }));
+
+                const data: DashboardData = {
+                    ...rawData,
+                    projectsWithProgress: fixedProjectsWithProgress,
+                    recentActivity: fixedRecentActivity,
+                    criticalTasks: fixedCriticalTasks,
+                };
+                setDashboardData(data);
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+            }
         }
-        fetchData()
-    }, [])
 
-    if (!dashboardData) {
+        fetchData();
+    }, [businessId, loading])
+
+    if (!dashboardData || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">

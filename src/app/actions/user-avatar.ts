@@ -7,14 +7,14 @@ import { generateUploadUrl, createMedia } from "./media";
 import { MediaInsert } from "@/types/media";
 import { UserUpdate } from "@/types/users";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; error?: string; avatarUrl?: string }> => {
+
+export const uploadUserAvatar = async (businessId: string, file: File): Promise<{ success: boolean; error?: string; avatarUrl?: string }> => {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { userId } = await withBusinessServer();
 
         // Get current user from database
-        const currentUser = await getUserById(userId);
+        const currentUser = await getUserById(businessId, userId);
         if (!currentUser) {
             return { success: false, error: "User not found" };
         }
@@ -56,7 +56,7 @@ export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; 
             url: uploadData.fileUrl,
             size: file.size,
             id: "",
-            business_id: business.id,
+            business_id: businessId,
             project_id: null,
             uploaded_by: userId,
             uploaded_at: new Date().toISOString(),
@@ -66,7 +66,7 @@ export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; 
             updated_by: userId
         };
 
-        const media = await createMedia(mediaData);
+        const media = await createMedia(businessId, mediaData);
         if (!media) {
             return { success: false, error: "Failed to create media record" };
         }
@@ -78,7 +78,7 @@ export const uploadUserAvatar = async (file: File): Promise<{ success: boolean; 
 
         userUpdate = await applyUpdated<UserUpdate>(userUpdate);
 
-        const updatedUser = await updateUser(currentUser.id, userUpdate);
+        const updatedUser = await updateUser(businessId, currentUser.id, userUpdate);
         if (!updatedUser) {
             return { success: false, error: "Failed to update user profile" };
         }

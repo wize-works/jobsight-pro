@@ -1,17 +1,14 @@
 "use server";
 import type { Project, ProjectInsert, ProjectUpdate, ProjectWithDetails } from "@/types/projects";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Client } from "@/types/clients";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getProjects = async (): Promise<Project[]> => {
+
+export const getProjects = async (businessId: string): Promise<Project[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+        const { data, error } = await fetchByBusiness("projects", businessId, "*", {
             orderBy: { column: "created_at", ascending: false },
         });
 
@@ -31,11 +28,9 @@ export const getProjects = async (): Promise<Project[]> => {
     }
 };
 
-export const getProjectById = async (id: string): Promise<Project> => {
+export const getProjectById = async (businessId: string, id: string): Promise<Project> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+        const { data, error } = await fetchByBusiness("projects", businessId, "*", {
             filter: { id },
         });
 
@@ -55,26 +50,15 @@ export const getProjectById = async (id: string): Promise<Project> => {
     }
 };
 
-export const createProject = async (project: ProjectInsert): Promise<Project | null> => {
+export const createProject = async (businessId: string, project: ProjectInsert): Promise<Project | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         project = await applyCreated<ProjectInsert>(project);
 
-        const { data, error } = await insertWithBusiness("projects", project, business.id);
+        const { data, error } = await insertWithBusiness("projects", project, businessId);
 
         if (error) {
             console.error("Error creating project:", error);
             return null;
-        }
-
-        // Trigger push notification
-        if (data) {
-            await triggerProjectNotification(
-                data.id,
-                data.name,
-                'created'
-            );
         }
 
         return data as Project;
@@ -84,26 +68,15 @@ export const createProject = async (project: ProjectInsert): Promise<Project | n
     }
 };
 
-export const updateProject = async (id: string, project: ProjectUpdate): Promise<Project | null> => {
+export const updateProject = async (businessId: string, id: string, project: ProjectUpdate): Promise<Project | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         project = await applyUpdated<ProjectUpdate>(project);
 
-        const { data, error } = await updateWithBusinessCheck("projects", id, project, business.id);
+        const { data, error } = await updateWithBusinessCheck("projects", id, project, businessId);
 
         if (error) {
             console.error("Error updating project:", error);
             return null;
-        }
-
-        // Trigger push notification
-        if (data) {
-            await triggerProjectNotification(
-                data.id,
-                data.name,
-                'updated'
-            );
         }
 
         return data as Project;
@@ -113,11 +86,9 @@ export const updateProject = async (id: string, project: ProjectUpdate): Promise
     }
 };
 
-export const deleteProject = async (id: string): Promise<boolean> => {
+export const deleteProject = async (businessId: string, id: string): Promise<boolean> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await deleteWithBusinessCheck("projects", id, business.id);
+        const { error } = await deleteWithBusinessCheck("projects", id, businessId);
 
         if (error) {
             console.error("Error deleting project:", error);
@@ -131,11 +102,9 @@ export const deleteProject = async (id: string): Promise<boolean> => {
     }
 };
 
-export const searchProjects = async (query: string): Promise<Project[]> => {
+export const searchProjects = async (businessId: string, query: string): Promise<Project[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+        const { data, error } = await fetchByBusiness("projects", businessId, "*", {
             filter: {
                 or: [
                     { name: { contains: query } },
@@ -161,11 +130,9 @@ export const searchProjects = async (query: string): Promise<Project[]> => {
     }
 }
 
-export const getProjectsByClientId = async (clientId: string): Promise<Project[]> => {
+export const getProjectsByClientId = async (businessId: string, clientId: string): Promise<Project[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+        const { data, error } = await fetchByBusiness("projects", businessId, "*", {
             filter: { client_id: clientId },
             orderBy: { column: "created_at", ascending: false },
         });
@@ -188,11 +155,9 @@ export const getProjectsByClientId = async (clientId: string): Promise<Project[]
 
 export const setProjectLocation = async (project: ProjectUpdate): Promise<Project | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         project = await applyUpdated<ProjectUpdate>(project);
 
-        const { data, error } = await updateWithBusinessCheck("projects", project.id, project, business.id);
+        const { data, error } = await updateWithBusinessCheck("projects", project.id, project, project.business_id);
 
         if (error) {
             console.error("Error creating project:", error);
@@ -206,11 +171,11 @@ export const setProjectLocation = async (project: ProjectUpdate): Promise<Projec
     }
 };
 
-export const getProjectsWithDetails = async (): Promise<ProjectWithDetails[]> => {
+export const getProjectsWithDetails = async (businessId: string): Promise<ProjectWithDetails[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("projects", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("projects", businessId, "*", {
             orderBy: { column: "created_at", ascending: false },
         });
 
@@ -227,7 +192,7 @@ export const getProjectsWithDetails = async (): Promise<ProjectWithDetails[]> =>
         const projectsWithDetails = data as unknown as ProjectWithDetails[];
         const clientIds = projectsWithDetails.map((project) => project.client_id).filter(Boolean);
 
-        const { data: clients, error: clientError } = await fetchByBusiness("clients", business.id, ["id", "name"], {
+        const { data: clients, error: clientError } = await fetchByBusiness("clients", businessId, ["id", "name"], {
             filter: { id: { in: clientIds } },
         });
 

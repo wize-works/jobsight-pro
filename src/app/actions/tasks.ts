@@ -2,16 +2,13 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getTasks = async (): Promise<Task[]> => {
+
+export const getTasks = async (businessId: string): Promise<Task[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("tasks", business.id);
+        const { data, error } = await fetchByBusiness("tasks", businessId);
 
         if (error) {
             console.error("Error fetching tasks:", error);
@@ -27,13 +24,11 @@ export const getTasks = async (): Promise<Task[]> => {
         console.error("Error in getTasks:", err);
         return [];
     }
-}
+};
 
-export const getTaskById = async (id: string): Promise<Task | null> => {
+export const getTaskById = async (businessId: string, id: string): Promise<Task | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
+        const { data, error } = await fetchByBusiness("tasks", businessId, "*", {
             filter: { id },
         });
 
@@ -53,13 +48,11 @@ export const getTaskById = async (id: string): Promise<Task | null> => {
     }
 };
 
-export const createTask = async (task: TaskInsert): Promise<Task | null> => {
+export const createTask = async (businessId: string, task: TaskInsert): Promise<Task | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         task = await applyCreated<TaskInsert>(task);
 
-        const { data, error } = await insertWithBusiness("tasks", task, business.id);
+        const { data, error } = await insertWithBusiness("tasks", task, businessId);
 
         if (error) {
             console.error("Error creating task:", error);
@@ -100,13 +93,12 @@ export const createTask = async (task: TaskInsert): Promise<Task | null> => {
     }
 }
 
-export const updateTask = async (id: string, task: TaskUpdate): Promise<Task> => {
+export const updateTask = async (businessId: string, id: string, task: TaskUpdate): Promise<Task> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
         console.log("updateTask called with id:", id, "and task:", task);
         task = await applyUpdated<TaskUpdate>(task);
 
-        const { data, error } = await updateWithBusinessCheck("tasks", id, task, business.id);
+        const { data, error } = await updateWithBusinessCheck("tasks", id, task, businessId);
 
         if (error) {
             console.error("Error updating task:", error);
@@ -120,11 +112,9 @@ export const updateTask = async (id: string, task: TaskUpdate): Promise<Task> =>
     }
 }
 
-export const deleteTask = async (id: string): Promise<boolean> => {
+export const deleteTask = async (businessId: string, id: string): Promise<boolean> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { error } = await deleteWithBusinessCheck("tasks", id, business.id);
+        const { error } = await deleteWithBusinessCheck("tasks", id, businessId);
 
         if (error) {
             console.error("Error deleting task:", error);
@@ -138,11 +128,9 @@ export const deleteTask = async (id: string): Promise<boolean> => {
     }
 }
 
-export const searchTasks = async (query: string): Promise<Task[]> => {
+export const searchTasks = async (businessId: string, query: string): Promise<Task[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
-        const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
+        const { data, error } = await fetchByBusiness("tasks", businessId, "*", {
             filter: {
                 or: [
                     { name: { ilike: `%${query}%` } },
@@ -164,29 +152,29 @@ export const searchTasks = async (query: string): Promise<Task[]> => {
     }
 };
 
-export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]> => {
+export const getTasksByProjectId = async (businessId: string, id: string): Promise<TaskWithDetails[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("tasks", businessId, "*", {
             filter: { project_id: id },
             orderBy: { column: "status", ascending: false },
         });
 
         const projectIds = data?.map((task: Task) => task.project_id).filter(Boolean) || [];
-        const { data: projects, error: projectsError } = await fetchByBusiness("projects", business.id, "*", {
+        const { data: projects, error: projectsError } = await fetchByBusiness("projects", businessId, "*", {
             filter: { id: { in: projectIds } },
         });
 
         const crewIds = projects?.map((project: any) => project.crew_id).filter(Boolean) || [];
         const taskCrewIds = data?.map((task: Task) => task.assigned_to).filter(Boolean) || [];
         const crewIdsSet = new Set([...crewIds, ...taskCrewIds]);
-        const { data: crews, error: crewsError } = await fetchByBusiness("crews", business.id, "*", {
+        const { data: crews, error: crewsError } = await fetchByBusiness("crews", businessId, "*", {
             filter: { id: { in: crewIdsSet } },
         });
 
         const clientIds = projects?.map((project: any) => project.client_id).filter(Boolean) || [];
-        const { data: clients, error: clientsError } = await fetchByBusiness("clients", business.id, "*", {
+        const { data: clients, error: clientsError } = await fetchByBusiness("clients", businessId, "*", {
             filter: { id: { in: clientIds } },
         });
 
@@ -232,28 +220,28 @@ export const getTasksByProjectId = async (id: string): Promise<TaskWithDetails[]
 
 
 
-export const getTasksWithDetails = async (): Promise<TaskWithDetails[]> => {
+export const getTasksWithDetails = async (businessId: string): Promise<TaskWithDetails[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("tasks", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("tasks", businessId, "*", {
             orderBy: { column: "status", ascending: false },
         });
 
         const projectIds = data?.map((task: Task) => task.project_id).filter(Boolean) || [];
-        const { data: projects, error: projectsError } = await fetchByBusiness("projects", business.id, "*", {
+        const { data: projects, error: projectsError } = await fetchByBusiness("projects", businessId, "*", {
             filter: { id: { in: projectIds } },
         });
 
         const crewIds = projects?.map((project: any) => project.crew_id).filter(Boolean) || [];
         const taskCrewIds = data?.map((task: Task) => task.assigned_to).filter(Boolean) || [];
         const crewIdsSet = new Set([...crewIds, ...taskCrewIds]);
-        const { data: crews, error: crewsError } = await fetchByBusiness("crews", business.id, "*", {
+        const { data: crews, error: crewsError } = await fetchByBusiness("crews", businessId, "*", {
             filter: { id: { in: crewIdsSet } },
         });
 
         const clientIds = projects?.map((project: any) => project.client_id).filter(Boolean) || [];
-        const { data: clients, error: clientsError } = await fetchByBusiness("clients", business.id, "*", {
+        const { data: clients, error: clientsError } = await fetchByBusiness("clients", businessId, "*", {
             filter: { id: { in: clientIds } },
         });
 

@@ -1,7 +1,5 @@
-
 "use server";
 
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
 import { getProjects } from "./projects";
@@ -22,19 +20,18 @@ interface ConversationMessage {
 }
 
 export async function processAIQuery(
+    businessId: string,
     message: string,
     conversationHistory: ConversationMessage[] = []
 ): Promise<AIQueryResult> {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
-
         // Get context data
-        const projects = await getProjects();
-        const clients = await getClients();
-        const crews = await getCrews();
+        const projects = await getProjects(businessId);
+        const clients = await getClients(businessId);
+        const crews = await getCrews(businessId);
 
         // Build system prompt with context
-        const systemPrompt = `You are a helpful construction project management assistant for ${business.name}. 
+        const systemPrompt = `You are a helpful construction project management assistant. 
 
 Your capabilities:
 1. Answer questions about projects, daily logs, tasks, and schedules
@@ -94,7 +91,7 @@ Current conversation context: The user has been talking about construction work 
                         projectId: projectMatch.id,
                         projectName: projectMatch.name,
                         workSummary: message,
-                        userId
+                        userId: ""
                     }
                 };
             } else {
@@ -128,8 +125,6 @@ Current conversation context: The user has been talking about construction work 
 
 export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string; error?: string }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         // Convert blob to file
         const formData = new FormData();
         formData.append('file', audioBlob, 'audio.wav');
@@ -150,15 +145,13 @@ export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string; 
     }
 }
 
-export async function createDailyLogFromAI(data: {
+export async function createDailyLogFromAI(businessId: string, data: {
     projectId: string;
     projectName: string;
     workSummary: string;
     userId: string;
 }): Promise<{ success: boolean; logId?: string; error?: string }> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
-
         // Enhanced AI prompt to extract all available information
         const enhancementPrompt = `Analyze this construction work summary and extract ALL available information into a structured format:
 
@@ -222,28 +215,30 @@ Only include information that is actually present in the input. Be precise and f
         }
 
         // Create the daily log using existing action with enhanced data
-        const result = await createDailyLog({
-            project_id: data.projectId,
-            crew_id: "", // TODO: Match crew_info to actual crew IDs from database
-            date: new Date().toISOString().split('T')[0],
-            work_completed: extractedData.work_completed || data.workSummary,
-            work_planned: extractedData.work_planned || "",
-            start_time: extractedData.start_time || "",
-            end_time: extractedData.end_time || "",
-            hours_worked: hoursWorked,
-            overtime: overtime,
-            weather: extractedData.weather || "",
-            safety: extractedData.safety || "",
-            quality: extractedData.quality || "",
-            delays: extractedData.delays || "",
-            notes: `Created via AI Assistant from: "${data.workSummary}"${extractedData.materials?.length ? `\n\nMaterials mentioned: ${extractedData.materials.join(', ')}` : ''}${extractedData.equipment?.length ? `\n\nEquipment mentioned: ${extractedData.equipment.join(', ')}` : ''}${extractedData.crew_info ? `\n\nCrew info: ${extractedData.crew_info}` : ''}`,
-            author_id: data.userId,
-            created_by: data.userId,
-            updated_by: data.userId,
-            business_id: business.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        } as DailyLogInsert);
+        const result = await createDailyLog(
+            businessId,
+            {
+                project_id: data.projectId,
+                crew_id: "", // TODO: Match crew_info to actual crew IDs from database
+                date: new Date().toISOString().split('T')[0],
+                work_completed: extractedData.work_completed || data.workSummary,
+                work_planned: extractedData.work_planned || "",
+                start_time: extractedData.start_time || "",
+                end_time: extractedData.end_time || "",
+                hours_worked: hoursWorked,
+                overtime: overtime,
+                weather: extractedData.weather || "",
+                safety: extractedData.safety || "",
+                quality: extractedData.quality || "",
+                delays: extractedData.delays || "",
+                notes: `Created via AI Assistant from: "${data.workSummary}"${extractedData.materials?.length ? `\n\nMaterials mentioned: ${extractedData.materials.join(', ')}` : ''}${extractedData.equipment?.length ? `\n\nEquipment mentioned: ${extractedData.equipment.join(', ')}` : ''}${extractedData.crew_info ? `\n\nCrew info: ${extractedData.crew_info}` : ''}`,
+                author_id: data.userId,
+                created_by: data.userId,
+                updated_by: data.userId,
+                business_id: "",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            } as DailyLogInsert);
 
         if (result && result.id) {
             return {

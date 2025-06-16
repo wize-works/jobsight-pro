@@ -1,11 +1,13 @@
 import InvoiceDetail from "../components/detail";
 import { getInvoiceById, getInvoiceWitDetailsById } from "@/app/actions/invoices";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { InvoiceWithDetails } from "@/types/invoices";
 
 // In a real application, you would fetch the invoice data based on the id parameter
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const invoice = await getInvoiceWitDetailsById(id);
+    const { business } = await withBusinessServer();
+    const invoice = await getInvoiceWitDetailsById(business.id, id);
 
     if (!invoice) {
         return <div>Invoice not found.</div>;

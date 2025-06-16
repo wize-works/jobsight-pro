@@ -8,12 +8,12 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Project } from "@/types/projects";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getProjectIssues = async (): Promise<ProjectIssue[]> => {
-    const { business } = await ensureBusinessOrRedirect();
 
-    const { data, error } = await fetchByBusiness("project_issues", business.id);
+export const getProjectIssues = async (businessId: string): Promise<ProjectIssue[]> => {
+
+
+    const { data, error } = await fetchByBusiness("project_issues", businessId);
 
     if (error) {
         console.error("Error fetching project issues:", error);
@@ -27,10 +27,10 @@ export const getProjectIssues = async (): Promise<ProjectIssue[]> => {
     return data;
 }
 
-export const getProjectIssueById = async (id: string): Promise<ProjectIssue> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getProjectIssueById = async (businessId: string, id: string): Promise<ProjectIssue> => {
 
-    const { data, error } = await fetchByBusiness("project_issues", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("project_issues", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching project issue by ID:", error);
@@ -44,12 +44,12 @@ export const getProjectIssueById = async (id: string): Promise<ProjectIssue> => 
     throw new Error("Project issue not found");
 };
 
-export const createProjectIssue = async (issue: ProjectIssueInsert): Promise<ProjectIssue> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createProjectIssue = async (businessId: string, issue: ProjectIssueInsert): Promise<ProjectIssue> => {
+
 
     issue = await applyCreated<ProjectIssueInsert>(issue);
 
-    const { data, error } = await insertWithBusiness("project_issues", issue, business.id);
+    const { data, error } = await insertWithBusiness("project_issues", issue, businessId);
 
     if (error) {
         console.error("Error creating project issue:", error);
@@ -59,12 +59,12 @@ export const createProjectIssue = async (issue: ProjectIssueInsert): Promise<Pro
     return data;
 }
 
-export const updateProjectIssue = async (id: string, issue: ProjectIssueUpdate): Promise<ProjectIssue> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateProjectIssue = async (businessId: string, id: string, issue: ProjectIssueUpdate): Promise<ProjectIssue> => {
+
 
     issue = await applyUpdated<ProjectIssueUpdate>(issue);
 
-    const { data, error } = await updateWithBusinessCheck("project_issues", id, issue, business.id);
+    const { data, error } = await updateWithBusinessCheck("project_issues", id, issue, businessId);
 
     if (error) {
         console.error("Error updating project issue:", error);
@@ -74,10 +74,10 @@ export const updateProjectIssue = async (id: string, issue: ProjectIssueUpdate):
     return data;
 }
 
-export const deleteProjectIssue = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteProjectIssue = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("project_issues", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("project_issues", id, businessId);
 
     if (error) {
         console.error("Error deleting project issue:", error);
@@ -87,10 +87,10 @@ export const deleteProjectIssue = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchProjectIssues = async (query: string): Promise<ProjectIssue[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchProjectIssues = async (businessId: string, query: string): Promise<ProjectIssue[]> => {
 
-    const { data, error } = await fetchByBusiness("project_issues", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_issues", businessId, "*", {
         filter: {
             or: [
                 { title: { ilike: `%${query}%` } },
@@ -108,10 +108,10 @@ export const searchProjectIssues = async (query: string): Promise<ProjectIssue[]
     return data as unknown as ProjectIssue[];
 };
 
-export const getProjectIssuesWithDetailsByProjectId = async (id: string): Promise<ProjectIssueWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getProjectIssuesWithDetailsByProjectId = async (businessId: string, id: string): Promise<ProjectIssueWithDetails[]> => {
 
-    const { data, error } = await fetchByBusiness("project_issues", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("project_issues", businessId, "*", {
         filter: { project_id: id },
         orderBy: { column: "reported_date", ascending: false },
     });
@@ -128,7 +128,7 @@ export const getProjectIssuesWithDetailsByProjectId = async (id: string): Promis
     const assignedToIds = data.map(issue => issue.assigned_to).filter(Boolean);
     const projectIds = data.map(issue => issue.project_id).filter(Boolean);
 
-    const { data: members, error: userError } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data: members, error: userError } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: assignedToIds },
     });
 

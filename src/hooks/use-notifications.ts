@@ -17,12 +17,14 @@ import {
     notificationTypeOptions,
     NotificationInsert
 } from "@/types/notifications";
+import { useBusiness } from "@/lib/business-context";
 
 interface UseNotificationsProps {
     userId: string;
 }
 
 export function useNotifications({ userId }: UseNotificationsProps) {
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
     const [preferences, setPreferences] = useState({
         email: true,
@@ -42,7 +44,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                 setLoading(true);
 
                 // Load global preferences
-                const globalPrefs = await getUserNotificationPreferences(userId);
+                const globalPrefs = await getUserNotificationPreferences(businessId, userId);
                 const globalSettings = globalPrefs[0] || {
                     email_enabled: true,
                     push_enabled: false,
@@ -50,14 +52,14 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                 };
 
                 // Load type-specific preferences
-                const typePrefs = await getAllNotificationTypePreferences(userId);
+                const typePrefs = await getAllNotificationTypePreferences(businessId, userId);
                 const typeSettings: Record<string, any> = {};
 
                 // If no type preferences exist, initialize defaults
                 if (typePrefs.length === 0) {
-                    await initializeDefaultNotificationTypePreferences(userId);
+                    await initializeDefaultNotificationTypePreferences(businessId, userId);
                     // Reload type preferences after initialization
-                    const initializedPrefs = await getAllNotificationTypePreferences(userId);
+                    const initializedPrefs = await getAllNotificationTypePreferences(businessId, userId);
                     initializedPrefs.forEach(pref => {
                         typeSettings[pref.notification_type] = {
                             email: pref.email_enabled,
@@ -104,7 +106,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                 updated_by: userId
             };
 
-            await updateUserNotificationPreferences(userId, update);
+            await updateUserNotificationPreferences(businessId, userId, update);
             setPreferences(prev => ({
                 ...prev,
                 [channel]: enabled
@@ -131,7 +133,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                 updated_by: userId
             };
 
-            await updateNotificationTypePreference(userId, type, update);
+            await updateNotificationTypePreference(businessId, userId, type, update);
             setPreferences(prev => ({
                 ...prev,
                 types: {
@@ -170,7 +172,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
             };
             console.log("Sending notification:", notification);
 
-            await createNotification(notification);
+            await createNotification(businessId, notification);
         } catch (error) {
             console.error("Error sending test notification:", error);
             throw error;

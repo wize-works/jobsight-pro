@@ -3,13 +3,17 @@ import TasksComponent from "./components/list";
 import { getTasks, getTasksWithDetails } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
+import { withBusinessServer } from '@/lib/auth/with-business-server';
 
 export default async function TasksPage() {
+    const { business } = await withBusinessServer();
+    const businessId = business.id;
+
     // Fetch all required data in parallel
     const [tasks, projects, crews] = await Promise.all([
-        getTasksWithDetails(),
-        getProjects(),
-        getCrews(),
+        getTasksWithDetails(businessId),
+        getProjects(businessId),
+        getCrews(businessId),
     ]);
 
     return (

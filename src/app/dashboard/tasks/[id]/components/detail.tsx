@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -9,6 +8,7 @@ import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions,
 import { Project } from "@/types/projects"
 import { Crew } from "@/types/crews"
 import toast from "react-hot-toast"
+import { useBusiness } from "@/lib/business-context"
 
 interface TaskDetailComponentProps {
     task: Task
@@ -17,6 +17,8 @@ interface TaskDetailComponentProps {
 }
 
 export default function TaskDetailComponent({ task: initialTask, projects, crews }: TaskDetailComponentProps) {
+    const { businessId } = useBusiness()
+
     const router = useRouter()
     const [task, setTask] = useState(initialTask)
     const [isEditing, setIsEditing] = useState(false)
@@ -77,7 +79,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     const handleDeleteTask = async () => {
         if (confirm("Are you sure you want to delete this task?")) {
             try {
-                await deleteTask(task.id)
+                await deleteTask(task.id, businessId)
                 toast.success("Task deleted successfully!")
                 router.push("/dashboard/tasks")
             } catch (error) {
@@ -90,7 +92,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     // Handle task update
     const handleUpdateTask = async (updatedData: Partial<Task>) => {
         try {
-            const updatedTask = await updateTask(task.id, updatedData as TaskUpdate)
+            const updatedTask = await updateTask(businessId, task.id, updatedData as TaskUpdate);
             setTask(updatedTask)
             setIsEditing(false)
             toast.success("Task updated successfully!")

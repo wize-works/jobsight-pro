@@ -7,12 +7,11 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogMaterials = async (businessId: string): Promise<DailyLogMaterial[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_log_materials", business.id);
+
+    const { data, error } = await fetchByBusiness("daily_log_materials", businessId);
 
     if (error) {
         console.error("Error fetching daily log materials:", error);
@@ -26,10 +25,10 @@ export const getDailyLogMaterials = async (): Promise<DailyLogMaterial[]> => {
     return data;
 }
 
-export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMaterial | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogMaterialById = async (businessId: string, id: string): Promise<DailyLogMaterial | null> => {
 
-    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_log_materials", businessId, "*", {
         filter: { id: id }
     });
 
@@ -45,12 +44,12 @@ export const getDailyLogMaterialById = async (id: string): Promise<DailyLogMater
     return null;
 };
 
-export const createDailyLogMaterial = async (material: DailyLogMaterialInsert): Promise<DailyLogMaterial | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createDailyLogMaterial = async (businessId: string, material: DailyLogMaterialInsert): Promise<DailyLogMaterial | null> => {
+
 
     material = await applyCreated<DailyLogMaterialInsert>(material);
 
-    const { data, error } = await insertWithBusiness("daily_log_materials", material, business.id);
+    const { data, error } = await insertWithBusiness("daily_log_materials", material, businessId);
 
     if (error) {
         console.error("Error creating daily log material:", error);
@@ -60,12 +59,12 @@ export const createDailyLogMaterial = async (material: DailyLogMaterialInsert): 
     return data;
 }
 
-export const updateDailyLogMaterial = async (id: string, material: DailyLogMaterialUpdate): Promise<DailyLogMaterial | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateDailyLogMaterial = async (businessId: string, id: string, material: DailyLogMaterialUpdate): Promise<DailyLogMaterial | null> => {
+
 
     material = await applyUpdated<DailyLogMaterialUpdate>(material);
 
-    const { data, error } = await updateWithBusinessCheck("daily_log_materials", id, material, business.id);
+    const { data, error } = await updateWithBusinessCheck("daily_log_materials", id, material, businessId);
 
     if (error) {
         console.error("Error updating daily log material:", error);
@@ -75,10 +74,10 @@ export const updateDailyLogMaterial = async (id: string, material: DailyLogMater
     return data;
 }
 
-export const deleteDailyLogMaterial = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteDailyLogMaterial = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("daily_log_materials", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("daily_log_materials", id, businessId);
 
     if (error) {
         console.error("Error deleting daily log material:", error);
@@ -88,10 +87,10 @@ export const deleteDailyLogMaterial = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchDailyLogMaterials = async (query: string): Promise<DailyLogMaterial[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchDailyLogMaterials = async (businessId: string, query: string): Promise<DailyLogMaterial[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_log_materials", businessId, "*", {
         filter: {
             or: [
                 { material_name: { ilike: `%${query}%` } },
@@ -109,10 +108,10 @@ export const searchDailyLogMaterials = async (query: string): Promise<DailyLogMa
     return data as DailyLogMaterial[];
 };
 
-export const getDailyLogMaterialsWithDetailsByLogId = async (id: string): Promise<DailyLogMaterial[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogMaterialsWithDetailsByLogId = async (businessId: string, id: string): Promise<DailyLogMaterial[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_log_materials", businessId, "*", {
         filter: { daily_log_id: id },
         orderBy: { column: "created_at", ascending: false },
     });

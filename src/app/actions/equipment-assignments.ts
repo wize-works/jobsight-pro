@@ -8,12 +8,11 @@ import { ProjectCrew } from "@/types/project-crews";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getEquipmentAssignments = async (): Promise<EquipmentAssignment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentAssignments = async (businessId: string): Promise<EquipmentAssignment[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment_assignments", business.id);
+
+    const { data, error } = await fetchByBusiness("equipment_assignments", businessId);
 
     if (error) {
         console.error("Error fetching equipment assignments:", error);
@@ -27,10 +26,10 @@ export const getEquipmentAssignments = async (): Promise<EquipmentAssignment[]> 
     return data as unknown as EquipmentAssignment[];
 }
 
-export const getEquipmentAssignmentById = async (id: string): Promise<EquipmentAssignment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentAssignmentById = async (businessId: string, id: string): Promise<EquipmentAssignment | null> => {
 
-    const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", { filter: { id: id } });
+
+    const { data, error } = await fetchByBusiness("equipment_assignments", businessId, "*", { filter: { id: id } });
 
     if (error) {
         console.error("Error fetching equipment assignment by ID:", error);
@@ -44,12 +43,12 @@ export const getEquipmentAssignmentById = async (id: string): Promise<EquipmentA
     return null;
 };
 
-export const createEquipmentAssignment = async (assignment: EquipmentAssignmentInsert): Promise<EquipmentAssignment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createEquipmentAssignment = async (businessId: string, assignment: EquipmentAssignmentInsert): Promise<EquipmentAssignment | null> => {
+
 
     assignment = await applyCreated<EquipmentAssignmentInsert>(assignment);
 
-    const { data, error } = await insertWithBusiness("equipment_assignments", assignment, business.id);
+    const { data, error } = await insertWithBusiness("equipment_assignments", assignment, businessId);
 
     if (error) {
         console.error("Error creating equipment assignment:", error);
@@ -59,12 +58,12 @@ export const createEquipmentAssignment = async (assignment: EquipmentAssignmentI
     return data as unknown as EquipmentAssignment;
 }
 
-export const updateEquipmentAssignment = async (id: string, assignment: EquipmentAssignmentUpdate): Promise<EquipmentAssignment | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateEquipmentAssignment = async (businessId: string, id: string, assignment: EquipmentAssignmentUpdate): Promise<EquipmentAssignment | null> => {
+
 
     assignment = await applyUpdated<EquipmentAssignmentUpdate>(assignment);
 
-    const { data, error } = await updateWithBusinessCheck("equipment_assignments", id, assignment, business.id);
+    const { data, error } = await updateWithBusinessCheck("equipment_assignments", id, assignment, businessId);
 
     if (error) {
         console.error("Error updating equipment assignment:", error);
@@ -74,10 +73,10 @@ export const updateEquipmentAssignment = async (id: string, assignment: Equipmen
     return data as unknown as EquipmentAssignment;
 }
 
-export const deleteEquipmentAssignment = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteEquipmentAssignment = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("equipment_assignments", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("equipment_assignments", id, businessId);
 
     if (error) {
         console.error("Error deleting equipment assignment:", error);
@@ -87,10 +86,10 @@ export const deleteEquipmentAssignment = async (id: string): Promise<boolean> =>
     return true;
 }
 
-export const searchEquipmentAssignments = async (query: string): Promise<EquipmentAssignment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchEquipmentAssignments = async (businessId: string, query: string): Promise<EquipmentAssignment[]> => {
 
-    const { data, error } = await fetchByBusiness("equipment_assignments", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("equipment_assignments", businessId, "*", {
         filter: {
             or: [
                 { equipment_id: { ilike: `%${query}%` } },
@@ -108,10 +107,10 @@ export const searchEquipmentAssignments = async (query: string): Promise<Equipme
     return data as unknown as EquipmentAssignment[];
 };
 
-export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<EquipmentAssignment[] | []> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getEquipmentAssignmentsByEquipmentId = async (businessId: string, id: string): Promise<EquipmentAssignment[] | []> => {
 
-    const { data: assignData, error: assignError } = await fetchByBusiness("equipment_assignments", business.id, "*", {
+
+    const { data: assignData, error: assignError } = await fetchByBusiness("equipment_assignments", businessId, "*", {
         filter: { equipment_id: id },
         orderBy: { column: "start_date", ascending: true },
     });
@@ -129,7 +128,7 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
 
     let crewData: any[] = [];
     if (crewIds.length > 0) {
-        const { data: crews } = await fetchByBusiness("crews", business.id, "*", {
+        const { data: crews } = await fetchByBusiness("crews", businessId, "*", {
             filter: { id: { in: crewIds } },
             orderBy: { column: "name", ascending: true },
         });
@@ -138,7 +137,7 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
 
     let projectData: any[] = [];
     if (crewIds.length > 0) {
-        const { data: projects } = await fetchByBusiness("project_crews", business.id, "*", {
+        const { data: projects } = await fetchByBusiness("project_crews", businessId, "*", {
             filter: { crew_id: { in: crewIds } },
             orderBy: { column: "start_date", ascending: true },
         });
@@ -149,7 +148,7 @@ export const getEquipmentAssignmentsByEquipmentId = async (id: string): Promise<
 
     let projectDetails: any[] = [];
     if (projectIds.length > 0) {
-        const { data: projects } = await fetchByBusiness("projects", business.id, "*", {
+        const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
             filter: { id: { in: projectIds } },
             orderBy: { column: "start_date", ascending: true },
         });

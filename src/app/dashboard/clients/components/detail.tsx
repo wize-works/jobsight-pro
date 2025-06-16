@@ -16,6 +16,7 @@ import { Project, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { Client, ClientStatus, clientStatusOptions } from "@/types/clients";
 import ClientEditForm from "../components/modal-edit";
 import InteractionModal from "./modal-interaction";
+import { useBusiness } from "@/lib/business-context";
 
 interface ClientDetailProps {
     client: Client;
@@ -30,6 +31,7 @@ export default function ClientDetailComponent({
     contacts,
     interactions,
 }: ClientDetailProps) {
+    const { businessId } = useBusiness();
     const { user } = useKindeAuth();
     const router = useRouter()
     const [activeTab, setActiveTab] = useState("overview")
@@ -85,7 +87,7 @@ export default function ClientDetailComponent({
         } as ClientContactInsert;
 
         try {
-            await createClientContact(contactData);
+            await createClientContact(businessId, contactData);
             toast.success({
                 title: "Contact created",
                 description: "Your contact has been created successfully.",
@@ -126,7 +128,7 @@ export default function ClientDetailComponent({
             updated_at: new Date().toISOString(),
         } as ClientInteractionInsert;
         try {
-            await createClientInteraction(interactionData);
+            await createClientInteraction(businessId, interactionData);
             toast.success({
                 title: "Interaction created",
                 description: "Your interaction has been logged successfully.",
@@ -148,7 +150,7 @@ export default function ClientDetailComponent({
     const handleAddProject = async () => {
         setIsSubmittingProject(true);
         try {
-            await createProject({
+            await createProject(businessId, {
                 id: "",
                 business_id: "",
                 name: newProject.name,
@@ -216,7 +218,7 @@ export default function ClientDetailComponent({
             is_primary: editContact.isPrimary
         } as ClientContactUpdate;
         try {
-            await updateClientContact(editContact.id, updatedContact);
+            await updateClientContact(businessId, editContact.id, updatedContact);
             toast.success({
                 title: "Contact updated",
                 description: "Your contact has been updated successfully.",
@@ -260,7 +262,7 @@ export default function ClientDetailComponent({
             updated_at: new Date().toISOString(),
         } as ClientInteractionUpdate;
         try {
-            await updateClientInteraction(editInteraction.id, updatedInteraction);
+            await updateClientInteraction(businessId, editInteraction.id, updatedInteraction);
             toast.success({
                 title: "Interaction updated",
                 description: "Your interaction has been updated successfully.",
@@ -281,7 +283,7 @@ export default function ClientDetailComponent({
 
     const handleUpdateClientNotes = async (notes: string) => {
         try {
-            await updateClientNotes(client.id, notes);
+            await updateClientNotes(businessId, client.id, notes);
             toast.success({
                 title: "Notes updated",
                 description: "Client notes have been updated successfully.",
@@ -323,7 +325,7 @@ export default function ClientDetailComponent({
                 updated_by: user?.id || null
             };
 
-            await updateClient(client.id, clientData);
+            await updateClient(businessId, client.id, clientData);
             setShowEditClientModal(false);
             toast.success({
                 title: "Client updated",

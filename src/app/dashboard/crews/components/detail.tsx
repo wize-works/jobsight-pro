@@ -17,6 +17,7 @@ import { ProjectCrewInsert } from "@/types/project-crews";
 import { Equipment } from "@/types/equipment";
 import { create } from "domain";
 import { AssignmentModal } from "../../equipment/components/modal-assignment";
+import { useBusiness } from "@/lib/business-context";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -45,6 +46,8 @@ export default function CrewDetailComponent({
     projects = [],
     allEquipment = [],
 }: CrewDetailProps) {
+    const { businessId } = useBusiness();
+
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -99,7 +102,7 @@ export default function CrewDetailComponent({
 
         try {
 
-            const member = await createCrewMember(memberData);
+            const member = await createCrewMember(businessId, memberData);
 
             if (!member) {
                 toast.error({
@@ -109,7 +112,7 @@ export default function CrewDetailComponent({
             }
 
             if (member) {
-                await addCrewMemberToCrew(crew.id, member.id);
+                await addCrewMemberToCrew(businessId, crew.id, member.id);
 
                 toast.success({
                     title: "Success",
@@ -136,7 +139,7 @@ export default function CrewDetailComponent({
     const handleLinkMember = async () => {
         try {
             if (linkMember && linkMember.id) {
-                await addCrewMemberToCrew(crew.id, linkMember.id);
+                await addCrewMemberToCrew(businessId, crew.id, linkMember.id);
                 toast.success({
                     title: "Success",
                     description: `Linked ${linkMember.name} to the crew.`,
@@ -161,7 +164,7 @@ export default function CrewDetailComponent({
         if (!editingMember) return;
 
         try {
-            const result = await updateCrewMember(editingMember.id, editingMember);
+            const result = await updateCrewMember(businessId, editingMember.id, editingMember);
 
             if (result) {
                 toast({
@@ -195,7 +198,7 @@ export default function CrewDetailComponent({
         } as ProjectCrewInsert;
 
         try {
-            await createProjectCrew(projectCrewInsert);
+            await createProjectCrew(businessId, projectCrewInsert);
             toast.success({
                 title: "Assignment added",
                 description: `Assignment for crew scheduled from ${newAssignment.startDate} to ${newAssignment.endDate}.`,
@@ -220,7 +223,7 @@ export default function CrewDetailComponent({
             return;
         }
 
-        await assignCrewLeader(crew.id, crewLeader);
+        await assignCrewLeader(businessId, crew.id, crewLeader);
 
         toast.success({
             title: "Success",
@@ -239,7 +242,7 @@ export default function CrewDetailComponent({
         }
 
         try {
-            await updateCrewNotes(crew.id, notes);
+            await updateCrewNotes(businessId, crew.id, notes);
             toast.success({
                 title: "Success",
                 description: "Crew notes updated successfully.",
@@ -262,7 +265,7 @@ export default function CrewDetailComponent({
     const handleDeleteEquipmentAssignment = async (assignmentId: string) => {
         if (window.confirm("Are you sure you want to delete this equipment assignment?")) {
             try {
-                await deleteEquipmentAssignment(assignmentId);
+                await deleteEquipmentAssignment(businessId, assignmentId);
                 toast({
                     title: "Success",
                     description: "Equipment assignment deleted successfully.",
@@ -281,7 +284,7 @@ export default function CrewDetailComponent({
         if (!editingEquipmentAssignment) return;
 
         try {
-            await updateEquipmentAssignment(editingEquipmentAssignment.id, editingEquipmentAssignment);
+            await updateEquipmentAssignment(businessId, editingEquipmentAssignment.id, editingEquipmentAssignment);
             toast({
                 title: "Success",
                 description: "Equipment assignment updated successfully.",

@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 
 // Helper function to extract number from a string with units
 const extractNumber = (str: any) => {
@@ -72,6 +73,7 @@ export default function EditModal({
         isNew?: boolean;
     }>>([]);
 
+    const { businessId } = useBusiness();
     const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -261,7 +263,7 @@ export default function EditModal({
             };
 
             // Update the main daily log
-            const updatedLog = await updateDailyLog(log.id, dailyLogUpdateData);
+            const updatedLog = await updateDailyLog(businessId, log.id, dailyLogUpdateData);
 
             if (!updatedLog) {
                 throw new Error("Failed to update daily log");
@@ -279,7 +281,7 @@ export default function EditModal({
                         cost: material.cost,
                     } as DailyLogMaterialInsert;
 
-                    return await createDailyLogMaterial(newMaterial);
+                    return await createDailyLogMaterial(businessId, newMaterial);
                 } else {
                     const materialUpdateData = {
                         name: material.name,
@@ -287,7 +289,7 @@ export default function EditModal({
                         cost: material.cost,
                     } as DailyLogMaterialUpdate;
 
-                    return await updateDailyLogMaterial(material.id, materialUpdateData);
+                    return await updateDailyLogMaterial(businessId, material.id, materialUpdateData);
                 }
             });
 
@@ -303,14 +305,14 @@ export default function EditModal({
                         hours: equip.hours,
                     } as DailyLogEquipmentInsert;
 
-                    return await createDailyLogEquipment(newEquipment);
+                    return await createDailyLogEquipment(businessId, newEquipment);
                 } else {
                     const equipmentUpdateData = {
                         name: equip.name,
                         hours: equip.hours,
                     } as DailyLogEquipmentUpdate;
 
-                    return await updateDailyLogEquipment(equip.id, equipmentUpdateData);
+                    return await updateDailyLogEquipment(businessId, equip.id, equipmentUpdateData);
                 }
             });
 
@@ -318,7 +320,7 @@ export default function EditModal({
             await Promise.all([...materialPromises, ...equipmentPromises]);
 
             // Get the updated log with all details
-            const refreshedLog = await getDailyLogWithDetailsById(log.id);
+            const refreshedLog = await getDailyLogWithDetailsById(businessId, log.id);
 
             toast.success({
                 title: "Success",

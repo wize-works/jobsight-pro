@@ -14,15 +14,15 @@ import type {
     BillingInterval,
 } from "@/types/subscription";
 import { revalidatePath } from "next/cache";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export async function getCurrentSubscription(): Promise<BusinessSubscription | null> {
+
+export async function getCurrentSubscription(businessId: string): Promise<BusinessSubscription | null> {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         const { data, error } = await fetchByBusiness(
             "business_subscriptions",
-            business.id,
+            businessId,
             "*",
             {
                 filter: { status: "active" },
@@ -150,14 +150,14 @@ export async function createSubscription(
     }
 }
 
-export async function cancelSubscription(): Promise<{
+export async function cancelSubscription(businessId: string): Promise<{
     success: boolean;
     error?: string;
 }> {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
-        const currentSubscription = await getCurrentSubscription();
+        const currentSubscription = await getCurrentSubscription(businessId);
         if (!currentSubscription) {
             return { success: false, error: "No active subscription found" };
         }
@@ -172,7 +172,7 @@ export async function cancelSubscription(): Promise<{
                 updated_at: new Date().toISOString(),
                 updated_by: userId,
             } as BusinessSubscription,
-            business.id,
+            businessId,
         );
 
         if (error) {

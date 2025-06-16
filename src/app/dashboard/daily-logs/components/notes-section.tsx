@@ -3,19 +3,21 @@
 import { useState, useEffect } from "react";
 import { getTaskNotes, createTaskNote } from "@/app/actions/task-notes";
 import { TaskNote, TaskNoteInsert } from "@/types/task-notes";
+import { useBusiness } from "@/lib/business-context";
 
 type NotesSectionProps = {
     dailyLogId: string;
 };
 
 export default function NotesSection({ dailyLogId }: NotesSectionProps) {
+    const { businessId } = useBusiness();
     const [notes, setNotes] = useState<TaskNote[]>([]);
     const [newNote, setNewNote] = useState("");
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const loadNotes = async () => {
-            const taskNotes = await getTaskNotes();
+            const taskNotes = await getTaskNotes(businessId);
             // Filter notes related to this daily log if needed
             setNotes(taskNotes);
         };
@@ -37,7 +39,7 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
                 updated_at: new Date().toISOString(),
             } as TaskNoteInsert;
 
-            const createdNote = await createTaskNote(noteData);
+            const createdNote = await createTaskNote(businessId, noteData);
             if (createdNote) {
                 setNotes([...notes, createdNote]);
                 setNewNote("");

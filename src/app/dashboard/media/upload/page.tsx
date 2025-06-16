@@ -8,6 +8,7 @@ import { getProjects } from "@/app/actions/projects"
 import { Project } from "@/types/projects"
 import { MediaInsert, MediaType } from "@/types/media"
 import { toast } from "@/hooks/use-toast"
+import { useBusiness } from "@/lib/business-context"
 
 interface FileUpload {
     file: File
@@ -20,12 +21,13 @@ interface FileUpload {
 }
 
 export default function MediaUpload() {
-    const router = useRouter()
-    const [files, setFiles] = useState<FileUpload[]>([])
-    const [projects, setProjects] = useState<Project[]>([])
-    const [selectedProject, setSelectedProject] = useState("")
-    const [uploading, setUploading] = useState(false)
-    const [dragActive, setDragActive] = useState(false)
+    const router = useRouter();
+    const { businessId } = useBusiness();
+    const [files, setFiles] = useState<FileUpload[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [selectedProject, setSelectedProject] = useState("");
+    const [uploading, setUploading] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
 
     useEffect(() => {
         loadProjects()
@@ -33,7 +35,7 @@ export default function MediaUpload() {
 
     const loadProjects = async () => {
         try {
-            const projectsData = await getProjects()
+            const projectsData = await getProjects(businessId);
             setProjects(projectsData)
         } catch (error) {
             console.error("Error loading projects:", error)
@@ -137,7 +139,7 @@ export default function MediaUpload() {
                     if (xhr.status === 201) {
                         // File uploaded successfully, now create media record
                         try {
-                            const mediaRecord = await createMedia({
+                            const mediaRecord = await createMedia(businessId, {
                                 name: fileUpload.file.name,
                                 type: mediaType,
                                 size: fileUpload.file.size,

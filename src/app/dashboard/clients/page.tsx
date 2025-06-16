@@ -10,9 +10,11 @@ import { v4 as uuidv4 } from "uuid"
 import { getClientsWithStats } from "@/app/actions/clients"
 import { set } from "zod"
 import Loading from "@/app/loading"
-
+import { useBusiness } from "@/lib/business-context"
 
 export default function ClientsPage() {
+    const { businessId } = useBusiness();
+
     const [loading, setLoading] = useState(true);
     const [clients, setClients] = useState<ClientWithStats[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -46,18 +48,19 @@ export default function ClientsPage() {
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const data = await getClientsWithStats();
+                const data = await getClientsWithStats(businessId);
                 console.log("Fetched clients:", data);
                 setClients(data);
             } catch (error) {
-                throw error;
                 console.error("Error fetching clients:", error);
                 toast.error("Failed to load clients. Please try again.");
             }
             setLoading(false);
+        };
+        if (businessId) {
+            fetchClients();
         }
-        fetchClients();
-    }, []);
+    }, [businessId]);
 
     const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
@@ -83,7 +86,7 @@ export default function ClientsPage() {
     const handleAddClient = async () => {
         setIsSubmitting(true);
         try {
-            const data = await createClient(newClient as ClientInsert);
+            const data = await createClient(businessId, newClient as ClientInsert);
             if (data) {
                 setClients((prev) => [
                     ...prev,
@@ -92,7 +95,7 @@ export default function ClientsPage() {
                         total_projects: 0,
                         active_projects: 0,
                         total_budget: 0,
-                    }
+                    },
                 ]);
                 setNewClient({
                     id: uuidv4(),
@@ -107,7 +110,7 @@ export default function ClientsPage() {
                 setShowAddClientModal(false);
             }
         } catch (error) {
-            toast.error("Error adding client. Please try again.");;
+            toast.error("Error adding client. Please try again.");
             console.error("Error adding client:", error);
         } finally {
             setIsSubmitting(false);

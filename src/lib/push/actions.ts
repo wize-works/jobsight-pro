@@ -4,7 +4,6 @@ import webpush from 'web-push';
 import { withBusinessServer } from '@/lib/auth/with-business-server';
 import { insertWithBusiness, fetchByBusiness, updateWithBusinessCheck, deleteWithBusinessCheck } from '@/lib/db';
 import type { PushSubscriptionInsert, PushSubscriptionUpdate } from '@/types/notifications';
-import { ensureBusinessOrRedirect } from '../auth/ensure-business';
 
 function ensureVapidDetails() {
     if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -22,7 +21,7 @@ function ensureVapidDetails() {
 
 export async function subscribeUser(subscription: PushSubscription) {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         // Store subscription in database
         const subscriptionData: PushSubscriptionInsert = {
@@ -56,7 +55,7 @@ export async function subscribeUser(subscription: PushSubscription) {
 
 export async function unsubscribeUser() {
     try {
-        const { business, userId } = await ensureBusinessOrRedirect();
+        const { business, userId } = await withBusinessServer();
 
         // Find and deactivate user's subscriptions
         const { data: subscriptions, error: fetchError } = await fetchByBusiness(
@@ -99,12 +98,13 @@ export async function sendPushNotificationToUser(
     data?: any,
     url?: string
 ) {
+    const { business } = await withBusinessServer();
     try {
         if (!ensureVapidDetails()) {
             return { success: false, message: 'Push notifications not configured' };
         }
 
-        const { business } = await ensureBusinessOrRedirect();
+
 
         // Get active subscriptions for the user
         const { data: subscriptions, error } = await fetchByBusiness(
@@ -173,12 +173,13 @@ export async function sendPushNotificationToBusiness(
     url?: string,
     excludeUserId?: string
 ) {
+    const { business } = await withBusinessServer();
     try {
         if (!ensureVapidDetails()) {
             return { success: false, message: 'Push notifications not configured' };
         }
 
-        const { business } = await ensureBusinessOrRedirect();
+
 
         // Get all active subscriptions for the business
         const { data: subscriptions, error } = await fetchByBusiness(

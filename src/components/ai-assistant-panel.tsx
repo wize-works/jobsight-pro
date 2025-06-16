@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAIQuery, transcribeAudio, createDailyLogFromAI } from '@/app/actions/ai';
+import { useBusiness } from '@/lib/business-context';
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -16,6 +17,7 @@ interface ConversationMessage {
 }
 
 export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
+    const { businessId } = useBusiness();
     const [textInput, setTextInput] = useState("");
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -125,7 +127,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             addToConversation("user", transcribedText);
 
             // Process the transcribed text
-            await processAIQuery(transcribedText, conversation.slice(-5).map(msg => ({
+            await processAIQuery(businessId, transcribedText, conversation.slice(-5).map(msg => ({
                 role: msg.type === "user" ? "user" : "assistant",
                 content: msg.content
             })));
@@ -150,7 +152,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 timestamp: msg.timestamp.toISOString()
             }));
 
-            const result = await processAIQuery(message, conversationHistory);
+            const result = await processAIQuery(businessId, message, conversationHistory);
 
             // Ensure result.path is defined before using it
             if (result.action === 'navigate' && result.path) {

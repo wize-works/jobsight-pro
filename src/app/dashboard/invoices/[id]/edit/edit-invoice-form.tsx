@@ -10,6 +10,7 @@ import { Client } from "@/types/clients";
 import { Project } from "@/types/projects";
 import { updateInvoice } from "@/app/actions/invoices";
 import { upsertInvoiceItems } from "@/app/actions/invoice-items";
+import { useBusiness } from "@/lib/business-context";
 
 interface EditInvoiceFormProps {
     invoice: Invoice;
@@ -26,7 +27,8 @@ export default function EditInvoiceForm({
     projects,
     invoiceId,
 }: EditInvoiceFormProps) {
-    const router = useRouter();    // Form state
+    const router = useRouter();
+    const { businessId } = useBusiness();
     const [client, setClient] = useState(invoice.client_id || "");
     const [project, setProject] = useState(invoice.project_id || "");
     const [issueDate, setIssueDate] = useState(invoice.issue_date || "");
@@ -105,7 +107,7 @@ export default function EditInvoiceForm({
 
         try {
 
-            await updateInvoice(invoiceId, {
+            await updateInvoice(businessId, invoiceId, {
                 id: invoiceId,
                 client_id: client,
                 project_id: project,
@@ -125,7 +127,7 @@ export default function EditInvoiceForm({
                 updated_by: invoice.updated_by
             });
 
-            await upsertInvoiceItems(items);
+            await upsertInvoiceItems(businessId, items);
 
             // For now, just redirect back to the invoice detail page
             router.push(`/dashboard/invoices/${invoiceId}`);

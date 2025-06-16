@@ -10,19 +10,21 @@ import { EquipmentUsage } from "@/types/equipment_usage";
 import { EquipmentAssignment } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const { business } = await withBusinessServer();
 
     try {
 
         const [equipment, maintenances, usages, assignments, specifications, documents] = await Promise.all([
-            getEquipmentById(id),
-            getEquipmentMaintenancesByEquipmentId(id),
-            getEquipmentUsagesWithDetailsByEquipmentId(id),
-            getEquipmentAssignmentsByEquipmentId(id),
-            getEquipmentSpecificationsByEquipmentId(id),
-            getMediaByEquipmentId(id, "")
+            getEquipmentById(business.id, id),
+            getEquipmentMaintenancesByEquipmentId(business.id, id),
+            getEquipmentUsagesWithDetailsByEquipmentId(business.id, id),
+            getEquipmentAssignmentsByEquipmentId(business.id, id),
+            getEquipmentSpecificationsByEquipmentId(business.id, id),
+            getMediaByEquipmentId(business.id, id, "")
         ]);
 
         if (!equipment) {

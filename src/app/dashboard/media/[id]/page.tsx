@@ -8,11 +8,13 @@ import { getProjects } from "@/app/actions/projects"
 import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
+import { useBusiness } from "@/lib/business-context"
 
 export default function MediaDetail() {
     const params = useParams()
     const router = useRouter()
     const mediaId = params.id as string
+    const { businessId } = useBusiness();
 
     const [mediaItem, setMediaItem] = useState<Media | null>(null)
     const [projects, setProjects] = useState<Project[]>([])
@@ -30,8 +32,8 @@ export default function MediaDetail() {
         try {
             setLoading(true)
             const [media, projectsData] = await Promise.all([
-                getMediaById(mediaId),
-                getProjects()
+                getMediaById(businessId, mediaId),
+                getProjects(businessId)
             ])
 
             if (!media) {
@@ -61,7 +63,7 @@ export default function MediaDetail() {
         if (!mediaItem) return
 
         try {
-            const updated = await updateMedia(mediaItem.id, {
+            const updated = await updateMedia(businessId, mediaItem.id, {
                 name: editedItem.name || mediaItem.name,
                 description: editedItem.description ?? null,
                 project_id: editedItem.project_id ?? null
@@ -88,7 +90,7 @@ export default function MediaDetail() {
         if (!mediaItem) return
 
         try {
-            const success = await deleteMedia(mediaItem.id)
+            const success = await deleteMedia(businessId, mediaItem.id)
             if (success) {
                 toast.success({
                     title: "Success",

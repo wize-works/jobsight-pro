@@ -5,18 +5,18 @@ import { createServerClient } from "@/lib/supabase";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { Resend } from "resend";
 import { ProjectUpdateEmail, EquipmentAlertEmail } from "@/components/email-examples";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendProjectUpdateNotification(
+    businessId: string,
     projectId: string,
     updateType: 'status_change' | 'new_task' | 'task_assigned' | 'milestone_completed' | 'issue_reported' | 'deadline_approaching' | 'project_completed',
     updateDetails: string,
     updatedBy: string
 ) {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -27,7 +27,7 @@ export async function sendProjectUpdateNotification(
             .from("projects")
             .select("*")
             .eq("id", projectId)
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .single();
 
         if (projectError || !project) {
@@ -38,7 +38,7 @@ export async function sendProjectUpdateNotification(
         const { data: projectUsers, error: usersError } = await supabase
             .from("users")
             .select("id, first_name, last_name, email, notification_preferences")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active")
             .neq("role", "member"); // Only notify managers and admins
 
@@ -93,13 +93,14 @@ export async function sendProjectUpdateNotification(
 }
 
 export async function sendEquipmentAlert(
+    businessId: string,
     equipmentId: string,
     alertType: 'maintenance_due' | 'inspection_required' | 'issue_reported' | 'assigned' | 'assignment_change' | 'malfunction',
     description: string,
     priority: "low" | "medium" | "high" = "medium"
 ) {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
         const supabase = createServerClient();
         if (!supabase) {
             throw new Error("Failed to initialize Supabase client");
@@ -110,7 +111,7 @@ export async function sendEquipmentAlert(
             .from("equipment")
             .select("*")
             .eq("id", equipmentId)
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .single();
 
         if (equipmentError || !equipment) {
@@ -121,7 +122,7 @@ export async function sendEquipmentAlert(
         const { data: users, error: usersError } = await supabase
             .from("users")
             .select("id, first_name, last_name, email")
-            .eq("business_id", business.id)
+            .eq("business_id", businessId)
             .eq("status", "active")
             .in("role", ["admin", "manager"]);
 

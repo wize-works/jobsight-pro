@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createEquipmentMaintenance, updateEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
 import { toast } from '@/hooks/use-toast';
+import { useBusiness } from '@/lib/business-context';
 
 type MaintenanceModalProps = {
     isOpen: boolean;
@@ -23,6 +24,7 @@ export const MaintenanceModal = ({ isOpen, maintenance, onClose, onSave }: Maint
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
 
     // Form state
@@ -88,13 +90,13 @@ export const MaintenanceModal = ({ isOpen, maintenance, onClose, onSave }: Maint
             } as EquipmentMaintenance;
 
             if (maintenance?.id) {
-                await updateEquipmentMaintenance(maintenance.id, maintenanceData);
+                await updateEquipmentMaintenance(businessId, maintenance.id, maintenanceData);
                 toast.success({
                     title: "Success",
                     description: "Maintenance record updated successfully"
                 });
             } else {
-                await createEquipmentMaintenance(maintenanceData);
+                await createEquipmentMaintenance(businessId, maintenanceData);
                 toast.success({
                     title: "Success",
                     description: "Maintenance record added successfully"

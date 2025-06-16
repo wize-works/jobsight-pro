@@ -6,6 +6,7 @@ import { createEquipment } from "@/app/actions/equipments";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentInsert, EquipmentStatus, EquipmentType, EquipmentCondition } from "@/types/equipment";
 import { equipmentStatusOptions, equipmentTypeOptions, equipmentConditionOptions } from "@/types/equipment";
+import { useBusiness } from "@/lib/business-context";
 
 interface EquipmentNewModalProps {
     isOpen: boolean;
@@ -15,6 +16,7 @@ interface EquipmentNewModalProps {
 
 export default function EquipmentNewModal({ isOpen, onClose, onSave }: EquipmentNewModalProps) {
     const router = useRouter();
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
 
     // Form state
@@ -66,7 +68,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                 image_url: formData.image_url || null,
             } as EquipmentInsert;
 
-            const newEquipment = await createEquipment(equipmentData);
+            const newEquipment = await createEquipment(businessId, equipmentData);
 
             if (newEquipment) {
                 toast.success({

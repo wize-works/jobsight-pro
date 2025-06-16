@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { getCrews, getCrewById, createCrew, updateCrew, deleteCrewById, searchCrews } from "@/app/actions/crews"
 import type { Crew, CrewInsert, CrewUpdate } from "@/types/crews"
+import { useBusiness } from "@/lib/business-context"
 
-export function useCrews(businessId: string) {
+export function useCrews(businessIdProp: string) {
+    const { businessId } = useBusiness()
     const [crews, setCrews] = useState<Crew[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -12,7 +14,7 @@ export function useCrews(businessId: string) {
         async function fetchCrews() {
             try {
                 setLoading(true)
-                const data = await getCrews()
+                const data = await getCrews(businessId)
                 setCrews(data || [])
             } catch (err) {
                 console.error("Error fetching crews:", err)
@@ -29,7 +31,7 @@ export function useCrews(businessId: string) {
 
     const addCrew = async (crew: CrewInsert) => {
         try {
-            const data = await createCrew(crew)
+            const data = await createCrew(businessId, crew)
             if (data) {
                 setCrews((prev) => [...prev, data])
             }
@@ -41,7 +43,7 @@ export function useCrews(businessId: string) {
 
     const updateCrewData = async (id: string, crew: CrewUpdate) => {
         try {
-            const data = await updateCrew(id, crew)
+            const data = await updateCrew(businessId, id, crew)
             if (data) {
                 setCrews((prev) => prev.map((c) => (c.id === id ? data : c)))
             }
@@ -53,7 +55,7 @@ export function useCrews(businessId: string) {
 
     const removeCrew = async (id: string) => {
         try {
-            await deleteCrewById(id)
+            await deleteCrewById(businessId, id)
             setCrews((prev) => prev.filter((c) => c.id !== id))
             return { error: null }
         } catch (err) {
@@ -63,7 +65,7 @@ export function useCrews(businessId: string) {
 
     const searchCrewsByQuery = async (query: string) => {
         try {
-            const data = await searchCrews(query)
+            const data = await searchCrews(businessId, query)
             return { data, error: null }
         } catch (err) {
             return { data: null, error: err instanceof Error ? err : new Error(String(err)) }
@@ -88,7 +90,7 @@ export function useCrew(id: string, businessId: string) {
         async function fetchCrew() {
             try {
                 setLoading(true)
-                const data = await getCrewById(id)
+                const data = await getCrewById(businessId, id)
                 setCrew(data)
             } catch (err) {
                 console.error("Error fetching crew:", err)
@@ -103,7 +105,7 @@ export function useCrew(id: string, businessId: string) {
 
     const updateCrewData = async (crew: CrewUpdate) => {
         try {
-            const data = await updateCrew(id, crew)
+            const data = await updateCrew(businessId, id, crew)
             if (data) {
                 setCrew(data)
             }

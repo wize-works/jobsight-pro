@@ -7,6 +7,7 @@ import { Media } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { useBusiness } from "@/lib/business-context"
 
 // Media types for filtering
 const mediaTypes = [
@@ -17,15 +18,16 @@ const mediaTypes = [
 ]
 
 export default function MediaLibrary() {
-    const [view, setView] = useState<"grid" | "list">("grid")
-    const [searchQuery, setSearchQuery] = useState("")
-    const [selectedProject, setSelectedProject] = useState<string | null>(null)
-    const [selectedType, setSelectedType] = useState<string | null>(null)
-    const [selectedItems, setSelectedItems] = useState<string[]>([])
-    const [showUploadModal, setShowUploadModal] = useState(false)
-    const [mediaItems, setMediaItems] = useState<Media[]>([])
-    const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
+    const { businessId } = useBusiness();
+    const [view, setView] = useState<"grid" | "list">("grid");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedProject, setSelectedProject] = useState<string | null>(null);
+    const [selectedType, setSelectedType] = useState<string | null>(null);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [mediaItems, setMediaItems] = useState<Media[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // Load data on component mount
     useEffect(() => {
@@ -36,8 +38,8 @@ export default function MediaLibrary() {
         try {
             setLoading(true)
             const [mediaData, projectsData] = await Promise.all([
-                getMedias(),
-                getProjects()
+                getMedias(businessId),
+                getProjects(businessId)
             ])
             setMediaItems(mediaData)
             setProjects(projectsData)
@@ -57,7 +59,7 @@ export default function MediaLibrary() {
         const handleSearch = async () => {
             if (searchQuery.trim()) {
                 try {
-                    const results = await searchMedias(searchQuery)
+                    const results = await searchMedias(businessId, searchQuery)
                     setMediaItems(results)
                 } catch (error) {
                     console.error("Error searching media:", error)
@@ -93,7 +95,7 @@ export default function MediaLibrary() {
 
         if (confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) {
             try {
-                await Promise.all(selectedItems.map(id => deleteMedia(id)))
+                await Promise.all(selectedItems.map(id => deleteMedia(businessId, id)))
                 setSelectedItems([])
                 await loadData()
                 toast.success({
@@ -114,7 +116,7 @@ export default function MediaLibrary() {
     const handleSingleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this item?")) {
             try {
-                await deleteMedia(id)
+                await deleteMedia(businessId, id)
                 await loadData()
                 toast.success({
                     title: "Success",

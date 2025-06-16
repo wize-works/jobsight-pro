@@ -6,18 +6,18 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createServerClient } from "@/lib/supabase";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getUsers = async (): Promise<User[]> => {
+
+export const getUsers = async (businessId: string): Promise<User[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        if (!business || !business.id) {
+
+        if (!businessId) {
             console.error("No business found or business ID is missing");
             return [];
         }
 
-        const { data, error } = await fetchByBusiness("users", business.id);
+        const { data, error } = await fetchByBusiness("users", businessId);
 
         if (error) {
             console.error("Error fetching users:", error);
@@ -35,17 +35,17 @@ export const getUsers = async (): Promise<User[]> => {
     }
 }
 
-export const getUserById = async (id: string): Promise<User | null> => {
+export const getUserById = async (businessId: string, id: string): Promise<User | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("users", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("users", businessId, "*", {
             filter: { auth_id: id },  // this should be moved to the correct field in the future, but for now we use auth_id
         }
         );
 
         if (error) {
-            console.error("Error fetching user by ID:", error);
+            console.error("Error fetching user by ID:", error, id, businessId);
             return null;
         }
 
@@ -60,11 +60,11 @@ export const getUserById = async (id: string): Promise<User | null> => {
     }
 };
 
-export const getUserByAuthId = async (authId: string): Promise<User | null> => {
+export const getUserByAuthId = async (businessId: string, authId: string): Promise<User | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("users", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("users", businessId, "*", {
             filter: { auth_id: authId },
         });
 
@@ -110,13 +110,13 @@ export const getSelfByAuthId = async (authId: string): Promise<User | null> => {
     }
 };
 
-export const createUser = async (user: UserInsert): Promise<User | null> => {
+export const createUser = async (businessId: string, user: UserInsert): Promise<User | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         user = await applyCreated<UserInsert>(user);
 
-        const { data, error } = await insertWithBusiness("users", user, business.id);
+        const { data, error } = await insertWithBusiness("users", user, businessId);
 
         if (error) {
             console.error("Error creating user:", error);
@@ -151,13 +151,13 @@ export const createSelf = async (user: UserInsert): Promise<User | null> => {
     }
 }
 
-export const updateUser = async (id: string, user: UserUpdate): Promise<User | null> => {
+export const updateUser = async (businessId: string, id: string, user: UserUpdate): Promise<User | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         user = await applyUpdated<UserUpdate>(user);
 
-        const { data, error } = await updateWithBusinessCheck("users", id, user, business.id);
+        const { data, error } = await updateWithBusinessCheck("users", id, user, businessId);
 
         if (error) {
             console.error("Error updating user:", error);
@@ -171,30 +171,30 @@ export const updateUser = async (id: string, user: UserUpdate): Promise<User | n
     }
 }
 
-export const updateUserByAuthId = async (authId: string, user: UserUpdate): Promise<User | null> => {
+export const updateUserByAuthId = async (businessId: string, authId: string, user: UserUpdate): Promise<User | null> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
+
 
         // First get the user by auth_id to get their database ID
-        const currentUser = await getUserById(authId);
+        const currentUser = await getUserById(businessId, authId);
         if (!currentUser) {
             console.error("User not found with auth_id:", authId);
             return null;
         }
 
         // Now update using the database ID
-        return await updateUser(currentUser.id, user);
+        return await updateUser(businessId, currentUser.id, user);
     } catch (err) {
         console.error("Error in updateUserByAuthId:", err);
         return null;
     }
 }
 
-export const deleteUser = async (id: string): Promise<boolean> => {
+export const deleteUser = async (businessId: string, id: string): Promise<boolean> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { error } = await deleteWithBusinessCheck("users", id, business.id);
+
+        const { error } = await deleteWithBusinessCheck("users", id, businessId);
 
         if (error) {
             console.error("Error deleting user:", error);
@@ -208,11 +208,11 @@ export const deleteUser = async (id: string): Promise<boolean> => {
     }
 }
 
-export const searchUsers = async (query: string): Promise<User[]> => {
+export const searchUsers = async (businessId: string, query: string): Promise<User[]> => {
     try {
-        const { business } = await ensureBusinessOrRedirect();
 
-        const { data, error } = await fetchByBusiness("users", business.id, "*", {
+
+        const { data, error } = await fetchByBusiness("users", businessId, "*", {
             filter: {
                 or: [
                     { name: { ilike: `%${query}%` } },

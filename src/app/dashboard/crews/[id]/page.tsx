@@ -8,20 +8,21 @@ import type { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import Link from "next/link";
 import { getEquipments } from "@/app/actions/equipments";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function CrewPage({ params }: { params: Promise<{ id: string }> }) {
     const crewId = (await params).id;
-
+    const { business } = await withBusinessServer();
 
     const [crew, members, allMembers, schedule, history, equipment, projects, allEquipment] = await Promise.all([
-        getCrewWithDetailsById(crewId),
-        getCrewMembersByCrewId(crewId),
-        getCrewMembers(),
-        getCrewSchedule(crewId),
-        getCrewScheduleHistory(crewId),
-        getCrewEquipment(crewId),
-        getProjects(),
-        getEquipments()
+        getCrewWithDetailsById(business.id, crewId),
+        getCrewMembersByCrewId(business.id, crewId),
+        getCrewMembers(business.id),
+        getCrewSchedule(business.id, crewId),
+        getCrewScheduleHistory(business.id, crewId),
+        getCrewEquipment(business.id, crewId),
+        getProjects(business.id),
+        getEquipments(business.id)
     ]);
 
     if (!crew) {

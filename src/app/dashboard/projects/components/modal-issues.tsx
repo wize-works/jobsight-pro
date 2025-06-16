@@ -1,6 +1,9 @@
+"use client";
+
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { createProjectIssue, updateProjectIssue } from "@/app/actions/projects-issues";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 import { CrewMember } from "@/types/crew-members";
 import { ProjectIssue, ProjectIssuePriority, projectIssuePriorityOptions, ProjectIssueStatus, projectIssueStatusOptions } from "@/types/projects-issues";
 import { useEffect, useState } from "react";
@@ -13,6 +16,7 @@ interface IssueModalProps {
 }
 
 const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProps) => {
+    const { businessId } = useBusiness();
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -32,7 +36,7 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
     useEffect(() => {
         const fetchCrewMembers = async () => {
             try {
-                const members = await getCrewMembers();
+                const members = await getCrewMembers(businessId);
                 setCrewMembers(members);
             } catch (error) {
                 console.error("Error fetching crew members:", error);
@@ -100,13 +104,13 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
             } as ProjectIssue;
 
             if (initialIssue?.id) {
-                await updateProjectIssue(initialIssue.id, issueData);
+                await updateProjectIssue(businessId, initialIssue.id, issueData);
                 toast.success({
                     title: "Success",
                     description: "Issue updated successfully"
                 });
             } else {
-                await createProjectIssue(issueData);
+                await createProjectIssue(businessId, issueData);
                 toast.success({
                     title: "Success",
                     description: "Issue created successfully"

@@ -1,7 +1,9 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Task, TaskInsert, TaskStatus, TaskPriority, taskStatusOptions, taskPriorityOptions, TaskWithDetails } from "@/types/tasks";
 import { createTask, updateTask } from "@/app/actions/tasks";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 
 interface TaskModalProps {
     isOpen: boolean;
@@ -14,6 +16,7 @@ interface TaskModalProps {
 
 export default function TaskModal({ isOpen, onClose, projectId, task, onSave, crews = [] }: TaskModalProps) {
     const isEditing = !!task?.id;
+    const { businessId } = useBusiness();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -105,7 +108,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
             if (isEditing && task) {
                 // Update existing task
                 taskData.id = task.id;
-                const updatedTask = await updateTask(task.id, taskData);
+                const updatedTask = await updateTask(businessId, task.id, taskData);
 
                 if (updatedTask) {
                     toast.success({
@@ -116,7 +119,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 }
             } else {
                 // Create new task
-                const newTask = await createTask(taskData);
+                const newTask = await createTask(businessId, taskData);
 
                 if (newTask) {
                     toast.success({

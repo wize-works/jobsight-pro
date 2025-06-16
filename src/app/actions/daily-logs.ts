@@ -7,12 +7,11 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getDailyLogs = async (): Promise<DailyLog[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogs = async (businessId: string): Promise<DailyLog[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_logs", business.id);
+
+    const { data, error } = await fetchByBusiness("daily_logs", businessId);
 
     if (error) {
         console.error("Error fetching daily logs:", error);
@@ -26,10 +25,10 @@ export const getDailyLogs = async (): Promise<DailyLog[]> => {
     return data;
 }
 
-export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogById = async (businessId: string, id: string): Promise<DailyLog | null> => {
 
-    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
         filter: { id: id }
     });
 
@@ -45,12 +44,12 @@ export const getDailyLogById = async (id: string): Promise<DailyLog | null> => {
     return null;
 };
 
-export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const createDailyLog = async (businessId: string, log: DailyLogInsert): Promise<DailyLog | null> => {
+
 
     log = await applyCreated<DailyLogInsert>(log);
 
-    const { data, error } = await insertWithBusiness("daily_logs", log, business.id);
+    const { data, error } = await insertWithBusiness("daily_logs", log, businessId);
     console.log("Creating Daily Log:", log, data, error);
     if (error) {
         console.error("Error creating daily log:", error);
@@ -60,12 +59,12 @@ export const createDailyLog = async (log: DailyLogInsert): Promise<DailyLog | nu
     return data as unknown as DailyLog;
 }
 
-export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<DailyLog | null> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const updateDailyLog = async (businessId: string, id: string, log: DailyLogUpdate): Promise<DailyLog | null> => {
+
 
     log = await applyUpdated<DailyLogUpdate>(log);
 
-    const { data, error } = await updateWithBusinessCheck("daily_logs", id, log, business.id);
+    const { data, error } = await updateWithBusinessCheck("daily_logs", id, log, businessId);
 
     if (error) {
         console.error("Error updating daily log:", error);
@@ -75,10 +74,10 @@ export const updateDailyLog = async (id: string, log: DailyLogUpdate): Promise<D
     return data as unknown as DailyLog;
 }
 
-export const deleteDailyLog = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const deleteDailyLog = async (businessId: string, id: string): Promise<boolean> => {
 
-    const { error } = await deleteWithBusinessCheck("daily_logs", id, business.id);
+
+    const { error } = await deleteWithBusinessCheck("daily_logs", id, businessId);
 
     if (error) {
         console.error("Error deleting daily log:", error);
@@ -88,10 +87,10 @@ export const deleteDailyLog = async (id: string): Promise<boolean> => {
     return true;
 }
 
-export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const searchDailyLogs = async (businessId: string, query: string): Promise<DailyLog[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
         filter: {
             or: [
                 { notes: { ilike: `%${query}%` } },
@@ -109,10 +108,10 @@ export const searchDailyLogs = async (query: string): Promise<DailyLog[]> => {
     return data as unknown as DailyLog[];
 };
 
-export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogsWithDetails = async (businessId: string): Promise<DailyLogWithDetails[]> => {
 
-    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
         orderBy: { column: "date", ascending: false },
     });
 
@@ -129,34 +128,34 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
     const crewIds = data.map(log => log.crew_id).filter(id => id !== null);
     const projectIds = data.map(log => log.project_id);
 
-    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", businessId, "*", {
         filter: { daily_log_id: { in: logIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", businessId, "*", {
         filter: { daily_log_id: { in: logIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
     const equipmentIds = equipmentData?.map(equip => equip.equipment_id) || [];
-    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", business.id, "*", {
+    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", businessId, "*", {
         filter: { id: { in: equipmentIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: crewData, error: crewError } = await fetchByBusiness("crews", business.id, "*", {
+    const { data: crewData, error: crewError } = await fetchByBusiness("crews", businessId, "*", {
         filter: { id: { in: crewIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: projectData, error: projectError } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectData, error: projectError } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
     const clientIds = projectData?.map(p => p.client_id) || [];
-    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", businessId, "*", {
         filter: { id: { in: clientIds } },
         orderBy: { column: "created_at", ascending: true },
     });
@@ -196,10 +195,10 @@ export const getDailyLogsWithDetails = async (): Promise<DailyLogWithDetails[]> 
     return dataWithDetails;
 }
 
-export const getDailyLogWithDetailsById = async (id: string): Promise<DailyLogWithDetails> => {
-    const { business } = await ensureBusinessOrRedirect();
+export const getDailyLogWithDetailsById = async (businessId: string, id: string): Promise<DailyLogWithDetails> => {
 
-    const { data, error } = await fetchByBusiness("daily_logs", business.id, "*", {
+
+    const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
         filter: { id: id },
         orderBy: { column: "date", ascending: false },
     });
@@ -217,34 +216,34 @@ export const getDailyLogWithDetailsById = async (id: string): Promise<DailyLogWi
     const crewIds = data.map(log => log.crew_id).filter(id => id !== null);
     const projectIds = data.map(log => log.project_id);
 
-    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", business.id, "*", {
+    const { data: materialData, error: materialError } = await fetchByBusiness("daily_log_materials", businessId, "*", {
         filter: { daily_log_id: { in: logIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", business.id, "*", {
+    const { data: equipmentData, error: equipmentError } = await fetchByBusiness("daily_log_equipment", businessId, "*", {
         filter: { daily_log_id: { in: logIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
     const equipmentIds = equipmentData?.map(equip => equip.equipment_id) || [];
-    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", business.id, "*", {
+    const { data: equipmentInfoData, error: equipmentInfoError } = await fetchByBusiness("equipment", businessId, "*", {
         filter: { id: { in: equipmentIds } },
         orderBy: { column: "created_at", ascending: true },
     });
     console.log("Equipment Info Data:", equipmentData, equipmentInfoData, equipmentIds);
 
-    const { data: crewData, error: crewError } = await fetchByBusiness("crews", business.id, "*", {
+    const { data: crewData, error: crewError } = await fetchByBusiness("crews", businessId, "*", {
         filter: { id: { in: crewIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: projectData, error: projectError } = await fetchByBusiness("projects", business.id, "*", {
+    const { data: projectData, error: projectError } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: { in: projectIds } },
         orderBy: { column: "created_at", ascending: true },
     });
 
-    const { data: clientData, error: clientError } = await fetchByBusiness("clients", business.id, "*", {
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", businessId, "*", {
         filter: { id: { in: projectData?.map(p => p.client_id) || [] } },
         orderBy: { column: "created_at", ascending: true },
     });

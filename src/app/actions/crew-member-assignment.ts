@@ -1,18 +1,12 @@
 "use server";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { CrewMemberAssignment, CrewMemberAssignmentInsert, CrewMemberAssignmentUpdate } from "@/types/crew-member-assignments";
-import { getUserBusiness } from "@/app/actions/business";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
 // Get all crew member assignments for the current business
-export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
+export const getCrewMemberAssignments = async (businessId: string): Promise<CrewMemberAssignment[]> => {
+    const { data, error } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
         orderBy: {
             column: "created_at",
             ascending: false
@@ -29,13 +23,12 @@ export const getCrewMemberAssignments = async (): Promise<CrewMemberAssignment[]
 
 // Create a new crew member assignment
 export const createCrewMemberAssignment = async (
+    businessId: string,
     assignment: CrewMemberAssignmentInsert
 ): Promise<CrewMemberAssignment> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
 
-    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment, business.id);
+    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment, businessId);
 
     if (error) {
         console.error("Error creating crew member assignment:", error);
@@ -45,9 +38,7 @@ export const createCrewMemberAssignment = async (
     return data;
 };
 
-export const addCrewMemberToCrew = async (crewId: string, memberId: string): Promise<CrewMemberAssignment> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const addCrewMemberToCrew = async (businessId: string, crewId: string, memberId: string): Promise<CrewMemberAssignment> => {
     let assignment = {
         crew_id: crewId,
         crew_member_id: memberId,
@@ -56,8 +47,7 @@ export const addCrewMemberToCrew = async (crewId: string, memberId: string): Pro
 
     assignment = await applyCreated<CrewMemberAssignmentInsert>(assignment);
 
-
-    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment as CrewMemberAssignmentInsert, business.id);
+    const { data, error } = await insertWithBusiness("crew_member_assignments", assignment as CrewMemberAssignmentInsert, businessId);
     if (error) {
         console.error("Error adding crew member to crew:", error);
         throw new Error("Failed to add crew member to crew");
@@ -67,14 +57,13 @@ export const addCrewMemberToCrew = async (crewId: string, memberId: string): Pro
 
 // Update a crew member assignment
 export const updateCrewMemberAssignment = async (
+    businessId: string,
     id: string,
     assignment: CrewMemberAssignmentUpdate
 ): Promise<CrewMemberAssignment> => {
-    const { business } = await ensureBusinessOrRedirect();
-
     assignment = await applyUpdated<CrewMemberAssignmentUpdate>(assignment);
 
-    const { data, error } = await updateWithBusinessCheck("crew_member_assignments", id, assignment, business.id);
+    const { data, error } = await updateWithBusinessCheck("crew_member_assignments", id, assignment, businessId);
 
     if (error) {
         console.error("Error updating crew member assignment:", error);
@@ -85,10 +74,8 @@ export const updateCrewMemberAssignment = async (
 };
 
 // Delete a crew member assignment
-export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("crew_member_assignments", id, business.id);
+export const deleteCrewMemberAssignment = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("crew_member_assignments", id, businessId);
 
     if (error) {
         console.error("Error deleting crew member assignment:", error);
@@ -100,11 +87,10 @@ export const deleteCrewMemberAssignment = async (id: string): Promise<boolean> =
 
 // Search crew member assignments by crew member or crew
 export const searchCrewMemberAssignments = async (
+    businessId: string,
     searchTerm: string
 ): Promise<CrewMemberAssignment[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
+    const { data, error } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
         filter: {
             or: [
                 { crew_id: { ilike: `%${searchTerm}%` } },

@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
 import { toast } from "@/hooks/use-toast";
+import { useBusiness } from "@/lib/business-context";
 
 interface MilestoneModalProps {
     isOpen: boolean;
@@ -13,6 +16,7 @@ interface MilestoneModalProps {
 
 export default function MilestoneModal({ isOpen, onClose, projectId, milestone, onSave }: MilestoneModalProps) {
     const isEditing = !!milestone?.id;
+    const { businessId } = useBusiness();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -80,7 +84,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
             if (isEditing && milestone) {
                 // Update existing milestone
                 milestoneData.id = milestone.id;
-                const updatedMilestone = await updateProjectMilestone(milestone.id, milestoneData);
+                const updatedMilestone = await updateProjectMilestone(businessId, milestone.id, milestoneData);
 
                 if (updatedMilestone) {
                     toast.success({
@@ -91,7 +95,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                 }
             } else {
                 // Create new milestone
-                const newMilestone = await createProjectMilestone(milestoneData);
+                const newMilestone = await createProjectMilestone(businessId, milestoneData);
                 if (newMilestone) {
                     toast.success({
                         title: "Success",

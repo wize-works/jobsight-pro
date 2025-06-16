@@ -6,21 +6,18 @@ import { Navbar } from "./navbar";
 import { Sidebar } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BusinessProvider } from "@/lib/business-context";
+import { BusinessProvider, useBusiness } from "@/lib/business-context";
 import { usePathname } from "next/navigation";
 import PushManager from "@/components/push-manager";
 import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
 import { AIAssistantButton } from "@/components/ai-assistant-button";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { getUserById } from "@/app/actions/users";
 import { User } from "@/types/users";
 import { Toaster } from "@/components/toaster";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, isLoading: isKindeLoading } = useKindeAuth();
-    const [userData, setUserData] = useState<User | null>(null);
-    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    const { businessId, loading } = useBusiness();
 
     const storedSidebarCollapsed =
         typeof window !== "undefined"
@@ -32,29 +29,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     const isMobile = useIsMobile();
     const pathname = usePathname();
 
-    // Load user data from database using Kinde auth_id
-    useEffect(() => {
-        const loadUserData = async () => {
-            if (!user?.id || isKindeLoading) {
-                setIsLoadingUser(Boolean(isKindeLoading));
-                return;
-            }
-
-            setIsLoadingUser(true);
-            try {
-                const dbUser = await getUserById(user.id);
-                setUserData(dbUser);
-            } catch (error) {
-                console.error("Error loading user data:", error);
-                setUserData(null);
-            } finally {
-                setIsLoadingUser(false);
-            }
-        };
-
-        loadUserData();
-    }, [user?.id, isKindeLoading]);
-
     return (
         <div className={`${!isMobile && "drawer lg:drawer-open"}`}>
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
@@ -62,8 +36,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Navbar
                     setSidebarCollapsed={setSidebarCollapsed}
                     sidebarCollapsed={sidebarCollapsed}
-                    userData={userData}
-                    isLoadingUser={isLoadingUser}
                 />
                 <BusinessProvider>
                     <OfflineIndicator />

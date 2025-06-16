@@ -3,16 +3,19 @@ import TaskDetailComponent from "./components/detail";
 import { getTaskById } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
+import { withBusinessServer } from '@/lib/auth/with-business-server';
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const { business } = await withBusinessServer();
+    const businessId = business.id;
 
     try {
         // Fetch all required data in parallel
         const [task, projects, crews] = await Promise.all([
-            getTaskById(id),
-            getProjects(),
-            getCrews()
+            getTaskById(businessId, id),
+            getProjects(businessId),
+            getCrews(businessId)
         ]);
 
         if (!task) {

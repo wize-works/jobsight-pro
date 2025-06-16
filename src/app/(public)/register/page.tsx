@@ -278,6 +278,7 @@ export default function RegisterPage() {
                         } else {
                             // For paid plans, redirect to Stripe checkout
                             const checkoutResult = await createCheckoutSession(
+                                businessStatus.businessId,
                                 selectedPlan,
                                 billingInterval,
                             );

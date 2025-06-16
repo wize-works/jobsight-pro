@@ -1,19 +1,13 @@
 "use server";
 
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { CrewMember, CrewMemberInsert, CrewMemberUpdate } from "@/types/crew-members";
-import { getUserBusiness } from "@/app/actions/business";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
-import { ensureBusinessOrRedirect } from "@/lib/auth/ensure-business";
 
-export const getCrewMembers = async (): Promise<CrewMember[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crew_members", business.id);
+export const getCrewMembers = async (businessId: string): Promise<CrewMember[]> => {
+    const { data, error } = await fetchByBusiness("crew_members", businessId);
 
     if (error) {
         console.error("Error fetching crew members:", error);
@@ -25,12 +19,10 @@ export const getCrewMembers = async (): Promise<CrewMember[]> => {
     }
 
     return data;
-}
+};
 
-export const getCrewMemberById = async (id: string): Promise<CrewMember | null> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
+export const getCrewMemberById = async (businessId: string, id: string): Promise<CrewMember | null> => {
+    const { data, error } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id },
     });
 
@@ -46,12 +38,10 @@ export const getCrewMemberById = async (id: string): Promise<CrewMember | null> 
     return null;
 };
 
-export const createCrewMember = async (crewMember: CrewMemberInsert): Promise<CrewMember> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const createCrewMember = async (businessId: string, crewMember: CrewMemberInsert): Promise<CrewMember> => {
     crewMember = await applyCreated<CrewMemberInsert>(crewMember);
 
-    const { data, error } = await insertWithBusiness("crew_members", crewMember, business.id);
+    const { data, error } = await insertWithBusiness("crew_members", crewMember, businessId);
 
     if (error) {
         console.error("Error creating crew member:", error);
@@ -61,12 +51,10 @@ export const createCrewMember = async (crewMember: CrewMemberInsert): Promise<Cr
     return data;
 };
 
-export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate): Promise<CrewMember> => {
-    const { business } = await ensureBusinessOrRedirect();
-
+export const updateCrewMember = async (businessId: string, id: string, crewMember: CrewMemberUpdate): Promise<CrewMember> => {
     crewMember = await applyUpdated<CrewMemberUpdate>(crewMember);
 
-    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, business.id);
+    const { data, error } = await updateWithBusinessCheck("crew_members", id, crewMember, businessId);
 
     if (error) {
         console.error("Error updating crew member:", error);
@@ -76,10 +64,8 @@ export const updateCrewMember = async (id: string, crewMember: CrewMemberUpdate)
     return data;
 };
 
-export const deleteCrewMember = async (id: string): Promise<boolean> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { error } = await deleteWithBusinessCheck("crew_members", id, business.id);
+export const deleteCrewMember = async (businessId: string, id: string): Promise<boolean> => {
+    const { error } = await deleteWithBusinessCheck("crew_members", id, businessId);
 
     if (error) {
         console.error("Error deleting crew member:", error);
@@ -87,15 +73,13 @@ export const deleteCrewMember = async (id: string): Promise<boolean> => {
     }
 
     // Also delete crew member assignments
-    await getCrewMembersByCrewId(id);
+    await getCrewMembersByCrewId(businessId, id);
 
     return true;
 };
 
-export const searchCrewMembers = async (searchTerm: string): Promise<CrewMember[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
+export const searchCrewMembers = async (businessId: string, searchTerm: string): Promise<CrewMember[]> => {
+    const { data, error } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: {
             or: [
                 { first_name: { ilike: `%${searchTerm}%` } },
@@ -122,11 +106,8 @@ export const searchCrewMembers = async (searchTerm: string): Promise<CrewMember[
     return data;
 };
 
-
-export const getCrewMembersByCrewId = async (id: string): Promise<CrewMember[]> => {
-    const { business } = await ensureBusinessOrRedirect();
-
-    const { data: assignments, error: assignmentsError } = await fetchByBusiness("crew_member_assignments", business.id, "*", {
+export const getCrewMembersByCrewId = async (businessId: string, id: string): Promise<CrewMember[]> => {
+    const { data: assignments, error: assignmentsError } = await fetchByBusiness("crew_member_assignments", businessId, "*", {
         filter: { crew_id: id },
         orderBy: { column: "created_at", ascending: false }
     });
@@ -142,7 +123,7 @@ export const getCrewMembersByCrewId = async (id: string): Promise<CrewMember[]> 
 
     const assightmentsIds = assignments.map(assignment => assignment.crew_member_id) || [];
 
-    const { data, error } = await fetchByBusiness("crew_members", business.id, "*", {
+    const { data, error } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id: { in: assightmentsIds } },
         orderBy: { column: "created_at", ascending: false }
     });
@@ -157,4 +138,4 @@ export const getCrewMembersByCrewId = async (id: string): Promise<CrewMember[]> 
     }
 
     return data;
-}
+};

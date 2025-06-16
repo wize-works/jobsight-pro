@@ -3,11 +3,14 @@ import Link from "next/link";
 import CrewEditForm from "../../components/edit";
 import { Crew, CrewUpdate } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export default async function EditCrewPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: crewId } = await params;
-    const crew = await getCrewById(crewId) as Crew;
-    const members = await getCrewMembersByCrewId(crewId) || [];
+    const { business } = await withBusinessServer();
+
+    const crew = await getCrewById(business.id, crewId) as Crew;
+    const members = await getCrewMembersByCrewId(business.id, crewId) || [];
 
     if (!crew) {
         return (
@@ -28,7 +31,7 @@ export default async function EditCrewPage({ params }: { params: Promise<{ id: s
         } as CrewUpdate;
 
         try {
-            const result = await updateCrew(crewId, crewData);
+            const result = await updateCrew(business.id, crewId, crewData);
 
             return { success: true };
         } catch (error) {

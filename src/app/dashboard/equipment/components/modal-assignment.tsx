@@ -1,3 +1,5 @@
+"use client";
+
 import {
     assignmentStatusOptions,
     EquipmentAssignment,
@@ -13,6 +15,7 @@ import { getProjects } from '@/app/actions/projects';
 import { toast } from '@/hooks/use-toast';
 import type { Crew } from '@/types/crews';
 import type { Project } from '@/types/projects';
+import { useBusiness } from '@/lib/business-context';
 
 type AssignmentModalProps = {
     isOpen: boolean;
@@ -23,6 +26,7 @@ type AssignmentModalProps = {
 }
 
 export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete }: AssignmentModalProps) => {
+    const { businessId } = useBusiness();
     const router = useRouter();
     const params = useParams();
     const equipmentId = params?.id as string;
@@ -47,8 +51,8 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
         const loadData = async () => {
             try {
                 const [crewData, projectData] = await Promise.all([
-                    getCrews(),
-                    getProjects()
+                    getCrews(businessId),
+                    getProjects(businessId)
                 ]);
                 setCrews(crewData);
                 setProjects(projectData);
@@ -110,13 +114,13 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
             } as EquipmentAssignment;
 
             if (assignment?.id) {
-                await updateEquipmentAssignment(assignment.id, assignmentData as EquipmentAssignmentUpdate);
+                await updateEquipmentAssignment(businessId, assignment.id, assignmentData as EquipmentAssignmentUpdate);
                 toast.success({
                     title: "Success",
                     description: "Equipment assignment updated successfully"
                 });
             } else {
-                await createEquipmentAssignment(assignmentData as EquipmentAssignmentInsert);
+                await createEquipmentAssignment(businessId, assignmentData as EquipmentAssignmentInsert);
                 toast.success({
                     title: "Success",
                     description: "Equipment assigned successfully"
@@ -143,7 +147,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
 
         setLoading(true);
         try {
-            await deleteEquipmentAssignment(assignment.id);
+            await deleteEquipmentAssignment(businessId, assignment.id);
             toast.success({
                 title: "Success",
                 description: "Assignment deleted successfully"

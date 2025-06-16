@@ -8,8 +8,10 @@ import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";
 import Loading from "./loading";
+import { useBusiness } from "@/lib/business-context";
 
 export default function CrewsList() {
+    const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
     const [crews, setCrews] = useState<CrewWithDetails[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,16 +36,18 @@ export default function CrewsList() {
     useEffect(() => {
         const fetchCrews = async () => {
             try {
-                const data = await getCrewsWithDetails();
+                const data = await getCrewsWithDetails(businessId);
                 setCrews(data);
             } catch (error) {
                 console.error("Error fetching crews:", error);
                 toast.error("Failed to load crews. Please try again later.");
             }
             setLoading(false);
+        };
+        if (businessId) {
+            fetchCrews();
         }
-        fetchCrews();
-    }, []);
+    }, [businessId]);
 
     const filteredCrews = crews.filter((crew) => {
         const matchesSearchTerm = crew.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -52,13 +56,11 @@ export default function CrewsList() {
     });
 
     const handleAddCrew = async () => {
-
         setIsSubmitting(true);
-
         try {
-            const created = await createCrew(newCrew as CrewInsert);
+            const created = await createCrew(businessId, { ...newCrew } as CrewInsert);
             if (created) {
-                setCrews(prev => [...prev, created as CrewWithDetails]);
+                setCrews((prev) => [...prev, created as CrewWithDetails]);
             }
 
             setNewCrew({
@@ -69,8 +71,7 @@ export default function CrewsList() {
             });
             toast.success("Crew created successfully!");
             setShowAddCrewModal(false);
-        }
-        catch (error) {
+        } catch (error) {
             toast.error("Error creating crew. Please try again.");
             console.error("Error creating crew:", error);
         } finally {
@@ -174,14 +175,7 @@ export default function CrewsList() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCrews.map((crew) => (
                         <div key={crew.id}>
-                            <CrewCard
-                                crew={crew}
-                                onEdit={() => { }}
-                                onDelete={() => { }}
-                                onView={() => { }}
-                                onAdd={() => { }}
-                                onRemove={() => { }}
-                                onStatusChange={() => { }} />
+                            <CrewCard crew={crew} />
                         </div>
                     ))}
                 </div>
