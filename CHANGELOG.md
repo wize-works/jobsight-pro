@@ -1,3 +1,10 @@
+## [1.42.1](https://github.com/wize-works/jobsight-pro/compare/v1.42.0...v1.42.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* update redirect URL to use fallback for dashboard navigation ([d507813](https://github.com/wize-works/jobsight-pro/commit/d5078132cc608fdc4e6227aaea700f9e76051bb8))
+
 # [1.42.0](https://github.com/wize-works/jobsight-pro/compare/v1.41.0...v1.42.0) (2025-06-16)
 
 
