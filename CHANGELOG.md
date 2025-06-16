@@ -1,3 +1,10 @@
+# [1.42.0](https://github.com/wize-works/jobsight-pro/compare/v1.41.0...v1.42.0) (2025-06-16)
+
+
+### Features
+
+* Refactor business context handling across various components and hooks ([a1b1dc5](https://github.com/wize-works/jobsight-pro/commit/a1b1dc5a1d8b1500b94df288e7f84acde108bfd1))
+
 # [1.41.0](https://github.com/wize-works/jobsight-pro/compare/v1.40.2...v1.41.0) (2025-06-15)
 
 
