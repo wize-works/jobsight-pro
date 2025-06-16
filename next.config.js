@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     webpack: (config) => {
@@ -64,12 +63,7 @@ const nextConfig = {
     },
     // Security headers
     async rewrites() {
-        return [
-            {
-                source: '/api/auth/:path*',
-                destination: '/api/auth/:path*',
-            },
-        ];
+        return [];
     },
 };
 

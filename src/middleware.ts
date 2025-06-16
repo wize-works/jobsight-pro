@@ -51,7 +51,7 @@ export default withAuth(
             "/pricing",
             "/register",
             "/onboarding",
-            "/api", // optional
+            "/api",
         ],
         loginPath: "/",
     }
