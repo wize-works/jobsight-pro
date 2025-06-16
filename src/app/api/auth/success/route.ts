@@ -6,7 +6,8 @@ import { setBizStateCookie } from "@/lib/cookies/set-bizstate";
 
 export async function GET(req: NextRequest) {
     const { business, subscription } = await withBusinessServer();
-    const res = NextResponse.redirect(new URL("/dashboard", req.url));
+    console.log("req.url: ", req.url);
+    const res = NextResponse.redirect(new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || "https://pro.jobsight.co"));
     try {
         const { getUser } = getKindeServerSession();
         const user = await getUser();
