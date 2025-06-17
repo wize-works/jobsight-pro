@@ -57,7 +57,7 @@ Current conversation context: The user has been talking about construction work 
         ];
 
         const completion = await openai.chat.completions.create({
-            model: AI_MODELS.CHAT,
+            model: AI_MODELS.CHAT_GPT_3_5,
             messages: messages as any,
             temperature: 0.3,
             max_tokens: 1000,
@@ -178,7 +178,7 @@ Return a JSON object with the following fields (use null for missing information
 Only include information that is actually present in the input. Be precise and factual.`;
 
         const completion = await openai.chat.completions.create({
-            model: AI_MODELS.CHAT,
+            model: AI_MODELS.CHAT_GPT_3_5,
             messages: [
                 { role: "system", content: "You are a construction daily log assistant. Extract structured data from work summaries. Return only valid JSON." },
                 { role: "user", content: enhancementPrompt }
