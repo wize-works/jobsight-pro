@@ -2,8 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAIQuery, transcribeAudio, createDailyLogFromAI } from '@/app/actions/ai';
+import { processAIQuery } from '@/app/actions/ai';
+//import { processAIQuery, transcribeAudio, createDailyLogFromAI } from '@/app/actions/ai';
+import { transcribeAudio } from '@/app/actions/ai';
+import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -17,12 +21,14 @@ interface ConversationMessage {
 }
 
 export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
+    const { user } = useKindeAuth();
     const { businessId } = useBusiness();
     const [textInput, setTextInput] = useState("");
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [conversation, setConversation] = useState<ConversationMessage[]>([]);
     const [error, setError] = useState("");
+    const [sessionState, setSessionState] = useState<{ lastProjectId?: string, lastProjectName?: string }>({});
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -140,27 +146,53 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         }
     };
 
+    // const processQuery = async (message: string) => {
+    //     setIsProcessing(true);
+    //     setError("");
+
+    //     try {
+    //         // Convert conversation to the format expected by the action
+    //         const conversationHistory = conversation.slice(-5).map(msg => ({
+    //             role: msg.type, // Explicitly use "user" or "assistant" from msg.type
+    //             content: msg.content,
+    //             timestamp: msg.timestamp.toISOString()
+    //         }));
+
+    //         const result = await processAIQuery(businessId, message, conversationHistory);
+
+    //         // Ensure result.path is defined before using it
+    //         if (result.action === 'navigate' && result.path) {
+    //             addToConversation("assistant", result.response);
+    //             setTimeout(() => router.push(result.path!), 1500); // Use non-null assertion after the check
+    //         } else {
+    //             addToConversation("assistant", result.response);
+    //         }
+
+    //     } catch (err) {
+    //         const errorMsg = "I encountered an issue processing your request: " + (err as Error).message;
+    //         addToConversation("assistant", errorMsg);
+    //         console.error("AI processing error:", err);
+    //     } finally {
+    //         setIsProcessing(false);
+    //     }
+    // };
     const processQuery = async (message: string) => {
         setIsProcessing(true);
         setError("");
 
         try {
-            // Convert conversation to the format expected by the action
-            const conversationHistory = conversation.slice(-5).map(msg => ({
-                role: msg.type, // Explicitly use "user" or "assistant" from msg.type
-                content: msg.content,
-                timestamp: msg.timestamp.toISOString()
-            }));
+            const result = await handleAIQuery({
+                businessId,
+                userId: user?.id || "",
+                message,
+                conversationHistory: conversation.slice(-5).map(msg => ({
+                    role: msg.type === "user" ? "user" : "assistant",
+                    content: msg.content
+                })),
+                sessionState: {} // Provide actual session state if available
+            });
 
-            const result = await processAIQuery(businessId, message, conversationHistory);
-
-            // Ensure result.path is defined before using it
-            if (result.action === 'navigate' && result.path) {
-                addToConversation("assistant", result.response);
-                setTimeout(() => router.push(result.path!), 1500); // Use non-null assertion after the check
-            } else {
-                addToConversation("assistant", result.response);
-            }
+            addToConversation("assistant", result.response);
 
         } catch (err) {
             const errorMsg = "I encountered an issue processing your request: " + (err as Error).message;

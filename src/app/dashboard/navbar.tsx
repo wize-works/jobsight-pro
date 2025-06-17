@@ -31,11 +31,12 @@ export const Navbar = ({
         if (!businessId || !kindeUser?.id || loading) {
             console.error("Invalid or missing businessId or kindeUser.id");
             setUserData(null);
-            setIsLoadingUser(true);
+            setIsLoadingUser(false); // Ensure loading state is updated here
             return;
         }
 
         const loadUserData = async () => {
+            setIsLoadingUser(true); // Set loading state before fetching data
             try {
                 const dbUser = await getUserByAuthId(businessId, kindeUser.id);
                 setUserData(dbUser);
@@ -43,7 +44,7 @@ export const Navbar = ({
                 console.error("Error loading user data:", error);
                 setUserData(null);
             } finally {
-                setIsLoadingUser(false);
+                setIsLoadingUser(false); // Ensure loading state is updated after fetching data
             }
         };
 
@@ -101,16 +102,16 @@ export const Navbar = ({
                 {/* Quick search or breadcrumbs could go here */}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <Notifications />
 
                 {/* User menu */}
-                <div className="dropdown dropdown-end">
+                <div className="dropdown dropdown-end cursor-pointer">
                     <div
                         tabIndex={0}
                         role="button"
-                        className="btn btn-ghost flex items-center gap-2 hover:bg-base-200 transition-colors"
+                        className="flex items-center gap-2 transition-colors"
                     >
                         <div className="avatar">
                             <div className="w-10 mask mask-circle">
@@ -123,7 +124,9 @@ export const Navbar = ({
                                         className=""
                                     />
                                 ) : (
-                                    getUserInitials()
+                                    <div className="bg-base-200 text-base-content w-full h-full flex items-center justify-center">
+                                        {getUserInitials()}
+                                    </div>
                                 )}
                             </div>
                         </div>

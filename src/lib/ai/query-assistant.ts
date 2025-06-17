@@ -40,7 +40,7 @@ export async function queryProjectData(
         };
 
         const completion = await openai.chat.completions.create({
-            model: AI_MODELS.CHAT,
+            model: AI_MODELS.CHAT_GPT_3_5,
             messages: [
                 {
                     role: 'system',

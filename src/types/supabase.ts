@@ -3,6 +3,53 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
     public: {
         Tables: {
+            ai_logs: {
+                Row: {
+                    id: string
+                    business_id: string
+                    user_id: string | null
+                    object_type: string
+                    object_id: string | null
+                    action: string
+                    input: string
+                    output: string
+                    embedding: Json | null // Changed to Json for flexibility
+                    tokens_prompt: number
+                    tokens_completion: number
+                    model: string
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    business_id: string
+                    user_id?: string | null
+                    object_type: string
+                    object_id?: string | null
+                    action: string
+                    input: string
+                    output: string
+                    embedding?: Json | null // Changed to Json for flexibility
+                    tokens_prompt: number
+                    tokens_completion: number
+                    model: string
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    user_id?: string | null
+                    object_type?: string
+                    object_id?: string | null
+                    action?: string
+                    input?: string
+                    output?: string
+                    embedding?: Json | null // Changed to Json for flexibility
+                    tokens_prompt?: number
+                    tokens_completion?: number
+                    model?: string
+                }
+                Relationships: []
+            }
             businesses: {
                 Row: {
                     id: string
