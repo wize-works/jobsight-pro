@@ -1,3 +1,530 @@
+# [1.43.0](https://github.com/wize-works/jobsight-pro/compare/v1.42.1...v1.43.0) (2025-06-17)
+
+
+### Bug Fixes
+
+* ensure loading state is correctly managed during user data fetch in Navbar ([d4bfcf4](https://github.com/wize-works/jobsight-pro/commit/d4bfcf43302d0e37bd164cd1eb963bb1ea006a3c))
+
+
+### Features
+
+* implement AI interaction logging and enhance AI query handling with context management ([83c2812](https://github.com/wize-works/jobsight-pro/commit/83c28122f5913cb5dc8b8f6251a1e1c1d2adcd68))
+
+## [1.42.1](https://github.com/wize-works/jobsight-pro/compare/v1.42.0...v1.42.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* update redirect URL to use fallback for dashboard navigation ([d507813](https://github.com/wize-works/jobsight-pro/commit/d5078132cc608fdc4e6227aaea700f9e76051bb8))
+
+# [1.42.0](https://github.com/wize-works/jobsight-pro/compare/v1.41.0...v1.42.0) (2025-06-16)
+
+
+### Features
+
+* Refactor business context handling across various components and hooks ([a1b1dc5](https://github.com/wize-works/jobsight-pro/commit/a1b1dc5a1d8b1500b94df288e7f84acde108bfd1))
+
+# [1.41.0](https://github.com/wize-works/jobsight-pro/compare/v1.40.2...v1.41.0) (2025-06-15)
+
+
+### Features
+
+* enhance message input handling and focus management in AI assistant panel ([41fb231](https://github.com/wize-works/jobsight-pro/commit/41fb2318072677a76fe3aefbd52339a8fb32cd18))
+
+## [1.40.2](https://github.com/wize-works/jobsight-pro/compare/v1.40.1...v1.40.2) (2025-06-14)
+
+
+### Bug Fixes
+
+* Adjust button styles for consistent sizing and spacing in dashboard and AI assistant components ([cf269c9](https://github.com/wize-works/jobsight-pro/commit/cf269c9789af73d245a8d918caf2dc97f2682526))
+* Update loading message and adjust layout for command center dashboard ([13ddf69](https://github.com/wize-works/jobsight-pro/commit/13ddf691e25bc302fc5d3f3bc493df68efc8b6df))
+
+## [1.40.1](https://github.com/wize-works/jobsight-pro/compare/v1.40.0...v1.40.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Remove unnecessary props from task modals to streamline component usage ([404a43a](https://github.com/wize-works/jobsight-pro/commit/404a43af2d1d870c3d0bd3326933cdaab7aeb994))
+
+# [1.40.0](https://github.com/wize-works/jobsight-pro/compare/v1.39.1...v1.40.0) (2025-06-14)
+
+
+### Features
+
+* Enhance dashboard functionality by adding project crews data fetching, improving daily log modal, and refining task modal with dynamic project and crew loading ([0c9e813](https://github.com/wize-works/jobsight-pro/commit/0c9e813be8e2e19c56ba6e2d929822e8f5f5a609))
+
+## [1.39.1](https://github.com/wize-works/jobsight-pro/compare/v1.39.0...v1.39.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Adjust layout and sidebar styles for improved UI consistency; enhance data fetching to ensure proper data types ([23c2edb](https://github.com/wize-works/jobsight-pro/commit/23c2edbfd67158ef9f008c99c639abdea260c483))
+
+# [1.39.0](https://github.com/wize-works/jobsight-pro/compare/v1.38.0...v1.39.0) (2025-06-14)
+
+
+### Bug Fixes
+
+* Remove unnecessary class from drawer div in DashboardLayout ([7a82804](https://github.com/wize-works/jobsight-pro/commit/7a82804ea8322f340926d5d114f252147c7170cf))
+
+
+### Features
+
+* Refactor dashboard data fetching and improve UI components ([a2e00b3](https://github.com/wize-works/jobsight-pro/commit/a2e00b3d0e034e5f6038e17b5f6a46a66b826f72))
+
+# [1.38.0](https://github.com/wize-works/jobsight-pro/compare/v1.37.0...v1.38.0) (2025-06-14)
+
+
+### Features
+
+* Add NEXT_PUBLIC_STRIPE_PUBLIC_KEY environment variable to Dockerfile ([a2df091](https://github.com/wize-works/jobsight-pro/commit/a2df091d53f5f2c83fa0581528875b7fe93d041a))
+
+# [1.37.0](https://github.com/wize-works/jobsight-pro/compare/v1.36.1...v1.37.0) (2025-06-14)
+
+
+### Features
+
+* Add STRIPE_SECRET_KEY environment variable to Dockerfile ([7eca65f](https://github.com/wize-works/jobsight-pro/commit/7eca65fb59448c990c8db48f8ec17302e53caf88))
+
+## [1.36.1](https://github.com/wize-works/jobsight-pro/compare/v1.36.0...v1.36.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* Add type definitions for web-push module ([4e967b4](https://github.com/wize-works/jobsight-pro/commit/4e967b4f06377eef0bb3d71db442e60c4c0894fb))
+
+# [1.36.0](https://github.com/wize-works/jobsight-pro/compare/v1.35.0...v1.36.0) (2025-06-14)
+
+
+### Bug Fixes
+
+* added toast import ([ed12f17](https://github.com/wize-works/jobsight-pro/commit/ed12f176fdad7e063c06aadfb13322c45ed17178))
+
+
+### Features
+
+* add Stripe secrets to deployment configuration and Docker build arguments ([6ed41c7](https://github.com/wize-works/jobsight-pro/commit/6ed41c75f6b1f2ccbb94880ae423ddbd97688c0c))
+* add Stripe types for customers, invoices, subscriptions, and payment events; enhance type safety and integration with Supabase ([ea5cdcc](https://github.com/wize-works/jobsight-pro/commit/ea5cdcc199a5a9884a2a802c36d6bd2e98a4cb4b))
+* update pricing JSON with Stripe product IDs and add AI addon pricing; remove obsolete Stripe payment events types ([964e0b2](https://github.com/wize-works/jobsight-pro/commit/964e0b263be8b2dbe9d92464e03791381e444cbb))
+
+# [1.35.0](https://github.com/wize-works/jobsight-pro/compare/v1.34.0...v1.35.0) (2025-06-13)
+
+
+### Bug Fixes
+
+* correct crew member ID reference and enhance notes textarea styling in CreateDailyLogModal ([f8eafce](https://github.com/wize-works/jobsight-pro/commit/f8eafcefbe7f6f622060dffa9570623d521d5b72))
+
+
+### Features
+
+* add TaskModal component for creating and editing tasks with form validation and project/crew selection ([3a2cadb](https://github.com/wize-works/jobsight-pro/commit/3a2cadb167b7a9308101dd857a18ab09deefa8e6))
+
+# [1.34.0](https://github.com/wize-works/jobsight-pro/compare/v1.33.0...v1.34.0) (2025-06-11)
+
+
+### Features
+
+* implement media upload functionality in project detail; add media linking and unlinking actions; enhance media tab with improved filtering and display ([f917e84](https://github.com/wize-works/jobsight-pro/commit/f917e84f582bb07a7abcac4447c5aacd8b009c7d))
+
+# [1.33.0](https://github.com/wize-works/jobsight-pro/compare/v1.32.1...v1.33.0) (2025-06-11)
+
+
+### Bug Fixes
+
+* correct directory path in Dockerfile and improve loading state handling in DashboardLayout ([34f0dde](https://github.com/wize-works/jobsight-pro/commit/34f0ddeb15f43c90df4590d6f96aa0b350a37b0a))
+* improve registration flow for authenticated users and handle business checks ([752dee5](https://github.com/wize-works/jobsight-pro/commit/752dee55a3335215560945a4d7115af50af088cd))
+* removed merge remnant ([513ba86](https://github.com/wize-works/jobsight-pro/commit/513ba86f6cdf9eac09ef76eaa49b62f14e392470))
+* update AssignmentModal props for better state management; enhance error handling in avatar upload process; improve offline action error handling by ensuring user context is available ([8304c30](https://github.com/wize-works/jobsight-pro/commit/8304c3078e66a2d1117b697b80efb504d1261b96))
+* update toast notifications for invitation and business setup handling ([4e49b0e](https://github.com/wize-works/jobsight-pro/commit/4e49b0e7ee4cbf2acf67eae607f955c83408a5e1))
+* update toast notifications for invitation handling and add console logs for better debugging ([954ae97](https://github.com/wize-works/jobsight-pro/commit/954ae9792bef6f00c0093d2f1d3697584f416c5b))
+
+
+### Features
+
+* Enhance business management features ([7511add](https://github.com/wize-works/jobsight-pro/commit/7511add4a90a2d6052b97093e15eb793aede0107))
+* enhance task modal with improved form handling and validation ([25840d1](https://github.com/wize-works/jobsight-pro/commit/25840d16963927b33784c388bd75c47f6ebf5847))
+* Refactor Equipment Usage Modal: Enhance form handling, loading states, and UI structure; integrate new form data management; improve error handling and toast notifications. Update Equipment Page to remove empty state message. Revise Projects Page to enhance no projects found message layout. Clean up logging in withBusinessServer function. Remove unused id fields from Supabase types. Create new modal design documentation for standardization. Implement new Equipment creation modal with structured form and improved user experience. ([151a600](https://github.com/wize-works/jobsight-pro/commit/151a600835f86284ff3fdeee19b465faeef29021))
+
+## [1.32.1](https://github.com/wize-works/jobsight-pro/compare/v1.32.0...v1.32.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* correct type assertion for userUpdate and format return statement in uploadUserAvatar function ([b3dc574](https://github.com/wize-works/jobsight-pro/commit/b3dc574d5d47a8eff10bd40705c7861f8fc6eb93))
+
+# [1.32.0](https://github.com/wize-works/jobsight-pro/compare/v1.31.28...v1.32.0) (2025-06-10)
+
+
+### Features
+
+* enhance subscription management with improved error handling and UI updates ([17455a1](https://github.com/wize-works/jobsight-pro/commit/17455a186fe15a115c1b447d2bf22e405bee4397))
+* subscription implementation that is not complete ([dc10f93](https://github.com/wize-works/jobsight-pro/commit/dc10f9315145e43166ec9201a43d669fef9018ab))
+
+## [1.31.28](https://github.com/wize-works/jobsight-pro/compare/v1.31.27...v1.31.28) (2025-06-10)
+
+
+### Bug Fixes
+
+* Adjust spacing in sidebar menu for improved layout consistency ([e1e28fa](https://github.com/wize-works/jobsight-pro/commit/e1e28faa779715984e08a9204c423aafe3d949dd))
+* user profile alignment ([3b99074](https://github.com/wize-works/jobsight-pro/commit/3b990747b4d5bf978963f73bb215d18fdb52ad40))
+
+## [1.31.27](https://github.com/wize-works/jobsight-pro/compare/v1.31.26...v1.31.27) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct KINDE_REDIRECT_URL to KINDE_REDIRECT_URI in deployment configuration ([9fcc037](https://github.com/wize-works/jobsight-pro/commit/9fcc03713236f7db0583e688909a0447a199521c))
+
+## [1.31.26](https://github.com/wize-works/jobsight-pro/compare/v1.31.25...v1.31.26) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct KIDNE_REDIRECT_URI to KINDE_REDIRECT_URI in deployment workflow ([a97a292](https://github.com/wize-works/jobsight-pro/commit/a97a2922a993ac6ea23fcc8de1568b177a553c1e))
+
+## [1.31.25](https://github.com/wize-works/jobsight-pro/compare/v1.31.24...v1.31.25) (2025-06-09)
+
+
+### Bug Fixes
+
+* Correct KINDE_LOGOUT_REDIRECT_URL to KINDE_LOGOUT_REDIRECT_URI in deployment configuration ([207f08e](https://github.com/wize-works/jobsight-pro/commit/207f08e5d4963d1017c981ab5de4ed317ef842ad))
+
+## [1.31.24](https://github.com/wize-works/jobsight-pro/compare/v1.31.23...v1.31.24) (2025-06-09)
+
+
+### Bug Fixes
+
+* Remove Doppler secrets loading from AKS deployment workflow ([b226c3b](https://github.com/wize-works/jobsight-pro/commit/b226c3b8ce855b97ca4446580b774e466116cec5))
+* Update AKS deployment workflow to use secrets for environment variables ([ce6de18](https://github.com/wize-works/jobsight-pro/commit/ce6de18bfb52b9134f2c1427dd0b8b5c1531c1d7))
+
+## [1.31.23](https://github.com/wize-works/jobsight-pro/compare/v1.31.22...v1.31.23) (2025-06-09)
+
+
+### Bug Fixes
+
+* Add environment variables for Kinde and other services in AKS deployment ([bf49b19](https://github.com/wize-works/jobsight-pro/commit/bf49b19e1cb2b00672bbbf77a5e45ce64f7d48bb))
+
+## [1.31.22](https://github.com/wize-works/jobsight-pro/compare/v1.31.21...v1.31.22) (2025-06-09)
+
+
+### Bug Fixes
+
+* Remove unused build arguments and environment variables from AKS deployment workflow ([b19da5b](https://github.com/wize-works/jobsight-pro/commit/b19da5b68cb958bc304fca586c4d8ca430089092))
+
+## [1.31.21](https://github.com/wize-works/jobsight-pro/compare/v1.31.20...v1.31.21) (2025-06-09)
+
+
+### Bug Fixes
+
+* Remove redundant environment variables from AKS deployment workflow ([7c29ec8](https://github.com/wize-works/jobsight-pro/commit/7c29ec872b1a174ef16685c197374371d503807f))
+
+## [1.31.20](https://github.com/wize-works/jobsight-pro/compare/v1.31.19...v1.31.20) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update Docker image tagging to include latest version alongside specific version ([bef4e4a](https://github.com/wize-works/jobsight-pro/commit/bef4e4af67f5bc9fda4838f206729b76d0f91460))
+
+## [1.31.19](https://github.com/wize-works/jobsight-pro/compare/v1.31.18...v1.31.19) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update deployment configuration to use Kubernetes secrets for sensitive environment variables ([d50f134](https://github.com/wize-works/jobsight-pro/commit/d50f1341f1772442dbf9ef7e81cef9c090743f44))
+
+## [1.31.18](https://github.com/wize-works/jobsight-pro/compare/v1.31.17...v1.31.18) (2025-06-09)
+
+
+### Bug Fixes
+
+* Move USER appuser command to maintain non-root user context in Dockerfile ([1df9c7b](https://github.com/wize-works/jobsight-pro/commit/1df9c7b5601235836eace6e1f6b0aea46be683ea))
+
+## [1.31.17](https://github.com/wize-works/jobsight-pro/compare/v1.31.16...v1.31.17) (2025-06-09)
+
+
+### Bug Fixes
+
+* Update Dockerfile to set ownership for image cache directory ([0ae5deb](https://github.com/wize-works/jobsight-pro/commit/0ae5debdd36931b7a21fdac6b744ad5255f8ed03))
+
+## [1.31.16](https://github.com/wize-works/jobsight-pro/compare/v1.31.15...v1.31.16) (2025-06-09)
+
+
+### Bug Fixes
+
+* Create directory for Next.js image cache in Dockerfile ([11e1c8e](https://github.com/wize-works/jobsight-pro/commit/11e1c8e187e55da8823e443d9876fa809ada4853))
+
+## [1.31.15](https://github.com/wize-works/jobsight-pro/compare/v1.31.14...v1.31.15) (2025-06-09)
+
+
+### Bug Fixes
+
+* Refactor EquipmentDetailPage to streamline data fetching and improve error handling; update EquipmentDetail props type ([59fc76e](https://github.com/wize-works/jobsight-pro/commit/59fc76e1007b09e37ce36bb8b3fb183c86eada34))
+
+## [1.31.14](https://github.com/wize-works/jobsight-pro/compare/v1.31.13...v1.31.14) (2025-06-09)
+
+
+### Bug Fixes
+
+* Comment out dashboard routes in service worker and restore EquipmentDetail component rendering ([05742e1](https://github.com/wize-works/jobsight-pro/commit/05742e1076f90096800cfd58103b8bcf671f7e9a))
+
+## [1.31.13](https://github.com/wize-works/jobsight-pro/compare/v1.31.12...v1.31.13) (2025-06-09)
+
+
+### Bug Fixes
+
+* Refactor code structure for improved readability and maintainability ([995aa2c](https://github.com/wize-works/jobsight-pro/commit/995aa2c055b189fee1b2bb11185250492cf66440))
+
+## [1.31.12](https://github.com/wize-works/jobsight-pro/compare/v1.31.11...v1.31.12) (2025-06-09)
+
+
+### Bug Fixes
+
+* Implement code changes to enhance functionality and improve performance ([3df8e95](https://github.com/wize-works/jobsight-pro/commit/3df8e95174d1869e073fc1bac44c7bd2134bcdef))
+
+## [1.31.11](https://github.com/wize-works/jobsight-pro/compare/v1.31.10...v1.31.11) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out map links in EquipmentDetail component for debugging ([a3b640c](https://github.com/wize-works/jobsight-pro/commit/a3b640cf0b35395c0a3c6a701d9ff6db3d7f7b73))
+
+## [1.31.10](https://github.com/wize-works/jobsight-pro/compare/v1.31.9...v1.31.10) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out document rendering logic in EquipmentDetail component for debugging ([991f373](https://github.com/wize-works/jobsight-pro/commit/991f37377600c9c6c5e08eb23df19b760c3413cd))
+
+## [1.31.9](https://github.com/wize-works/jobsight-pro/compare/v1.31.8...v1.31.9) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out image rendering logic in EquipmentDetail component for debugging ([e426ee8](https://github.com/wize-works/jobsight-pro/commit/e426ee8f206c7e0961e144f64a0c4c2cdae07cbb))
+
+## [1.31.8](https://github.com/wize-works/jobsight-pro/compare/v1.31.7...v1.31.8) (2025-06-09)
+
+
+### Bug Fixes
+
+* comment out media mapping in EquipmentDetail component for debugging ([0cb7773](https://github.com/wize-works/jobsight-pro/commit/0cb777361702e03e8f18eb6849f767d7863522ad))
+* improve image handling in EquipmentDetail component with fallback UI ([9318257](https://github.com/wize-works/jobsight-pro/commit/9318257f31f7509cef64fff935a09d1dccaaf52a))
+
+## [1.31.7](https://github.com/wize-works/jobsight-pro/compare/v1.31.6...v1.31.7) (2025-06-09)
+
+
+### Bug Fixes
+
+* correct media type identifiers in file upload component ([9c01fc1](https://github.com/wize-works/jobsight-pro/commit/9c01fc19f9ed0f2b9e63f4dca4fd77be7cf98dbf))
+
+## [1.31.6](https://github.com/wize-works/jobsight-pro/compare/v1.31.5...v1.31.6) (2025-06-07)
+
+
+### Bug Fixes
+
+* Add placeholder for media download link when URL is unavailable ([bef42dd](https://github.com/wize-works/jobsight-pro/commit/bef42dd3359c2c761e1ca368a7f82bfeb0742108))
+
+## [1.31.5](https://github.com/wize-works/jobsight-pro/compare/v1.31.4...v1.31.5) (2025-06-07)
+
+
+### Bug Fixes
+
+* Remove loading component and mock projects page implementation ([9049729](https://github.com/wize-works/jobsight-pro/commit/90497299963192bec01479f68ee17e424eee940f))
+
+## [1.31.4](https://github.com/wize-works/jobsight-pro/compare/v1.31.3...v1.31.4) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update ProjectDetail and MediaTab components to pass projectId and enhance media loading logic ([a14947a](https://github.com/wize-works/jobsight-pro/commit/a14947a971a2b041ee2ae8eb5bbb0aaf5f823589))
+
+## [1.31.3](https://github.com/wize-works/jobsight-pro/compare/v1.31.2...v1.31.3) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update toast notifications to use success and error variants across multiple components ([0849521](https://github.com/wize-works/jobsight-pro/commit/084952137f02e632066cdb280882937f9ab8804a))
+
+## [1.31.2](https://github.com/wize-works/jobsight-pro/compare/v1.31.1...v1.31.2) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update email verification logic and streamline email content ([50ee3ca](https://github.com/wize-works/jobsight-pro/commit/50ee3ca6cc0aa3b9659b8a00d40270198f5e0191))
+
+## [1.31.1](https://github.com/wize-works/jobsight-pro/compare/v1.31.0...v1.31.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* Refactor document actions: mark documents.ts as deprecated and update email notification types ([463fc00](https://github.com/wize-works/jobsight-pro/commit/463fc00f5980f2cb8c0832f4c6d1480215b7af07))
+
+# [1.31.0](https://github.com/wize-works/jobsight-pro/compare/v1.30.0...v1.31.0) (2025-06-07)
+
+
+### Features
+
+* enhance invoice management with new modals for sending and recording payments, improve invoice status handling, and refactor sync logic ([c1b1ea0](https://github.com/wize-works/jobsight-pro/commit/c1b1ea00b7f92d8ec47d94de799ffaeea23bb92a))
+
+# [1.30.0](https://github.com/wize-works/jobsight-pro/compare/v1.29.0...v1.30.0) (2025-06-07)
+
+
+### Features
+
+* add Sentry authentication token to Docker build and Kubernetes secret ([3c7de6b](https://github.com/wize-works/jobsight-pro/commit/3c7de6b79119b7b0c771d998de66b5dd25aaaf66))
+* integrate ClarityProvider for enhanced user analytics tracking ([42900a6](https://github.com/wize-works/jobsight-pro/commit/42900a6087322d2ff98526c6af368c6b9ed8a585))
+* integrate Sentry for error tracking and performance monitoring ([f1e6e25](https://github.com/wize-works/jobsight-pro/commit/f1e6e259b10d9557b9128358f07f215839472bed))
+
+# [1.29.0](https://github.com/wize-works/jobsight-pro/compare/v1.28.4...v1.29.0) (2025-06-07)
+
+
+### Bug Fixes
+
+* enhance user interface in UsersPermissionsTab and Navbar for improved layout and accessibility ([94b4aba](https://github.com/wize-works/jobsight-pro/commit/94b4abad09a26b7218d25956a7727a96511207d8))
+
+
+### Features
+
+* enhance task management with new user permissions and kanban board ([193b263](https://github.com/wize-works/jobsight-pro/commit/193b26319affb05a4c63cef1c151f3cabd1325bc))
+
+## [1.28.4](https://github.com/wize-works/jobsight-pro/compare/v1.28.3...v1.28.4) (2025-06-06)
+
+
+### Bug Fixes
+
+* ensure user object is valid before accessing properties in UsersPermissionsTab and update email type to non-nullable in Supabase schema ([dbd14a9](https://github.com/wize-works/jobsight-pro/commit/dbd14a990b9cdba3213ec2f1922a78b8d5d4c616))
+
+## [1.28.3](https://github.com/wize-works/jobsight-pro/compare/v1.28.2...v1.28.3) (2025-06-06)
+
+
+### Bug Fixes
+
+* update toast notifications to use error and success variants for better user feedback ([bf4ba5b](https://github.com/wize-works/jobsight-pro/commit/bf4ba5b024d9d793acc6d3850a9386617974d305))
+
+## [1.28.2](https://github.com/wize-works/jobsight-pro/compare/v1.28.1...v1.28.2) (2025-06-06)
+
+
+### Bug Fixes
+
+* add status field to user type in Supabase schema and improve Supabase client initialization error handling ([6c3655e](https://github.com/wize-works/jobsight-pro/commit/6c3655e701a3f0737a929e18e107a53b25ae1289))
+
+## [1.28.1](https://github.com/wize-works/jobsight-pro/compare/v1.28.0...v1.28.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* corrected toast implementation ([643eaef](https://github.com/wize-works/jobsight-pro/commit/643eaeff27627e3a8827a0b5a355d239abecd55e))
+
+# [1.28.0](https://github.com/wize-works/jobsight-pro/compare/v1.27.0...v1.28.0) (2025-06-06)
+
+
+### Features
+
+* Add RESEND_API_KEY environment variable to Dockerfile ([8ef1636](https://github.com/wize-works/jobsight-pro/commit/8ef163610aada662618da3cc9981ff528eb299e5))
+
+# [1.27.0](https://github.com/wize-works/jobsight-pro/compare/v1.26.1...v1.27.0) (2025-06-06)
+
+
+### Features
+
+* Add RESEND_API_KEY to Docker build arguments and deployment environment ([90bb697](https://github.com/wize-works/jobsight-pro/commit/90bb6978bcfb09c97401d22606035bdcf1950bd2))
+
+## [1.26.1](https://github.com/wize-works/jobsight-pro/compare/v1.26.0...v1.26.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* Update task detail and list components to use new task status and priority options ([603415d](https://github.com/wize-works/jobsight-pro/commit/603415dd903df8180511f17baa64859832342f7d))
+
+# [1.26.0](https://github.com/wize-works/jobsight-pro/compare/v1.25.3...v1.26.0) (2025-06-06)
+
+
+### Bug Fixes
+
+* Refactor invoice pages and components for improved structure and readability ([18a1fd6](https://github.com/wize-works/jobsight-pro/commit/18a1fd6ef25cd9ad18522b2a9971ba2d27186846))
+* removed settings ([9fcb840](https://github.com/wize-works/jobsight-pro/commit/9fcb8407f9bb9f0c6988126cd4fd1803ba407a14))
+* removed unwanted links in navbar. ([3fe3dd7](https://github.com/wize-works/jobsight-pro/commit/3fe3dd7af8e51967ab6ef56850075865fd7b53b6))
+* updated task notes and model. ([7df67d1](https://github.com/wize-works/jobsight-pro/commit/7df67d1d72976241f166c1873ef5d039bca39037))
+
+
+### Features
+
+* Add email templates and components for JobSight Pro ([a233d26](https://github.com/wize-works/jobsight-pro/commit/a233d26241cd931fe48e4b2e8a1cc2c3c4c5caec))
+* Enhance invoice management with detailed editing and viewing capabilities ([65861bb](https://github.com/wize-works/jobsight-pro/commit/65861bb34caba5bc5da63e46249dfd4ce69a496a))
+* Implement public layout with theme toggle and footer integration ([d43ddab](https://github.com/wize-works/jobsight-pro/commit/d43ddaba7fc188d13aebc688c6ac0bfb94542de1))
+
+## [1.25.3](https://github.com/wize-works/jobsight-pro/compare/v1.25.2...v1.25.3) (2025-06-04)
+
+
+### Bug Fixes
+
+* Add webpack alias configuration for improved module resolution ([3162226](https://github.com/wize-works/jobsight-pro/commit/316222677a12d8bd2f8aa349d7d1fe1fcf505d28))
+
+## [1.25.2](https://github.com/wize-works/jobsight-pro/compare/v1.25.1...v1.25.2) (2025-06-04)
+
+
+### Bug Fixes
+
+* Implement code changes to enhance functionality and improve performance ([e26723e](https://github.com/wize-works/jobsight-pro/commit/e26723ef6c9258ece64ab3586515a380bc12b563))
+
+## [1.25.1](https://github.com/wize-works/jobsight-pro/compare/v1.25.0...v1.25.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* Refactor push notification actions to use userId consistently and improve code readability ([c40f83a](https://github.com/wize-works/jobsight-pro/commit/c40f83a3e37dcc6ebc22e33a3d5cffff5d2c75c5))
+* Update push notification actions to use userId consistently and enhance subscription data handling ([4e95a83](https://github.com/wize-works/jobsight-pro/commit/4e95a83c11ec8d57c57a1f7dc97636ebb63b36f0))
+
+# [1.25.0](https://github.com/wize-works/jobsight-pro/compare/v1.24.0...v1.25.0) (2025-06-04)
+
+
+### Bug Fixes
+
+* Update button style and text in DailyLogsList component for improved clarity ([d856164](https://github.com/wize-works/jobsight-pro/commit/d856164b317b91c318be329b550e5900ff5490fe))
+
+
+### Features
+
+* Refactor DailyLogs component to use server-side data fetching and separate DailyLogsList component for better organization; remove unused equipment index file; add EditModal component for editing daily logs with materials and equipment management. ([d0c4067](https://github.com/wize-works/jobsight-pro/commit/d0c4067dd9414f9f07b91c29af2f7eca62459427))
+
+# [1.24.0](https://github.com/wize-works/jobsight-pro/compare/v1.23.0...v1.24.0) (2025-06-03)
+
+
+### Features
+
+* add client, crew, equipment, and project statistics to respective pages ([76150f0](https://github.com/wize-works/jobsight-pro/commit/76150f02fa8da99203f49eec4fb373922e6c6290))
+
+# [1.23.0](https://github.com/wize-works/jobsight-pro/compare/v1.22.0...v1.23.0) (2025-06-03)
+
+
+### Features
+
+* add onClose prop to ClientEditForm and update cancel button functionality ([27173be](https://github.com/wize-works/jobsight-pro/commit/27173becfe8436046ad63e897d8975d01d94c84a))
+* refactor client edit form and update import paths for consistency ([35c5672](https://github.com/wize-works/jobsight-pro/commit/35c567213f74f7d3b2d05afaf09594f6a652680f))
+
+# [1.22.0](https://github.com/wize-works/jobsight-pro/compare/v1.21.0...v1.22.0) (2025-06-03)
+
+
+### Features
+
+* add loading states and new daily log page ([842d4b7](https://github.com/wize-works/jobsight-pro/commit/842d4b78ff78c02f3a28414524d30739f85d9c90))
+* enhance project detail page with task editing functionality and milestone form reset ([5f7e41e](https://github.com/wize-works/jobsight-pro/commit/5f7e41e911fc1fe7734917e6e183cefef8979994))
+* implement daily log detail page and enhance daily logs component with tabs ([249b0a3](https://github.com/wize-works/jobsight-pro/commit/249b0a3a9fea3945785004035ec4ab6a81a7cd4f))
+
+# [1.21.0](https://github.com/wize-works/jobsight-pro/compare/v1.20.0...v1.21.0) (2025-06-02)
+
+
+### Features
+
+* enhance project editing modal with location and type selection ([680edfb](https://github.com/wize-works/jobsight-pro/commit/680edfbe5238797f91527d25aca5112b04ab0331))
+
+# [1.20.0](https://github.com/wize-works/jobsight-pro/compare/v1.19.0...v1.20.0) (2025-06-02)
+
+
+### Features
+
+* add Azure storage environment variables to Dockerfile ([0d2fff2](https://github.com/wize-works/jobsight-pro/commit/0d2fff27f5ee75dc8fd725066b546dd3306e6c0c))
+
 # [1.19.0](https://github.com/wize-works/jobsight-pro/compare/v1.18.0...v1.19.0) (2025-06-01)
 
 
