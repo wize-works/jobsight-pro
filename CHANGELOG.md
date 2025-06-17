@@ -1,3 +1,15 @@
+# [1.43.0](https://github.com/wize-works/jobsight-pro/compare/v1.42.1...v1.43.0) (2025-06-17)
+
+
+### Bug Fixes
+
+* ensure loading state is correctly managed during user data fetch in Navbar ([d4bfcf4](https://github.com/wize-works/jobsight-pro/commit/d4bfcf43302d0e37bd164cd1eb963bb1ea006a3c))
+
+
+### Features
+
+* implement AI interaction logging and enhance AI query handling with context management ([83c2812](https://github.com/wize-works/jobsight-pro/commit/83c28122f5913cb5dc8b8f6251a1e1c1d2adcd68))
+
 ## [1.42.1](https://github.com/wize-works/jobsight-pro/compare/v1.42.0...v1.42.1) (2025-06-16)
 
 
