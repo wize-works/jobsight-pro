@@ -39,7 +39,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                 />
                 <BusinessProvider>
                     <OfflineIndicator />
-                    <div className="fixed bottom-4 right-4 z-40">
+                    <div className="fixed bottom-24 right-0 z-60">
                         <SyncStatusIndicator />
                     </div>
                     <AIAssistantButton />
