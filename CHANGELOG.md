@@ -1,3 +1,10 @@
+## [1.43.1](https://github.com/wize-works/jobsight-pro/compare/v1.43.0...v1.43.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* adjust position and z-index of SyncStatusIndicator in DashboardLayout ([d24cb74](https://github.com/wize-works/jobsight-pro/commit/d24cb7450ac3b5a10eba260d296eba8991fa2b01))
+
 # [1.43.0](https://github.com/wize-works/jobsight-pro/compare/v1.42.1...v1.43.0) (2025-06-17)
 
 
