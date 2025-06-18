@@ -153,7 +153,7 @@ export default function UsersPermissionsTab() {
                         className="btn btn-primary"
                         onClick={() => setShowInviteModal(true)}
                     >
-                        <i className="fas fa-user-plus mr-2"></i> Invite User
+                        <i className="far fa-user-plus mr-2"></i> Invite User
                     </button>
                 </div>
 
@@ -213,7 +213,7 @@ export default function UsersPermissionsTab() {
                                                         onClick={() => handleResendInvitation(user.id, user.email)}
                                                         title="Resend invitation"
                                                     >
-                                                        <i className="fas fa-paper-plane"></i>
+                                                        <i className="far fa-paper-plane"></i>
                                                     </button>
                                                 )}
                                                 {user.auth_id !== currentUser?.id && (
@@ -222,7 +222,7 @@ export default function UsersPermissionsTab() {
                                                         onClick={() => handleRemoveUser(user.id, `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || "User", user.status || 'active')}
                                                         title={user.status === 'invited' ? 'Revoke invitation' : 'Remove user'}
                                                     >
-                                                        <i className="fas fa-trash"></i>
+                                                        <i className="far fa-trash"></i>
                                                     </button>
                                                 )}
                                             </div>
@@ -257,33 +257,33 @@ export default function UsersPermissionsTab() {
                             <tbody>
                                 <tr>
                                     <td>View Projects</td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
                                 </tr>
                                 <tr>
                                     <td>Create/Edit Projects</td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-times text-error"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-times text-error"></i></td>
                                 </tr>
                                 <tr>
                                     <td>Manage Users</td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-times text-error"></i></td>
-                                    <td><i className="fas fa-times text-error"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-times text-error"></i></td>
+                                    <td><i className="far fa-times text-error"></i></td>
                                 </tr>
                                 <tr>
                                     <td>Business Settings</td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-times text-error"></i></td>
-                                    <td><i className="fas fa-times text-error"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-times text-error"></i></td>
+                                    <td><i className="far fa-times text-error"></i></td>
                                 </tr>
                                 <tr>
                                     <td>View Reports</td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-check text-success"></i></td>
-                                    <td><i className="fas fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
+                                    <td><i className="far fa-check text-success"></i></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -372,7 +372,7 @@ export default function UsersPermissionsTab() {
                                     </>
                                 ) : (
                                     <>
-                                        <i className="fas fa-paper-plane mr-2"></i>
+                                        <i className="far fa-paper-plane mr-2"></i>
                                         Send Invitation
                                     </>
                                 )}

@@ -203,7 +203,7 @@ export const TabSubscription = () => {
             {/* Current Subscription Status */}
             {currentSubscription && currentPlan && (
                 <div className="alert alert-success">
-                    <i className="fas fa-check-circle"></i>
+                    <i className="far fa-check-circle"></i>
                     <div>
                         <div className="font-medium">
                             Active Subscription: {currentPlan.name}
@@ -313,7 +313,7 @@ export const TabSubscription = () => {
                                             key={index}
                                             className="flex items-start"
                                         >
-                                            <i className="fas fa-check text-success mt-1 mr-3 text-sm"></i>
+                                            <i className="far fa-check text-success mt-1 mr-3 text-sm"></i>
                                             <span className="text-sm">
                                                 {feature}
                                             </span>
@@ -341,10 +341,10 @@ export const TabSubscription = () => {
                                     ) : (
                                         <button
                                             className={`btn btn-block ${plan.id === "starter"
-                                                    ? "btn-outline"
-                                                    : isPopular
-                                                        ? "btn-accent"
-                                                        : "btn-primary"
+                                                ? "btn-outline"
+                                                : isPopular
+                                                    ? "btn-accent"
+                                                    : "btn-primary"
                                                 }`}
                                             onClick={() =>
                                                 handlePlanChange(plan.id)

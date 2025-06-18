@@ -76,7 +76,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <h2 className="text-xl font-semibold">Project not found</h2>
                 <p className="text-base-content/70">The project you are looking for does not exist.</p>
                 <Link href="/dashboard/projects" className="btn btn-primary mt-4">
-                    <i className="fas fa-arrow-left mr-2"></i> Back to Projects
+                    <i className="far fa-arrow-left mr-2"></i> Back to Projects
                 </Link>
             </div>
         );

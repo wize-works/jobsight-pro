@@ -7,11 +7,11 @@ export default function SyncStatusIndicator() {
     const { isOnline, isSyncing, queueCount, lastSyncTime, syncError, forcSync } = useOfflineSync();
 
     const getSyncIcon = () => {
-        if (!isOnline) return <i className="fas fa-cloud-download-alt"></i>;
-        if (isSyncing) return <i className="fas fa-sync fa-spin"></i>;
-        if (syncError) return <i className="fas fa-exclamation-triangle"></i>;
-        if (queueCount === 0) return <i className="fas fa-check-circle"></i>;
-        return <i className="fas fa-cloud"></i>;
+        if (!isOnline) return <i className="far fa-cloud-download-alt"></i>;
+        if (isSyncing) return <i className="far fa-sync fa-spin"></i>;
+        if (syncError) return <i className="far fa-exclamation-triangle"></i>;
+        if (queueCount === 0) return <i className="far fa-check-circle"></i>;
+        return <i className="far fa-cloud"></i>;
     };
 
     const getSyncStatus = () => {

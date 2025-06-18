@@ -26,9 +26,9 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
     const [dragOver, setDragOver] = useState(false);
 
     const mediaTypeOptions = {
-        documents: { label: "Document", icon: "fas fa-file-alt" },
-        images: { label: "Image", icon: "fas fa-image" },
-        videos: { label: "Video", icon: "fas fa-video" },
+        documents: { label: "Document", icon: "far fa-file-alt" },
+        images: { label: "Image", icon: "far fa-image" },
+        videos: { label: "Video", icon: "far fa-video" },
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -207,7 +207,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                             onClick={handleClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -219,7 +219,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-upload text-primary"></i>
+                                    <i className="far fa-upload text-primary"></i>
                                     File Upload
                                 </h3>
 
@@ -237,7 +237,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                                 >
                                     {formData.file ? (
                                         <div className="flex flex-col items-center gap-2">
-                                            <i className="fas fa-check-circle text-success text-3xl"></i>
+                                            <i className="far fa-check-circle text-success text-3xl"></i>
                                             <p className="font-medium">{formData.file.name}</p>
                                             <p className="text-sm text-base-content/70">
                                                 {(formData.file.size / 1024 / 1024).toFixed(2)} MB
@@ -253,7 +253,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center gap-2">
-                                            <i className="fas fa-cloud-upload-alt text-4xl text-base-content/50"></i>
+                                            <i className="far fa-cloud-upload-alt text-4xl text-base-content/50"></i>
                                             <p className="text-lg font-medium">
                                                 Drag & drop your file here
                                             </p>
@@ -282,7 +282,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Media Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -342,7 +342,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                             <div className="card bg-base-100 border border-base-300">
                                 <div className="card-body p-4">
                                     <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                        <i className="fas fa-eye text-primary"></i>
+                                        <i className="far fa-eye text-primary"></i>
                                         File Preview
                                     </h3>
                                     <div className="bg-base-50 rounded-lg p-4">
@@ -371,7 +371,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -397,7 +397,7 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-upload"></i>
+                                    <i className="far fa-upload"></i>
                                     Upload Media
                                 </>
                             )}

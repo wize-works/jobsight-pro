@@ -27,7 +27,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-primary">{invoices.length}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-money-bill-wave text-primary text-2xl"></i>
+                            <i className="far fa-money-bill-wave text-primary text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All invoices in the system</div>
@@ -39,7 +39,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                             {formatCurrency(invoices.reduce((sum, invoice) => sum + (invoice?.amount || 0), 0))}
                         </div>
                         <div className="stat-icon text-accent bg-accent/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-dollar-sign text-accent text-2xl"></i>
+                            <i className="far fa-dollar-sign text-accent text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Total amount of all invoices</div>
@@ -51,7 +51,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                             {invoices.filter(invoice => invoice.status === "paid").length}
                         </div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-check-circle text-success text-2xl"></i>
+                            <i className="far fa-check-circle text-success text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Invoices marked as paid</div>
@@ -63,7 +63,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                             {invoices.filter(invoice => invoice.status === "overdue").length}
                         </div>
                         <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-exclamation-triangle text-error text-2xl"></i>
+                            <i className="far fa-exclamation-triangle text-error text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Invoices that are overdue</div>
@@ -97,8 +97,8 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                             }
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>

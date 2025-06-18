@@ -18,7 +18,7 @@ export default function InvoiceCard({ invoice }: { invoice: InvoiceWithClient })
                 }).format(invoice.amount || 0)}</p>
                 <div className='card-actions justify-end mt-4'>
                     <Link href={`/dashboard/invoices/${invoice.id}`} className="btn btn-sm btn-outline">
-                        <i className="fas fa-eye mr-2"></i> View
+                        <i className="far fa-eye mr-2"></i> View
                     </Link>
                 </div>
             </div>

@@ -85,7 +85,7 @@ export default function ProjectsPage() {
                     <p className="text-base-content/70">Manage and track all your construction projects</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowAddProjectModal(true)}>
-                    <i className="fas fa-plus mr-2"></i> Add Project
+                    <i className="far fa-plus mr-2"></i> Add Project
                 </button>
             </div>
 
@@ -96,7 +96,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-primary">{totalProjects}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-person-digging text-primary text-2xl"></i>
+                            <i className="far fa-screwdriver-wrench text-primary text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All projects across all statuses</div>
@@ -107,7 +107,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-success">{activeProjects}</div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-hammer text-success text-2xl"></i>
+                            <i className="far fa-hammer text-success text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Projects currently in progress</div>
@@ -118,7 +118,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-info">{upcomingProjects}</div>
                         <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-calendar-alt text-info text-2xl"></i>
+                            <i className="far fa-calendar-alt text-info text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Projects scheduled to start soon</div>
@@ -128,7 +128,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-secondary">{completedProjects}</div>
                         <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-check-circle text-secondary text-2xl"></i>
+                            <i className="far fa-check-circle text-secondary text-2xl"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Projects successfully completed</div>
@@ -140,7 +140,7 @@ export default function ProjectsPage() {
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
                         <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
-                            <i className="fas fa-search"></i>
+                            <i className="far fa-search"></i>
                             <input
                                 type="text"
                                 placeholder="Search projects..."
@@ -171,8 +171,8 @@ export default function ProjectsPage() {
                             <option value="progress">Sort by Progress</option>
                         </select>
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
 
@@ -195,17 +195,17 @@ export default function ProjectsPage() {
                                 </div>
                                 <p className="text-sm text-base-content/70">{project.client_name}</p>
                                 <div className="flex items-center text-sm mt-2">
-                                    <i className="fas fa-map-marker-alt mr-2 text-base-content/70"></i>
+                                    <i className="far fa-map-marker-alt mr-2 text-base-content/70"></i>
                                     <span className="truncate">{project.location}</span>
                                 </div>
                                 <div className="flex items-center text-sm mt-1">
-                                    <i className="fas fa-calendar-alt mr-2 text-base-content/70"></i>
+                                    <i className="far fa-calendar-alt mr-2 text-base-content/70"></i>
                                     <span>
                                         {formatDate(project?.start_date)} - {formatDate(project.end_date)}
                                     </span>
                                 </div>
                                 <div className="flex items-center text-sm mt-1">
-                                    <i className="fas fa-dollar-sign mr-2 text-base-content/70"></i>
+                                    <i className="far fa-dollar-sign mr-2 text-base-content/70"></i>
                                     <span>{formatCurrency(project.budget)}</span>
                                 </div>
 
@@ -263,10 +263,10 @@ export default function ProjectsPage() {
                                                         href={`/dashboard/projects/${project.id}`}
                                                         className="btn btn-ghost btn-xs"
                                                     >
-                                                        <i className="fas fa-eye"></i>
+                                                        <i className="far fa-eye"></i>
                                                     </Link>
                                                     <button className="btn btn-ghost btn-xs">
-                                                        <i className="fas fa-edit"></i>
+                                                        <i className="far fa-edit"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -282,7 +282,7 @@ export default function ProjectsPage() {
             {projects.length === 0 && (
                 <div className="card bg-base-100 shadow-sm mb-6">
                     <div className="card-body text-center">
-                        <i className="fas fa-project-diagram text-3xl text-base-content/30 mb-2"></i>
+                        <i className="far fa-screwdriver-wrench text-3xl text-base-content/30 mb-2"></i>
                         <h3 className="text-lg font-semibold">No projects found</h3>
                         <p className="text-base-content/70">Try adjusting your search or filters</p>
                         <div className="flex m-auto justify-center mt-4">
@@ -290,7 +290,7 @@ export default function ProjectsPage() {
                                 className="btn btn-primary"
                                 onClick={() => setShowAddProjectModal(true)}
                             >
-                                <i className="fas fa-plus mr-2"></i> Add Your First Project
+                                <i className="far fa-plus mr-2"></i> Add Your First Project
                             </button>
                         </div>
                     </div>

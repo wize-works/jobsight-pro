@@ -105,7 +105,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                 <div>
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard/invoices" className="btn btn-ghost btn-sm">
-                            <i className="fas fa-arrow-left"></i>
+                            <i className="far fa-arrow-left"></i>
                         </Link>
                         <h1 className="text-2xl font-bold">Invoice {invoice.invoice_number}</h1>
                         {invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}
@@ -117,23 +117,23 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                 <div className="flex gap-2">
                     {invoice.status === "draft" ? (
                         <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="btn btn-primary btn-sm">
-                            <i className="fas fa-edit mr-2"></i> Edit Invoice
+                            <i className="far fa-edit mr-2"></i> Edit Invoice
                         </Link>
                     ) : (
                         <></>
                     )}
                     <Link href={`/printables/invoices/${invoice.id}`} className="btn btn-outline btn-sm" target="_blank">
-                        <i className="fas fa-print mr-2"></i> Print
+                        <i className="far fa-print mr-2"></i> Print
                     </Link>
                     <button className="btn btn-outline btn-sm" onClick={getPdf}>
-                        <i className="fas fa-download mr-2"></i> Download
+                        <i className="far fa-download mr-2"></i> Download
                     </button>
                     <button className="btn btn-primary btn-sm" onClick={() => setShowSendModal(true)}>
-                        <i className="fas fa-paper-plane mr-2"></i> Send
+                        <i className="far fa-paper-plane mr-2"></i> Send
                     </button>
                     {invoice.status === "pending" || invoice.status === "overdue" ? (
                         <button className="btn btn-success btn-sm" onClick={() => setShowPaymentModal(true)}>
-                            <i className="fas fa-credit-card mr-2"></i> Record Payment
+                            <i className="far fa-credit-card mr-2"></i> Record Payment
                         </button>
                     ) : null}
                 </div>

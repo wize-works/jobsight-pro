@@ -1,3 +1,4 @@
+"use client";
 import { getEquipmentById } from "@/app/actions/equipments";
 import { getEquipmentMaintenancesByEquipmentId } from "@/app/actions/equipment-maintenance";
 import { getEquipmentUsagesWithDetailsByEquipmentId } from "@/app/actions/equipment_usage";
@@ -10,52 +11,76 @@ import { EquipmentUsage } from "@/types/equipment_usage";
 import { EquipmentAssignment } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { useBusiness } from "@/lib/business-context";
+import { useEffect, useState } from "react";
+import { Equipment } from "@/types/equipment";
+import Loading from "@/app/loading";
 
-export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const { business } = await withBusinessServer();
+export default function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { businessId } = useBusiness();
+    const [loading, setLoading] = useState(true);
+    const [equipment, setEquipment] = useState<Equipment | null>(null);
+    const [maintenances, setMaintenances] = useState<EquipmentMaintenance[]>([]);
+    const [usages, setUsages] = useState<EquipmentUsage[]>([]);
+    const [assignments, setAssignments] = useState<EquipmentAssignment[]>([]);
+    const [specifications, setSpecifications] = useState<EquipmentSpecification[]>([]);
+    const [media, setMedia] = useState<Media[]>([]);
 
-    try {
-
-        const [equipment, maintenances, usages, assignments, specifications, documents] = await Promise.all([
-            getEquipmentById(business.id, id),
-            getEquipmentMaintenancesByEquipmentId(business.id, id),
-            getEquipmentUsagesWithDetailsByEquipmentId(business.id, id),
-            getEquipmentAssignmentsByEquipmentId(business.id, id),
-            getEquipmentSpecificationsByEquipmentId(business.id, id),
-            getMediaByEquipmentId(business.id, id, "")
-        ]);
-
-        if (!equipment) {
-            return (
-                <div className="p-8 text-center">
-                    <h2 className="text-xl font-bold text-red-500 mb-4">Equipment Not Found</h2>
-                    <p className="text-gray-600">The requested equipment could not be found.</p>
-                </div>
-            );
+    useEffect(() => {
+        if (!businessId) {
+            return;
         }
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const { id } = await params;
 
-        return (
-            <EquipmentDetail
-                equipment={equipment}
-                maintenances={maintenances}
-                usages={usages}
-                assignments={assignments}
-                specifications={specifications}
-                documents={documents}
-            />
-        );
-    } catch (error) {
-        console.error("Equipment detail page error:", error);
+                const [equipmentData, maintenancesData, usagesData, assignmentsData, specificationsData, mediaData] = await Promise.all([
+                    getEquipmentById(businessId, id),
+                    getEquipmentMaintenancesByEquipmentId(businessId, id),
+                    getEquipmentUsagesWithDetailsByEquipmentId(businessId, id),
+                    getEquipmentAssignmentsByEquipmentId(businessId, id),
+                    getEquipmentSpecificationsByEquipmentId(businessId, id),
+                    getMediaByEquipmentId(businessId, id, "")
+                ]);
+                setEquipment(equipmentData);
+                setMaintenances(maintenancesData);
+                setUsages(usagesData);
+                setAssignments(assignmentsData);
+                setSpecifications(specificationsData);
+                setMedia(mediaData);
+
+            } catch (error) {
+                console.error("Error fetching equipment details:", error);
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [businessId, params]);
+
+    if (loading) {
+        return <Loading />;
+    }
+
+    if (!equipment) {
         return (
             <div className="p-8 text-center">
-                <h2 className="text-xl font-bold text-red-500 mb-4">Error Loading Equipment</h2>
-                <p className="text-gray-600">There was an error loading the equipment details. Please check the console for more information.</p>
-                <pre className="text-left bg-gray-100 p-4 mt-4 text-sm overflow-x-auto">
-                    {error instanceof Error ? error.message : 'Unknown error'}
-                </pre>
+                <h2 className="text-xl font-bold text-red-500 mb-4">Equipment Not Found</h2>
+                <p className="text-gray-600">The requested equipment could not be found.</p>
             </div>
         );
     }
+
+    return (
+        <EquipmentDetail
+            equipment={equipment}
+            maintenances={maintenances}
+            usages={usages}
+            assignments={assignments}
+            specifications={specifications}
+            documents={media}
+        />
+    );
 }

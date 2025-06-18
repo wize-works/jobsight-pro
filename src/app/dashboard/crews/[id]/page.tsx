@@ -1,29 +1,71 @@
+"use client";
 import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment, getCrewScheduleCurrent, getCrewScheduleHistory } from "@/app/actions/crews";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { getProjects } from "@/app/actions/projects";
 import CrewDetailComponent from "../components/detail";
-import type { CrewMember } from "@/types/crew-members";
-import type { ProjectCrew } from "@/types/project-crews";
-import type { Equipment } from "@/types/equipment";
-import type { Project } from "@/types/projects";
-import Link from "next/link";
 import { getEquipments } from "@/app/actions/equipments";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { useBusiness } from "@/lib/business-context";
+import { useEffect, useState } from "react";
+import Loading from "@/app/loading";
+import { CrewWithDetails } from "@/types/crews";
+import { CrewMember } from "@/types/crew-members";
+import { ProjectCrewWithDetails } from "@/types/project-crews";
+import { EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
+import { Equipment } from "@/types/equipment";
+import { Project } from "@/types/projects";
 
-export default async function CrewPage({ params }: { params: Promise<{ id: string }> }) {
-    const crewId = (await params).id;
-    const { business } = await withBusinessServer();
+export default function CrewPage({ params }: { params: Promise<{ id: string }> }) {
+    const [loading, setLoading] = useState(true);
+    const { businessId } = useBusiness();
+    const [crew, setCrew] = useState<CrewWithDetails>({} as CrewWithDetails);
+    const [members, setMembers] = useState<CrewMember[]>([]);
+    const [allMembers, setAllMembers] = useState<CrewMember[]>([]);
+    const [schedule, setSchedule] = useState<ProjectCrewWithDetails[]>([]);
+    const [history, setHistory] = useState<ProjectCrewWithDetails[]>([]);
+    const [equipment, setEquipment] = useState<EquipmentAssignmentWithEquipmentDetails[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
 
-    const [crew, members, allMembers, schedule, history, equipment, projects, allEquipment] = await Promise.all([
-        getCrewWithDetailsById(business.id, crewId),
-        getCrewMembersByCrewId(business.id, crewId),
-        getCrewMembers(business.id),
-        getCrewSchedule(business.id, crewId),
-        getCrewScheduleHistory(business.id, crewId),
-        getCrewEquipment(business.id, crewId),
-        getProjects(business.id),
-        getEquipments(business.id)
-    ]);
+    useEffect(() => {
+        if (!businessId) {
+            return;
+        }
+        const fetchData = async () => {
+            setLoading(true);
+            const { id: crewId } = await params;
+            try {
+                const [crewData, membersData, allMembersData, scheduleData, historyData, equipmentData, projectsData, allEquipmentData] = await Promise.all([
+                    getCrewWithDetailsById(businessId, crewId),
+                    getCrewMembersByCrewId(businessId, crewId),
+                    getCrewMembers(businessId),
+                    getCrewSchedule(businessId, crewId),
+                    getCrewScheduleHistory(businessId, crewId),
+                    getCrewEquipment(businessId, crewId),
+                    getProjects(businessId),
+                    getEquipments(businessId)
+                ]);
+                setCrew(crewData);
+                setMembers(membersData);
+                setAllMembers(allMembersData);
+                setSchedule(scheduleData);
+                setHistory(historyData);
+                setEquipment(equipmentData);
+                setProjects(projectsData);
+                setAllEquipment(allEquipmentData);
+            } catch (error) {
+                console.error("Error fetching crew details:", error);
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [businessId, params]);
+
+    if (loading) {
+        return <Loading />;
+    }
 
     if (!crew) {
         return (
@@ -36,12 +78,6 @@ export default async function CrewPage({ params }: { params: Promise<{ id: strin
 
     return (
         <div className="">
-            <div className="flex justify-start items-center mb-4">
-                <Link href={`/dashboard/crews`} className="btn btn-ghost btn-sm mb-4 mr-2">
-                    <i className="fas fa-arrow-left fa-xl"></i>
-                </Link>
-                <h1 className="text-2xl font-bold mb-4">Crew Details</h1>
-            </div>
             <CrewDetailComponent
                 crew={crew}
                 members={members}

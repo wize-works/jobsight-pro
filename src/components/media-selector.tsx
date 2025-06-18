@@ -93,15 +93,15 @@ export default function MediaSelector({
     const getFileIcon = (type: string) => {
         switch (type) {
             case "image":
-                return <i className="fas fa-image text-accent"></i>
+                return <i className="far fa-image text-accent"></i>
             case "video":
-                return <i className="fas fa-video text-primary"></i>
+                return <i className="far fa-video text-primary"></i>
             case "document":
-                return <i className="fas fa-file-alt text-secondary"></i>
+                return <i className="far fa-file-alt text-secondary"></i>
             case "audio":
-                return <i className="fas fa-volume-up text-info"></i>
+                return <i className="far fa-volume-up text-info"></i>
             default:
-                return <i className="fas fa-file text-base-content"></i>
+                return <i className="far fa-file text-base-content"></i>
         }
     }
 
@@ -125,7 +125,7 @@ export default function MediaSelector({
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold">Select Media</h3>
                     <button className="btn btn-sm btn-ghost" onClick={onClose}>
-                        <i className="fas fa-times"></i>
+                        <i className="far fa-times"></i>
                     </button>
                 </div>
                 <div className="flex items-center justify-center py-12">
@@ -140,7 +140,7 @@ export default function MediaSelector({
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">Select Media</h3>
                 <button className="btn btn-sm btn-ghost" onClick={onClose}>
-                    <i className="fas fa-times"></i>
+                    <i className="far fa-times"></i>
                 </button>
             </div>
 
@@ -153,7 +153,7 @@ export default function MediaSelector({
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <button className="btn btn-square join-item">
-                    <i className="fas fa-search"></i>
+                    <i className="far fa-search"></i>
                 </button>
             </div>
 
@@ -181,7 +181,7 @@ export default function MediaSelector({
                             {selectedItems.includes(item.id) && (
                                 <div className="absolute top-1 right-1">
                                     <div className="badge badge-primary badge-sm">
-                                        <i className="fas fa-check"></i>
+                                        <i className="far fa-check"></i>
                                     </div>
                                 </div>
                             )}
@@ -195,7 +195,7 @@ export default function MediaSelector({
 
             {mediaItems.length === 0 && (
                 <div className="text-center py-8">
-                    <i className="fas fa-file text-3xl text-base-content/30 mb-2"></i>
+                    <i className="far fa-file text-3xl text-base-content/30 mb-2"></i>
                     <p className="text-base-content/70">No media files found</p>
                 </div>
             )}

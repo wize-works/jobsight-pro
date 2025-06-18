@@ -7,8 +7,9 @@ import { createCrew, getCrewsWithDetails } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";
-import Loading from "./loading";
+import Loading from "@/app/loading";
 import { useBusiness } from "@/lib/business-context";
+import ModalEdit from "./components/modal-edit";
 
 export default function CrewsList() {
     const { businessId } = useBusiness();
@@ -28,9 +29,9 @@ export default function CrewsList() {
         status?: string;
     }>({
         name: "",
-        notes: "",
         specialty: "",
         status: "active",
+        notes: "",
     });
 
     useEffect(() => {
@@ -55,25 +56,31 @@ export default function CrewsList() {
         return matchesSearchTerm && matchesStatus;
     });
 
-    const handleAddCrew = async () => {
+    const handleAddCrew = async (formData: any) => {
         setIsSubmitting(true);
+
         try {
-            const created = await createCrew(businessId, { ...newCrew } as CrewInsert);
+            const crewData = {
+                name: formData.name,
+                specialty: formData.specialty || null,
+                status: formData.status,
+                notes: formData.notes || null,
+                leader_id: formData.leader_id || null,
+            } as CrewInsert;
+
+            const created = await createCrew(businessId, crewData);
             if (created) {
-                setCrews((prev) => [...prev, created as CrewWithDetails]);
+                setCrews(prev => [...prev, created as CrewWithDetails]);
             }
 
-            setNewCrew({
-                name: "",
-                notes: "",
-                specialty: "",
-                status: "active",
-            });
             toast.success("Crew created successfully!");
             setShowAddCrewModal(false);
-        } catch (error) {
+            return { success: true };
+        }
+        catch (error) {
             toast.error("Error creating crew. Please try again.");
             console.error("Error creating crew:", error);
+            throw error;
         } finally {
             setIsSubmitting(false);
         }
@@ -97,7 +104,7 @@ export default function CrewsList() {
             <div className="flex justify-between mb-6">
                 <h1 className="text-2xl font-bold">Crew Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddCrewModal(true)}>
-                    <i className="fas fa-plus mr-2"></i> Add Crew
+                    <i className="far fa-plus mr-2"></i> Add Crew
                 </button>
             </div>
 
@@ -150,7 +157,7 @@ export default function CrewsList() {
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
                         <label className="input input-bordered input-secondary flex items-center gap-2">
-                            <i className="fas fa-search"></i>
+                            <i className="far fa-search"></i>
                             <input
                                 type="text"
                                 placeholder="Search clients..."
@@ -164,8 +171,8 @@ export default function CrewsList() {
                             (value) => setStatusFilter(value as CrewStatus | "all")
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>
@@ -198,10 +205,10 @@ export default function CrewsList() {
                                         {crew.name}
                                         {crew.current_project_id ? (
                                             <Link href={`/dashboard/projects/${crew.current_project_id}`} className="text-primary">
-                                                <i className="fas fa-project-diagram ml-2"></i> {crew.current_project}
+                                                <i className="far fa-screwdriver-wrench ml-2"></i> {crew.current_project}
                                             </Link>
                                         ) : (
-                                            <span className="text-base-300"><i className="fas fa-project-diagram ml-2"></i> No current project</span>
+                                            <span className="text-base-300"><i className="far fa-screwdriver-wrench ml-2"></i> No current project</span>
                                         )}
                                     </td>
                                     <td><span className={`${crew.leader_id ? "text-primary" : "text-base-300"}`}>{crew.leader}</span></td>
@@ -222,7 +229,7 @@ export default function CrewsList() {
             {crews.length === 0 && (
                 <div className="card bg-base-100 shadow-sm mb-6">
                     <div className="card-body text-center">
-                        <i className="fas fa-users text-3xl text-base-content/30 mb-2"></i>
+                        <i className="far fa-users text-3xl text-base-content/30 mb-2"></i>
                         <h3 className="text-lg font-semibold">No crews found</h3>
                         <p className="text-base-content/70">Try adjusting your search or filters</p>
                         <div className="flex m-auto justify-center mt-4">
@@ -230,7 +237,7 @@ export default function CrewsList() {
                                 className="btn btn-primary"
                                 onClick={() => setShowAddCrewModal(true)}
                             >
-                                <i className="fas fa-plus mr-2"></i> Add Your First Crew
+                                <i className="far fa-plus mr-2"></i> Add Your First Crew
                             </button>
                         </div>
                     </div>
@@ -239,85 +246,12 @@ export default function CrewsList() {
 
 
             {showAddCrewModal && (
-                <dialog id="add_crew_modal" className={`modal ${showAddCrewModal ? 'modal-open' : ''}`}>
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Add New Crew</h3>
-
-                        <form className="space-y-6">
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Crew Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter crew name"
-                                    className="input input-bordered w-full"
-                                    value={newCrew.name}
-                                    onChange={(e) => setNewCrew({ ...newCrew, name: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Status</span>
-                                </label>
-                                <select
-                                    className="select select-bordered w-full"
-                                    value={newCrew.status}
-                                    onChange={(e) => setNewCrew({ ...newCrew, status: e.target.value })}
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="available">Available</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Specialty</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g., Electrical, Plumbing, etc."
-                                    className="input input-bordered w-full"
-                                    value={newCrew.specialty || ''}
-                                    onChange={(e) => setNewCrew({ ...newCrew, specialty: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Notes</span>
-                                </label>
-                                <textarea
-                                    className="textarea textarea-bordered w-full"
-                                    placeholder="Additional information about this crew"
-                                    value={newCrew.notes || ''}
-                                    onChange={(e) => setNewCrew({ ...newCrew, notes: e.target.value })}
-                                ></textarea>
-                            </div>
-                        </form>
-
-                        <div className="modal-action">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleAddCrew}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? <span className="loading loading-spinner"></span> : <><i className="fas fa-plus mr-2"></i> Create Crew</>}
-                            </button>
-                            <button
-                                className="btn"
-                                onClick={() => setShowAddCrewModal(false)}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                    <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => setShowAddCrewModal(false)}>close</button>
-                    </form>
-                </dialog>
+                <ModalEdit
+                    title="Add New Crew"
+                    loading={isSubmitting}
+                    onClose={() => setShowAddCrewModal(false)}
+                    onSubmit={handleAddCrew}
+                />
             )}
         </>
     );

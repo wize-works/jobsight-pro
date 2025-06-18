@@ -123,7 +123,7 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
                         className="btn btn-ghost btn-xs"
                         title="View Details"
                     >
-                        <i className="fas fa-eye"></i>
+                        <i className="far fa-eye"></i>
                     </Link>
                     <div className="text-xs text-base-content/50">
                         {task.created_at && formatDate(task.created_at)}

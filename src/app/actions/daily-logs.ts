@@ -109,7 +109,7 @@ export const searchDailyLogs = async (businessId: string, query: string): Promis
 };
 
 export const getDailyLogsWithDetails = async (businessId: string): Promise<DailyLogWithDetails[]> => {
-
+    console.log("Fetching daily logs with details for businessId:", businessId);
 
     const { data, error } = await fetchByBusiness("daily_logs", businessId, "*", {
         orderBy: { column: "date", ascending: false },

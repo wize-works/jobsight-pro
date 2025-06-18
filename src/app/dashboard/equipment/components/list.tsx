@@ -52,7 +52,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
             <div className="flex justify-between mb-6">
                 <h1 className="text-2xl font-bold">Equipment Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddEquipmentModal(true)}>
-                    <i className="fas fa-plus mr-2"></i> Add Equipment
+                    <i className="far fa-plus mr-2"></i> Add Equipment
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -61,7 +61,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-primary">{equipments.length}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-tools fa-lg"></i>
+                            <i className="far fa-tools fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All equipment items</div>
@@ -73,7 +73,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             {equipments.filter((item) => item.status === "in_use").length}
                         </div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-check-circle fa-lg"></i>
+                            <i className="far fa-check-circle fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Currently in use</div>
@@ -85,7 +85,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             {equipments.filter((item) => item.status === "available").length}
                         </div>
                         <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-exclamation-triangle fa-lg"></i>
+                            <i className="far fa-exclamation-triangle fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Not currently in use</div>
@@ -97,7 +97,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             {equipments.filter((item) => item.next_maintenance && new Date(item.next_maintenance) <= new Date()).length}
                         </div>
                         <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-tools fa-lg"></i>
+                            <i className="far fa-tools fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Equipment due for maintenance</div>
@@ -109,7 +109,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
-                                <i className="fas fa-search"></i>
+                                <i className="far fa-search"></i>
                                 <input
                                     type="text"
                                     placeholder="Search equipment..."
@@ -144,8 +144,8 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                             ))}
                         </select>
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>
@@ -197,7 +197,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
             {filteredEquipments.length === 0 && (
                 <div className="card bg-base-100 shadow-sm mb-6">
                     <div className="card-body text-center">
-                        <i className="fas fa-excavator text-3xl text-base-content/30 mb-2"></i>
+                        <i className="far fa-excavator text-3xl text-base-content/30 mb-2"></i>
                         <h3 className="text-lg font-semibold">No equipment found</h3>
                         <p className="text-base-content/70">Try adjusting your search or filters</p>
                         <div className="flex m-auto justify-center mt-4">
@@ -205,7 +205,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                                 className="btn btn-primary"
                                 onClick={() => setShowAddEquipmentModal(true)}
                             >
-                                <i className="fas fa-plus mr-2"></i> Add Your First Equipment
+                                <i className="far fa-plus mr-2"></i> Add Your First Equipment
                             </button>
                         </div>
                     </div>

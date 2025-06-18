@@ -269,14 +269,14 @@ export default function EquipmentDetail({
                 <div>
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard/equipment" className="btn btn-ghost btn-sm">
-                            <i className="fas fa-arrow-left"></i>
+                            <i className="far fa-arrow-left"></i>
                         </Link>
                         <h1 className="text-2xl font-bold">{equipment.name}</h1>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <Link href={`/dashboard/equipment/${equipment.id}/edit`} className="btn btn-primary">
-                        <i className="fas fa-edit"></i> Edit
+                        <i className="far fa-edit"></i> Edit
                     </Link>
                     <button className="btn btn-error hidden" onClick={() => {
                         // Handle delete action here
@@ -284,7 +284,7 @@ export default function EquipmentDetail({
                             // Call delete function
                         }
                     }}>
-                        <i className="fas fa-trash"></i> Delete
+                        <i className="far fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
@@ -296,13 +296,13 @@ export default function EquipmentDetail({
                                 <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-full h-48 object-cover" />
                             ) : (
                                 <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl">
-                                    <i className="fas fa-camera fa-3x text-gray-400"></i>
+                                    <i className="far fa-camera fa-3x text-gray-400"></i>
                                 </div>
                             )}
                             <div className="absolute top-2 right-2">
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={0} role="button" className="btn btn-circle btn-sm btn-ghost bg-black/20 hover:bg-black/40 text-white">
-                                        <i className="fas fa-camera"></i>
+                                        <i className="far fa-camera"></i>
                                     </div>
                                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                         <li>
@@ -310,12 +310,12 @@ export default function EquipmentDetail({
                                                 onClick={() => setShowImageUpload(true)}
                                                 disabled={isUploadingImage}
                                             >
-                                                <i className="fas fa-upload mr-2"></i> Upload New Image
+                                                <i className="far fa-upload mr-2"></i> Upload New Image
                                             </button>
                                         </li>
                                         <li>
                                             <button onClick={() => setShowMediaSelector(true)}>
-                                                <i className="fas fa-images mr-2"></i> Choose from Media
+                                                <i className="far fa-images mr-2"></i> Choose from Media
                                             </button>
                                         </li>
                                     </ul>
@@ -353,7 +353,7 @@ export default function EquipmentDetail({
                                         setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
                                         setEquipmentLocation(businessId, { id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
                                     })}>
-                                        <i className="fas fa-map-marker-alt"></i>
+                                        <i className="far fa-map-marker-alt"></i>
                                     </button>
                                 </div>
                             </div>
@@ -377,7 +377,7 @@ export default function EquipmentDetail({
                                             })()}
                                             className="btn btn-accent btn-xs"
                                         >
-                                            <i className="fas fa-map fa-lg"></i> View on Map
+                                            <i className="far fa-map fa-lg"></i> View on Map
                                         </Link>
                                     </>
                                 )}
@@ -478,12 +478,12 @@ export default function EquipmentDetail({
                                         <span>Scan the QR code to view equipment details on your mobile device.</span>
                                         <span className="text-sm text-gray-500 mt-1">You can print the equipment details for your records.</span>
                                         <Link href={`/printables/equipment/${equipment.id}`} className="btn btn-outline btn-primary mt-2">
-                                            <i className="fas fa-print"></i> Print Details
+                                            <i className="far fa-print"></i> Print Details
                                         </Link>
                                         <span className="divider my-2">Or</span>
                                         <span className="text-sm text-gray-500 mt-1">You can also print the QR code to attach to the equipment.</span>
                                         <Link href={`/printables/equipment/${equipment.id}/qr`} className="btn btn-outline btn-sm btn-primary mt-2">
-                                            <i className="fas fa-qrcode"></i> Print QR Code
+                                            <i className="far fa-qrcode"></i> Print QR Code
                                         </Link>
                                     </div>
                                 </div>
@@ -497,7 +497,7 @@ export default function EquipmentDetail({
                                         className="btn btn-primary btn-sm"
                                         onClick={() => setShowMaintenanceModal(true)}
                                     >
-                                        <i className="fas fa-plus"></i> Add Maintenance
+                                        <i className="far fa-plus"></i> Add Maintenance
                                     </button>
                                 </div>
                                 <table className="table table-zebra table-sm w-full">
@@ -530,7 +530,7 @@ export default function EquipmentDetail({
                                                             className="btn btn-sm btn-ghost"
                                                             onClick={() => handleEditMaintenance(m)}
                                                         >
-                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
+                                                            <i className="far fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
                                                             className="btn btn-sm btn-ghost"
@@ -540,7 +540,7 @@ export default function EquipmentDetail({
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash fa-lg text-error"></i>
+                                                            <i className="far fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -566,7 +566,7 @@ export default function EquipmentDetail({
                                         className="btn btn-primary btn-sm"
                                         onClick={() => setShowUsageModal(true)}
                                     >
-                                        <i className="fas fa-plus"></i> Add Usage
+                                        <i className="far fa-plus"></i> Add Usage
                                     </button>
                                 </div>
                                 <table className="table table-zebra table-sm w-full">
@@ -601,7 +601,7 @@ export default function EquipmentDetail({
                                                             className="btn btn-sm btn-ghost"
                                                             onClick={() => handleEditUsage(u)}
                                                         >
-                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
+                                                            <i className="far fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
                                                             className="btn btn-sm btn-ghost"
@@ -611,7 +611,7 @@ export default function EquipmentDetail({
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash fa-lg text-error"></i>
+                                                            <i className="far fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -637,7 +637,7 @@ export default function EquipmentDetail({
                                         className="btn btn-primary btn-sm"
                                         onClick={() => setShowAssignmentModal(true)}
                                     >
-                                        <i className="fas fa-plus"></i> Add Assignment
+                                        <i className="far fa-plus"></i> Add Assignment
                                     </button>
                                 </div>
                                 <table className="table table-zebra table-sm w-full">
@@ -668,7 +668,7 @@ export default function EquipmentDetail({
                                                             className="btn btn-ghost btn-sm"
                                                             onClick={() => handleEditAssignment(a)}
                                                         >
-                                                            <i className="fas fa-edit fa-lg text-secondary"></i>
+                                                            <i className="far fa-edit fa-lg text-secondary"></i>
                                                         </button>
                                                         <button
                                                             className="btn btn-ghost btn-sm"
@@ -678,7 +678,7 @@ export default function EquipmentDetail({
                                                                 }
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash fa-lg text-error"></i>
+                                                            <i className="far fa-trash fa-lg text-error"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -739,10 +739,10 @@ export default function EquipmentDetail({
                                                 onClick={() => setShowMediaSelector(true)}
                                                 disabled={isLoadingMedia}
                                             >
-                                                <i className="fas fa-link mr-2"></i> Link Existing
+                                                <i className="far fa-link mr-2"></i> Link Existing
                                             </button>
                                             <Link href="/dashboard/media/upload" className="btn btn-sm btn-primary">
-                                                <i className="fas fa-upload mr-2"></i> Upload New
+                                                <i className="far fa-upload mr-2"></i> Upload New
                                             </Link>
                                         </div>
                                     </div>
@@ -765,20 +765,20 @@ export default function EquipmentDetail({
                                                         />
                                                     ) : (
                                                         <div className="flex items-center justify-center w-full h-full">
-                                                            {media.type === "video" && <i className="fas fa-play-circle text-3xl text-primary"></i>}
-                                                            {media.type === "document" && <i className="fas fa-file-alt text-3xl text-secondary"></i>}
-                                                            {media.type === "audio" && <i className="fas fa-volume-up text-3xl text-info"></i>}
+                                                            {media.type === "video" && <i className="far fa-play-circle text-3xl text-primary"></i>}
+                                                            {media.type === "document" && <i className="far fa-file-alt text-3xl text-secondary"></i>}
+                                                            {media.type === "audio" && <i className="far fa-volume-up text-3xl text-info"></i>}
                                                         </div>
                                                     )}
                                                     <div className="absolute top-2 right-2">
                                                         <div className="dropdown dropdown-end">
                                                             <div tabIndex={0} role="button" className="btn btn-ghost btn-xs btn-circle">
-                                                                <i className="fas fa-ellipsis-v"></i>
+                                                                <i className="far fa-ellipsis-v"></i>
                                                             </div>
                                                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                                 <li>
                                                                     <Link href={`/dashboard/media/${media.id}`}>
-                                                                        <i className="fas fa-eye mr-2"></i> View
+                                                                        <i className="far fa-eye mr-2"></i> View
                                                                     </Link>
                                                                 </li>
                                                                 {media.type === "image" && (
@@ -787,7 +787,7 @@ export default function EquipmentDetail({
                                                                             onClick={() => handleSetPrimaryImage(media.id)}
                                                                             disabled={isLoadingMedia}
                                                                         >
-                                                                            <i className="fas fa-star mr-2"></i> Set as Primary
+                                                                            <i className="far fa-star mr-2"></i> Set as Primary
                                                                         </button>
                                                                     </li>
                                                                 )}
@@ -795,7 +795,7 @@ export default function EquipmentDetail({
                                                                     {media.url && (
 
                                                                         <a href={media.url || "/placeholder.svg"} download target="_blank" rel="noopener noreferrer">
-                                                                            <i className="fas fa-download mr-2"></i> Download
+                                                                            <i className="far fa-download mr-2"></i> Download
                                                                         </a>
                                                                     )}
                                                                 </li>
@@ -805,7 +805,7 @@ export default function EquipmentDetail({
                                                                         className="text-error"
                                                                         disabled={isLoadingMedia}
                                                                     >
-                                                                        <i className="fas fa-unlink mr-2"></i> Remove
+                                                                        <i className="far fa-unlink mr-2"></i> Remove
                                                                     </button>
                                                                 </li>
                                                             </ul>
@@ -826,7 +826,7 @@ export default function EquipmentDetail({
 
                                     {equipmentMedia.length === 0 && !isLoadingMedia && (
                                         <div className="text-center py-8">
-                                            <i className="fas fa-images text-3xl text-base-content/30 mb-2"></i>
+                                            <i className="far fa-images text-3xl text-base-content/30 mb-2"></i>
                                             <p className="text-base-content/70">No media files linked to this equipment</p>
                                             <div className="flex justify-center gap-2 mt-4">
                                                 <button

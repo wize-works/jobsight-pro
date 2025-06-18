@@ -2,6 +2,7 @@
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { ClientUpdate } from "@/types/clients";
 import { EquipmentUpdate } from "@/types/equipment";
 import { Media, MediaInsert, MediaType, MediaUpdate } from "@/types/media";
 import { MediaLink, MediaLinkInsert } from "@/types/media_links";
@@ -525,5 +526,310 @@ export const uploadProjectMedia = async (businessId: string, projectId: string, 
     } catch (error) {
         console.error("Error uploading project media:", error);
         return false;
+    }
+};
+
+// Client Media Functions
+export const getMediaByClientId = async (businessId: string, clientId: string, type?: string): Promise<Media[]> => {
+    // First, get all media links for this client
+    const { data: linkData, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+        filter: { linked_id: clientId, linked_type: "client" },
+    });
+
+    if (linkError) {
+        console.error("Error fetching media links by client ID:", linkError);
+        return [];
+    }
+
+    if (!linkData || linkData.length === 0) {
+        return [];
+    }
+
+    const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+    if (mediaIds.length === 0) {
+        return [];
+    }
+
+    // Then get the actual media records
+    const { data: mediaData, error: mediaError } = await fetchByBusiness("media", businessId, "*", {
+        filter: {
+            id: { in: mediaIds },
+            ...(type && { type: type })
+        }
+    });
+
+    if (mediaError) {
+        console.error("Error fetching media by client ID:", mediaError);
+        return [];
+    }
+
+    return (mediaData as unknown as Media[]) || [];
+};
+
+export const linkMediaToClient = async (businessId: string, mediaId: string, clientId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        const linkData: MediaLinkInsert = {
+            id: "",
+            business_id: businessId,
+            media_id: mediaId,
+            linked_id: clientId,
+            linked_type: "client",
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        linkData.id = crypto.randomUUID();
+
+        const { error } = await insertWithBusiness("media_links", linkData, businessId);
+
+        if (error) {
+            console.error("Error linking media to client:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking media to client:", error);
+        return false;
+    }
+};
+
+export const uploadClientMedia = async (businessId: string, clientId: string, file: File, type: MediaType, description: string, tags?: string): Promise<boolean> => {
+    const { business, userId } = await withBusinessServer();
+    try {
+        // Generate upload URL
+        const uploadData = await generateUploadUrl(type, file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: description,
+            type: type === "images" ? "image" : type === "videos" ? "video" : type === "audios" ? "audio" : "file",
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to client
+        await linkMediaToClient(businessId, media.id, clientId);
+
+        // Add tags if provided
+        if (tags) {
+            const tagList = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            // Note: You might want to add tag functionality here using media-tags.ts actions
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error uploading client media:", error);
+        return false;
+    }
+};
+
+export const unlinkMediaFromClient = async (businessId: string, mediaId: string, clientId: string): Promise<boolean> => {
+    try {
+        // Find the link to delete
+        const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: {
+                media_id: mediaId,
+                linked_id: clientId,
+                linked_type: "client"
+            }
+        });
+
+        if (!existingLinks || existingLinks.length === 0) {
+            console.log("No media link found to remove");
+            return true;
+        }
+
+        // Delete the link
+        const linkToDelete = (existingLinks as unknown as MediaLink[])[0];
+        const { error } = await deleteWithBusinessCheck("media_links", linkToDelete.id, businessId);
+
+        if (error) {
+            console.error("Error unlinking media from client:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error unlinking media from client:", error);
+        return false;
+    }
+};
+
+export const getAvailableMediaForClient = async (businessId: string, clientId: string): Promise<Media[]> => {
+    try {
+        // Get all media for the business
+        const { data: allMedia, error: mediaError } = await fetchByBusiness("media", businessId, "*");
+
+        if (mediaError) {
+            console.error("Error fetching all media:", mediaError);
+            return [];
+        }
+
+        if (!allMedia || allMedia.length === 0) {
+            return [];
+        }
+
+        // Get media already linked to this client
+        const { data: linkedMedia, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: { linked_id: clientId, linked_type: "client" }
+        });
+
+        if (linkError) {
+            console.error("Error fetching linked media:", linkError);
+            return allMedia as unknown as Media[];
+        }
+
+        // Get IDs of already linked media
+        const linkedMediaIds = linkedMedia
+            ? (linkedMedia as unknown as MediaLink[]).map(link => link.media_id)
+            : [];
+
+        // Filter out already linked media
+        const availableMedia = (allMedia as unknown as Media[]).filter(
+            media => !linkedMediaIds.includes(media.id)
+        );
+
+        return availableMedia;
+    } catch (error) {
+        console.error("Error getting available media for client:", error);
+        return [];
+    }
+};
+
+export const linkExistingMediaToClient = async (businessId: string, mediaIds: string[], clientId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Link each selected media item to the client
+        for (const mediaId of mediaIds) {
+            const linkData: MediaLinkInsert = {
+                id: crypto.randomUUID(),
+                business_id: businessId,
+                media_id: mediaId,
+                linked_id: clientId,
+                linked_type: "client",
+                created_at: new Date().toISOString(),
+                created_by: userId,
+                updated_at: new Date().toISOString(),
+                updated_by: userId
+            };
+
+            const { error } = await insertWithBusiness("media_links", linkData, businessId);
+
+            if (error) {
+                console.error("Error linking existing media to client:", error);
+                return false;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking existing media to client:", error);
+        return false;
+    }
+};
+
+export const uploadClientLogo = async (businessId: string, clientId: string, file: File): Promise<{ success: boolean; logoUrl?: string }> => {
+    const { business, userId } = await withBusinessServer();
+    try {
+        // Generate upload URL for images
+        const uploadData = await generateUploadUrl("images", file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record for the logo
+        const mediaData: MediaInsert = {
+            name: `${file.name}-client-logo`,
+            description: `Logo for client`,
+            type: "image",
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to client
+        await linkMediaToClient(businessId, media.id, clientId);        // Update client logo_url
+        const clientUpdate: ClientUpdate = {
+            logo_url: uploadData.fileUrl,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        } as ClientUpdate;
+
+        const { error: updateError } = await updateWithBusinessCheck("clients", clientId, clientUpdate, businessId);
+
+        if (updateError) {
+            throw new Error("Failed to update client logo URL");
+        }
+
+        return { success: true, logoUrl: uploadData.fileUrl };
+    } catch (error) {
+        console.error("Error uploading client logo:", error);
+        return { success: false };
     }
 };

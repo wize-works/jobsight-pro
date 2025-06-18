@@ -1,26 +1,53 @@
+"use client";
+
 import { getDailyLogsWithDetails } from "@/app/actions/daily-logs";
 import { getCrews } from "@/app/actions/crews";
 import { getProjects } from "@/app/actions/projects";
-import { getEquipments } from "@/app/actions/equipments";
-import { getCrewMembers } from "@/app/actions/crew-members";
-import { Suspense } from "react";
-import dynamic from "next/dynamic";
+
 import DailyLogsList from "./components/list";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { useBusiness } from "@/lib/business-context";
+import { useEffect, useState } from "react";
+import { DailyLog, DailyLogWithDetails } from "@/types/daily-logs";
+import { Crew } from "@/types/crews";
+import { Project } from "@/types/projects";
+import Loading from "@/app/loading";
 
 
-export default async function DailyLogs() {
-    const { business } = await withBusinessServer();
-    const businessId = business.id;
+export default function DailyLogs() {
+    const [loading, setLoading] = useState(true);
+    const { businessId } = useBusiness();
+    const [logs, setLogs] = useState<DailyLogWithDetails[]>([]);
+    const [crews, setCrews] = useState<Crew[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
 
-    // Fetch data on the server
-    const [logs, crews, projects] = await Promise.all([
-        getDailyLogsWithDetails(businessId),
-        getCrews(businessId),
-        getProjects(businessId),
-    ]);
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!businessId) {
+                return;
+            }
+            // Fetch data on the server
+            const [logs, crews, projects] = await Promise.all([
+                getDailyLogsWithDetails(businessId),
+                getCrews(businessId),
+                getProjects(businessId),
+            ]);
 
+            setLogs(logs);
+            setCrews(crews);
+            setProjects(projects);
+            setLoading(false);
+        };
 
+        fetchData().catch((error) => {
+            console.error("Error fetching daily logs:", error);
+        });
+    }, [businessId]);
+
+    if (loading) {
+        return (
+            <Loading />
+        );
+    }
 
     return (
         <div className="container mx-auto">

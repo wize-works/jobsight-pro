@@ -30,7 +30,10 @@ export default function DailyLogModal({
     isOpen,
     onClose,
     onSave
-}: Omit<CreateDailyLogModalProps, 'crews' | 'projects' | 'equipments' | 'crewMembers'>) {
+}: CreateDailyLogModalProps) {
+    const { getUser, isLoading } = useKindeAuth();
+    const searchParams = useSearchParams();
+    const user = getUser();
     const { businessId } = useBusiness();
     const [crews, setCrews] = useState<Crew[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -77,15 +80,16 @@ export default function DailyLogModal({
         hours: number;
         condition: string;
     }>>([]);
-    const { getUser, isLoading } = useKindeAuth();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const user = getUser();
 
     // Fetch crews, projects, equipments, and crewMembers
     useEffect(() => {
         const fetchData = async () => {
             try {
+                if (!businessId) {
+                    console.error("No business ID found");
+                    setFetchError("Business ID is not available. Please try again later.");
+                    return;
+                }
                 setLoadingData(true);
                 const [fetchedCrews, fetchedProjects, fetchedEquipments, fetchedCrewMembers] = await Promise.all([
                     getCrews(businessId),
@@ -106,7 +110,7 @@ export default function DailyLogModal({
         };
 
         fetchData();
-    }, []);
+    }, [businessId]);
 
     // Check for AI-generated log data on component mount
     useEffect(() => {
@@ -550,7 +554,7 @@ export default function DailyLogModal({
                             onClick={handleClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -565,7 +569,7 @@ export default function DailyLogModal({
                                 className={`tab tab-sm md:tab-md gap-2 ${activeTab === "general" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("general")}
                             >
-                                <i className="fas fa-clipboard-list"></i>
+                                <i className="far fa-clipboard-list"></i>
                                 <span className="hidden md:inline">General</span>
                             </button>
                             <button
@@ -573,7 +577,7 @@ export default function DailyLogModal({
                                 className={`tab tab-sm md:tab-md gap-2 ${activeTab === "materials" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("materials")}
                             >
-                                <i className="fas fa-boxes"></i>
+                                <i className="far fa-boxes"></i>
                                 <span className="hidden md:inline">Materials</span>
                             </button>
                             <button
@@ -581,7 +585,7 @@ export default function DailyLogModal({
                                 className={`tab tab-sm md:tab-md gap-2 ${activeTab === "equipment" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("equipment")}
                             >
-                                <i className="fas fa-truck"></i>
+                                <i className="far fa-truck"></i>
                                 <span className="hidden md:inline">Equipment</span>
                             </button>
                             <button
@@ -589,7 +593,7 @@ export default function DailyLogModal({
                                 className={`tab tab-sm md:tab-md gap-2 ${activeTab === "notes" ? "tab-active" : ""}`}
                                 onClick={() => setActiveTab("notes")}
                             >
-                                <i className="fas fa-sticky-note"></i>
+                                <i className="far fa-sticky-note"></i>
                                 <span className="hidden md:inline">Notes</span>
                             </button>
                         </div>
@@ -601,7 +605,7 @@ export default function DailyLogModal({
                                 <div className="card bg-base-100 border border-base-300">
                                     <div className="card-body p-4">
                                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="fas fa-info-circle text-primary"></i>
+                                            <i className="far fa-info-circle text-primary"></i>
                                             Basic Information
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -680,7 +684,7 @@ export default function DailyLogModal({
                                 <div className="card bg-base-100 border border-base-300">
                                     <div className="card-body p-4">
                                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="fas fa-clock text-primary"></i>
+                                            <i className="far fa-clock text-primary"></i>
                                             Schedule & Hours
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -750,7 +754,7 @@ export default function DailyLogModal({
                                 <div className="card bg-base-100 border border-base-300">
                                     <div className="card-body p-4">
                                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="fas fa-cogs text-primary"></i>
+                                            <i className="far fa-cogs text-primary"></i>
                                             Work Details
                                         </h3>
                                         <div className="space-y-4">
@@ -840,7 +844,7 @@ export default function DailyLogModal({
                                     <div className="card-body p-4">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                <i className="fas fa-boxes text-primary"></i>
+                                                <i className="far fa-boxes text-primary"></i>
                                                 Materials Used
                                             </h3>
                                             <button
@@ -849,14 +853,14 @@ export default function DailyLogModal({
                                                 onClick={addMaterial}
                                                 disabled={loading}
                                             >
-                                                <i className="fas fa-plus"></i>
+                                                <i className="far fa-plus"></i>
                                                 Add Material
                                             </button>
                                         </div>
 
                                         {materials.length === 0 ? (
                                             <div className="text-center py-8">
-                                                <i className="fas fa-boxes text-4xl text-base-content/30 mb-2"></i>
+                                                <i className="far fa-boxes text-4xl text-base-content/30 mb-2"></i>
                                                 <p className="text-base-content/70">No materials added yet</p>
                                                 <p className="text-sm text-base-content/50">Click "Add Material" to track materials used</p>
                                             </div>
@@ -872,7 +876,7 @@ export default function DailyLogModal({
                                                                 onClick={() => removeMaterial(index)}
                                                                 disabled={loading}
                                                             >
-                                                                <i className="fas fa-trash"></i>
+                                                                <i className="far fa-trash"></i>
                                                             </button>
                                                         </div>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
@@ -950,7 +954,7 @@ export default function DailyLogModal({
                                     <div className="card-body p-4">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                <i className="fas fa-truck text-primary"></i>
+                                                <i className="far fa-truck text-primary"></i>
                                                 Equipment Used
                                             </h3>
                                             <button
@@ -959,14 +963,14 @@ export default function DailyLogModal({
                                                 onClick={addEquipment}
                                                 disabled={loading}
                                             >
-                                                <i className="fas fa-plus"></i>
+                                                <i className="far fa-plus"></i>
                                                 Add Equipment
                                             </button>
                                         </div>
 
                                         {equipment.length === 0 ? (
                                             <div className="text-center py-8">
-                                                <i className="fas fa-truck text-4xl text-base-content/30 mb-2"></i>
+                                                <i className="far fa-truck text-4xl text-base-content/30 mb-2"></i>
                                                 <p className="text-base-content/70">No equipment added yet</p>
                                                 <p className="text-sm text-base-content/50">Click "Add Equipment" to track equipment used</p>
                                             </div>
@@ -982,7 +986,7 @@ export default function DailyLogModal({
                                                                 onClick={() => removeEquipment(index)}
                                                                 disabled={loading}
                                                             >
-                                                                <i className="fas fa-trash"></i>
+                                                                <i className="far fa-trash"></i>
                                                             </button>
                                                         </div>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1089,7 +1093,7 @@ export default function DailyLogModal({
                                 <div className="card bg-base-100 border border-base-300">
                                     <div className="card-body p-4">
                                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="fas fa-sticky-note text-primary"></i>
+                                            <i className="far fa-sticky-note text-primary"></i>
                                             Additional Notes
                                         </h3>
                                         <div className="form-control">
@@ -1117,7 +1121,7 @@ export default function DailyLogModal({
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -1143,7 +1147,7 @@ export default function DailyLogModal({
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-plus"></i>
+                                    <i className="far fa-plus"></i>
                                     Create Daily Log
                                 </>
                             )}

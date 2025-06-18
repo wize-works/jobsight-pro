@@ -37,7 +37,7 @@ export default function Pricing() {
                                     <ul className="space-y-6">
                                         {plan.features.map((feature, index) => (
                                             <li key={index} className="flex items-start">
-                                                <i className="fas fa-check text-success mt-1 mr-2"></i>
+                                                <i className="far fa-check text-success mt-1 mr-2"></i>
                                                 <span>{feature}</span>
                                             </li>
                                         ))}

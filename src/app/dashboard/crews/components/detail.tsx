@@ -3,21 +3,25 @@
 import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CrewWithDetails } from "@/types/crews";
+import type { Crew, CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
-import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
+import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentUpdate, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
 import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
-import { createProjectCrew } from "@/app/actions/project-crews";
-import { updateEquipmentAssignment, deleteEquipmentAssignment } from "@/app/actions/equipment-assignments";
-import { Project } from "@/types/projects";
-import { ProjectCrewInsert } from "@/types/project-crews";
+import { createProjectCrew, updateProjectCrew, deleteProjectCrew } from "@/app/actions/project-crews";
+import { updateEquipmentAssignment, deleteEquipmentAssignment, createEquipmentAssignment } from "@/app/actions/equipment-assignments";
+import { Project, projectStatusOptions } from "@/types/projects";
+import { ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { Equipment } from "@/types/equipment";
 import { create } from "domain";
-import { AssignmentModal } from "../../equipment/components/modal-assignment";
 import { useBusiness } from "@/lib/business-context";
+import ModalEdit from "./modal-edit";
+import ModalMember from "./modal-member";
+import ModalLink from "./modal-link";
+import ModalAssignment from "./modal-assignment";
+import ModalEquipment from "./modal-equipment";
 
 // Status options with colors and labels
 const statusOptions = {
@@ -71,6 +75,8 @@ export default function CrewDetailComponent({
         avatar_url: "",
     });
     const [showAddAssignmentModal, setShowAddAssignmentModal] = useState(false);
+    const [showEditAssignmentModal, setShowEditAssignmentModal] = useState(false);
+    const [editingAssignment, setEditingAssignment] = useState<any>(null);
     const [newAssignment, setNewAssignment] = useState({
         projectId: '',
         startDate: '',
@@ -79,29 +85,26 @@ export default function CrewDetailComponent({
     });
     const [editingMember, setEditingMember] = useState<CrewMember | null>(null);
     const [showEditMemberModal, setShowEditMemberModal] = useState(false);
-
-    // Equipment states
-    const [editingEquipmentAssignment, setEditingEquipmentAssignment] = useState<any | null>(null);
-    const [showEditEquipmentAssignmentModal, setShowEditEquipmentAssignmentModal] = useState(false);
-    const [showAssignEquipmentModal, setShowAssignEquipmentModal] = useState(false); // New state for assign equipment modal
+    const [showEditModal, setShowEditModal] = useState(false); // State for the new modal    // Equipment states
+    const [showEquipmentModal, setShowEquipmentModal] = useState(false); // New standardized equipment modal
+    const [editingEquipment, setEditingEquipment] = useState<any | null>(null);
     const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]); // New state for selected equipment IDs
 
     const leaderData = useMemo(() => {
         return allMembers.find((m: CrewMember) => m.id === crewLeader) || { id: "", name: "", role: "", phone: "", email: "", avatar_url: "" };
     }, [allMembers, crewLeader]);
 
-    const handleAddMember = async () => {
+    const handleAddMember = async (formData: any) => {
         const memberData = {
-            name: newMember.name,
-            role: newMember.role,
-            experience: newMember.experience,
-            phone: newMember.phone,
-            email: newMember.email,
-            avatar_url: newMember.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
+            name: formData.name,
+            role: formData.role,
+            experience: formData.experience || 0,
+            phone: formData.phone || "",
+            email: formData.email || "",
+            avatar_url: formData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
         } as CrewMemberInsert;
 
         try {
-
             const member = await createCrewMember(businessId, memberData);
 
             if (!member) {
@@ -109,6 +112,7 @@ export default function CrewDetailComponent({
                     title: "Error",
                     description: "Failed to create crew member. Please try again.",
                 });
+                throw new Error("Failed to create crew member");
             }
 
             if (member) {
@@ -119,39 +123,36 @@ export default function CrewDetailComponent({
                     description: `Added ${member.name} to the crew.`,
                 });
             }
-            setNewMember({
-                name: "",
-                role: "",
-                experience: 0,
-                phone: "",
-                email: "",
-                avatar_url: "",
-            });
+
             router.refresh();
+            return { success: true };
         } catch (error) {
             toast.error({
                 title: "Error",
                 description: "Error adding crew member. Please try again.",
             });
+            throw error;
         }
     };
 
-    const handleLinkMember = async () => {
+    const handleLinkMember = async (formData: any) => {
         try {
-            if (linkMember && linkMember.id) {
-                await addCrewMemberToCrew(businessId, crew.id, linkMember.id);
+            if (formData.memberId) {
+                await addCrewMemberToCrew(businessId, crew.id, formData.memberId);
                 toast.success({
                     title: "Success",
-                    description: `Linked ${linkMember.name} to the crew.`,
+                    description: `Linked ${formData.member?.name || 'member'} to the crew.`,
                 });
             }
-            setLinkMember(null);
+
             router.refresh();
+            return { success: true };
         } catch (error) {
             toast.error({
                 title: "Error",
                 description: "Error linking crew member. Please try again.",
             });
+            throw error;
         }
     };
 
@@ -184,32 +185,95 @@ export default function CrewDetailComponent({
                 description: "Error updating crew member. Please try again.",
             });
         }
-    };
-
-    // Add this handler for adding an assignment (mock for now)
-    const handleAddAssignment = async () => {
-        console.log("Adding assignment for crew:", crew.id, "with data:", newAssignment.projectId);
+    };    // Add this handler for adding an assignment (mock for now)
+    const handleAddAssignment = async (formData: any) => {
+        console.log("Adding assignment for crew:", crew.id, "with data:", formData.projectId);
         const projectCrewInsert = {
             crew_id: crew.id,
-            project_id: newAssignment.projectId,
-            start_date: new Date(newAssignment.startDate).toISOString(),
-            end_date: newAssignment.endDate ? new Date(newAssignment.endDate).toISOString() : null,
-            notes: newAssignment.notes,
+            project_id: formData.projectId,
+            start_date: new Date(formData.startDate).toISOString(),
+            end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+            notes: formData.notes,
         } as ProjectCrewInsert;
 
         try {
             await createProjectCrew(businessId, projectCrewInsert);
             toast.success({
                 title: "Assignment added",
-                description: `Assignment for crew scheduled from ${newAssignment.startDate} to ${newAssignment.endDate}.`,
+                description: `Assignment for crew scheduled from ${formData.startDate} to ${formData.endDate || 'ongoing'}.`,
             });
             setShowAddAssignmentModal(false);
-            setNewAssignment({ projectId: '', startDate: '', endDate: '', notes: '' });
             router.refresh();
+            return { success: true };
         } catch (error) {
             toast.error({
                 title: "Error",
                 description: "Failed to add assignment. Please try again.",
+            });
+            throw error;
+        }
+    };
+
+    // Handler for editing an assignment
+    const handleEditAssignment = async (formData: any) => {
+        if (!editingAssignment?.id) {
+            throw new Error("No assignment ID provided for editing");
+        } const projectCrewUpdate = {
+            project_id: formData.projectId,
+            start_date: new Date(formData.startDate).toISOString(),
+            end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+            notes: formData.notes,
+        } as ProjectCrewUpdate;
+
+        try {
+            await updateProjectCrew(businessId, editingAssignment.id, projectCrewUpdate);
+            toast.success({
+                title: "Assignment updated",
+                description: `Assignment updated successfully.`,
+            });
+            setShowEditAssignmentModal(false);
+            setEditingAssignment(null);
+            router.refresh();
+            return { success: true };
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to update assignment. Please try again.",
+            });
+            throw error;
+        }
+    };    // Handler to open edit assignment modal
+    const handleOpenEditAssignment = (assignment: any) => {
+        setEditingAssignment(assignment);
+        setShowEditAssignmentModal(true);
+    };
+
+    // Handler to delete assignment
+    const handleDeleteAssignment = async (assignment: any) => {
+        if (!assignment?.id) {
+            toast.error({
+                title: "Error",
+                description: "Invalid assignment ID",
+            });
+            return;
+        }
+
+        // Show confirmation dialog
+        if (!window.confirm("Are you sure you want to delete this assignment? This action cannot be undone.")) {
+            return;
+        }
+
+        try {
+            await deleteProjectCrew(businessId, assignment.id);
+            toast.success({
+                title: "Assignment deleted",
+                description: "The assignment has been successfully removed from the crew's schedule.",
+            });
+            router.refresh();
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to delete assignment. Please try again.",
             });
         }
     };
@@ -254,12 +318,70 @@ export default function CrewDetailComponent({
                 description: "Failed to update crew notes. Please try again.",
             });
         }
-    }
+    }    // Equipment Handlers
+    const handleAddEquipmentAssignment = async (formData: any) => {
+        const equipmentAssignment = {
+            crew_id: crew.id,
+            equipment_id: formData.equipmentId,
+            start_date: new Date(formData.startDate).toISOString(),
+            end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+            status: formData.status,
+            notes: formData.notes,
+        } as EquipmentAssignmentInsert;
 
-    // Equipment Handlers
+        try {
+            await createEquipmentAssignment(businessId, equipmentAssignment);
+            toast.success({
+                title: "Equipment assigned",
+                description: "Equipment has been successfully assigned to the crew.",
+            });
+            setShowEquipmentModal(false);
+            router.refresh();
+            return { success: true };
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to assign equipment. Please try again.",
+            });
+            throw error;
+        }
+    };
+
     const handleEditEquipmentAssignment = (assignment: any) => {
-        setEditingEquipmentAssignment(assignment);
-        setShowEditEquipmentAssignmentModal(true);
+        setEditingEquipment(assignment);
+        setShowEquipmentModal(true);
+    };
+
+    const handleUpdateEquipmentAssignment = async (formData: any) => {
+        if (!editingEquipment?.id) {
+            throw new Error("No equipment assignment ID provided for editing");
+        }
+
+        const equipmentAssignmentUpdate = {
+            equipment_id: formData.equipmentId,
+            start_date: new Date(formData.startDate).toISOString(),
+            end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+            status: formData.status,
+            notes: formData.notes,
+        } as EquipmentAssignmentUpdate;
+
+        try {
+            await updateEquipmentAssignment(businessId, editingEquipment.id, equipmentAssignmentUpdate);
+            toast.success({
+                title: "Equipment assignment updated",
+                description: "Equipment assignment has been successfully updated.",
+            });
+            setShowEquipmentModal(false);
+            setEditingEquipment(null);
+            router.refresh();
+            return { success: true };
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to update equipment assignment. Please try again.",
+            });
+            throw error;
+        }
     };
 
     const handleDeleteEquipmentAssignment = async (assignmentId: string) => {
@@ -280,29 +402,9 @@ export default function CrewDetailComponent({
         }
     };
 
-    const handleUpdateEquipmentAssignment = async () => {
-        if (!editingEquipmentAssignment) return;
-
-        try {
-            await updateEquipmentAssignment(businessId, editingEquipmentAssignment.id, editingEquipmentAssignment);
-            toast({
-                title: "Success",
-                description: "Equipment assignment updated successfully.",
-            });
-            setShowEditEquipmentAssignmentModal(false);
-            setEditingEquipmentAssignment(null);
-            router.refresh();
-        } catch (error) {
-            toast.error({
-                title: "Error",
-                description: "Failed to update equipment assignment. Please try again.",
-            });
-        }
-    };
-
     // Assign Equipment Functionality
     const handleOpenAssignEquipmentModal = () => {
-        setShowAssignEquipmentModal(true);
+        setShowEquipmentModal(true);
     };
 
     // Don't render until component is mounted to prevent hydration issues
@@ -314,22 +416,16 @@ export default function CrewDetailComponent({
 
     return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between mb-6">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold">{crew.name}</h1>
-                        <div className={`badge ${statusOptions[crew.status as keyof typeof statusOptions]?.color || "badge-neutral"}`}>
-                            {statusOptions[crew.status as keyof typeof statusOptions]?.label || crew.status}
-                        </div>
-                    </div>
-                    <p className="text-base-content/70 mt-1">Led by {crew.leader}</p>
-                </div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
+                <Link href={`/dashboard/crews`} className="btn btn-outline mr-2">
+                    <i className="far fa-arrow-left"></i> Back to Crews
+                </Link>
                 <div className="flex gap-2">
-                    <Link className="btn btn-outline btn-sm" href={`/dashboard/crews/${crew.id}/edit`}>
-                        <i className="fas fa-edit mr-2"></i> Edit Crew
-                    </Link>
-                    <button className="btn btn-primary btn-sm" onClick={() => setShowAddMemberModal(true)}>
-                        <i className="fas fa-user-plus mr-2"></i> Add Member
+                    <button className="btn btn-outline" onClick={() => setShowEditModal(true)}>
+                        <i className="far fa-edit mr-2"></i> Edit Crew
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setShowAddMemberModal(true)}>
+                        <i className="far fa-user-plus mr-2"></i> Add Member
                     </button>
                 </div>
             </div>
@@ -348,8 +444,8 @@ export default function CrewDetailComponent({
                                 <div>
                                     <h3 className="font-semibold">{leaderData.name}</h3>
                                     <p className="text-sm opacity-70">{leaderData.role}</p>
-                                    <p className="text-sm text-primary"><i className="fas fa-phone fa-fw mr-2"></i><Link href={`tel:${leaderData.phone}`}>{leaderData.phone}</Link></p>
-                                    <p className="text-sm text-primary"><i className="fas fa-envelope fa-fw mr-2"></i><Link href={`mailto:${leaderData.email}`}>{leaderData.email}</Link></p>
+                                    <p className="text-sm text-primary"><i className="far fa-phone fa-fw mr-2"></i><Link href={`tel:${leaderData.phone}`}>{leaderData.phone}</Link></p>
+                                    <p className="text-sm text-primary"><i className="far fa-envelope fa-fw mr-2"></i><Link href={`mailto:${leaderData.email}`}>{leaderData.email}</Link></p>
                                 </div>
                             </div>
 
@@ -392,7 +488,7 @@ export default function CrewDetailComponent({
 
                             <div className="mt-4">
                                 <button className="btn btn-primary btn-sm" onClick={() => { handleUpdateNotes(); }}>
-                                    <i className="fas fa-save mr-2"></i> Save Notes
+                                    <i className="far fa-save mr-2"></i> Save Notes
                                 </button>
                             </div>
                         </div>
@@ -403,6 +499,17 @@ export default function CrewDetailComponent({
                     <div className="order-1 md:order-1">
                         <div className="card bg-base-100 shadow-sm">
                             <div className="card-body">
+                                <div className="flex flex-col md:flex-row justify-between mb-6">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h1 className="text-2xl font-bold">{crew.name}</h1>
+                                            <div className={`badge ${statusOptions[crew.status as keyof typeof statusOptions]?.color || "badge-neutral"}`}>
+                                                {statusOptions[crew.status as keyof typeof statusOptions]?.label || crew.status}
+                                            </div>
+                                        </div>
+                                        <p className="text-base-content/70 mt-1">Led by {crew.leader}</p>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
                                         <h3 className="font-semibold mb-2">Specialty</h3>
@@ -430,24 +537,24 @@ export default function CrewDetailComponent({
                             <div className="stats stats-vertical md:stats-horizontal shadow bg-base-100 mt-6 w-full">
                                 <div className="stat">
                                     <div className="stat-figure text-primary">
-                                        <i className="fas fa-users fa-2x"></i>
+                                        <i className="far fa-users fa-2x"></i>
                                     </div>
                                     <div className="stat-title">Total Members</div>
-                                    <div className="stat-value">{crew.member_count || 0}</div>
+                                    <div className="stat-value text-primary">{crew.member_count || 0}</div>
                                 </div>
                                 <div className="stat">
                                     <div className="stat-figure text-secondary">
-                                        <i className="fas fa-project-diagram fa-2x"></i>
+                                        <i className="far fa-screwdriver-wrench fa-2x"></i>
                                     </div>
                                     <div className="stat-title">Active Projects</div>
-                                    <div className="stat-value">{crew.active_projects || 0}</div>
+                                    <div className="stat-value text-secondary">{crew.active_projects || 0}</div>
                                 </div>
                                 <div className="stat">
                                     <div className="stat-figure text-accent">
-                                        <i className="fas fa-clock fa-2x"></i>
+                                        <i className="far fa-clock fa-2x"></i>
                                     </div>
                                     <div className="stat-title">Total Hours Worked</div>
-                                    <div className="stat-value">{crew.total_hours || 0} hrs</div>
+                                    <div className="stat-value text-accent">{crew.total_hours || 0} hrs</div>
                                 </div>
                             </div>
                         </div>
@@ -475,10 +582,10 @@ export default function CrewDetailComponent({
                                         <h3 className="text-lg font-semibold">Crew Members</h3>
                                         <div className="flex gap-2">
                                             <button className="btn btn-sm btn-primary" onClick={() => setShowAddMemberModal(true)}>
-                                                <i className="fas fa-user-plus mr-2"></i> Add New Member
+                                                <i className="far fa-user-plus mr-2"></i> Add New Member
                                             </button>
                                             <button className="btn btn-sm btn-secondary" onClick={() => setShowLinkMemberModal(true)}>
-                                                <i className="fas fa-edit mr-2"></i> Link Crew Member
+                                                <i className="far fa-edit mr-2"></i> Link Crew Member
                                             </button>
                                         </div>
                                     </div>
@@ -525,7 +632,7 @@ export default function CrewDetailComponent({
                                                                         className="btn btn-ghost btn-xs"
                                                                         onClick={() => handleEditMember(member)}
                                                                     >
-                                                                        <i className="fas fa-edit fa-xl"></i>
+                                                                        <i className="far fa-edit fa-xl"></i>
                                                                     </button>
                                                                     <button
                                                                         className="btn btn-ghost btn-xs text-error"
@@ -536,7 +643,7 @@ export default function CrewDetailComponent({
                                                                             }
                                                                         }}
                                                                     >
-                                                                        <i className="fas fa-trash fa-xl"></i>
+                                                                        <i className="far fa-trash fa-xl"></i>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -552,7 +659,7 @@ export default function CrewDetailComponent({
                                                 className="btn btn-primary"
                                                 onClick={() => setShowAddMemberModal(true)}
                                             >
-                                                <i className="fas fa-user-plus mr-2"></i> Add First Member
+                                                <i className="far fa-user-plus mr-2"></i> Add First Member
                                             </button>
                                         </div>
                                     )}
@@ -566,7 +673,7 @@ export default function CrewDetailComponent({
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Upcoming Schedule</h3>
                                         <button className="btn btn-sm btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
-                                            <i className="fas fa-plus mr-2"></i> Add Assignment
+                                            <i className="far fa-plus mr-2"></i> Add Assignment
                                         </button>
                                     </div>
 
@@ -589,30 +696,24 @@ export default function CrewDetailComponent({
                                                             <td>
                                                                 <Link href={`/dashboard/projects/${item.project_id}`} className="text-primary">
                                                                     {item.project_name}
-                                                                    <i className="fas fa-arrow-up-right-from-square fa-fw ml-2" />
+                                                                    <i className="far fa-arrow-up-right-from-square fa-fw ml-2" />
                                                                 </Link>
                                                             </td>
                                                             <td>{item.notes}</td>
                                                             <td>{item.hours}</td>
                                                             <td>
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        className="btn btn-ghost btn-xs"
-                                                                        onClick={() => {
-                                                                            // TODO: Implement edit assignment functionality
-                                                                            console.log("Edit assignment:", item.id);
-                                                                        }}
-                                                                    >
-                                                                        <i className="fas fa-edit fa-xl"></i>
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-ghost btn-xs text-error"
-                                                                        onClick={() => {
-                                                                            // TODO: Implement delete assignment functionality
-                                                                            console.log("Delete assignment:", item.id);
-                                                                        }}
-                                                                    >
-                                                                        <i className="fas fa-trash fa-xl"></i>
+                                                                <div className="flex gap-2">                                                                    <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => {
+                                                                        handleOpenEditAssignment(item);
+                                                                    }}
+                                                                >
+                                                                    <i className="far fa-edit fa-xl"></i>
+                                                                </button>                                                                    <button
+                                                                    className="btn btn-ghost btn-xs text-error"
+                                                                    onClick={() => handleDeleteAssignment(item)}
+                                                                >
+                                                                        <i className="far fa-trash fa-xl"></i>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -623,9 +724,8 @@ export default function CrewDetailComponent({
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <p className="mb-4">No schedule items have been added yet</p>
-                                            <button className="btn btn-outline">
-                                                <i className="fas fa-plus mr-2"></i> Add First Assignment
+                                            <p className="mb-4">No schedule items have been added yet</p>                                            <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
+                                                <i className="far fa-plus mr-2"></i> Add First Assignment
                                             </button>
                                         </div>
                                     )}
@@ -637,9 +737,8 @@ export default function CrewDetailComponent({
                             <div className="card bg-base-100 shadow-sm">
                                 <div className="card-body">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Assigned Equipment</h3>
-                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
-                                            <i className="fas fa-tools mr-2"></i> Assign Equipment
+                                        <h3 className="text-lg font-semibold">Assigned Equipment</h3>                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
+                                            <i className="far fa-tools mr-2"></i> Assign Equipment
                                         </button>
                                     </div>
 
@@ -670,13 +769,13 @@ export default function CrewDetailComponent({
                                                                         className="btn btn-ghost btn-xs"
                                                                         onClick={() => handleEditEquipmentAssignment(item)}
                                                                     >
-                                                                        <i className="fas fa-edit fa-fw fa-xl"></i>
+                                                                        <i className="far fa-edit fa-fw fa-xl"></i>
                                                                     </button>
                                                                     <button
                                                                         className="btn btn-ghost btn-xs text-error"
                                                                         onClick={() => handleDeleteEquipmentAssignment(item.id)}
                                                                     >
-                                                                        <i className="fas fa-trash fa-fw fa-xl"></i>
+                                                                        <i className="far fa-trash fa-fw fa-xl"></i>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -687,9 +786,8 @@ export default function CrewDetailComponent({
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <p className="mb-4">No equipment has been assigned to this crew yet</p>
-                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
-                                                <i className="fas fa-tools mr-2"></i> Assign First Equipment
+                                            <p className="mb-4">No equipment has been assigned to this crew yet</p>                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
+                                                <i className="far fa-tools mr-2"></i> Assign First Equipment
                                             </button>
                                         </div>
                                     )}
@@ -723,7 +821,7 @@ export default function CrewDetailComponent({
                                                 ))}
                                             </select>
                                             <button className="btn btn-sm btn-outline">
-                                                <i className="fas fa-filter mr-2"></i> Filter
+                                                <i className="far fa-filter mr-2"></i> Filter
                                             </button>
                                         </div>
                                     </div>
@@ -768,220 +866,31 @@ export default function CrewDetailComponent({
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    {/* Add Member Modal */}
+                    </div>                    {/* Add Member Modal */}
                     {showAddMemberModal && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Add New Crew Member</h3>
-                                <form className="space-y-6">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Name</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered input-secondary w-full"
-                                            value={newMember.name}
-                                            onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-                                            placeholder="Enter full name"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Role</span>
-                                        </label>
-                                        {crewMemberRoleOptions.select(
-                                            newMember.role as CrewMemberRole,
-                                            (role) => setNewMember({ ...newMember, role }),
-                                            "select-secondary w-full"
-                                        )}
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Experience</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            className="input input-bordered input-secondary w-full"
-                                            value={newMember.experience}
-                                            onChange={(e) => setNewMember({ ...newMember, experience: Number(e.target.value) })}
-                                            placeholder="e.g. 5 years"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Phone</span>
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            className="input input-bordered input-secondary w-full"
-                                            value={newMember.phone}
-                                            onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
-                                            placeholder="Phone number"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Email</span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="input input-bordered input-secondary w-full"
-                                            value={newMember.email}
-                                            onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                                            placeholder="Email address"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Avatar Url</span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="input input-bordered input-secondary w-full"
-                                            value={newMember.avatar_url || ""}
-                                            onChange={(e) => setNewMember({ ...newMember, avatar_url: e.target.value })}
-                                            placeholder="Avatar image URL"
-                                        />
-                                    </div>
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-outline" onClick={() => setShowAddMemberModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={() => {
-                                            handleAddMember();
-                                            setShowAddMemberModal(false);
-                                        }}
-                                        disabled={!newMember.name || !newMember.role}
-                                    >
-                                        Add Member
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {showLinkMemberModal && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Link Crew Member</h3>
-                                <form className="space-y4">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Crew Members</span>
-                                        </label>
-                                        <select
-                                            className="select select-bordered"
-                                            defaultValue={linkMember?.id || ""}
-                                            onChange={(e) => {
-                                                const selectedMember = allMembers.find((m) => m.id === e.target.value);
-                                                setLinkMember(selectedMember || null);
-                                            }}
-                                        >
-                                            <option value="">Select a member</option>
-                                            {allMembers.map((member) => (
-                                                <option key={member.id} value={member.id}>
-                                                    {member.name} - {member.role}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-outline" onClick={() => setShowLinkMemberModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={() => {
-                                            handleLinkMember();
-                                            setShowLinkMemberModal(false);
-                                        }}
-                                        disabled={!linkMember}
-                                    >
-                                        Link Member
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Add Assignment Modal */}
+                        <ModalMember
+                            title="Add New Crew Member"
+                            loading={false}
+                            onClose={() => setShowAddMemberModal(false)}
+                            onSubmit={handleAddMember}
+                        />
+                    )}                    {showLinkMemberModal && (
+                        <ModalLink
+                            title="Link Crew Member"
+                            loading={false}
+                            onClose={() => setShowLinkMemberModal(false)}
+                            onSubmit={handleLinkMember}
+                            allMembers={allMembers}
+                        />
+                    )}                    {/* Add Assignment Modal */}
                     {showAddAssignmentModal && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Add Crew Assignment</h3>
-                                <form className="space-y-6">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Project</span>
-                                        </label>
-                                        <select
-                                            className="select select-bordered"
-                                            value={newAssignment.projectId}
-                                            onChange={e => setNewAssignment({ ...newAssignment, projectId: e.target.value })}
-                                        >
-                                            <option value="">Select a project</option>
-                                            {projects.map((project) => (
-                                                <option key={project.id} value={project.id}>{project.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Start Date</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="input input-bordered"
-                                            value={newAssignment.startDate}
-                                            onChange={e => setNewAssignment({ ...newAssignment, startDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">End Date</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="input input-bordered"
-                                            value={newAssignment.endDate}
-                                            onChange={e => setNewAssignment({ ...newAssignment, endDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Notes</span>
-                                        </label>
-                                        <textarea
-                                            className="textarea textarea-bordered"
-                                            value={newAssignment.notes}
-                                            onChange={e => setNewAssignment({ ...newAssignment, notes: e.target.value })}
-                                            placeholder="Assignment notes" />
-                                    </div>
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={handleAddAssignment}
-                                        disabled={!newAssignment.projectId || !newAssignment.startDate}
-                                    >
-                                        Add Assignment
-                                    </button>
-                                </div>
-                            </div>
-                            <form method="dialog" className="modal-backdrop">
-                                <button onClick={() => setShowAddAssignmentModal(false)}>close</button>
-                            </form>
-                        </div>
+                        <ModalAssignment
+                            title="Add Crew Assignment"
+                            loading={false}
+                            onClose={() => setShowAddAssignmentModal(false)}
+                            onSubmit={handleAddAssignment}
+                            projects={projects}
+                        />
                     )}
 
                     {/* Edit Member Modal */}
@@ -1053,7 +962,7 @@ export default function CrewDetailComponent({
                                 </form>
                                 <div className="modal-action">
                                     <button className="btn btn-primary" onClick={handleUpdateMember}>
-                                        <i className="fas fa-save mr-2"></i> Update Member
+                                        <i className="far fa-save mr-2"></i> Update Member
                                     </button>
                                     <button
                                         className="btn"
@@ -1072,60 +981,68 @@ export default function CrewDetailComponent({
                                     setEditingMember(null);
                                 }}>close</button>
                             </form>
-                        </div>
+                        </div>)}
+
+                    {showEditModal && (
+                        <ModalEdit
+                            title="Edit Crew"
+                            loading={false}
+                            onClose={() => setShowEditModal(false)}
+                            onSubmit={async (formData) => {
+                                // Handle form submission logic here
+                                // Example: Simulate a successful submission
+                                return { success: true };
+                            }}
+                            initialCrew={crew as Crew}
+                        />
+                    )}                    {/* Edit Assignment Modal */}
+                    {showEditAssignmentModal && editingAssignment && (
+                        <ModalAssignment
+                            title="Edit Assignment"
+                            loading={false}
+                            onClose={() => {
+                                setShowEditAssignmentModal(false);
+                                setEditingAssignment(null);
+                            }}
+                            onSubmit={handleEditAssignment}
+                            projects={projects}
+                            initialData={{
+                                id: editingAssignment.id,
+                                project_id: editingAssignment.project_id,
+                                start_date: editingAssignment.start_date,
+                                end_date: editingAssignment.end_date,
+                                notes: editingAssignment.notes,
+                                project_name: editingAssignment.project_name,
+                            }}
+                        />
                     )}
 
-                    {/* Edit Equipment Assignment Modal */}
-                    {showEditEquipmentAssignmentModal && editingEquipmentAssignment && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Edit Equipment Assignment</h3>
-                                <form className="space-y-6">
-                                    {/* Add form fields for editing equipment assignment */}
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Status</span>
-                                        </label>
-                                        {assignmentStatusOptions.select(
-                                            editingEquipmentAssignment.status,
-                                            (status) => setEditingEquipmentAssignment({ ...editingEquipmentAssignment, status }),
-                                            "select-bordered w-full"
-                                        )}
-                                    </div>
-                                    {/* Add other relevant fields for editing */}
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-primary" onClick={handleUpdateEquipmentAssignment}>
-                                        <i className="fas fa-save mr-2"></i> Update Assignment
-                                    </button>
-                                    <button
-                                        className="btn"
-                                        onClick={() => {
-                                            setShowEditEquipmentAssignmentModal(false);
-                                            setEditingEquipmentAssignment(null);
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                            <form method="dialog" className="modal-backdrop">
-                                <button onClick={() => {
-                                    setShowEditEquipmentAssignmentModal(false);
-                                    setEditingEquipmentAssignment(null);
-                                }}>close</button>
-                            </form>
-                        </div>
-                    )}
-
-                    {/* Assign Equipment Modal */}
-                    {showAssignEquipmentModal && (
-                        <AssignmentModal isOpen={showAssignEquipmentModal} assignment={{ crew_id: crew.id } as EquipmentAssignment} onClose={() => setShowAssignEquipmentModal(false)} onSave={function (assignment: EquipmentAssignment): void {
-                            throw new Error("Function not implemented.");
-                        }} />
+                    {/* Equipment Assignment Modal */}
+                    {showEquipmentModal && (
+                        <ModalEquipment
+                            title={editingEquipment ? "Edit Equipment Assignment" : "Assign Equipment"}
+                            loading={false}
+                            onClose={() => {
+                                setShowEquipmentModal(false);
+                                setEditingEquipment(null);
+                            }}
+                            onSubmit={editingEquipment ? handleUpdateEquipmentAssignment : handleAddEquipmentAssignment}
+                            equipment={allEquipment}
+                            initialData={editingEquipment ? {
+                                id: editingEquipment.id,
+                                equipment_id: editingEquipment.equipment_id,
+                                start_date: editingEquipment.start_date,
+                                end_date: editingEquipment.end_date,
+                                status: editingEquipment.status,
+                                notes: editingEquipment.notes,
+                                equipment_name: editingEquipment.equipment_name,
+                                equipment_model: editingEquipment.equipment_model,
+                                equipment_type: editingEquipment.equipment_type,
+                            } : undefined}
+                        />
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

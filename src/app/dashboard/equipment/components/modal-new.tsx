@@ -134,7 +134,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -146,7 +146,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Basic Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,7 +217,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-cogs text-primary"></i>
+                                    <i className="far fa-cogs text-primary"></i>
                                     Equipment Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -286,7 +286,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-dollar-sign text-primary"></i>
+                                    <i className="far fa-dollar-sign text-primary"></i>
                                     Financial Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -356,7 +356,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-map-marker-alt text-primary"></i>
+                                    <i className="far fa-map-marker-alt text-primary"></i>
                                     Location & Media
                                 </h3>
                                 <div className="grid grid-cols-1 gap-4">
@@ -381,7 +381,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                                 disabled={loading}
                                                 title="Get current location"
                                             >
-                                                <i className="fas fa-crosshairs"></i>
+                                                <i className="far fa-crosshairs"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -429,7 +429,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-plus"></i>
+                                    <i className="far fa-plus"></i>
                                     Create Equipment
                                 </>
                             )}

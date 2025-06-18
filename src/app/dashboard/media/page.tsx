@@ -147,15 +147,15 @@ export default function MediaLibrary() {
     const getFileIcon = (type: string) => {
         switch (type) {
             case "image":
-                return <i className="fas fa-image text-accent"></i>
+                return <i className="far fa-image text-accent"></i>
             case "video":
-                return <i className="fas fa-video text-primary"></i>
+                return <i className="far fa-video text-primary"></i>
             case "document":
-                return <i className="fas fa-file-alt text-secondary"></i>
+                return <i className="far fa-file-alt text-secondary"></i>
             case "audio":
-                return <i className="fas fa-volume-up text-info"></i>
+                return <i className="far fa-volume-up text-info"></i>
             default:
-                return <i className="fas fa-file text-base-content"></i>
+                return <i className="far fa-file text-base-content"></i>
         }
     }
 
@@ -180,12 +180,12 @@ export default function MediaLibrary() {
                 <h1 className="text-2xl font-bold">Media Library</h1>
                 <div className="flex gap-2">
                     <Link href="/dashboard/media/upload" className="btn btn-primary">
-                        <i className="fas fa-upload mr-2"></i> Upload
+                        <i className="far fa-upload mr-2"></i> Upload
                     </Link>
                     {selectedItems.length > 0 && (
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn">
-                                Actions <i className="fas fa-chevron-down ml-2"></i>
+                                Actions <i className="far fa-chevron-down ml-2"></i>
                             </div>
                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                 <li>
@@ -212,7 +212,7 @@ export default function MediaLibrary() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             <button className="btn btn-square">
-                                <i className="fas fa-search"></i>
+                                <i className="far fa-search"></i>
                             </button>
                         </div>
                     </div>
@@ -246,10 +246,10 @@ export default function MediaLibrary() {
 
                         <div className="btn-group">
                             <button className={`btn ${view === "grid" ? "btn-active" : ""}`} onClick={() => setView("grid")}>
-                                <i className="fas fa-th-large"></i>
+                                <i className="far fa-th-large"></i>
                             </button>
                             <button className={`btn ${view === "list" ? "btn-active" : ""}`} onClick={() => setView("list")}>
-                                <i className="fas fa-list"></i>
+                                <i className="far fa-list"></i>
                             </button>
                         </div>
                     </div>
@@ -270,9 +270,9 @@ export default function MediaLibrary() {
                                     <img src={item.url || "/placeholder.svg"} alt={item.name ?? ""} className="object-cover w-full h-full" />
                                 ) : (
                                     <div className="flex items-center justify-center w-full h-full">
-                                        {item.type === "video" && <i className="fas fa-play-circle text-5xl text-primary"></i>}
-                                        {item.type === "document" && <i className="fas fa-file-alt text-5xl text-secondary"></i>}
-                                        {item.type === "audio" && <i className="fas fa-volume-up text-5xl text-info"></i>}
+                                        {item.type === "video" && <i className="far fa-play-circle text-5xl text-primary"></i>}
+                                        {item.type === "document" && <i className="far fa-file-alt text-5xl text-secondary"></i>}
+                                        {item.type === "audio" && <i className="far fa-volume-up text-5xl text-info"></i>}
                                     </div>
                                 )}
                                 <div className="absolute top-2 right-2">
@@ -297,7 +297,7 @@ export default function MediaLibrary() {
                                 <div className="card-actions justify-end mt-2">
                                     <div className="dropdown dropdown-end">
                                         <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
-                                            <i className="fas fa-ellipsis-v"></i>
+                                            <i className="far fa-ellipsis-v"></i>
                                         </div>
                                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                             <li>
@@ -370,7 +370,7 @@ export default function MediaLibrary() {
                                     <td>
                                         <div className="dropdown dropdown-end">
                                             <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
-                                                <i className="fas fa-ellipsis-v"></i>
+                                                <i className="far fa-ellipsis-v"></i>
                                             </div>
                                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                 <li>
@@ -396,7 +396,7 @@ export default function MediaLibrary() {
 
             {filteredMedia.length === 0 && !loading && (
                 <div className="text-center py-12">
-                    <i className="fas fa-file text-4xl text-base-content/30 mb-4"></i>
+                    <i className="far fa-file text-4xl text-base-content/30 mb-4"></i>
                     <p className="text-base-content/70">No media files found</p>
                     <Link href="/dashboard/media/upload" className="btn btn-primary mt-4">
                         Upload First File

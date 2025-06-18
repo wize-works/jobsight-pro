@@ -144,7 +144,7 @@ export default function EditInvoiceForm({
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
                     <Link href={`/dashboard/invoices/${invoiceId}`} className="btn btn-ghost btn-sm">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="far fa-arrow-left"></i>
                     </Link>
                     <h1 className="text-2xl font-bold">Edit Invoice {invoice.invoice_number} {invoiceStatusOptions.badge(status as InvoiceStatus)}</h1>
                 </div>
@@ -249,7 +249,7 @@ export default function EditInvoiceForm({
                                         onClick={addItem}
                                         disabled={isPaid}
                                     >
-                                        <i className="fas fa-plus mr-2"></i> Add Item
+                                        <i className="far fa-plus mr-2"></i> Add Item
                                     </button>
                                 </div>
                                 <div className="divider mt-0"></div>
@@ -318,7 +318,7 @@ export default function EditInvoiceForm({
                                                             onClick={() => removeItem(index)}
                                                             disabled={items.length <= 1 || isPaid}
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="far fa-trash"></i>
                                                         </button>
                                                     </td>
                                                 </tr>

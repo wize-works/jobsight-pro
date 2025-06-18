@@ -100,7 +100,7 @@ export default function BusinessPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-primary">{equipmentCount}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-tools fa-lg"></i>
+                            <i className="far fa-tools fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All equipment items</div>
@@ -110,7 +110,7 @@ export default function BusinessPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-accent">{projectCount}</div>
                         <div className="stat-icon text-accent bg-accent/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-briefcase fa-lg"></i>
+                            <i className="far fa-briefcase fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All active projects</div>
@@ -120,7 +120,7 @@ export default function BusinessPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-secondary">{userCount}</div>
                         <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-users fa-lg"></i>
+                            <i className="far fa-users fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">All team members</div>
@@ -130,7 +130,7 @@ export default function BusinessPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-info">{subscription?.plan_id}</div>
                         <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-credit-card fa-lg"></i>
+                            <i className="far fa-credit-card fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Current plan: Free</div>
@@ -160,7 +160,7 @@ export default function BusinessPage() {
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="card-title text-xl">Business Information</h2>
                                     <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                        <i className="fas fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
+                                        <i className="far fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

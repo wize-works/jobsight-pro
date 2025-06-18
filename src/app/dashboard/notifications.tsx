@@ -5,7 +5,7 @@ export const Notifications = () => {
         <div className="dropdown dropdown-end">
             <div className="indicator">
                 <div tabIndex={0} role="button" className="btn btn-circle relative">
-                    <i className="fas fa-bell"></i>
+                    <i className="far fa-bell"></i>
                     <span className="badge badge-xs badge-primary indicator-item indicator-bottom">3</span>
                 </div>
             </div>

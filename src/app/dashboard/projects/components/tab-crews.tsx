@@ -110,13 +110,13 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                                     </div>
                                     <div className="flex justify-end space-x-6">
                                         <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
-                                            <i className="fas fa-eye"></i>
+                                            <i className="far fa-eye"></i>
                                             View
                                         </Link>
                                         <button className="btn btn-sm btn-error" onClick={async () => {
                                             await removeCrewFromProject(businessId, projectId, crew.id);
                                         }}>
-                                            <i className="fas fa-user-minus"></i>
+                                            <i className="far fa-user-minus"></i>
                                             Remove
                                         </button>
                                     </div>
@@ -144,13 +144,13 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                                     </div>
                                     <div className="flex justify-end space-x-6">
                                         <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
-                                            <i className="fas fa-eye"></i>
+                                            <i className="far fa-eye"></i>
                                             View
                                         </Link>
                                         <button className="btn btn-sm btn-success" onClick={() => {
                                             // Handle crew assignment logic here
                                         }}>
-                                            <i className="fas fa-user-plus"></i>
+                                            <i className="far fa-user-plus"></i>
                                             Assign
                                         </button>
                                     </div>

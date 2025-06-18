@@ -256,7 +256,7 @@ export default function ProfilePage() {
                         onClick={handleSaveProfile}
                         disabled={isSaving}
                     >
-                        {!isSaving && <i className="fas fa-save mr-2"></i>}
+                        {!isSaving && <i className="far fa-save mr-2"></i>}
                         {isSaving ? "Saving..." : "Save Changes"}
                     </button>
                 )}
@@ -283,7 +283,7 @@ export default function ProfilePage() {
                                     ) : (
                                         <div className="avatar avatar-placeholder">
                                             <div className="bg-neutral text-neutral-content w-12 rounded-full">
-                                                <i className="fas fa-user"></i>
+                                                <i className="far fa-user"></i>
                                             </div>
                                         </div>
                                     )}
@@ -293,9 +293,9 @@ export default function ProfilePage() {
                                         className="btn btn-primary btn-circle absolute bottom-0 right-0"
                                     >
                                         {isUploadingAvatar ? (
-                                            <i className="fas fa-spinner fa-spin text-sm"></i>
+                                            <i className="far fa-spinner fa-spin text-sm"></i>
                                         ) : (
-                                            <i className="fas fa-camera text-sm"></i>
+                                            <i className="far fa-camera text-sm"></i>
                                         )}
                                     </button>
                                     <input
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                                     >
                                         {isUploadingAvatar ? (
                                             <>
-                                                <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                <i className="far fa-spinner fa-spin mr-2"></i>
                                                 Uploading...
                                             </>
                                         ) : (
@@ -395,7 +395,7 @@ export default function ProfilePage() {
                                 />
                                 <label className="label">
                                     <span className="label-text-alt text-warning">
-                                        <i className="fas fa-info-circle mr-1"></i>
+                                        <i className="far fa-info-circle mr-1"></i>
                                         Email cannot be changed directly.
                                         Contact support for assistance.
                                     </span>
@@ -727,7 +727,7 @@ export default function ProfilePage() {
                                                             )
                                                         }
                                                     >
-                                                        <i className="fas fa-paper-plane"></i>
+                                                        <i className="far fa-paper-plane"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -749,7 +749,7 @@ export default function ProfilePage() {
 
                     <div className="alert alert-error shadow-lg">
                         <div>
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <div>
                                 <h4 className="font-bold">
                                     Delete Account

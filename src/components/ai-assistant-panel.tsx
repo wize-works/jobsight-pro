@@ -233,7 +233,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center">
-                            <i className="fas fa-brain text-sm"></i>
+                            <i className="far fa-brain text-sm"></i>
                         </div>
                         <div>
                             <h3 className="font-semibold text-lg">AI Assistant</h3>
@@ -250,7 +250,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                 disabled={isProcessing}
                                 title="Clear conversation"
                             >
-                                <i className="fas fa-trash text-xs"></i>
+                                <i className="far fa-trash text-xs"></i>
                             </button>
                         )}
                         <button
@@ -258,7 +258,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                             className="btn btn-sm btn-circle btn-ghost"
                             disabled={isProcessing}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -270,7 +270,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                         {conversation.length === 0 && (
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
-                                    <i className="fas fa-brain text-2xl text-primary"></i>
+                                    <i className="far fa-brain text-2xl text-primary"></i>
                                 </div>
                                 <p className="text-lg font-medium mb-2">
                                     Hi! I'm your intelligent assistant.
@@ -308,7 +308,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                         }`}
                                 >
                                     <i
-                                        className={`fas ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
+                                        className={`far ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
                                             } text-xs text-white`}
                                     ></i>
                                 </div>
@@ -358,7 +358,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                     }`}
                                 disabled={isProcessing}
                             >
-                                <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
+                                <i className={`far ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
                             </button>
 
                             <button
@@ -366,13 +366,13 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                 className="btn btn-primary btn-sm btn-square"
                                 disabled={!textInput.trim() || isProcessing}
                             >
-                                <i className="fas fa-paper-plane"></i>
+                                <i className="far fa-paper-plane"></i>
                             </button>
                         </form>
                         {isRecording && (
                             <div className="text-center mt-2">
                                 <span className="text-xs text-error">
-                                    <i className="fas fa-circle animate-pulse mr-1"></i>
+                                    <i className="far fa-circle animate-pulse mr-1"></i>
                                     Recording... Click stop when finished
                                 </span>
                             </div>

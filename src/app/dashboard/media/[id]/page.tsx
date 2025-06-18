@@ -128,15 +128,15 @@ export default function MediaDetail() {
     const getFileIcon = (type: string) => {
         switch (type) {
             case "image":
-                return <i className="fas fa-image text-accent"></i>
+                return <i className="far fa-image text-accent"></i>
             case "video":
-                return <i className="fas fa-video text-primary"></i>
+                return <i className="far fa-video text-primary"></i>
             case "document":
-                return <i className="fas fa-file-alt text-secondary"></i>
+                return <i className="far fa-file-alt text-secondary"></i>
             case "audio":
-                return <i className="fas fa-volume-up text-info"></i>
+                return <i className="far fa-volume-up text-info"></i>
             default:
-                return <i className="fas fa-file text-base-content"></i>
+                return <i className="far fa-file text-base-content"></i>
         }
     }
 
@@ -151,7 +151,7 @@ export default function MediaDetail() {
     if (!mediaItem) {
         return (
             <div className="text-center py-12">
-                <i className="fas fa-exclamation-triangle text-4xl text-warning mb-4"></i>
+                <i className="far fa-exclamation-triangle text-4xl text-warning mb-4"></i>
                 <p className="text-lg">Media item not found</p>
                 <Link href="/dashboard/media" className="btn btn-primary mt-4">
                     Back to Media Library
@@ -165,7 +165,7 @@ export default function MediaDetail() {
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/media" className="btn btn-ghost btn-circle">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="far fa-arrow-left"></i>
                     </Link>
                     <div className="flex items-center gap-3">
                         {getFileIcon(mediaItem.type || "")}
@@ -197,7 +197,7 @@ export default function MediaDetail() {
                     ) : (
                         <>
                             <button className="btn btn-ghost" onClick={() => setIsEditing(true)}>
-                                <i className="fas fa-edit mr-2"></i> Edit
+                                <i className="far fa-edit mr-2"></i> Edit
                             </button>
                             <a
                                 href={mediaItem.url}
@@ -206,13 +206,13 @@ export default function MediaDetail() {
                                 rel="noopener noreferrer"
                                 className="btn btn-ghost"
                             >
-                                <i className="fas fa-download mr-2"></i> Download
+                                <i className="far fa-download mr-2"></i> Download
                             </a>
                             <button className="btn btn-ghost" onClick={() => setShowShareModal(true)}>
-                                <i className="fas fa-share mr-2"></i> Share
+                                <i className="far fa-share mr-2"></i> Share
                             </button>
                             <button className="btn btn-error" onClick={() => setShowDeleteModal(true)}>
-                                <i className="fas fa-trash mr-2"></i> Delete
+                                <i className="far fa-trash mr-2"></i> Delete
                             </button>
                         </>
                     )}
@@ -233,7 +233,7 @@ export default function MediaDetail() {
                                     />
                                 ) : mediaItem.type === "video" ? (
                                     <div className="text-center">
-                                        <i className="fas fa-play-circle text-6xl text-primary mb-4"></i>
+                                        <i className="far fa-play-circle text-6xl text-primary mb-4"></i>
                                         <p>Video preview not available</p>
                                         <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-4">
                                             Open Video
@@ -241,7 +241,7 @@ export default function MediaDetail() {
                                     </div>
                                 ) : mediaItem.type === "document" ? (
                                     <div className="text-center">
-                                        <i className="fas fa-file-alt text-6xl text-secondary mb-4"></i>
+                                        <i className="far fa-file-alt text-6xl text-secondary mb-4"></i>
                                         <p>Document preview not available</p>
                                         <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary mt-4">
                                             Open Document
@@ -249,7 +249,7 @@ export default function MediaDetail() {
                                     </div>
                                 ) : (
                                     <div className="text-center">
-                                        <i className="fas fa-volume-up text-6xl text-info mb-4"></i>
+                                        <i className="far fa-volume-up text-6xl text-info mb-4"></i>
                                         <p>Audio preview not available</p>
                                         <a href={mediaItem.url} target="_blank" rel="noopener noreferrer" className="btn btn-info mt-4">
                                             Play Audio
