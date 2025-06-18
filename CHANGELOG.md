@@ -1,3 +1,10 @@
+# [1.47.0](https://github.com/wize-works/jobsight-pro/compare/v1.46.0...v1.47.0) (2025-06-18)
+
+
+### Features
+
+* Add ROI Calculator component to Pricing page for enhanced user insights ([fdd515c](https://github.com/wize-works/jobsight-pro/commit/fdd515c8113a5d189a4b9059fafb007e83ae05a3))
+
 # [1.46.0](https://github.com/wize-works/jobsight-pro/compare/v1.45.0...v1.46.0) (2025-06-18)
 
 
