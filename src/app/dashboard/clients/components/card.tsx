@@ -25,9 +25,9 @@ export const ClientCard = ({ client }: {
                     </div>
                     {clientStatusOptions.badge(client.status as ClientStatus)}
                 </div>
-                <p><i className="fas fa-user fa-fw mr-2" />{client.contact_name}</p>
-                <p className="text-sm opacity-50"><i className="fas fa-envelope fa-fw mr-2" />{client.contact_email}</p>
-                <p className="text-sm opacity-50"><i className="fas fa-phone fa-fw mr-2" />{client.contact_phone}</p>
+                <p><i className="far fa-user fa-fw mr-2" />{client.contact_name}</p>
+                <p className="text-sm opacity-50"><i className="far fa-envelope fa-fw mr-2" />{client.contact_email}</p>
+                <p className="text-sm opacity-50"><i className="far fa-phone fa-fw mr-2" />{client.contact_phone}</p>
                 <div className="card-actions justify-end mt-4">
                     <Link href={`/dashboard/clients/${client.id}`} className="btn btn-sm btn-outline">
                         View Details

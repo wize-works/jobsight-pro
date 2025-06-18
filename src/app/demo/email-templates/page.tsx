@@ -238,7 +238,7 @@ export default function EmailTemplateDemo() {
 
                                         <div className="dropdown dropdown-end">
                                             <label tabIndex={0} className="btn btn-sm btn-circle btn-ghost">
-                                                <i className="fas fa-ellipsis-vertical"></i>
+                                                <i className="far fa-ellipsis-vertical"></i>
                                             </label>
                                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                 <li>
@@ -254,7 +254,7 @@ export default function EmailTemplateDemo() {
                                                             URL.revokeObjectURL(url);
                                                         }
                                                     }}>
-                                                        <i className="fas fa-download"></i>
+                                                        <i className="far fa-download"></i>
                                                         Download HTML
                                                     </a>
                                                 </li>
@@ -269,7 +269,7 @@ export default function EmailTemplateDemo() {
                                                             navigator.clipboard.writeText(emailElement.innerHTML);
                                                         }
                                                     }}>
-                                                        <i className="fas fa-copy"></i>
+                                                        <i className="far fa-copy"></i>
                                                         Copy HTML
                                                     </a>
                                                 </li>
@@ -370,7 +370,7 @@ export default function EmailTemplateDemo() {
 
                             <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
                                 <div className="flex items-start gap-3">
-                                    <i className="fas fa-lightbulb text-primary mt-1"></i>
+                                    <i className="far fa-lightbulb text-primary mt-1"></i>
                                     <div>
                                         <h4 className="font-semibold text-primary mb-2">💡 Pro Tips</h4>
                                         <ul className="text-sm text-base-content/80 space-y-1">

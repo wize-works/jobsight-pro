@@ -160,7 +160,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -172,7 +172,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Usage Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -260,7 +260,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-chart-line text-primary"></i>
+                                    <i className="far fa-chart-line text-primary"></i>
                                     Usage Metrics
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -326,7 +326,7 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
                                 </>
                             ) : (
                                 <>
-                                    <i className={usage ? "fas fa-save" : "fas fa-plus"}></i>
+                                    <i className={usage ? "far fa-save" : "far fa-plus"}></i>
                                     {usage ? 'Update Usage' : 'Create Usage'}
                                 </>
                             )}

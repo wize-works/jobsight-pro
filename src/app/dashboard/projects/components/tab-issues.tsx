@@ -7,7 +7,7 @@ export default function IssuesTab({ issues, setIssues, modalHandler }: { issues:
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-bold">Project Issues</h2>
                     <button className="btn btn-primary btn-sm" onClick={() => modalHandler(true)}>
-                        <i className="fas fa-plus mr-2"></i>Create Issue
+                        <i className="far fa-plus mr-2"></i>Create Issue
                     </button>
                 </div>
                 {
@@ -16,7 +16,7 @@ export default function IssuesTab({ issues, setIssues, modalHandler }: { issues:
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="card-title">Project Issues</h2>
                                 <button className="btn btn-primary btn-sm" onClick={() => modalHandler(true)}>
-                                    <i className="fas fa-plus mr-2"></i>Create Issue
+                                    <i className="far fa-plus mr-2"></i>Create Issue
                                 </button>
                             </div>
                             <table className="table table-zebra">

@@ -60,10 +60,14 @@ const nextConfig = {
                 ],
             },
         ];
-    },
-    // Security headers
+    },    // Security headers
     async rewrites() {
-        return [];
+        return [
+            {
+                source: '/api/media/:path*',
+                destination: 'https://stwwmediaprodwu301.blob.core.windows.net/:path*',
+            },
+        ];
     },
 };
 

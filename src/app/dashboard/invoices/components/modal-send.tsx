@@ -104,7 +104,7 @@ export default function ModalSend({ invoice, business, isOpen, onClose }: ModalS
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -116,7 +116,7 @@ export default function ModalSend({ invoice, business, isOpen, onClose }: ModalS
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-file-invoice text-primary"></i>
+                                    <i className="far fa-file-invoice text-primary"></i>
                                     Invoice Summary
                                 </h3>
                                 <div className="bg-base-50 rounded-lg p-4">
@@ -148,7 +148,7 @@ export default function ModalSend({ invoice, business, isOpen, onClose }: ModalS
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-envelope text-primary"></i>
+                                    <i className="far fa-envelope text-primary"></i>
                                     Email Configuration
                                 </h3>
                                 <div className="space-y-4">
@@ -188,7 +188,7 @@ export default function ModalSend({ invoice, business, isOpen, onClose }: ModalS
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-comment-alt text-primary"></i>
+                                    <i className="far fa-comment-alt text-primary"></i>
                                     Email Message
                                 </h3>
                                 <div className="form-control">
@@ -223,7 +223,7 @@ by JobSight Technologies`}
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-paperclip text-primary"></i>
+                                    <i className="far fa-paperclip text-primary"></i>
                                     Attachment Options
                                 </h3>
                                 <div className="form-control">
@@ -252,7 +252,7 @@ by JobSight Technologies`}
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -284,7 +284,7 @@ by JobSight Technologies`}
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-paper-plane"></i>
+                                    <i className="far fa-paper-plane"></i>
                                     Send Invoice
                                 </>
                             )}

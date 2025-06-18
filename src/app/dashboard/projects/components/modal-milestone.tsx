@@ -135,7 +135,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-flag-checkered text-primary"></i>
+                                    <i className="far fa-flag-checkered text-primary"></i>
                                     Milestone Details
                                 </h3>
                                 <div className="space-y-4">
@@ -188,7 +188,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-calendar-alt text-primary"></i>
+                                    <i className="far fa-calendar-alt text-primary"></i>
                                     Schedule & Status
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +234,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -260,7 +260,7 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                                 </>
                             ) : (
                                 <>
-                                    <i className={isEditing ? "fas fa-save" : "fas fa-plus"}></i>
+                                    <i className={isEditing ? "far fa-save" : "far fa-plus"}></i>
                                     {isEditing ? 'Update Milestone' : 'Create Milestone'}
                                 </>
                             )}

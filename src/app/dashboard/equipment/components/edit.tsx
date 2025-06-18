@@ -209,7 +209,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                     location: `Lat: ${latitude}, Lon: ${longitude}`,
                                                 }));
                                             })}>
-                                                <i className="fas fa-map-marker-alt"></i>
+                                                <i className="far fa-map-marker-alt"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -327,7 +327,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                 }}
                                                 title="Update"
                                             >
-                                                <i className="fas fa-check"></i>
+                                                <i className="far fa-check"></i>
                                             </button>
                                         </form>
                                         <button
@@ -336,7 +336,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                             onClick={() => removeSpecification(idx)}
                                             title="Remove"
                                         >
-                                            <i className="fas fa-x"></i>
+                                            <i className="far fa-x"></i>
                                         </button>
                                     </div>
                                 ))}

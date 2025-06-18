@@ -1,3 +1,4 @@
+"use client";
 import ClientDetailComponent from "../components/detail";
 import { getClientById } from "@/app/actions/clients";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
@@ -5,17 +6,46 @@ import { getClientInteractionsByClientId } from "@/app/actions/client-interactio
 import { getProjectsByClientId } from "@/app/actions/projects";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { useBusiness } from "@/lib/business-context";
+import { useEffect, useState } from "react";
+import { ClientInteraction } from "@/types/client-interactions";
+import { ClientContact } from "@/types/client-contacts";
+import { Project } from "@/types/projects";
+import { Client } from "@/types/clients";
 
-export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id: clientId } = await params;
-    const { businessId } = await useBusiness();
+export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
+    const { businessId } = useBusiness();
+    const [loading, setLoading] = useState(true);
+    const [client, setClient] = useState<Client>({} as Client);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [contacts, setContacts] = useState<ClientContact[]>([]);
+    const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
 
-    const [client, projects, contacts, interactions] = await Promise.all([
-        getClientById(businessId, clientId),
-        getProjectsByClientId(businessId, clientId),
-        getClientContactsByClientId(businessId, clientId),
-        getClientInteractionsByClientId(businessId, clientId)
-    ]);
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!businessId) {
+                return;
+            }
+            setLoading(true);
+            const { id } = await params;
+            try {
+                const [clientData, projectsData, contactsData, interactionsData] = await Promise.all([
+                    getClientById(businessId, id),
+                    getProjectsByClientId(businessId, id),
+                    getClientContactsByClientId(businessId, id),
+                    getClientInteractionsByClientId(businessId, id)
+                ]);
+                setClient(clientData);
+                setProjects(projectsData);
+                setContacts(contactsData);
+                setInteractions(interactionsData);
+            } catch (error) {
+                console.error("Error fetching client data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [params, businessId]);
 
     if (!client) {
         return (

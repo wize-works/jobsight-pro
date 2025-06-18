@@ -172,7 +172,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     <p className="text-base-content/70">Manage and track task progress</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowAddTaskModal(true)}>
-                    <i className="fas fa-plus mr-2"></i> Add New Task
+                    <i className="far fa-plus mr-2"></i> Add New Task
                 </button>
             </div>
 
@@ -181,7 +181,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-figure text-primary">
                         <div className="bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-tasks fa-lg"></i>
+                            <i className="far fa-tasks fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-title">Total Tasks</div>
@@ -191,7 +191,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-figure text-success">
                         <div className="bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-check-circle fa-lg"></i>
+                            <i className="far fa-check-circle fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-title">Completed</div>
@@ -201,7 +201,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-figure text-info">
                         <div className="bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-play-circle fa-lg"></i>
+                            <i className="far fa-play-circle fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-title">In Progress</div>
@@ -211,7 +211,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                 <div className="stat bg-base-100 shadow-sm">
                     <div className="stat-figure text-error">
                         <div className="bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-exclamation-triangle fa-lg"></i>
+                            <i className="far fa-exclamation-triangle fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-title">Overdue</div>
@@ -226,7 +226,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                     <div className="flex flex-col lg:flex-row gap-4">
                         {/* Search */}
                         <label className="input input-secondary">
-                            <i className="fas fa-search"></i>
+                            <i className="far fa-search"></i>
                             <input
                                 type="text"
                                 placeholder="Search tasks..."
@@ -270,8 +270,8 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
 
                         {/* View Toggle */}
                         <div className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "kanban" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("kanban")}> <i className="fas fa-chart-kanban"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "kanban" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("kanban")}> <i className="far fa-chart-kanban"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>
@@ -297,7 +297,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                         >
                                             Task Name
                                             {sortBy === "name" && (
-                                                <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
+                                                <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
                                             )}
                                         </th>
                                         <th>Project</th>
@@ -310,7 +310,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                         >
                                             Due Date
                                             {sortBy === "end_date" && (
-                                                <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
+                                                <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
                                             )}
                                         </th>
                                         <th>Progress</th>
@@ -371,14 +371,14 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                                             onClick={() => handleEditTask(task)}
                                                             title="Edit Task"
                                                         >
-                                                            <i className="fas fa-edit"></i>
+                                                            <i className="far fa-edit"></i>
                                                         </button>
                                                         <button
                                                             className="btn btn-ghost btn-xs text-error"
                                                             onClick={() => handleDeleteTask(task.id)}
                                                             title="Delete Task"
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="far fa-trash"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -388,7 +388,7 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
                                         <tr>
                                             <td colSpan={8} className="text-center py-4">
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <i className="fas fa-tasks text-4xl text-base-content/30"></i>
+                                                    <i className="far fa-tasks text-4xl text-base-content/30"></i>
                                                     <p className="text-base-content/70">No tasks found</p>
                                                     <p className="text-sm text-base-content/50">Try adjusting your filters or create a new task</p>
                                                 </div>

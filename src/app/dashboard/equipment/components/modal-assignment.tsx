@@ -182,7 +182,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -194,7 +194,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Assignment Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -303,7 +303,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-sticky-note text-primary"></i>
+                                    <i className="far fa-sticky-note text-primary"></i>
                                     Additional Notes
                                 </h3>
                                 <div className="form-control">
@@ -343,7 +343,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         </>
                                     ) : (
                                         <>
-                                            <i className="fas fa-trash"></i>
+                                            <i className="far fa-trash"></i>
                                             Delete Assignment
                                         </>
                                     )}
@@ -372,7 +372,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                     </>
                                 ) : (
                                     <>
-                                        <i className={assignment ? "fas fa-save" : "fas fa-plus"}></i>
+                                        <i className={assignment ? "far fa-save" : "far fa-plus"}></i>
                                         {assignment ? 'Update Assignment' : 'Create Assignment'}
                                     </>
                                 )}

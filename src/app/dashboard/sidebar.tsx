@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -50,7 +51,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     )}
                     <li className="">
                         <Link href="/dashboard/projects" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-person-digging fa-fw fa-lg"></i>
+                            <i className="far fa-screwdriver-wrench fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Projects</span>}
                         </Link>
                     </li>
@@ -78,13 +79,13 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     )}
                     <li className="">
                         <Link href="/dashboard/clients" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-user-tie fa-fw fa-lg"></i>
+                            <i className="far fa-buildings fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Clients</span>}
                         </Link>
                     </li>
                     <li className="">
                         <Link href="/dashboard/crews" className="flex items-center min-h-8 p-1">
-                            <i className="far fa-user-helmet-safety fa-fw fa-lg"></i>
+                            <i className="far fa-users fa-fw fa-lg"></i>
                             {!sidebarCollapsed && <span>Crews</span>}
                         </Link>
                     </li>

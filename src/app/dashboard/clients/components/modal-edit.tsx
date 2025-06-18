@@ -79,7 +79,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -91,7 +91,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Basic Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,7 +209,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-user text-primary"></i>
+                                    <i className="far fa-user text-primary"></i>
                                     Contact Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -277,7 +277,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-map-marker-alt text-primary"></i>
+                                    <i className="far fa-map-marker-alt text-primary"></i>
                                     Address Information
                                 </h3>
                                 <div className="space-y-4">
@@ -347,7 +347,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-sticky-note text-primary"></i>
+                                    <i className="far fa-sticky-note text-primary"></i>
                                     Additional Information
                                 </h3>
                                 <div className="space-y-4">
@@ -389,7 +389,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -415,7 +415,7 @@ export default function ClientEditModal({ client, isOpen, onClose, onSubmit }: C
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-save"></i>
+                                    <i className="far fa-save"></i>
                                     Save Changes
                                 </>
                             )}

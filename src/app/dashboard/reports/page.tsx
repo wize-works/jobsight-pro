@@ -482,33 +482,33 @@ export default async function ReportsPage() {
                 <div className="flex gap-2">
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-outline">
-                            <i className="fas fa-file-export mr-2"></i> Export <i className="fas fa-chevron-down ml-2"></i>
+                            <i className="far fa-file-export mr-2"></i> Export <i className="far fa-chevron-down ml-2"></i>
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
                                 <a>
-                                    <i className="fas fa-file-pdf mr-2"></i> Export as PDF
+                                    <i className="far fa-file-pdf mr-2"></i> Export as PDF
                                 </a>
                             </li>
                             <li>
                                 <a>
-                                    <i className="fas fa-file-excel mr-2"></i> Export as Excel
+                                    <i className="far fa-file-excel mr-2"></i> Export as Excel
                                 </a>
                             </li>
                             <li>
                                 <a>
-                                    <i className="fas fa-file-csv mr-2"></i> Export as CSV
+                                    <i className="far fa-file-csv mr-2"></i> Export as CSV
                                 </a>
                             </li>
                             <li>
                                 <a>
-                                    <i className="fas fa-print mr-2"></i> Print Report
+                                    <i className="far fa-print mr-2"></i> Print Report
                                 </a>
                             </li>
                         </ul>
                     </div>
                     <Link href="/dashboard/reports/custom" className="btn btn-primary">
-                        <i className="fas fa-plus mr-2"></i> Custom Report
+                        <i className="far fa-plus mr-2"></i> Custom Report
                     </Link>
                 </div>
             </div>
@@ -523,7 +523,7 @@ export default async function ReportsPage() {
                             <ul className="menu bg-base-100 w-full p-0">
                                 <li>
                                     <a className={selectedCategory === null ? "active" : ""} onClick={() => setSelectedCategory(null)}>
-                                        <i className="fas fa-th-list"></i> All Reports
+                                        <i className="far fa-th-list"></i> All Reports
                                     </a>
                                 </li>
                                 {reportTypes.map((type) => (
@@ -533,7 +533,7 @@ export default async function ReportsPage() {
                                             onClick={() => setSelectedCategory(type.id)}
                                         >
                                             <i
-                                                className={`fas fa-${type.id === "financial"
+                                                className={`far fa-${type.id === "financial"
                                                     ? "chart-line"
                                                     : type.id === "project"
                                                         ? "project-diagram"
@@ -559,23 +559,23 @@ export default async function ReportsPage() {
                             <ul className="menu bg-base-100 w-full p-0">
                                 <li>
                                     <a>
-                                        <i className="fas fa-star text-warning"></i> Q2 Financial Summary
+                                        <i className="far fa-star text-warning"></i> Q2 Financial Summary
                                     </a>
                                 </li>
                                 <li>
                                     <a>
-                                        <i className="fas fa-star text-warning"></i> Annual Equipment Review
+                                        <i className="far fa-star text-warning"></i> Annual Equipment Review
                                     </a>
                                 </li>
                                 <li>
                                     <a>
-                                        <i className="fas fa-star text-warning"></i> Project Profitability
+                                        <i className="far fa-star text-warning"></i> Project Profitability
                                     </a>
                                 </li>
                             </ul>
                             <div className="mt-4">
                                 <Link href="/dashboard/reports/saved" className="btn btn-outline btn-sm btn-block">
-                                    <i className="fas fa-folder-open mr-2"></i> View All Saved Reports
+                                    <i className="far fa-folder-open mr-2"></i> View All Saved Reports
                                 </Link>
                             </div>
                         </div>
@@ -598,7 +598,7 @@ export default async function ReportsPage() {
                                         <div className="card-body p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="bg-primary bg-opacity-20 p-3 rounded-full">
-                                                    <i className={`fas fa-${template.icon} text-primary`}></i>
+                                                    <i className={`far fa-${template.icon} text-primary`}></i>
                                                 </div>
                                                 <h3 className="font-medium">{template.name}</h3>
                                             </div>

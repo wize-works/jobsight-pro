@@ -67,7 +67,7 @@ export default function InitializeDatabaseClient() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/settings/integrations" className="btn btn-ghost btn-sm">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="far fa-arrow-left"></i>
                     </Link>
                     <h1 className="text-2xl font-bold">Initialize Database</h1>
                 </div>
@@ -79,7 +79,7 @@ export default function InitializeDatabaseClient() {
                     <div className="divider mt-0"></div>
 
                     <div className="alert alert-info mb-6">
-                        <i className="fas fa-info-circle"></i>
+                        <i className="far fa-info-circle"></i>
                         <span>
                             This will set up the JobSight Pro database schema in your Supabase instance. This includes creating
                             tables, functions, and sample data. Make sure you have configured your Supabase connection in the
@@ -106,7 +106,7 @@ export default function InitializeDatabaseClient() {
                             </div>
 
                             <div className="alert alert-warning">
-                                <i className="fas fa-exclamation-triangle"></i>
+                                <i className="far fa-exclamation-triangle"></i>
                                 <span>
                                     This operation will modify your database. It's recommended to run this on a fresh Supabase instance or
                                     one that doesn't contain existing JobSight Pro data.
@@ -133,7 +133,7 @@ export default function InitializeDatabaseClient() {
 
                     {error && (
                         <div className="alert alert-error mt-4">
-                            <i className="fas fa-exclamation-circle"></i>
+                            <i className="far fa-exclamation-circle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -141,7 +141,7 @@ export default function InitializeDatabaseClient() {
                     {isComplete && (
                         <div className="space-y-6">
                             <div className="alert alert-success">
-                                <i className="fas fa-check-circle"></i>
+                                <i className="far fa-check-circle"></i>
                                 <span>Database initialization completed successfully!</span>
                             </div>
 
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS jobsight.projects (
 
                     <div className="flex justify-end mt-4">
                         <Link href="/dashboard/settings/integrations/schema.sql" className="btn btn-outline" target="_blank">
-                            <i className="fas fa-file-code mr-2"></i> View Full Schema
+                            <i className="far fa-file-code mr-2"></i> View Full Schema
                         </Link>
                     </div>
                 </div>

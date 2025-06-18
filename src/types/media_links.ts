@@ -5,7 +5,7 @@ export type MediaLink = Database["public"]["Tables"]["media_links"]["Row"];
 export type MediaLinkInsert = Database["public"]["Tables"]["media_links"]["Insert"];
 export type MediaLinkUpdate = Database["public"]["Tables"]["media_links"]["Update"];
 
-export type MediaLinkType = "daily_log" | "equipment_assignment" | "project" | "crew" | "task" | "user" | "business";
+export type MediaLinkType = "daily_log" | "equipment_assignment" | "project" | "crew" | "task" | "user" | "business" | "client";
 
 export const mediaLinkTypeOptions = createOptions<MediaLinkType>({
     daily_log: { label: "Daily Log", badge: "badge-primary" },
@@ -14,5 +14,6 @@ export const mediaLinkTypeOptions = createOptions<MediaLinkType>({
     crew: { label: "Crew", badge: "badge-warning" },
     task: { label: "Task", badge: "badge-error" },
     user: { label: "User", badge: "badge-neutral" },
-    business: { label: "Business", badge: "badge-light" }
+    business: { label: "Business", badge: "badge-light" },
+    client: { label: "Client", badge: "badge-accent" }
 });

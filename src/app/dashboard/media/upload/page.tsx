@@ -237,15 +237,15 @@ export default function MediaUpload() {
         const type = getMediaTypeFromFile(file)
         switch (type) {
             case "images":
-                return <i className="fas fa-image text-accent"></i>
+                return <i className="far fa-image text-accent"></i>
             case "videos":
-                return <i className="fas fa-video text-primary"></i>
+                return <i className="far fa-video text-primary"></i>
             case "documents":
-                return <i className="fas fa-file-alt text-secondary"></i>
+                return <i className="far fa-file-alt text-secondary"></i>
             case "audios":
-                return <i className="fas fa-volume-up text-info"></i>
+                return <i className="far fa-volume-up text-info"></i>
             default:
-                return <i className="fas fa-file text-base-content"></i>
+                return <i className="far fa-file text-base-content"></i>
         }
     }
 
@@ -257,7 +257,7 @@ export default function MediaUpload() {
                     className="btn btn-ghost"
                     onClick={() => router.push("/dashboard/media")}
                 >
-                    <i className="fas fa-arrow-left mr-2"></i> Back to Library
+                    <i className="far fa-arrow-left mr-2"></i> Back to Library
                 </button>
             </div>
 
@@ -274,7 +274,7 @@ export default function MediaUpload() {
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                         >
-                            <i className="fas fa-cloud-upload-alt text-4xl text-base-content/50 mb-4"></i>
+                            <i className="far fa-cloud-upload-alt text-4xl text-base-content/50 mb-4"></i>
                             <p className="mb-2 text-lg">Drag and drop files here, or click to browse</p>
                             <p className="text-sm text-base-content/70 mb-4">
                                 Supports images, videos, documents, and audio files
@@ -333,7 +333,7 @@ export default function MediaUpload() {
                                         </>
                                     ) : (
                                         <>
-                                            <i className="fas fa-upload mr-2"></i>
+                                            <i className="far fa-upload mr-2"></i>
                                             Upload All
                                         </>
                                     )}
@@ -369,12 +369,12 @@ export default function MediaUpload() {
                                             )}
                                             {fileUpload.status === "completed" && (
                                                 <span className="badge badge-success">
-                                                    <i className="fas fa-check mr-1"></i> Complete
+                                                    <i className="far fa-check mr-1"></i> Complete
                                                 </span>
                                             )}
                                             {fileUpload.status === "error" && (
                                                 <span className="badge badge-error">
-                                                    <i className="fas fa-exclamation-triangle mr-1"></i> Error
+                                                    <i className="far fa-exclamation-triangle mr-1"></i> Error
                                                 </span>
                                             )}
                                             {fileUpload.status === "pending" && (
@@ -383,7 +383,7 @@ export default function MediaUpload() {
                                                     onClick={() => removeFile(fileUpload.id)}
                                                     disabled={uploading}
                                                 >
-                                                    <i className="fas fa-times"></i>
+                                                    <i className="far fa-times"></i>
                                                 </button>
                                             )}
                                         </div>

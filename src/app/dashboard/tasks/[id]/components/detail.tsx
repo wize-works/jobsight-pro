@@ -111,19 +111,19 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                 </div>
                 <div className="flex gap-2">
                     <Link href="/dashboard/tasks" className="btn btn-ghost">
-                        <i className="fas fa-arrow-left mr-2"></i> Back to Tasks
+                        <i className="far fa-arrow-left mr-2"></i> Back to Tasks
                     </Link>
                     <button
                         className="btn btn-primary"
                         onClick={() => setIsEditing(true)}
                     >
-                        <i className="fas fa-edit mr-2"></i> Edit
+                        <i className="far fa-edit mr-2"></i> Edit
                     </button>
                     <button
                         className="btn btn-error"
                         onClick={handleDeleteTask}
                     >
-                        <i className="fas fa-trash mr-2"></i> Delete
+                        <i className="far fa-trash mr-2"></i> Delete
                     </button>
                 </div>
             </div>

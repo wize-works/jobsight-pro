@@ -186,7 +186,7 @@ export default function ProjectModal({
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -198,7 +198,7 @@ export default function ProjectModal({
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Basic Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -310,7 +310,7 @@ export default function ProjectModal({
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-dollar-sign text-primary"></i>
+                                    <i className="far fa-dollar-sign text-primary"></i>
                                     Financial Details
                                 </h3>
                                 <div className="form-control">
@@ -319,7 +319,7 @@ export default function ProjectModal({
                                     </label>
                                     <div className="input-group">
                                         <label className="input input-secondary">
-                                            <i className="fas fa-dollar-sign text-secondary mr-2"></i>
+                                            <i className="far fa-dollar-sign text-secondary mr-2"></i>
                                             <input
                                                 type="number"
                                                 name="budget"
@@ -341,7 +341,7 @@ export default function ProjectModal({
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-calendar-alt text-primary"></i>
+                                    <i className="far fa-calendar-alt text-primary"></i>
                                     Schedule & Location
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -393,7 +393,7 @@ export default function ProjectModal({
                                             disabled={loading}
                                             title="Use current location"
                                         >
-                                            <i className="fas fa-map-marker-alt"></i>
+                                            <i className="far fa-map-marker-alt"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -406,7 +406,7 @@ export default function ProjectModal({
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -432,7 +432,7 @@ export default function ProjectModal({
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-plus"></i>
+                                    <i className="far fa-plus"></i>
                                     Create Project
                                 </>
                             )}

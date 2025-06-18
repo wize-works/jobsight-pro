@@ -193,7 +193,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 <h2 className="text-xl font-semibold">Project not found</h2>
                 <p className="text-base-content/70">The project you are looking for does not exist.</p>
                 <Link href="/dashboard/projects" className="btn btn-primary mt-4">
-                    <i className="fas fa-arrow-left mr-2"></i> Back to Projects
+                    <i className="far fa-arrow-left mr-2"></i> Back to Projects
                 </Link>
             </div>
         );
@@ -205,17 +205,17 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 <div>
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard/projects" className="btn btn-outline">
-                            <i className="fas fa-arrow-left mr-2"></i> Back to Projects
+                            <i className="far fa-arrow-left mr-2"></i> Back to Projects
                         </Link>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <button className="btn btn-outline" onClick={() => setEditModalOpen(true)}>
-                        <i className="fas fa-edit mr-2"></i> Edit
+                        <i className="far fa-edit mr-2"></i> Edit
                     </button>
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn btn-primary">
-                            <i className="fas fa-plus mr-2"></i> Actions
+                            <i className="far fa-plus mr-2"></i> Actions
                         </label>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
@@ -239,7 +239,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     <div className="card-body p-4">
                         <div className="flex items-center gap-2">
                             <div className="rounded-full bg-primary/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="fas fa-calendar-alt fa-bounce fa-lg fa-fw text-primary"></i>
+                                <i className="far fa-calendar-alt fa-bounce fa-lg fa-fw text-primary"></i>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-lg text-base-content font-medium">Last updated {formatDate(project.updated_at || "")}</span>
@@ -252,7 +252,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     <div className="card-body p-4">
                         <div className="flex items-center gap-2">
                             <div className="rounded-full bg-accent/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="fas fa-users fa-beat fa-lg fa-fw text-accent"></i>
+                                <i className="far fa-users fa-beat fa-lg fa-fw text-accent"></i>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-lg text-base-content font-medium">Managed by {manager?.name || "Not assigned"}</span>
@@ -265,7 +265,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     <div className="card-body p-4">
                         <div className="flex items-center gap-2">
                             <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="fas fa-spinner-third fa-spin fa-lg fa-fw text-info"></i>
+                                <i className="far fa-spinner-third fa-spin fa-lg fa-fw text-info"></i>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-lg text-base-content font-medium">Progress: {progress || 0}%</span>
@@ -278,7 +278,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                     <div className="card-body p-4">
                         <div className="flex items-center gap-2">
                             <div className="rounded-full bg-success/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="fas fa-dollar-sign fa-flip fa-lg fa-fw text-success"></i>
+                                <i className="far fa-dollar-sign fa-flip fa-lg fa-fw text-success"></i>
                             </div>
 
                             <div className="flex flex-col">
@@ -321,14 +321,14 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                             {client?.contact_email && (
                                                 <p>
                                                     <a href={`mailto:${client?.contact_email}`} className="link link-primary">
-                                                        <i className="fas fa-envelope mr-1"></i>{client?.contact_email || "Not provided"}
+                                                        <i className="far fa-envelope mr-1"></i>{client?.contact_email || "Not provided"}
                                                     </a>
                                                 </p>
                                             )}
                                             {client?.contact_phone && (
                                                 <p>
                                                     <a href={`tel:${client?.contact_phone}`} className="link link-primary">
-                                                        <i className="fas fa-phone mr-1"></i>{client?.contact_phone || "Not provided"}
+                                                        <i className="far fa-phone mr-1"></i>{client?.contact_phone || "Not provided"}
                                                     </a>
                                                 </p>
                                             )}
@@ -355,7 +355,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                 //setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
                                                 //setProjectLocation({ id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
                                             })}>
-                                                <i className="fas fa-map-marker-alt"></i>
+                                                <i className="far fa-map-marker-alt"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -379,7 +379,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                     })()}
                                                     className="btn btn-accent btn-xs"
                                                 >
-                                                    <i className="fas fa-map fa-lg"></i> View on Map
+                                                    <i className="far fa-map fa-lg"></i> View on Map
                                                 </Link>
                                             </>
                                         )}
@@ -422,7 +422,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Milestones</h3>
                                         <button className="btn btn-sm btn-outline" onClick={() => setMilestoneModalOpen(true)}>
-                                            <i className="fas fa-plus mr-2"></i> Add Milestone
+                                            <i className="far fa-plus mr-2"></i> Add Milestone
                                         </button>
                                     </div>
                                     <div className="overflow-x-auto">
@@ -452,7 +452,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                                     className="btn btn-ghost btn-xs"
                                                                     onClick={() => handleEditMilestone(milestone)}
                                                                 >
-                                                                    <i className="fas fa-edit fa-lg"></i>
+                                                                    <i className="far fa-edit fa-lg"></i>
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -473,7 +473,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Recent Tasks</h3>
                                         <button className="btn btn-sm btn-outline" onClick={() => setActiveTab("tasks")}>
-                                            <i className="fas fa-eye mr-2"></i> View All
+                                            <i className="far fa-eye mr-2"></i> View All
                                         </button>
                                     </div>
                                     <div className="overflow-x-auto">
@@ -509,7 +509,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                                                     className="btn btn-ghost btn-xs"
                                                                     onClick={() => handleEditTask(task)}
                                                                 >
-                                                                    <i className="fas fa-edit fa-lg"></i>
+                                                                    <i className="far fa-edit fa-lg"></i>
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -603,22 +603,22 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                     <p>
                                         {!contact.email || contact.email === "" ?
                                             <>
-                                                <i className="fas fa-envelope mr-1"></i>Not provided
+                                                <i className="far fa-envelope mr-1"></i>Not provided
                                             </>
                                             :
                                             <a href={`mailto:${contact.email}`} className="text-sm link link-primary">
-                                                <i className="fas fa-envelope mr-1"></i>{contact.email}
+                                                <i className="far fa-envelope mr-1"></i>{contact.email}
                                             </a>
                                         }
                                     </p>
                                     <p>
                                         {!contact.phone || contact.phone === "" ?
                                             <>
-                                                <i className="fas fa-phone mr-1"></i>Not provided
+                                                <i className="far fa-phone mr-1"></i>Not provided
                                             </>
                                             :
                                             <a href={`tel:${contact.phone}`} className="text-sm link link-primary">
-                                                <i className="fas fa-phone mr-1"></i>{contact.phone}
+                                                <i className="far fa-phone mr-1"></i>{contact.phone}
                                             </a>
                                         }
                                     </p>
@@ -632,7 +632,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Assigned Crews</h3>
                                 <button className="btn btn-sm btn-primary">
-                                    <i className="fas fa-plus mr-1"></i> Assign
+                                    <i className="far fa-plus mr-1"></i> Assign
                                 </button>
                             </div>
                             {crews?.map((crew) => (

@@ -13,7 +13,7 @@ export const BottomNav = () => {
                 <span className="dock-label">Dashboard</span>
             </Link>
             <Link href="/dashboard/projects" className={`${pathname === "/dashboard/projects" ? "dock-active" : ""}`}>
-                <i className="far fa-project-diagram fa-fw"></i>
+                <i className="far fa-screwdriver-wrench fa-fw"></i>
                 <span className="dock-label">Projects</span>
             </Link>
             <Link href="/dashboard/tasks" className={`${pathname === "/dashboard/tasks" ? "dock-active" : ""}`}>
@@ -21,7 +21,7 @@ export const BottomNav = () => {
                 <span className="dock-label">Tasks</span>
             </Link>
             <Link href="/dashboard/clients" className={`${pathname.includes("/dashboard/clients") ? "dock-active" : ""}`}>
-                <i className="far fa-user-tie fa-fw"></i>
+                <i className="far fa-buildings fa-fw"></i>
                 <span className="dock-label">Clients</span>
             </Link>
             <Link href="/dashboard/more" className={`${pathname === "/dashboard/more" ? "active" : ""}`}>

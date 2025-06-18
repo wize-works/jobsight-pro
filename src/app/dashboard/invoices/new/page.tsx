@@ -232,7 +232,7 @@ export default function NewInvoicePage() {
                                 <div className="flex justify-between items-center">
                                     <h2 className="card-title">Invoice Items</h2>
                                     <button type="button" className="btn btn-sm btn-outline" onClick={addItem}>
-                                        <i className="fas fa-plus mr-2"></i> Add Item
+                                        <i className="far fa-plus mr-2"></i> Add Item
                                     </button>
                                 </div>
                                 <div className="divider mt-0"></div>
@@ -293,7 +293,7 @@ export default function NewInvoicePage() {
                                                             onClick={() => removeItem(index)}
                                                             disabled={items.length <= 1}
                                                         >
-                                                            <i className="fas fa-trash"></i>
+                                                            <i className="far fa-trash"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -414,7 +414,7 @@ export default function NewInvoicePage() {
                             </Link>
                             <div className="dropdown dropdown-top dropdown-end flex-1">
                                 <div tabIndex={0} role="button" className="btn btn-primary w-full">
-                                    Save <i className="fas fa-chevron-up ml-2"></i>
+                                    Save <i className="far fa-chevron-up ml-2"></i>
                                 </div>
                                 <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                     <li>

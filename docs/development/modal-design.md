@@ -9,7 +9,7 @@ Please update this modal component to match the exact styling and structure of o
 Use bg-primary text-primary-content p-6 rounded-t-lg
 Include title on left and close button on right with flex justify-between items-center
 Close button: btn btn-sm btn-circle btn-ghost text-primary-content hover:bg-primary-content hover:text-primary
-Use FontAwesome fas fa-times icon for close button
+Use FontAwesome far fa-times icon for close button
 Disable close button when loading
 3. Body Section:
 
@@ -37,10 +37,10 @@ Include loading states with spinner and text changes
 Disable buttons appropriately during loading
 6. Section Organization: Organize content into logical cards with these patterns:
 
-Basic Information (fas fa-info-circle text-primary)
-Details (fas fa-cogs text-primary)
-Financial/Additional (fas fa-dollar-sign text-primary)
-Location/Media (fas fa-map-marker-alt text-primary)
+Basic Information (far fa-info-circle text-primary)
+Details (far fa-cogs text-primary)
+Financial/Additional (far fa-dollar-sign text-primary)
+Location/Media (far fa-map-marker-alt text-primary)
 7. Loading States:
 
 Add loading spinner: <span className="loading loading-spinner loading-sm"></span>

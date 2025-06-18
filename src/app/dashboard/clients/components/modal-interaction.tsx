@@ -74,7 +74,7 @@ export default function InteractionModal({
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -86,7 +86,7 @@ export default function InteractionModal({
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-primary"></i>
+                                    <i className="far fa-info-circle text-primary"></i>
                                     Interaction Details
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -97,7 +97,7 @@ export default function InteractionModal({
                                         <input
                                             type="date"
                                             name="date"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={form.date}
                                             onChange={handleChange}
                                             required
@@ -110,7 +110,7 @@ export default function InteractionModal({
                                         </label>
                                         <select
                                             name="type"
-                                            className="select select-bordered select-secondary"
+                                            className="select select-bordered select-secondary w-full"
                                             value={form.type}
                                             onChange={handleChange}
                                             required
@@ -131,7 +131,7 @@ export default function InteractionModal({
                                         <input
                                             type="text"
                                             name="staff"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={form.staff}
                                             onChange={handleChange}
                                             placeholder="Enter staff member name"
@@ -145,7 +145,7 @@ export default function InteractionModal({
                                     </label>
                                     <textarea
                                         name="summary"
-                                        className="textarea textarea-bordered textarea-secondary"
+                                        className="textarea textarea-bordered textarea-secondary w-full"
                                         value={form.summary}
                                         onChange={handleChange}
                                         placeholder="Describe the interaction details..."
@@ -161,7 +161,7 @@ export default function InteractionModal({
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-calendar-check text-primary"></i>
+                                    <i className="far fa-calendar-check text-primary"></i>
                                     Follow-up Information
                                 </h3>
                                 <div className="grid grid-cols-1 gap-4">
@@ -172,7 +172,7 @@ export default function InteractionModal({
                                         <input
                                             type="date"
                                             name="follow_up_date"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={form.follow_up_date}
                                             onChange={handleChange}
                                             disabled={loading}
@@ -184,7 +184,7 @@ export default function InteractionModal({
                                         </label>
                                         <textarea
                                             name="follow_up_task"
-                                            className="textarea textarea-bordered textarea-secondary"
+                                            className="textarea textarea-bordered textarea-secondary w-full"
                                             value={form.follow_up_task}
                                             onChange={handleChange}
                                             placeholder="Describe any follow-up tasks or actions required..."
@@ -202,7 +202,7 @@ export default function InteractionModal({
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -228,7 +228,7 @@ export default function InteractionModal({
                                 </>
                             ) : (
                                 <>
-                                    <i className={interaction?.id ? "fas fa-save" : "fas fa-plus"}></i>
+                                    <i className={interaction?.id ? "far fa-save" : "far fa-plus"}></i>
                                     {interaction?.id ? 'Update Interaction' : 'Add Interaction'}
                                 </>
                             )}

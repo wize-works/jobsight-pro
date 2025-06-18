@@ -2,6 +2,7 @@
 import { ChatCompletionMessageParam } from "openai/resources";
 import { getRelevantContext } from "./context";
 import { AI_MODELS, openai } from "./client";
+import { logAIInteraction } from "./handlers/ai-logs";
 
 export async function handleAIQuery({
     businessId,
@@ -41,6 +42,19 @@ export async function handleAIQuery({
 
     // Try to extract a matched project from the latest context (if available)
     const matchedProject = extractLastMatchedProject(context); // See below
+
+    await logAIInteraction({
+        businessId,
+        userId,
+        input: message,
+        output: aiText,
+        action: "none",
+        objectType: "project",
+        objectId: matchedProject ? matchedProject.id : null,
+        model: AI_MODELS.CHAT_GPT_3_5,
+        tokensPrompt: completion.usage?.prompt_tokens || 0,
+        tokensCompletion: completion.usage?.completion_tokens || 0
+    });
 
     return {
         response: aiText,

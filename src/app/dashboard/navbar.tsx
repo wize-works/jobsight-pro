@@ -1,3 +1,4 @@
+"use client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Notifications } from "./notifications";
@@ -29,7 +30,6 @@ export const Navbar = ({
 
     useEffect(() => {
         if (!businessId || !kindeUser?.id || loading) {
-            console.error("Invalid or missing businessId or kindeUser.id");
             setUserData(null);
             setIsLoadingUser(false); // Ensure loading state is updated here
             return;
@@ -111,7 +111,7 @@ export const Navbar = ({
                     <div
                         tabIndex={0}
                         role="button"
-                        className="flex items-center gap-2 transition-colors"
+                        className="flex items-center gap-2 transition-colors mr-4"
                     >
                         <div className="avatar">
                             <div className="w-10 mask mask-circle">

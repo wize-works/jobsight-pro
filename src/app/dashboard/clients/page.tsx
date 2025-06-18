@@ -8,7 +8,6 @@ import { toast } from "@/hooks/use-toast"
 import { ClientCard } from "./components/card"
 import { v4 as uuidv4 } from "uuid"
 import { getClientsWithStats } from "@/app/actions/clients"
-import { set } from "zod"
 import Loading from "@/app/loading"
 import { useBusiness } from "@/lib/business-context"
 
@@ -57,9 +56,7 @@ export default function ClientsPage() {
             }
             setLoading(false);
         };
-        if (businessId) {
-            fetchClients();
-        }
+        fetchClients();
     }, [businessId]);
 
     const updateViewType = (type: "grid" | "list") => {
@@ -128,7 +125,7 @@ export default function ClientsPage() {
             <div className="flex justify-between mb-4">
                 <h1 className="text-2xl font-semibold">Client Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
-                    <i className="fas fa-plus mr-2"></i> Add Client
+                    <i className="far fa-plus mr-2"></i> Add Client
                 </button>
             </div>
 
@@ -138,7 +135,7 @@ export default function ClientsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-primary">{clients.length}</div>
                         <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-users fa-lg"></i>
+                            <i className="far fa-users fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Total number of clients</div>
@@ -149,7 +146,7 @@ export default function ClientsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-success">{clients.filter(c => c.status === "active").length}</div>
                         <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-user-check fa-lg"></i>
+                            <i className="far fa-user-check fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Clients currently engaged</div>
@@ -160,7 +157,7 @@ export default function ClientsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-warning">{clients.filter(c => c.status === "prospect").length}</div>
                         <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-user-clock fa-lg"></i>
+                            <i className="far fa-user-clock fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Potential clients in pipeline</div>
@@ -171,7 +168,7 @@ export default function ClientsPage() {
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-error">{clients.filter(c => c.status === "inactive").length}</div>
                         <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="fas fa-user-times fa-lg"></i>
+                            <i className="far fa-user-times fa-lg"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Clients not currently active</div>
@@ -185,7 +182,7 @@ export default function ClientsPage() {
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="w-full">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
-                                <i className="fas fa-search"></i>
+                                <i className="far fa-search"></i>
                                 <input
                                     type="text"
                                     placeholder="Search clients..."
@@ -214,8 +211,8 @@ export default function ClientsPage() {
                             (value) => setStatusFilter(value as ClientStatus | "all")
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="fas fa-grid-2"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="fas fa-table-rows"></i> </button>
+                            <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
+                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
                         </div>
                     </div>
                 </div>
@@ -286,7 +283,7 @@ export default function ClientsPage() {
                                                 View
                                             </Link>
                                             <button className="btn btn-sm btn-ghost">
-                                                <i className="fas fa-ellipsis-v"></i>
+                                                <i className="far fa-ellipsis-v"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -302,12 +299,12 @@ export default function ClientsPage() {
             {filteredClients.length === 0 && (
                 <div className="card bg-base-100 shadow-sm mb-6">
                     <div className="card-body text-center">
-                        <i className="fas fa-users text-4xl text-base-content/30 mb-4"></i>
+                        <i className="far fa-users text-4xl text-base-content/30 mb-4"></i>
                         <h3 className="text-lg font-semibold">No clients found</h3>
                         <p className="text-base-content/70">Try adjusting your search or filters</p>
                         <div className="flex m-auto justify-center mt-4">
                             <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
-                                <i className="fas fa-plus mr-2"></i> Add Your First Client
+                                <i className="far fa-plus mr-2"></i> Add Your First Client
                             </button>
                         </div>
                     </div>

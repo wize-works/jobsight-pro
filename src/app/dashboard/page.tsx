@@ -258,19 +258,19 @@ export default function Dashboard() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 md:mt-0 w-full md:w-auto">
                         <button className="btn btn-primary md:btn-sm" onClick={() => setProjectModal(true)}>
-                            <i className="fas fa-diagram-project mr-2"></i>
+                            <i className="far fa-diagram-project mr-2"></i>
                             New Projects
                         </button>
                         <button className="btn btn-secondary md:btn-sm" onClick={() => setTaskModal(true)}>
-                            <i className="fas fa-tasks mr-2"></i>
+                            <i className="far fa-tasks mr-2"></i>
                             New Tasks
                         </button>
                         <button className="btn btn-info md:btn-sm" onClick={() => setDailyLogModal(true)}>
-                            <i className="fas fa-calendar-alt mr-2"></i>
+                            <i className="far fa-calendar-alt mr-2"></i>
                             Daily Log
                         </button>
                         <button className="btn btn-accent md:btn-sm" onClick={() => setEquipmentModal(true)}>
-                            <i className="fas fa-users mr-2"></i>
+                            <i className="far fa-users mr-2"></i>
                             New Equipment
                         </button>
 
@@ -287,7 +287,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="stat bg-gradient-to-br from-primary/70 to-primary/100 text-primary-content rounded-lg shadow-lg">
                     <div className="stat-figure">
-                        <i className="fas fa-project-diagram text-3xl opacity-80"></i>
+                        <i className="far fa-screwdriver-wrench text-3xl opacity-80"></i>
                     </div>
                     <div className="stat-title text-blue-100">Active Projects</div>
                     <div className="stat-value">{dashboardData.stats.activeProjects}</div>
@@ -296,7 +296,7 @@ export default function Dashboard() {
 
                 <div className="stat bg-gradient-to-br from-secondary/70 to-secondary/100 text-secondary-content rounded-lg shadow-lg">
                     <div className="stat-figure">
-                        <i className="fas fa-tasks text-3xl opacity-80"></i>
+                        <i className="far fa-tasks text-3xl opacity-80"></i>
                     </div>
                     <div className="stat-title text-emerald-100">Pending Tasks</div>
                     <div className="stat-value">{dashboardData.stats.pendingTasks}</div>
@@ -305,7 +305,7 @@ export default function Dashboard() {
 
                 <div className="stat bg-gradient-to-br from-accent/70 to-accent/100 text-accent-content rounded-lg shadow-lg">
                     <div className="stat-figure">
-                        <i className="fas fa-tools text-3xl opacity-80"></i>
+                        <i className="far fa-tools text-3xl opacity-80"></i>
                     </div>
                     <div className="stat-title text-amber-100">Equipment Active</div>
                     <div className="stat-value">{dashboardData.stats.equipmentUtilization}%</div>
@@ -314,7 +314,7 @@ export default function Dashboard() {
 
                 <div className="stat bg-gradient-to-br from-info/70 to-info/100 text-info-content rounded-lg shadow-lg">
                     <div className="stat-figure">
-                        <i className="fas fa-dollar-sign text-3xl opacity-80"></i>
+                        <i className="far fa-dollar-sign text-3xl opacity-80"></i>
                     </div>
                     <div className="stat-title text-green-100">Revenue</div>
                     <div className="stat-value text-2xl">{formatCurrency(dashboardData.stats.totalRevenue)}</div>
@@ -327,7 +327,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-chart-pie text-primary mr-2"></i>
+                            <i className="far fa-chart-pie text-primary mr-2"></i>
                             Project Status
                         </h2>
                         <div className="h-64">
@@ -339,7 +339,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-chart-bar text-primary mr-2"></i>
+                            <i className="far fa-chart-bar text-primary mr-2"></i>
                             Task Distribution
                         </h2>
                         <div className="h-64">
@@ -351,7 +351,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-cogs text-primary mr-2"></i>
+                            <i className="far fa-cogs text-primary mr-2"></i>
                             Equipment Status
                         </h2>
                         <div className="h-64">
@@ -365,7 +365,7 @@ export default function Dashboard() {
             <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <h2 className="card-title text-lg">
-                        <i className="fas fa-chart-line text-primary mr-2"></i>
+                        <i className="far fa-chart-line text-primary mr-2"></i>
                         Financial Overview
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -398,7 +398,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-building text-primary mr-2"></i>
+                            <i className="far fa-building text-primary mr-2"></i>
                             Active Projects
                         </h2>
                         <div className="space-y-3">
@@ -426,7 +426,7 @@ export default function Dashboard() {
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-base-content/50">
-                                    <i className="fas fa-plus-circle text-4xl mb-2"></i>
+                                    <i className="far fa-plus-circle text-4xl mb-2"></i>
                                     <p>No active projects yet</p>
                                     <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
                                         Create Project
@@ -440,7 +440,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-exclamation-triangle text-warning mr-2"></i>
+                            <i className="far fa-exclamation-triangle text-warning mr-2"></i>
                             Critical Tasks
                         </h2>
                         <div className="space-y-3">
@@ -465,7 +465,7 @@ export default function Dashboard() {
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-base-content/50">
-                                    <i className="fas fa-check-circle text-4xl mb-2 text-success"></i>
+                                    <i className="far fa-check-circle text-4xl mb-2 text-success"></i>
                                     <p>All tasks are on track!</p>
                                 </div>
                             )}
@@ -479,7 +479,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-users text-primary mr-2"></i>
+                            <i className="far fa-users text-primary mr-2"></i>
                             Team Performance
                         </h2>
                         <div className="space-y-3">
@@ -500,7 +500,7 @@ export default function Dashboard() {
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-base-content/50">
-                                    <i className="fas fa-user-plus text-4xl mb-2"></i>
+                                    <i className="far fa-user-plus text-4xl mb-2"></i>
                                     <p>No teams created yet</p>
                                     <Link href="/dashboard/crews" className="btn btn-primary btn-sm mt-2">
                                         Add Teams
@@ -514,7 +514,7 @@ export default function Dashboard() {
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <h2 className="card-title text-lg mb-4">
-                            <i className="fas fa-clock text-primary mr-2"></i>
+                            <i className="far fa-clock text-primary mr-2"></i>
                             Recent Activity
                         </h2>
                         <div className="space-y-3">
@@ -533,7 +533,7 @@ export default function Dashboard() {
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-base-content/50">
-                                    <i className="fas fa-clipboard-list text-4xl mb-2"></i>
+                                    <i className="far fa-clipboard-list text-4xl mb-2"></i>
                                     <p>No recent activity</p>
                                     <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
                                         Add Daily Log

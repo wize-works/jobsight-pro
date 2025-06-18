@@ -81,7 +81,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                             onClick={onClose}
                             disabled={loading}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="far fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -93,7 +93,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-credit-card text-primary"></i>
+                                    <i className="far fa-credit-card text-primary"></i>
                                     Payment Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,7 +178,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-calculator text-primary"></i>
+                                    <i className="far fa-calculator text-primary"></i>
                                     Payment Summary
                                 </h3>
                                 <div className="bg-base-50 rounded-lg p-4">
@@ -199,7 +199,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                                     </div>
                                     {formData.amount >= total && (
                                         <div className="alert alert-success mt-3">
-                                            <i className="fas fa-check-circle"></i>
+                                            <i className="far fa-check-circle"></i>
                                             <span>This payment will mark the invoice as paid in full</span>
                                         </div>
                                     )}
@@ -211,7 +211,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="fas fa-sticky-note text-primary"></i>
+                                    <i className="far fa-sticky-note text-primary"></i>
                                     Additional Notes
                                 </h3>
                                 <div className="form-control">
@@ -237,7 +237,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
                     {error && (
                         <div className="alert alert-error mb-4">
-                            <i className="fas fa-exclamation-triangle"></i>
+                            <i className="far fa-exclamation-triangle"></i>
                             <span>{error}</span>
                         </div>
                     )}
@@ -263,7 +263,7 @@ export default function ModalPayment({ isOpen, onClose, total = 0, onSubmit }: M
                                 </>
                             ) : (
                                 <>
-                                    <i className="fas fa-dollar-sign"></i>
+                                    <i className="far fa-dollar-sign"></i>
                                     Record Payment
                                 </>
                             )}

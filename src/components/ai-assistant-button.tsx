@@ -16,7 +16,7 @@ export function AIAssistantButton() {
                     className="btn btn-primary btn-circle btn-md sm:btn-lg shadow-lg hover:shadow-xl transition-all duration-200 group touch-manipulation"
                     title="AI Assistant"
                 >
-                    <i className="fas fa-robot text-xl group-hover:scale-110 transition-transform"></i>
+                    <i className="far fa-robot text-xl group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
 

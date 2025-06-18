@@ -9,7 +9,7 @@ export default function Footer() {
                 <div className="flex flex-col md:flex-row justify-between gap-10 mb-12">
                     <div className="max-w-md">
                         <div className="flex items-center gap-2 mb-3">
-                            <i className="fas fa-hard-hat text-primary text-3xl"></i>
+                            <i className="far fa-hard-hat text-primary text-3xl"></i>
                             <span className="font-bold text-2xl">JobSight</span>
                         </div>
                         <p className="text-base-content/80 mb-6">
@@ -41,7 +41,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-check-circle text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-check-circle text-primary mr-2 text-xs"></i>
                                         Features
                                     </a>
                                 </li>
@@ -52,7 +52,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-tag text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-tag text-primary mr-2 text-xs"></i>
                                         Pricing
                                     </a>
                                 </li>
@@ -63,7 +63,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-play-circle text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-play-circle text-primary mr-2 text-xs"></i>
                                         Request Demo
                                     </a>
                                 </li>
@@ -74,7 +74,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-headset text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-headset text-primary mr-2 text-xs"></i>
                                         Support
                                     </a>
                                 </li>
@@ -91,7 +91,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-building text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-building text-primary mr-2 text-xs"></i>
                                         About us
                                     </a>
                                 </li>
@@ -102,7 +102,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-envelope text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-envelope text-primary mr-2 text-xs"></i>
                                         Contact
                                     </a>
                                 </li>
@@ -113,7 +113,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-briefcase text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-briefcase text-primary mr-2 text-xs"></i>
                                         Careers
                                     </a>
                                 </li>
@@ -124,7 +124,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-newspaper text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-newspaper text-primary mr-2 text-xs"></i>
                                         Blog
                                     </a>
                                 </li>
@@ -141,7 +141,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-file-contract text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-file-contract text-primary mr-2 text-xs"></i>
                                         Terms of use
                                     </a>
                                 </li>
@@ -152,7 +152,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-shield-alt text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-shield-alt text-primary mr-2 text-xs"></i>
                                         Privacy policy
                                     </a>
                                 </li>
@@ -163,7 +163,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="link link-hover flex items-center"
                                     >
-                                        <i className="fas fa-cookie text-primary mr-2 text-xs"></i>
+                                        <i className="far fa-cookie text-primary mr-2 text-xs"></i>
                                         Cookie policy
                                     </a>
                                 </li>

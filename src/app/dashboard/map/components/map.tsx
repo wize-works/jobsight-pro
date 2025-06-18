@@ -13,22 +13,22 @@ import { getEquipments, setEquipmentLocation } from '@/app/actions/equipments';
 import { useBusiness } from "@/lib/business-context";
 
 const defaultIcon = new DivIcon({
-    className: 'fas fa -map-marker-alt fa-xl',
-    html: '<i class="fas fa-map-marker-alt fa-xl"></i>',
+    className: 'far fa -map-marker-alt fa-xl',
+    html: '<i class="far fa-map-marker-alt fa-xl"></i>',
     iconSize: [20, 30],
     iconAnchor: [10, 30]
 });
 
 const equipmentIcon = new DivIcon({
     className: 'text-neutral',
-    html: '<i class="fas fa-location-dot fa-3x text-secondary"></i>',
+    html: '<i class="far fa-location-dot fa-3x text-secondary"></i>',
     iconSize: [20, 30],
     iconAnchor: [10, 30]
 });
 
 const projectIcon = new DivIcon({
     className: 'text-neutral',
-    html: '<i class="fas fa-location-dot fa-3x text-accent"></i>',
+    html: '<i class="far fa-location-dot fa-3x text-accent"></i>',
     iconSize: [20, 30],
     iconAnchor: [10, 30]
 });
@@ -99,7 +99,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                             <div className='flex flex-col gap-2 mt-2'>
                                 <div className='dropdown dropdown-right w-full'>
                                     <label tabIndex={0} className="btn btn-sm btn-outline w-full">
-                                        Assign Project <i className="fas fa-chevron-right"></i>
+                                        Assign Project <i className="far fa-chevron-right"></i>
                                     </label>
                                     <div className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52'>
                                         <form onSubmit={async (e) => {
@@ -139,14 +139,14 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 className="btn btn-primary btn-sm w-full mt-2"
                                                 disabled={!selectedProjectId || selectedProjectId === "select"}
                                             >
-                                                <i className="fas fa-check"></i>Assign Project
+                                                <i className="far fa-check"></i>Assign Project
                                             </button>
                                         </form>
                                     </div>
                                 </div>
                                 <div className='dropdown dropdown-right w-full'>
                                     <label tabIndex={0} className="btn btn-sm btn-outline w-full">
-                                        Assign Equipment <i className="fas fa-chevron-right"></i>
+                                        Assign Equipment <i className="far fa-chevron-right"></i>
                                     </label>
                                     <div className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52'>
                                         <form onSubmit={async (e) => {
@@ -184,7 +184,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 className="btn btn-primary btn-sm w-full mt-2"
                                                 disabled={!selectedEquipmentId || selectedEquipmentId === "select"}
                                             >
-                                                <i className="fas fa-check"></i>Assign Equipment
+                                                <i className="far fa-check"></i>Assign Equipment
                                             </button>
                                         </form>
                                     </div>
@@ -195,7 +195,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         setSelectedEquipmentId(null);
                                         setMarkers((prev) => prev.filter((_, i) => i !== index));
                                     }}>
-                                    <i className="fas fa-trash"></i> Remove Marker
+                                    <i className="far fa-trash"></i> Remove Marker
                                 </button>
                             </div>
                         </div>

@@ -3,11 +3,8 @@
 import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DailyLogModal from "./modal-log";
-import { Equipment } from "@/types/equipment";
-import { CrewMember } from "@/types/crew-members";
-import { useSearchParams } from "next/navigation";
 
 interface DailyLogsListProps {
     logs: DailyLogWithDetails[];
@@ -19,27 +16,10 @@ export default function DailyLogsList({
     logs,
     crews,
     projects,
-}: {
-    logs: DailyLogWithDetails[];
-    crews: Crew[];
-    projects: Project[];
-}) {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+}: DailyLogsListProps) {
     const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(logs);
     const [selectedLog, setSelectedLog] = useState<DailyLogWithDetails | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const searchParams = useSearchParams();
-
-    // Check for AI-generated data and auto-open modal
-    useEffect(() => {
-        const aiLogData = sessionStorage.getItem('aiGeneratedLog');
-        const aiParam = searchParams.get('ai');
-
-        if (aiLogData || aiParam === 'true') {
-            setIsCreateModalOpen(true);
-        }
-    }, [searchParams]);
 
     const handleNewLog = (newLog: DailyLogWithDetails) => {
         setFilteredLogs(prev => [newLog, ...prev]);
@@ -59,7 +39,9 @@ export default function DailyLogsList({
         } else {
             setFilteredLogs(logs); // Reset to all logs
         }
-    }; return (
+    };
+
+    return (
         <>
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -115,7 +97,7 @@ export default function DailyLogsList({
                     <div className="flex items-center justify-between">
                         <div className="stat-value text-3xl text-warning">{projects.filter(project => project.status && ["active", "in_progress"].includes(project.status)).length}</div>
                         <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-person-digging fa-xl text-warning"></i>
+                            <i className="far fa-screwdriver-wrench fa-xl text-warning"></i>
                         </div>
                     </div>
                     <div className="stat-desc">Ongoing projects</div>
@@ -155,17 +137,7 @@ export default function DailyLogsList({
 
             {/* Logs List */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {loading ? (
-                    <div className="col-span-2 text-center py-10">
-                        <div className="loading loading-spinner loading-lg"></div>
-                        <p className="mt-4">Loading daily logs...</p>
-                    </div>
-                ) : error ? (
-                    <div className="col-span-2 alert alert-error">
-                        <i className="far fa-exclamation-triangle mr-2"></i>
-                        {error}
-                    </div>
-                ) : filteredLogs.length === 0 ? (
+                {filteredLogs.length === 0 ? (
                     <div className="col-span-2 alert alert-info">
                         <i className="far fa-info-circle mr-2"></i>
                         No daily logs found matching your criteria
@@ -233,12 +205,12 @@ export default function DailyLogsList({
                 )}
             </div>
 
-            {/* Create Daily Log Modal */}
+            {/* Create Daily Log Modal
             <DailyLogModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSave={handleNewLog}
-            />
+            /> */}
         </>
     );
 }

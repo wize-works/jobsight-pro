@@ -24,9 +24,9 @@ export function ThemeToggle() {
             aria-label="Toggle theme"
         >
             {theme === "dark" ? (
-                <i className="fas fa-sun fa-fw text-yellow-500 text-lg"></i>
+                <i className="far fa-sun fa-fw text-yellow-500 text-lg"></i>
             ) : (
-                <i className="fas fa-moon fa-fw text-slate-400 text-lg"></i>
+                <i className="far fa-moon fa-fw text-slate-400 text-lg"></i>
             )}
         </button>
     )

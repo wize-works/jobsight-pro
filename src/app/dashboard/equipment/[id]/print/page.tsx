@@ -1,3 +1,4 @@
+"use client";
 import { getEquipmentById } from "@/app/actions/equipments";
 import { getEquipmentMaintenancesByEquipmentId } from "@/app/actions/equipment-maintenance";
 import { getEquipmentUsagesByEquipmentId } from "@/app/actions/equipment_usage";
@@ -9,18 +10,18 @@ import { EquipmentUsage } from "@/types/equipment_usage";
 import { EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { useBusiness } from "@/lib/business-context";
 
 export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const { business } = await withBusinessServer();
-    const equipment = await getEquipmentById(business.id, id)
+    const { businessId } = await useBusiness();
+    const equipment = await getEquipmentById(businessId, id)
     const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
-        getEquipmentMaintenancesByEquipmentId(business.id, id),
-        getEquipmentUsagesByEquipmentId(business.id, id),
-        getEquipmentAssignmentsByEquipmentId(business.id, id),
-        getEquipmentSpecificationsByEquipmentId(business.id, id),
-        getMediaByEquipmentId(business.id, id, "documents"),
+        getEquipmentMaintenancesByEquipmentId(businessId, id),
+        getEquipmentUsagesByEquipmentId(businessId, id),
+        getEquipmentAssignmentsByEquipmentId(businessId, id),
+        getEquipmentSpecificationsByEquipmentId(businessId, id),
+        getMediaByEquipmentId(businessId, id, "documents"),
     ]);
     ;
 

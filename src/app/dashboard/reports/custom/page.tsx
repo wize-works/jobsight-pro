@@ -245,7 +245,7 @@ export default async function CustomReportPage() {
             default:
                 return (
                     <div className="alert alert-info">
-                        <i className="fas fa-info-circle"></i>
+                        <i className="far fa-info-circle"></i>
                         <span>Please select visualization type and metrics to preview the report.</span>
                     </div>
                 )
@@ -264,7 +264,7 @@ export default async function CustomReportPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/reports" className="btn btn-ghost btn-sm">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="far fa-arrow-left"></i>
                     </Link>
                     <h1 className="text-2xl font-bold">Create Custom Report</h1>
                 </div>
@@ -427,7 +427,7 @@ export default async function CustomReportPage() {
                                                     onChange={() => setVisualization(type.id)}
                                                 />
                                                 <i
-                                                    className={`fas fa-${type.icon} text-3xl mb-2 ${visualization === type.id ? "text-primary" : ""}`}
+                                                    className={`far fa-${type.icon} text-3xl mb-2 ${visualization === type.id ? "text-primary" : ""}`}
                                                 ></i>
                                                 <span>{type.name}</span>
                                             </label>
@@ -456,31 +456,31 @@ export default async function CustomReportPage() {
                                 <h2 className="card-title">Report Preview</h2>
                                 <div className="flex gap-2">
                                     <button className="btn btn-sm btn-outline">
-                                        <i className="fas fa-sync-alt mr-2"></i> Refresh
+                                        <i className="far fa-sync-alt mr-2"></i> Refresh
                                     </button>
                                     <div className="dropdown dropdown-end">
                                         <div tabIndex={0} role="button" className="btn btn-sm btn-outline">
-                                            <i className="fas fa-file-export mr-2"></i> Export
+                                            <i className="far fa-file-export mr-2"></i> Export
                                         </div>
                                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                             <li>
                                                 <a>
-                                                    <i className="fas fa-file-pdf mr-2"></i> Export as PDF
+                                                    <i className="far fa-file-pdf mr-2"></i> Export as PDF
                                                 </a>
                                             </li>
                                             <li>
                                                 <a>
-                                                    <i className="fas fa-file-excel mr-2"></i> Export as Excel
+                                                    <i className="far fa-file-excel mr-2"></i> Export as Excel
                                                 </a>
                                             </li>
                                             <li>
                                                 <a>
-                                                    <i className="fas fa-file-csv mr-2"></i> Export as CSV
+                                                    <i className="far fa-file-csv mr-2"></i> Export as CSV
                                                 </a>
                                             </li>
                                             <li>
                                                 <a>
-                                                    <i className="fas fa-print mr-2"></i> Print Report
+                                                    <i className="far fa-print mr-2"></i> Print Report
                                                 </a>
                                             </li>
                                         </ul>
@@ -543,13 +543,13 @@ export default async function CustomReportPage() {
 
                                     <div className="mt-6">
                                         <button className="btn btn-primary btn-block">
-                                            <i className="fas fa-save mr-2"></i> Save Report
+                                            <i className="far fa-save mr-2"></i> Save Report
                                         </button>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-12">
-                                    <i className="fas fa-chart-bar text-6xl text-base-content/30 mb-4"></i>
+                                    <i className="far fa-chart-bar text-6xl text-base-content/30 mb-4"></i>
                                     <p className="text-base-content/70">
                                         Configure your report and click "Generate Report" to see a preview.
                                     </p>

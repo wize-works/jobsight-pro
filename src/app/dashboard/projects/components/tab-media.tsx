@@ -50,15 +50,15 @@ export default function MediaTab({ projectId }: MediaTabProps) {
     const getFileIcon = (type: string) => {
         switch (type) {
             case "image":
-                return <i className="fas fa-image text-accent"></i>
+                return <i className="far fa-image text-accent"></i>
             case "video":
-                return <i className="fas fa-video text-primary"></i>
+                return <i className="far fa-video text-primary"></i>
             case "document":
-                return <i className="fas fa-file-alt text-secondary"></i>
+                return <i className="far fa-file-alt text-secondary"></i>
             case "audio":
-                return <i className="fas fa-volume-up text-info"></i>
+                return <i className="far fa-volume-up text-info"></i>
             default:
-                return <i className="fas fa-file text-base-content"></i>
+                return <i className="far fa-file text-base-content"></i>
         }
     }
 
@@ -93,7 +93,7 @@ export default function MediaTab({ projectId }: MediaTabProps) {
                             href={`/dashboard/media/upload?project=${projectId}`}
                             className="btn btn-primary btn-sm"
                         >
-                            <i className="fas fa-upload mr-2"></i>
+                            <i className="far fa-upload mr-2"></i>
                             Upload Media
                         </Link>
                     </div>
@@ -188,7 +188,7 @@ export default function MediaTab({ projectId }: MediaTabProps) {
                         </div>
                     ) : (
                         <div className="text-center py-12">
-                            <i className="fas fa-file text-4xl text-base-content/30 mb-4"></i>
+                            <i className="far fa-file text-4xl text-base-content/30 mb-4"></i>
                             <p className="text-base-content/70 mb-4">
                                 No {selectedType === "all" ? "media files" : selectedType + " files"} found for this project
                             </p>

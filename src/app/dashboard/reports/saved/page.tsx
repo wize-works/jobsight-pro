@@ -142,13 +142,13 @@ export default async function SavedReportsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6">
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/reports" className="btn btn-ghost btn-sm">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="far fa-arrow-left"></i>
                     </Link>
                     <h1 className="text-2xl font-bold">Saved Reports</h1>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/dashboard/reports/custom" className="btn btn-primary">
-                        <i className="fas fa-plus mr-2"></i> New Report
+                        <i className="far fa-plus mr-2"></i> New Report
                     </Link>
                 </div>
             </div>
@@ -166,7 +166,7 @@ export default async function SavedReportsPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             <button className="btn btn-square">
-                                <i className="fas fa-search"></i>
+                                <i className="far fa-search"></i>
                             </button>
                         </div>
                     </div>
@@ -220,41 +220,41 @@ export default async function SavedReportsPage() {
                                         className={`bg-${report.category === "financial" ? "blue" : report.category === "project" ? "green" : report.category === "equipment" ? "yellow" : report.category === "crew" ? "purple" : "red"}-500 bg-opacity-20 p-3 rounded-full`}
                                     >
                                         <i
-                                            className={`fas fa-${getCategoryIcon(report.category)} text-${report.category === "financial" ? "blue" : report.category === "project" ? "green" : report.category === "equipment" ? "yellow" : report.category === "crew" ? "purple" : "red"}-500`}
+                                            className={`far fa-${getCategoryIcon(report.category)} text-${report.category === "financial" ? "blue" : report.category === "project" ? "green" : report.category === "equipment" ? "yellow" : report.category === "crew" ? "purple" : "red"}-500`}
                                         ></i>
                                     </div>
                                     <h2 className="card-title">{report.name}</h2>
                                 </div>
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-square">
-                                        <i className="fas fa-ellipsis-v"></i>
+                                        <i className="far fa-ellipsis-v"></i>
                                     </div>
                                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                         <li>
                                             <a>
-                                                <i className="fas fa-edit mr-2"></i> Edit Report
+                                                <i className="far fa-edit mr-2"></i> Edit Report
                                             </a>
                                         </li>
                                         <li>
                                             <a>
-                                                <i className="fas fa-copy mr-2"></i> Duplicate
+                                                <i className="far fa-copy mr-2"></i> Duplicate
                                             </a>
                                         </li>
                                         <li>
                                             <a>
-                                                <i className={`fas fa-${report.scheduled ? "calendar-times" : "calendar-plus"} mr-2`}></i>
+                                                <i className={`far fa-${report.scheduled ? "calendar-times" : "calendar-plus"} mr-2`}></i>
                                                 {report.scheduled ? "Remove Schedule" : "Schedule Report"}
                                             </a>
                                         </li>
                                         <li>
                                             <a>
-                                                <i className={`fas fa-${report.favorite ? "star text-warning" : "star"} mr-2`}></i>
+                                                <i className={`far fa-${report.favorite ? "star text-warning" : "star"} mr-2`}></i>
                                                 {report.favorite ? "Remove from Favorites" : "Add to Favorites"}
                                             </a>
                                         </li>
                                         <li>
                                             <a className="text-error">
-                                                <i className="fas fa-trash mr-2"></i> Delete
+                                                <i className="far fa-trash mr-2"></i> Delete
                                             </a>
                                         </li>
                                     </ul>
@@ -267,12 +267,12 @@ export default async function SavedReportsPage() {
                                 </div>
                                 {report.scheduled && (
                                     <div className="badge badge-outline badge-primary">
-                                        <i className="fas fa-calendar-alt mr-1"></i> {report.scheduleFrequency}
+                                        <i className="far fa-calendar-alt mr-1"></i> {report.scheduleFrequency}
                                     </div>
                                 )}
                                 {report.favorite && (
                                     <div className="badge badge-outline badge-warning">
-                                        <i className="fas fa-star mr-1"></i> Favorite
+                                        <i className="far fa-star mr-1"></i> Favorite
                                     </div>
                                 )}
                             </div>
@@ -284,10 +284,10 @@ export default async function SavedReportsPage() {
                             </div>
                             <div className="card-actions justify-end mt-4">
                                 <Link href={`/dashboard/reports/${report.id}`} className="btn btn-sm btn-outline">
-                                    <i className="fas fa-eye mr-2"></i> View
+                                    <i className="far fa-eye mr-2"></i> View
                                 </Link>
                                 <button className="btn btn-sm btn-primary">
-                                    <i className="fas fa-play mr-2"></i> Run
+                                    <i className="far fa-play mr-2"></i> Run
                                 </button>
                             </div>
                         </div>
@@ -297,13 +297,13 @@ export default async function SavedReportsPage() {
 
             {filteredReports.length === 0 && (
                 <div className="bg-base-100 p-8 rounded-lg shadow-sm text-center">
-                    <i className="fas fa-search text-5xl text-base-content/30 mb-4"></i>
+                    <i className="far fa-search text-5xl text-base-content/30 mb-4"></i>
                     <h3 className="text-lg font-semibold mb-2">No Reports Found</h3>
                     <p className="text-base-content/70 mb-6">
                         No reports match your current search criteria. Try adjusting your filters or create a new report.
                     </p>
                     <Link href="/dashboard/reports/custom" className="btn btn-primary">
-                        <i className="fas fa-plus mr-2"></i> Create New Report
+                        <i className="far fa-plus mr-2"></i> Create New Report
                     </Link>
                 </div>
             )}

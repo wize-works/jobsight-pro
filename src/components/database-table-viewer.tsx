@@ -118,7 +118,7 @@ export default function DatabaseTableViewer({ tableName, schema = "jobsight" }: 
                         <option value="100">100 rows</option>
                     </select>
                     <button className="btn btn-sm btn-outline" onClick={() => loadTableData()}>
-                        <i className="fas fa-sync-alt"></i>
+                        <i className="far fa-sync-alt"></i>
                     </button>
                 </div>
             </div>
@@ -129,12 +129,12 @@ export default function DatabaseTableViewer({ tableName, schema = "jobsight" }: 
                 </div>
             ) : error ? (
                 <div className="alert alert-error">
-                    <i className="fas fa-exclamation-circle"></i>
+                    <i className="far fa-exclamation-circle"></i>
                     <span>{error}</span>
                 </div>
             ) : data.length === 0 ? (
                 <div className="alert">
-                    <i className="fas fa-info-circle"></i>
+                    <i className="far fa-info-circle"></i>
                     <span>No data found in this table.</span>
                 </div>
             ) : (
@@ -169,14 +169,14 @@ export default function DatabaseTableViewer({ tableName, schema = "jobsight" }: 
                             </span>
                             <div className="join">
                                 <button className="join-item btn btn-sm" disabled={page === 1} onClick={() => setPage(1)}>
-                                    <i className="fas fa-angle-double-left"></i>
+                                    <i className="far fa-angle-double-left"></i>
                                 </button>
                                 <button
                                     className="join-item btn btn-sm"
                                     disabled={page === 1}
                                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                                 >
-                                    <i className="fas fa-angle-left"></i>
+                                    <i className="far fa-angle-left"></i>
                                 </button>
                                 <button className="join-item btn btn-sm">
                                     Page {page} of {totalPages}
@@ -186,14 +186,14 @@ export default function DatabaseTableViewer({ tableName, schema = "jobsight" }: 
                                     disabled={page === totalPages}
                                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                 >
-                                    <i className="fas fa-angle-right"></i>
+                                    <i className="far fa-angle-right"></i>
                                 </button>
                                 <button
                                     className="join-item btn btn-sm"
                                     disabled={page === totalPages}
                                     onClick={() => setPage(totalPages)}
                                 >
-                                    <i className="fas fa-angle-double-right"></i>
+                                    <i className="far fa-angle-double-right"></i>
                                 </button>
                             </div>
                         </div>

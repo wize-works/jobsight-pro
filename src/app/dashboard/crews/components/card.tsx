@@ -19,18 +19,18 @@ export const CrewCard = ({
                 </div>
                 <div className="mt-2">
                     <p className="flex items-center">
-                        <i className={`fas fa-user-tie fa-fw mr-2 ${crew.leader !== "No Leader" ? "text-primary" : ""}`}></i> {crew.leader}
+                        <i className={`far fa-buildings fa-fw mr-2 ${crew.leader !== "No Leader" ? "text-primary" : ""}`}></i> {crew.leader}
                     </p>
                     <p className="flex items-center mt-1">
-                        <i className={`fas fa-users fa-fw mr-2 ${(crew.member_count ?? 0) > 0 ? "text-primary" : "text-base-content"}`}></i> {(crew.member_count ?? 0)} members
+                        <i className={`far fa-users fa-fw mr-2 ${(crew.member_count ?? 0) > 0 ? "text-primary" : "text-base-content"}`}></i> {(crew.member_count ?? 0)} members
                     </p>
                     {crew.current_project && (
                         <p className="flex items-center mt-1">
                             {!crew.current_project_id ? (
-                                <><i className="fas fa-project-diagram mr-2 text-base-content"></i> {crew.current_project}</>
+                                <><i className="far fa-screwdriver-wrench mr-2 text-base-content"></i> {crew.current_project}</>
                             ) : (
                                 <Link href={`/dashboard/projects/${crew.current_project_id}`} className="text-primary">
-                                    <i className="fas fa-project-diagram fa-fw mr-2 text-primary"></i> {crew.current_project}
+                                    <i className="far fa-screwdriver-wrench fa-fw mr-2 text-primary"></i> {crew.current_project}
                                 </Link>
                             )}
                         </p>
