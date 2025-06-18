@@ -18,9 +18,9 @@ export default async function PublicLayout({
                 <div className="flex-none">
                     {user?.email}
                     {user ? (
-                        <LogoutLink>Logout</LogoutLink>
+                        <LogoutLink className="btn btn-primary mr-6">Logout</LogoutLink>
                     ) : (
-                        <LoginLink>Login</LoginLink>
+                        <LoginLink className="btn btn-primary mr-6">Login</LoginLink>
                     )}
                     <ThemeToggle />
                 </div>

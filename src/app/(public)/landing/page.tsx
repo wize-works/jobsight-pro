@@ -84,6 +84,9 @@ export default function Home() {
                         <Link href="/pricing" className="btn bg-white text-primary hover:bg-white/90 border-none">
                             View Pricing Plans
                         </Link>
+                        <Link href="/pricing#roi" className="btn btn-secondary ml-4">
+                            Calculate ROI
+                        </Link>
                     </div>
                 </div>
             </section>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import pricingPlans from '../../../../docs/jobsight_pricing_with_ai_addon.json'
 import Image from "next/image"
 import { useState } from "react";
+import ROICalculator from "./components/roi";
 
 const pricingData = pricingPlans
 
@@ -23,7 +24,7 @@ export default function Pricing() {
                     </p>
 
                     <div className="flex justify-center mb-8">
-                        <div className="tabs tabs-boxed">
+                        <div className="tabs tabs-box">
                             <button
                                 className={`tab ${!isAnnual ? 'tab-active' : ''}`}
                                 onClick={() => setIsAnnual(false)}
@@ -34,7 +35,7 @@ export default function Pricing() {
                                 className={`tab ${isAnnual ? 'tab-active' : ''}`}
                                 onClick={() => setIsAnnual(true)}
                             >
-                                Annual (Save 15%)
+                                Annual <span className="text-secondary font-bold ml-2">(Save 15%)</span>
                             </button>
                         </div>
                     </div>
@@ -48,7 +49,7 @@ export default function Pricing() {
                                     )}
                                     <h2 className={`card-title text-3xl justify-center ${plan.name === "Pro" ? 'text-accent font-extrabold' : ''}`}>{plan.name}</h2>
                                     <div className="text-center my-4">
-                                        <span className="text-2xl font-semibold">
+                                        <span className="text-4xl font-semibold">
                                             {isAnnual ? `$${plan.annual_price}` : `$${plan.monthly_price}`}
                                         </span>
                                         <span className="text-base-content/70">/month</span>
@@ -58,7 +59,7 @@ export default function Pricing() {
 
                                     <ul className="space-y-6">
                                         {plan.features.map((feature, index) => (
-                                            <li key={index} className="flex items-start">
+                                            <li key={index} className="flex items-start text-lg">
                                                 <i className="far fa-check text-success mt-1 mr-2"></i>
                                                 <span>{feature}</span>
                                             </li>
@@ -72,7 +73,7 @@ export default function Pricing() {
                                         </div>
                                     )}
 
-                                    <div className="card-actions justify-center mt-6">
+                                    <div className="card-actions justify-center mt-auto">
                                         <Link href={`/api/auth/register?post_login_redirect_url=%2Fregister`} className={`btn  ${plan.name === "Pro" ? 'btn-accent' : 'btn-primary'} btn-block`}>
                                             Register Now
                                         </Link>
@@ -83,22 +84,17 @@ export default function Pricing() {
                     </div>
                 </div>
             </section>
+            <section className="py-12 bg-base-100">
+                <div className="container mx-auto px-4">
+                    <ROICalculator />
+                </div>
+            </section>
 
             <section className="py-12">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
 
                     <div className="max-w-3xl mx-auto">
-                        <div tabIndex={0} className="collapse ollapse-plus bg-base-200 mb-4">
-                            <div className="collapse-title text-xl font-medium">What's included in the free trial?</div>
-                            <div className="collapse-content">
-                                <p>
-                                    Your 30-day free trial includes all features of your selected plan with no restrictions. No credit
-                                    card required to start.
-                                </p>
-                            </div>
-                        </div>
-
                         <div tabIndex={0} className="collapse collapse-plus bg-base-200 mb-4">
                             <div className="collapse-title text-xl font-medium">Can I change plans later?</div>
                             <div className="collapse-content">
