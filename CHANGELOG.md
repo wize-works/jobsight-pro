@@ -1,3 +1,10 @@
+# [1.45.0](https://github.com/wize-works/jobsight-pro/compare/v1.44.0...v1.45.0) (2025-06-18)
+
+
+### Features
+
+* Daily Log Detail and Equipment Detail components for improved UI and functionality ([5f40f9e](https://github.com/wize-works/jobsight-pro/commit/5f40f9e40b053df69f1f1ca3a20ef0712605de66))
+
 # [1.44.0](https://github.com/wize-works/jobsight-pro/compare/v1.43.1...v1.44.0) (2025-06-18)
 
 
