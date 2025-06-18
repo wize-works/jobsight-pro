@@ -12,6 +12,14 @@ import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
 interface AIAssistantPanelProps {
     isOpen: boolean;
     onClose: () => void;
+    context?: {
+        page?: string;
+        projectId?: string;
+        projectName?: string;
+        taskId?: string;
+        dailyLogId?: string;
+        location?: string;
+    };
 }
 
 interface ConversationMessage {
@@ -20,7 +28,7 @@ interface ConversationMessage {
     timestamp: Date;
 }
 
-export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
+export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelProps) {
     const { user } = useKindeAuth();
     const { businessId } = useBusiness();
     const [textInput, setTextInput] = useState("");
@@ -115,9 +123,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
         }
-    };
-
-    const processVoiceNote = async (audioBlob: Blob) => {
+    }; const processVoiceNote = async (audioBlob: Blob) => {
         setIsProcessing(true);
         try {
             addToConversation("user", "🎙️ Voice message");
@@ -132,11 +138,23 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             const transcribedText = transcriptionResult.text;
             addToConversation("user", transcribedText);
 
-            // Process the transcribed text
-            await processAIQuery(businessId, transcribedText, conversation.slice(-5).map(msg => ({
-                role: msg.type === "user" ? "user" : "assistant",
-                content: msg.content
-            })));
+            // Use a context-aware prompt for the AI
+            let contextualMessage = transcribedText;
+            if (context) {
+                const contextInfo = [];
+                if (context.page) contextInfo.push(`Current page: ${context.page}`);
+                if (context.projectId && context.projectName) contextInfo.push(`Current project: ${context.projectName} (ID: ${context.projectId})`);
+                if (context.taskId) contextInfo.push(`Current task ID: ${context.taskId}`);
+                if (context.dailyLogId) contextInfo.push(`Current daily log ID: ${context.dailyLogId}`);
+                if (context.location) contextInfo.push(`Current location: ${context.location}`);
+                if (contextInfo.length > 0) {
+                    contextualMessage = `Context: ${contextInfo.join(', ')}\n\nUser voice input: "${transcribedText}"`;
+                }
+            }
+
+            // Use the new general voice prompt
+            const aiPrompt = `${contextualMessage}\n\n[INSTRUCTION]\n${require('@/lib/ai/prompts').PROMPTS.VOICE_GENERAL}`;
+            await processQuery(aiPrompt);
 
         } catch (err) {
             addToConversation("assistant", "I had trouble processing your voice message. Please try again.");
@@ -208,6 +226,47 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
             e.preventDefault();
             handleSubmit(e as unknown as React.FormEvent);
         }
+    }; const getContextualPlaceholder = () => {
+        if (!context) return "Ask about projects, create daily logs, or use voice input...";
+
+        if (context.page === 'daily-logs') {
+            return "Create daily log, record voice notes about today's work...";
+        } else if (context.page === 'tasks') {
+            return "Create tasks, ask about task status, or record voice instructions...";
+        } else if (context.page === 'projects') {
+            return "Ask about project status, create project notes...";
+        } else if (context.projectName) {
+            return `Ask about ${context.projectName}, create logs or tasks...`;
+        }
+
+        return "Ask about projects, create daily logs, tasks, or use voice input...";
+    };
+
+    const getContextualSuggestions = () => {
+        if (!context) return [];
+
+        const suggestions = [];
+
+        if (context.page === 'daily-logs') {
+            suggestions.push("Record today's work progress");
+            suggestions.push("What materials did we use?");
+            suggestions.push("Any safety issues to report?");
+        } else if (context.page === 'tasks') {
+            suggestions.push("Create a new task");
+            suggestions.push("What tasks are overdue?");
+            suggestions.push("Update task progress");
+        } else if (context.page === 'projects') {
+            suggestions.push("Project status summary");
+            suggestions.push("What's behind schedule?");
+            suggestions.push("Create project update");
+        }
+
+        if (context.projectName) {
+            suggestions.push(`Status of ${context.projectName}`);
+            suggestions.push(`Create log for ${context.projectName}`);
+        }
+
+        return suggestions.slice(0, 3); // Limit to 3 suggestions
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -217,9 +276,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
         const message = textInput.trim();
         setTextInput("");
         addToConversation("user", message);
-        await processQuery(message);
-
-        // Refocus the message input box after submission
+        await processQuery(message);        // Refocus the message input box after submission
         messageInputRef.current?.focus();
     };
 
@@ -334,6 +391,27 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                         {error && (
                             <div className="alert alert-error alert-sm mb-2">
                                 <span className="text-xs">{error}</span>
+                            </div>)}
+
+                        {/* Contextual Suggestions */}
+                        {conversation.length === 0 && getContextualSuggestions().length > 0 && (
+                            <div className="p-3 border-b border-base-300">
+                                <p className="text-xs text-base-content/60 mb-2">Quick suggestions:</p>
+                                <div className="flex flex-wrap gap-1">
+                                    {getContextualSuggestions().map((suggestion, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                setTextInput(suggestion);
+                                                messageInputRef.current?.focus();
+                                            }}
+                                            className="btn btn-xs btn-outline btn-ghost text-xs"
+                                            disabled={isProcessing}
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
@@ -344,7 +422,7 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
                                     value={textInput}
                                     onChange={(e) => setTextInput(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    placeholder="Ask about projects, create daily logs..."
+                                    placeholder={getContextualPlaceholder()}
                                     className="textarea textarea-bordered textarea-sm w-full resize-none"
                                     disabled={isProcessing}
                                     rows={2}
