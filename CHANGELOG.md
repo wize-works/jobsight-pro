@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/wize-works/jobsight-pro/compare/v1.43.1...v1.44.0) (2025-06-18)
+
+
+### Features
+
+* Add modal components for editing crews, equipment assignments, linking crew members, and adding crew members ([678d0e4](https://github.com/wize-works/jobsight-pro/commit/678d0e40760dcce25f2339a9e6aec1f22f575257))
+
 ## [1.43.1](https://github.com/wize-works/jobsight-pro/compare/v1.43.0...v1.43.1) (2025-06-17)
 
 
