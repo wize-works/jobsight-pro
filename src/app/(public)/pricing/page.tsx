@@ -1,14 +1,21 @@
+"use client";
 import Link from "next/link"
 
 // Load pricing data from the centralized JSON file
 import pricingPlans from '../../../../docs/jobsight_pricing_with_ai_addon.json'
+import Image from "next/image"
+import { useState } from "react";
 
 const pricingData = pricingPlans
 
 export default function Pricing() {
+    const [isAnnual, setIsAnnual] = useState(false);
     return (
         <main className="min-h-screen flex flex-col">
             <section className="py-12 bg-base-200 pt-20">
+                <div className="flex px-4 align-center justify-center text-center mt-10 mb-20">
+                    <Image src="/logo-full.png" alt="Logo" height={400} width={400} />
+                </div>
                 <div className="container mx-auto px-4">
                     <h1 className="text-4xl font-bold text-center mb-4">Simple, Transparent Pricing</h1>
                     <p className="text-center mb-12 max-w-2xl mx-auto">
@@ -16,19 +23,34 @@ export default function Pricing() {
                     </p>
 
                     <div className="flex justify-center mb-8">
-                        <div className="tabs tabs-box">
-                            <a className="tab tab-active">Monthly</a>
-                            <a className="tab">Annual (Save 15%)</a>
+                        <div className="tabs tabs-boxed">
+                            <button
+                                className={`tab ${!isAnnual ? 'tab-active' : ''}`}
+                                onClick={() => setIsAnnual(false)}
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                className={`tab ${isAnnual ? 'tab-active' : ''}`}
+                                onClick={() => setIsAnnual(true)}
+                            >
+                                Annual (Save 15%)
+                            </button>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {pricingData.map((plan) => (
-                            <div key={plan.id} className="card bg-base-100 shadow-xl">
-                                <div className="card-body">
-                                    <h2 className="card-title text-2xl justify-center">{plan.name}</h2>
+                            <div key={plan.id} className="card bg-base-100 shadow-xl rounded-lg">
+                                <div className={`card-body rounded-lg relative ${plan.name === "Pro" ? 'border-2 border-accent' : ''}`}>
+                                    {plan.name === "Pro" && (
+                                        <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2">Most Popular</div>
+                                    )}
+                                    <h2 className={`card-title text-3xl justify-center ${plan.name === "Pro" ? 'text-accent font-extrabold' : ''}`}>{plan.name}</h2>
                                     <div className="text-center my-4">
-                                        <span className="text-4xl font-bold">${plan.monthly_price}</span>
+                                        <span className="text-2xl font-semibold">
+                                            {isAnnual ? `$${plan.annual_price}` : `$${plan.monthly_price}`}
+                                        </span>
                                         <span className="text-base-content/70">/month</span>
                                     </div>
 
@@ -51,8 +73,8 @@ export default function Pricing() {
                                     )}
 
                                     <div className="card-actions justify-center mt-6">
-                                        <Link href={`/register?plan=${plan.id}`} className="btn btn-primary btn-block">
-                                            Choose {plan.name}
+                                        <Link href={`/api/auth/register?post_login_redirect_url=%2Fregister`} className={`btn  ${plan.name === "Pro" ? 'btn-accent' : 'btn-primary'} btn-block`}>
+                                            Register Now
                                         </Link>
                                     </div>
                                 </div>
@@ -67,8 +89,7 @@ export default function Pricing() {
                     <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
 
                     <div className="max-w-3xl mx-auto">
-                        <div className="collapse collapse-plus bg-base-200 mb-4">
-                            <input type="radio" name="my-accordion-3" checked={true} readOnly />
+                        <div tabIndex={0} className="collapse ollapse-plus bg-base-200 mb-4">
                             <div className="collapse-title text-xl font-medium">What's included in the free trial?</div>
                             <div className="collapse-content">
                                 <p>
@@ -78,8 +99,7 @@ export default function Pricing() {
                             </div>
                         </div>
 
-                        <div className="collapse collapse-plus bg-base-200 mb-4">
-                            <input type="radio" name="my-accordion-3" />
+                        <div tabIndex={0} className="collapse collapse-plus bg-base-200 mb-4">
                             <div className="collapse-title text-xl font-medium">Can I change plans later?</div>
                             <div className="collapse-content">
                                 <p>
