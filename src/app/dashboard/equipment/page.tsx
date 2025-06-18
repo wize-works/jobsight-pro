@@ -3,7 +3,6 @@
 import EquipmentList from "./components/list";
 import { getEquipments } from "@/app/actions/equipments";
 import Loading from "@/app/loading";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { useBusiness } from "@/lib/business-context";
 import { Equipment } from "@/types/equipment";
 import { useEffect, useState } from "react";

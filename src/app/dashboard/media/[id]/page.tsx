@@ -164,22 +164,9 @@ export default function MediaDetail() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard/media" className="btn btn-ghost btn-circle">
-                        <i className="far fa-arrow-left"></i>
+                    <Link href="/dashboard/media" className="btn btn-outline">
+                        <i className="far fa-arrow-left"></i> Back to Media Library
                     </Link>
-                    <div className="flex items-center gap-3">
-                        {getFileIcon(mediaItem.type || "")}
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                value={editedItem.name || ""}
-                                onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
-                                className="input input-bordered text-2xl font-bold"
-                            />
-                        ) : (
-                            <h1 className="text-2xl font-bold">{mediaItem.name}</h1>
-                        )}
-                    </div>
                 </div>
                 <div className="flex gap-2">
                     {isEditing ? (
@@ -255,6 +242,19 @@ export default function MediaDetail() {
                                             Play Audio
                                         </a>
                                     </div>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-4">
+                                {getFileIcon(mediaItem.type || "")}
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={editedItem.name || ""}
+                                        onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
+                                        className="input input-bordered text-2xl font-bold w-full"
+                                    />
+                                ) : (
+                                    <h1 className="text-2xl font-bold">{mediaItem.name}</h1>
                                 )}
                             </div>
                         </div>

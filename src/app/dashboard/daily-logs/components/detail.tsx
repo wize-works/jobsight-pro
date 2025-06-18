@@ -48,22 +48,13 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <Link href="/dashboard/daily-logs" className="btn btn-ghost btn-sm">
-                        <i className="far fa-arrow-left"></i>
+                    <Link href="/dashboard/daily-logs" className="btn btn-outline">
+                        <i className="far fa-arrow-left"></i>Back to Daily Logs
                     </Link>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold">Daily Log</h1>
-                            <span className="badge badge-primary">{format(new Date(currentLog.date), "M/d/yyyy")}</span>
-                        </div>
-                        <p className="text-base-content/70">
-                            {currentLog.project?.name} | Logged by {currentLog.crew?.name || "Unknown"}
-                        </p>
-                    </div>
                 </div>
                 <div className="flex gap-2">
                     <button
-                        className="btn btn-outline btn-sm"
+                        className="btn btn-primary btn-sm"
                         onClick={() => setIsEditModalOpen(true)}
                     >
                         <i className="far fa-edit mr-2"></i>
@@ -117,6 +108,15 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                             {/* Work Summary */}
                             <div className="card bg-base-100 shadow">
                                 <div className="card-body">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h1 className="text-2xl font-bold">Daily Log</h1>
+                                            <span className="badge badge-primary">{format(new Date(currentLog.date), "M/d/yyyy")}</span>
+                                        </div>
+                                        <p className="text-base-content/70">
+                                            {currentLog.project?.name} | Logged by {currentLog.crew?.name || "Unknown"}
+                                        </p>
+                                    </div>
                                     <h3 className="card-title">Work Summary</h3>
                                     <div className="divider my-2" />
                                     <div className="space-y-6">

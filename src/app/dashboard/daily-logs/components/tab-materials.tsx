@@ -30,7 +30,7 @@ export default function TabMaterials({ materials, equipment }: { materials: any[
                                             <td>{material.name}</td>
                                             <td>{material.quantity}</td>
                                             <td>{material.supplier}</td>
-                                            <td className="text-right">{formatCurrency(material.cost.toFixed(2))}</td>
+                                            <td className="text-right">{formatCurrency(material.cost?.toFixed(2))}</td>
                                         </tr>
                                     )) : (
                                         <tr>

@@ -19,6 +19,7 @@ import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, 
 import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
+import Loading from "@/app/loading";
 
 interface EquipmentDetailProps {
     equipment: Equipment;
@@ -257,9 +258,7 @@ export default function EquipmentDetail({
 
     if (!mounted) {
         return (
-            <div className="p-8 text-center">
-                <div className="loading loading-spinner loading-lg"></div>
-            </div>
+            <Loading />
         );
     }
 
@@ -268,10 +267,9 @@ export default function EquipmentDetail({
             <div className="flex flex-col md:flex-row justify-between mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Link href="/dashboard/equipment" className="btn btn-ghost btn-sm">
-                            <i className="far fa-arrow-left"></i>
+                        <Link href="/dashboard/equipment" className="btn btn-outline">
+                            <i className="far fa-arrow-left"></i>Back to Equipment
                         </Link>
-                        <h1 className="text-2xl font-bold">{equipment.name}</h1>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -323,6 +321,7 @@ export default function EquipmentDetail({
                             </div>
                         </figure>
                         <div className="card-body">
+                            <h1 className="text-2xl font-bold">{equipment.name}</h1>
                             <h2 className="card-title">Current Status</h2>
                             <div className="mb-1 flex justify-between">
                                 <span>Status:</span>
@@ -405,7 +404,8 @@ export default function EquipmentDetail({
                                         const ageYears = (new Date().getTime() - new Date(equipment.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
                                         if (ageYears > 0) {
                                             const rate = ((equipment.purchase_price - equipment.current_value) / equipment.purchase_price / ageYears) * 100;
-                                            return `${rate.toFixed(1)}%/yr`;
+                                            const rateString = rate || rate === null ? `${rate.toFixed(1)}%/yr` : "Not set";
+                                            return rateString;
                                         }
                                         return "Not set";
                                     })()
@@ -708,7 +708,8 @@ export default function EquipmentDetail({
                                             const ageYears = (new Date().getTime() - new Date(equipment.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
                                             if (ageYears > 0) {
                                                 const rate = ((equipment.purchase_price - equipment.current_value) / equipment.purchase_price / ageYears) * 100;
-                                                return `${rate.toFixed(1)}%/yr`;
+                                                const rateString = rate || rate === null ? `${rate.toFixed(1)}%/yr` : "Not set";
+                                                return rateString;
                                             }
                                             return "Not set";
                                         })()
