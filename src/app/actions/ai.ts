@@ -145,6 +145,61 @@ export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string; 
     }
 }
 
+// General-purpose transcription for any context
+export async function transcribeAudioGeneral(audioBlob: Blob, context?: {
+    type?: 'general' | 'task' | 'project' | 'query' | 'note';
+    enhance?: boolean;
+}): Promise<{ text: string; enhanced?: string; error?: string }> {
+    try {
+        const response = await openai.audio.transcriptions.create({
+            file: audioBlob as any,
+            model: AI_MODELS.TRANSCRIPTION,
+        });
+
+        const transcribedText = response.text;
+
+        // If enhancement is requested, clean up and format the text
+        if (context?.enhance) {
+            const enhancementPrompt = `Clean up and format this transcribed text for ${context.type || 'general'} use:
+
+"${transcribedText}"
+
+Instructions:
+- Fix obvious transcription errors
+- Improve grammar and punctuation
+- Keep the original meaning and content
+- Format appropriately for ${context.type || 'general'} context
+- Return only the cleaned text, no additional commentary
+
+Cleaned text:`;
+
+            const completion = await openai.chat.completions.create({
+                model: AI_MODELS.CHAT_GPT_3_5,
+                messages: [
+                    { role: "system", content: "You are a text editing assistant. Clean up transcribed text while preserving the original meaning." },
+                    { role: "user", content: enhancementPrompt }
+                ],
+                temperature: 0.1,
+            });
+
+            const enhancedText = completion.choices[0]?.message?.content?.trim() || transcribedText;
+
+            return {
+                text: transcribedText,
+                enhanced: enhancedText
+            };
+        }
+
+        return { text: transcribedText };
+    } catch (error) {
+        console.error("General transcription error:", error);
+        return {
+            text: "",
+            error: "Failed to transcribe audio. Please try again."
+        };
+    }
+}
+
 export async function createDailyLogFromAI(businessId: string, data: {
     projectId: string;
     projectName: string;

@@ -128,3 +128,48 @@ export async function transcribeVoiceNote(
         throw new Error('Failed to transcribe voice note');
     }
 }
+
+// General-purpose transcription function that just returns text
+export async function transcribeAudioToText(audioFile: File): Promise<string> {
+    try {
+        const transcription = await openai.audio.transcriptions.create({
+            file: audioFile,
+            model: AI_MODELS.TRANSCRIPTION,
+            language: 'en',
+        });
+
+        return transcription.text;
+    } catch (error) {
+        console.error('Audio transcription error:', error);
+        throw new Error('Failed to transcribe audio');
+    }
+}
+
+// Context-aware transcription that can be customized for different use cases
+export async function transcribeWithContext(
+    audioFile: File,
+    context?: {
+        type?: 'general' | 'daily_log' | 'task' | 'project' | 'query';
+        instructions?: string;
+    }
+): Promise<{ transcription: string; processed?: any }> {
+    try {
+        const transcription = await transcribeAudioToText(audioFile);
+
+        if (!context || context.type === 'general') {
+            return { transcription };
+        }
+
+        // For specific contexts, we can add processing logic here
+        if (context.type === 'daily_log') {
+            const structuredLog = await convertToStructuredLog(transcription);
+            return { transcription, processed: structuredLog };
+        }
+
+        // Add other context-specific processing as needed
+        return { transcription };
+    } catch (error) {
+        console.error('Context-aware transcription error:', error);
+        throw new Error('Failed to process voice input');
+    }
+}

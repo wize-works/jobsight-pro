@@ -95,7 +95,7 @@ export default function ROICalculator() {
                                     ))}
                                 </div>
                                 <div className="text-center mt-2">
-                                    <span className="badge badge-outline">
+                                    <span className="badge badge-outline badge-primary">
                                         {currentPlan?.name} Plan - ${jobsightCost}/month
                                     </span>
                                 </div>
@@ -158,7 +158,7 @@ export default function ROICalculator() {
                                     onChange={(e) => setTimeWasted(Number(e.target.value))}
                                     className="range range-secondary w-full"
                                 />
-                                <div className="w-full flex justify-secondary text-xs px-2">
+                                <div className="w-full flex justify-between text-xs px-2">
                                     <span>5%</span>
                                     <span>22%</span>
                                     <span>40%</span>
