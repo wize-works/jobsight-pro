@@ -104,11 +104,9 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Link href="/dashboard/invoices" className="btn btn-ghost btn-sm">
-                            <i className="far fa-arrow-left"></i>
+                        <Link href="/dashboard/invoices" className="btn btn-outline">
+                            <i className="far fa-arrow-left"></i> Back to Invoices
                         </Link>
-                        <h1 className="text-2xl font-bold">Invoice {invoice.invoice_number}</h1>
-                        {invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}
                     </div>
                     <p className="text-base-content/70 mt-1">
                         {(invoice.client?.name ?? "-")} - {(invoice.project?.name ?? "-")}
