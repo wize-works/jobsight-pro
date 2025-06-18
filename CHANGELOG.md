@@ -1,3 +1,10 @@
+# [1.46.0](https://github.com/wize-works/jobsight-pro/compare/v1.45.0...v1.46.0) (2025-06-18)
+
+
+### Features
+
+* Enhance Pricing page with annual/monthly toggle and improved layout ([4ab5fb0](https://github.com/wize-works/jobsight-pro/commit/4ab5fb02b611b3dd8f3b7bc7979f606db8dec901))
+
 # [1.45.0](https://github.com/wize-works/jobsight-pro/compare/v1.44.0...v1.45.0) (2025-06-18)
 
 
