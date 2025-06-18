@@ -1,3 +1,10 @@
+# [1.48.0](https://github.com/wize-works/jobsight-pro/compare/v1.47.0...v1.48.0) (2025-06-18)
+
+
+### Features
+
+* Implement voice input components with transcription capabilities for enhanced user interaction ([50935c1](https://github.com/wize-works/jobsight-pro/commit/50935c1cb154c7d893c5635235d89ec43597fc36))
+
 # [1.47.0](https://github.com/wize-works/jobsight-pro/compare/v1.46.0...v1.47.0) (2025-06-18)
 
 
