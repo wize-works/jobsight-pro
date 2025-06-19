@@ -1,3 +1,10 @@
+# [1.52.0](https://github.com/wize-works/jobsight-pro/compare/v1.51.0...v1.52.0) (2025-06-19)
+
+
+### Features
+
+* refactor date and currency formatting by consolidating utility functions ([9ecc97b](https://github.com/wize-works/jobsight-pro/commit/9ecc97bcf8598447bdfa0059a6b0baf940d7eb9b))
+
 # [1.51.0](https://github.com/wize-works/jobsight-pro/compare/v1.50.0...v1.51.0) (2025-06-19)
 
 
