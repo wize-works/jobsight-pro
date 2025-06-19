@@ -1,3 +1,11 @@
+# [1.50.0](https://github.com/wize-works/jobsight-pro/compare/v1.49.0...v1.50.0) (2025-06-19)
+
+
+### Features
+
+* add sorting functionality to project list and improve no projects found message ([9b5d28e](https://github.com/wize-works/jobsight-pro/commit/9b5d28e3931bfaffe1a5293cd8701dcbb498fd41))
+* update project modal to handle project creation and reset form on success ([574ef9a](https://github.com/wize-works/jobsight-pro/commit/574ef9aa8d93eba53abd5fa6c59eaa1f31bffdb3))
+
 # [1.49.0](https://github.com/wize-works/jobsight-pro/compare/v1.48.0...v1.49.0) (2025-06-19)
 
 
