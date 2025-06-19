@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { getClientById, updateClientNotes, updateClient } from "@/app/actions/clients";
+import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo } from "@/app/actions/clients";
 import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
 import { getProjectsByClientId, createProject } from "@/app/actions/projects";
@@ -59,11 +59,17 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [showAttachMediaModal, setShowAttachMediaModal] = useState(false);
     const [attachMediaLoading, setAttachMediaLoading] = useState(false);
     const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
-    const [logoUploadLoading, setLogoUploadLoading] = useState(false);
-    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [logoUploadLoading, setLogoUploadLoading] = useState(false);    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceLoading, setInvoiceLoading] = useState(false);
-
-    useEffect(() => {
+    const [archiveLoading, setArchiveLoading] = useState(false);
+    const [archiveInfo, setArchiveInfo] = useState<{
+        relatedData: {
+            projectCount: number;
+            contactCount: number;
+            interactionCount: number;
+            invoiceCount: number;
+        };
+    } | null>(null);    useEffect(() => {
         const fetchData = async () => {
             if (!businessId) {
                 return;
@@ -82,6 +88,13 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 setContacts(contactsData);
                 setInteractions(interactionsData);
                 setClientNotes(clientData.notes || "");
+
+                // Get archive info in the background
+                getClientArchiveInfo(businessId, id).then(info => {
+                    setArchiveInfo(info);
+                }).catch(error => {
+                    console.error("Error getting archive info:", error);
+                });
             } catch (error) {
                 console.error("Error fetching client data:", error);
             } finally {
@@ -518,9 +531,113 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 title: "Error creating invoice",
                 description: "There was an error creating the invoice.",
             });
-            return { success: false };
-        } finally {
+            return { success: false };        } finally {
             setInvoiceLoading(false);
+        }
+    };    const handleArchiveClient = async () => {
+        // Get archive info if not already loaded
+        if (!archiveInfo) {
+            setArchiveLoading(true);
+            try {
+                const info = await getClientArchiveInfo(businessId, client.id);
+                setArchiveInfo(info);
+                setArchiveLoading(false);
+            } catch (error) {
+                setArchiveLoading(false);
+                toast.error({
+                    title: "Error loading client data",
+                    description: "Please try again or contact support.",
+                });
+                return;
+            }
+        }
+
+        // Create confirmation message based on what will be preserved
+        let confirmMessage = `Archive "${client.name}"?`;
+        
+        if (archiveInfo && (archiveInfo.relatedData.projectCount > 0 || archiveInfo.relatedData.contactCount > 0 || archiveInfo.relatedData.interactionCount > 0 || archiveInfo.relatedData.invoiceCount > 0)) {
+            confirmMessage += `\n\nThis will mark the client as inactive but preserve all data including:`;
+            if (archiveInfo.relatedData.projectCount > 0) {
+                confirmMessage += `\n• ${archiveInfo.relatedData.projectCount} project(s)`;
+            }
+            if (archiveInfo.relatedData.contactCount > 0) {
+                confirmMessage += `\n• ${archiveInfo.relatedData.contactCount} contact(s)`;
+            }
+            if (archiveInfo.relatedData.interactionCount > 0) {
+                confirmMessage += `\n• ${archiveInfo.relatedData.interactionCount} interaction(s)`;
+            }
+            if (archiveInfo.relatedData.invoiceCount > 0) {
+                confirmMessage += `\n• ${archiveInfo.relatedData.invoiceCount} invoice(s)`;
+            }
+            confirmMessage += `\n\nAll data will remain accessible for tax and compliance purposes.`;
+        } else {
+            confirmMessage += `\n\nThe client will be marked as inactive but all data will be preserved.`;
+        }
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        setArchiveLoading(true);
+
+        try {
+            const success = await archiveClient(businessId, client.id);
+            
+            if (success) {
+                toast.success({
+                    title: "Client archived successfully",
+                    description: `"${client.name}" has been archived. All data has been preserved.`,
+                    autoClose: true,
+                });
+                router.refresh();
+            } else {
+                throw new Error("Archive operation failed");
+            }
+        } catch (error) {
+            console.error("Error archiving client:", error);
+            
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            
+            toast.error({
+                title: "Error archiving client",
+                description: errorMessage,
+            });
+        } finally {
+            setArchiveLoading(false);
+        }
+    };
+
+    const handleUnarchiveClient = async () => {
+        if (!window.confirm(`Unarchive "${client.name}"? This will mark the client as active again.`)) {
+            return;
+        }
+
+        setArchiveLoading(true);
+
+        try {
+            const success = await unarchiveClient(businessId, client.id);
+            
+            if (success) {
+                toast.success({
+                    title: "Client unarchived successfully",
+                    description: `"${client.name}" is now active again.`,
+                    autoClose: true,
+                });
+                router.refresh();
+            } else {
+                throw new Error("Unarchive operation failed");
+            }
+        } catch (error) {
+            console.error("Error unarchiving client:", error);
+            
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            
+            toast.error({
+                title: "Error unarchiving client",
+                description: errorMessage,
+            });
+        } finally {
+            setArchiveLoading(false);
         }
     };
 
@@ -564,9 +681,50 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                     <i className="far fa-plus mr-2"></i>
                                     New Project
                                 </button>
-                            </li>
-                            <li><a><i className="far fa-file-pdf mr-2"></i> Export as PDF</a></li>
-                            <li><a><i className="far fa-trash mr-2"></i> Delete Client</a></li>
+                            </li>                            <li><a><i className="far fa-file-pdf mr-2"></i> Export as PDF</a></li>
+                            {client.status === 'archived' ? (
+                                <li>
+                                    <button 
+                                        onClick={handleUnarchiveClient}
+                                        disabled={archiveLoading}
+                                        className="text-success"
+                                        title="Restore this client to active status"
+                                    >
+                                        {archiveLoading ? (
+                                            <>
+                                                <span className="loading loading-spinner loading-sm mr-2"></span>
+                                                Unarchiving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="far fa-undo mr-2"></i> 
+                                                Unarchive Client
+                                            </>
+                                        )}
+                                    </button>
+                                </li>
+                            ) : (
+                                <li>
+                                    <button 
+                                        onClick={handleArchiveClient}
+                                        disabled={archiveLoading}
+                                        className="text-warning"
+                                        title="Archive this client - all data will be preserved for compliance"
+                                    >
+                                        {archiveLoading ? (
+                                            <>
+                                                <span className="loading loading-spinner loading-sm mr-2"></span>
+                                                Archiving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="far fa-archive mr-2"></i> 
+                                                Archive Client
+                                            </>
+                                        )}
+                                    </button>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>

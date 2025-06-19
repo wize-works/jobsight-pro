@@ -141,7 +141,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                     </li>
                 </ul>
 
-                {!sidebarCollapsed && (
+                {/* {!sidebarCollapsed && (
                     <div className="mt-auto pt-6">
                         <div className="bg-base-100 p-4 rounded-lg">
                             <div className="flex items-center mb-2">
@@ -154,7 +154,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             </Link>
                         </div>
                     </div>
-                )}
+                )} */}
             </div>
         </div>
     );
