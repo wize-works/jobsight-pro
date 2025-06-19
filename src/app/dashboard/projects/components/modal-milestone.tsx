@@ -210,19 +210,14 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(projectMilestoneStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {projectMilestoneStatusOptions.select(
+                                            formData.status,
+                                            (value) => setFormData(prev => ({
+                                                ...prev,
+                                                status: value as ProjectMilestoneStatus
+                                            })),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                 </div>
                             </div>
