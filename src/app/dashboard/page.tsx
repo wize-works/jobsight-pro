@@ -278,7 +278,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={() => setProjectModal(false)} />}
+            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
             {<TaskModal isOpen={taskModal} onClose={() => setTaskModal(false)} task={null} />}
             {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
             {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}

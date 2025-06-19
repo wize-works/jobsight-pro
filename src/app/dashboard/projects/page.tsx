@@ -31,12 +31,34 @@ export default function ProjectsPage() {
     const upcomingProjects = projects.filter(
         (project) => project.status === "planning" || project.status === "bidding",
     ).length;
-
     const filteredProjects = projects.filter((project) => {
         const matchesSearch = project.name.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = statusFilter === "all" || project.status === statusFilter.toLowerCase();
         const matchesType = typeFilter === "all" || project.type === typeFilter.toLowerCase();
         return matchesSearch && matchesStatus && matchesType;
+    });
+
+    // Sort the filtered projects
+    const sortedAndFilteredProjects = [...filteredProjects].sort((a, b) => {
+        switch (sortOption) {
+            case "name":
+                return a.name.localeCompare(b.name);
+            case "date":
+                if (!a.start_date && !b.start_date) return 0;
+                if (!a.start_date) return 1;
+                if (!b.start_date) return -1;
+                return new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
+            case "budget":
+                const budgetA = a.budget || 0;
+                const budgetB = b.budget || 0;
+                return budgetB - budgetA; // Descending order for budget
+            case "progress":
+                const progressA = a.progress || 0;
+                const progressB = b.progress || 0;
+                return progressB - progressA; // Descending order for progress
+            default:
+                return 0;
+        }
     });
 
     useEffect(() => {
@@ -180,12 +202,10 @@ export default function ProjectsPage() {
                     </div>
 
                 </div>
-            </div>
-
-            {/* Projects Grid/List View */}
+            </div>            {/* Projects Grid/List View */}
             {viewType === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredProjects.map((project) => (
+                    {sortedAndFilteredProjects.map((project) => (
                         <Link
                             href={`/dashboard/projects/${project.id}`}
                             key={project.id}
@@ -238,9 +258,8 @@ export default function ProjectsPage() {
                                         <th>Progress</th>
                                         <th>Actions</th>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredProjects.map((project) => (
+                                </thead>                                <tbody>
+                                    {sortedAndFilteredProjects.map((project) => (
                                         <tr key={project.id}>
                                             <td>
                                                 <Link href={`/dashboard/projects/${project.id}`} className="font-medium hover:text-primary">
@@ -280,14 +299,12 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {projects.length === 0 && (
+            )}            {projects.length === 0 && (
                 <div className="card bg-base-100 shadow-sm mb-6">
                     <div className="card-body text-center">
                         <i className="far fa-screwdriver-wrench text-3xl text-base-content/30 mb-2"></i>
                         <h3 className="text-lg font-semibold">No projects found</h3>
-                        <p className="text-base-content/70">Try adjusting your search or filters</p>
+                        <p className="text-base-content/70">Get started by creating your first project</p>
                         <div className="flex m-auto justify-center mt-4">
                             <button
                                 className="btn btn-primary"
@@ -298,7 +315,29 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </div>
-            )}            {/* Add Project Modal */}
+            )}
+
+            {projects.length > 0 && sortedAndFilteredProjects.length === 0 && (
+                <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card-body text-center">
+                        <i className="far fa-filter text-3xl text-base-content/30 mb-2"></i>
+                        <h3 className="text-lg font-semibold">No projects match your filters</h3>
+                        <p className="text-base-content/70">Try adjusting your search or filter criteria</p>
+                        <div className="flex m-auto justify-center mt-4">
+                            <button
+                                className="btn btn-outline"
+                                onClick={() => {
+                                    setSearch("");
+                                    setStatusFilter("all");
+                                    setTypeFilter("all");
+                                }}
+                            >
+                                <i className="far fa-refresh mr-2"></i> Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}{/* Add Project Modal */}
             {showAddProjectModal && (
                 <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
             )}
