@@ -1,3 +1,11 @@
+# [1.51.0](https://github.com/wize-works/jobsight-pro/compare/v1.50.0...v1.51.0) (2025-06-19)
+
+
+### Features
+
+* refactor priority and status selection in IssueModal to use custom select components ([bb818c2](https://github.com/wize-works/jobsight-pro/commit/bb818c21f20291d59498e566ca9638ecd7c55ed3))
+* refactor status selection in MilestoneModal to use a custom select component ([65a0369](https://github.com/wize-works/jobsight-pro/commit/65a0369be729eb9736838a66f508ee6e4c1f7381))
+
 # [1.50.0](https://github.com/wize-works/jobsight-pro/compare/v1.49.0...v1.50.0) (2025-06-19)
 
 
