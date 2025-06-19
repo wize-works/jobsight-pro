@@ -7,6 +7,8 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Project } from "@/types/projects";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { generateUploadUrl } from "@/app/actions/media";
+import { withBusinessServer } from "@/lib/auth/with-business-server";
 
 export const getClientById = async (businessId: string, id: string): Promise<Client> => {
     try {
@@ -195,5 +197,42 @@ export const updateClientNotes = async (businessId: string, id: string, notes: s
     } catch (err) {
         console.error("Error in updateClientNotes:", err);
         throw new Error("Failed to update client notes");
+    }
+};
+
+export const uploadClientLogo = async (businessId: string, clientId: string, file: File): Promise<string | null> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Generate upload URL for images
+        const uploadData = await generateUploadUrl("images", file.name);
+
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        const logoUrl = uploadData.fileUrl;
+
+        // Update client with new logo URL
+        await updateClient(businessId, clientId, { logo_url: logoUrl } as ClientUpdate);
+
+        return logoUrl;
+    } catch (error) {
+        console.error("Error uploading client logo:", error);
+        return null;
     }
 };

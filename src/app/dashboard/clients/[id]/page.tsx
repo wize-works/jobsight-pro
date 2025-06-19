@@ -19,7 +19,7 @@ import { MediaType, Media } from "@/types/media";
 import { InvoiceInsert } from "@/types/invoices";
 import { useBusiness } from "@/lib/business-context";
 import { getProxiedMediaUrl } from "@/lib/media-utils";
-import ClientEditForm from "../components/modal-edit";
+import ClientModal from "../components/modal-client";
 import InteractionModal from "../components/modal-interaction";
 import ModalProject from "../components/modal-project";
 import ModalContact from "../components/modal-contact";
@@ -1104,17 +1104,13 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* Edit Client Modal */}
-            {showEditClientModal && (
-                <ClientEditForm
-                    isOpen={showEditClientModal}
-                    client={client}
-                    onClose={() => setShowEditClientModal(false)}
-                    onSubmit={handleUpdateClient}
-                />
-            )}
+            )}            {/* Edit Client Modal */}
+            <ClientModal
+                isOpen={showEditClientModal}
+                client={client}
+                onClose={() => setShowEditClientModal(false)}
+                onSubmit={handleUpdateClient}
+            />
 
             {/* Add Contact Modal */}
             {showAddContactModal && (
