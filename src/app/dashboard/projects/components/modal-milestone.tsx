@@ -5,6 +5,7 @@ import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, proje
 import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
+import { formatDateForInput } from "@/utils/date";
 
 interface MilestoneModalProps {
     isOpen: boolean;
@@ -26,15 +27,13 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
     });
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    // Reset form values when milestone prop changes
+    const [error, setError] = useState("");    // Reset form values when milestone prop changes
     useEffect(() => {
         if (milestone) {
             setFormData({
                 name: milestone.name || "",
                 description: milestone.description || "",
-                due_date: milestone.due_date?.split("T")[0] || "",
+                due_date: formatDateForInput(milestone.due_date),
                 status: (milestone.status as ProjectMilestoneStatus) || "planned",
             });
         } else {

@@ -23,25 +23,7 @@ import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import ProjectDetail from "../components/detail";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
-
-const formatDate = (dateString: string): string => {
-    if (!dateString) return "Not set";
-
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString();
-    } catch (error) {
-        return dateString;
-    }
-};
-
-const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-    }).format(amount || 0);
-};
+import { formatDate, formatCurrency } from "@/utils/date";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;

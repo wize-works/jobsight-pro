@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
 import { progressBar } from "@/utils/progress";
+import { formatDate, formatCurrency } from "@/utils/date";
 import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
 import Loading from "@/app/loading";
 import ProjectModal from "./components/modal-project";
@@ -340,28 +341,6 @@ export default function ProjectsPage() {
             )}{/* Add Project Modal */}
             {showAddProjectModal && (
                 <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
-            )}
-        </>
+            )}        </>
     );
-}
-
-// Helper functions
-function formatDate(dateString?: string | null): string {
-    if (!dateString) return "Not set";
-    return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
-}
-
-function formatCurrency(amount: number | null | undefined): string {
-    if (amount === null || amount === undefined) return "$0";
-    if (isNaN(amount)) return "$0";
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-    }).format(amount);
 }

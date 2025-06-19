@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
 import { User } from "@/types/users";
 import { updateProject } from "@/app/actions/projects";
-import { formatDate } from "@/utils/formatters";
+import { formatDateForInput } from "@/utils/date";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
@@ -23,8 +23,7 @@ export default function ProjectEditModal({
     project,
     onSave
 }: ProjectEditModalProps) {
-    const { businessId } = useBusiness();
-    const [formData, setFormData] = useState({
+    const { businessId } = useBusiness(); const [formData, setFormData] = useState({
         name: project.name || "",
         description: project.description || "",
         client_id: project.client_id || "",
@@ -32,8 +31,8 @@ export default function ProjectEditModal({
         budget: project.budget?.toString() || "0",
         location: project.location || "",
         type: (project.type || "other") as ProjectType,
-        start_date: project.start_date || "",
-        end_date: project.end_date || "",
+        start_date: formatDateForInput(project.start_date),
+        end_date: formatDateForInput(project.end_date),
         status: project.status as ProjectStatus || "pending"
     });
 
@@ -41,8 +40,7 @@ export default function ProjectEditModal({
     const [managers, setManagers] = useState<CrewMember[]>([]);
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        // Reset form when project changes
+    useEffect(() => {        // Reset form when project changes
         setFormData({
             name: project.name || "",
             description: project.description || "",
@@ -51,8 +49,8 @@ export default function ProjectEditModal({
             budget: project.budget?.toString() || "0",
             location: project.location || "",
             type: (project.type || "other") as ProjectType,
-            start_date: project.start_date || "",
-            end_date: project.end_date || "",
+            start_date: formatDateForInput(project.start_date),
+            end_date: formatDateForInput(project.end_date),
             status: project.status as ProjectStatus || "pending"
         });
 

@@ -8,6 +8,7 @@ import { Crew } from "@/types/crews";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { useBusiness } from "@/lib/business-context";
+import { formatDateForInput } from "@/utils/date";
 
 interface TaskModalProps {
     isOpen: boolean;
@@ -60,8 +61,8 @@ export default function TaskModal({ isOpen, onClose, task, onSave }: TaskModalPr
                 name: task.name || "",
                 description: task.description || "",
                 project_id: task.project_id || "",
-                start_date: task.start_date?.split("T")[0] || "",
-                end_date: task.end_date?.split("T")[0] || "",
+                start_date: formatDateForInput(task.start_date),
+                end_date: formatDateForInput(task.end_date),
                 status: (task.status as TaskStatus) || "not_started",
                 priority: (task.priority as TaskPriority) || "medium",
                 progress: task.progress || 0,
