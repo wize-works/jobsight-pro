@@ -238,37 +238,25 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
                                         <label className="label">
                                             <span className="label-text font-medium">Priority</span>
                                         </label>
-                                        <select
-                                            name="priority"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.priority}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(projectIssuePriorityOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {projectIssueStatusOptions.select(
+                                            formData.status,
+                                            (value) => setFormData(prev => ({
+                                                ...prev,
+                                                status: value
+                                            }))
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(projectIssueStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {projectIssuePriorityOptions.select(
+                                            formData.priority,
+                                            (value) => setFormData(prev => ({
+                                                ...prev,
+                                                priority: value
+                                            }))
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -79,7 +79,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     const handleDeleteTask = async () => {
         if (confirm("Are you sure you want to delete this task?")) {
             try {
-                await deleteTask(task.id, businessId)
+                await deleteTask(businessId, task.id)
                 toast.success("Task deleted successfully!")
                 router.push("/dashboard/tasks")
             } catch (error) {
@@ -105,14 +105,10 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">{task.name}</h1>
-                    <p className="text-base-content/70">Task Details</p>
-                </div>
-                <div className="flex gap-2">
-                    <Link href="/dashboard/tasks" className="btn btn-ghost">
-                        <i className="far fa-arrow-left mr-2"></i> Back to Tasks
-                    </Link>
+                <Link href="/dashboard/tasks" className="btn btn-outline">
+                    <i className="far fa-arrow-left fa mr-2"></i> Back to Tasks
+                </Link>
+                <div className="flex items-center gap-2">
                     <button
                         className="btn btn-primary"
                         onClick={() => setIsEditing(true)}
@@ -132,6 +128,7 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
+                            <h1 className="text-2xl font-bold">{task.name}</h1>
                             <h2 className="card-title mb-4">Task Information</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
