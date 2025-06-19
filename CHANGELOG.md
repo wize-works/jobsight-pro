@@ -1,3 +1,10 @@
+# [1.49.0](https://github.com/wize-works/jobsight-pro/compare/v1.48.0...v1.49.0) (2025-06-19)
+
+
+### Features
+
+* implement client logo upload functionality and refactor client modal ([d431091](https://github.com/wize-works/jobsight-pro/commit/d43109161e4294050e978a1e74ee899a4a4f955c))
+
 # [1.48.0](https://github.com/wize-works/jobsight-pro/compare/v1.47.0...v1.48.0) (2025-06-18)
 
 
