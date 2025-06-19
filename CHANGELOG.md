@@ -1,3 +1,10 @@
+## [1.53.3](https://github.com/wize-works/jobsight-pro/compare/v1.53.2...v1.53.3) (2025-06-19)
+
+
+### Bug Fixes
+
+* Update client link text to improve clarity and remove unused button in ClientsPage ([1683a06](https://github.com/wize-works/jobsight-pro/commit/1683a06a2d722f019c0e023c544d33867ed4b976))
+
 ## [1.53.2](https://github.com/wize-works/jobsight-pro/compare/v1.53.1...v1.53.2) (2025-06-19)
 
 
