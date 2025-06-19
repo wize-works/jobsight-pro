@@ -76,7 +76,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                             <input
                                 type="text"
                                 placeholder="Search by number or client"
-                                className="input input-bordered w-full"
+                                className="input input-bordered input-secondary w-full"
                                 onChange={(e) => {
                                     const query = e.target.value.toLowerCase();
                                     setInvoices(initialInvoices.filter(invoice =>
@@ -94,7 +94,8 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                                 } else {
                                     setInvoices(initialInvoices.filter(invoice => invoice.status === value));
                                 }
-                            }
+                            },
+                            "select-secondary w-full"
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
