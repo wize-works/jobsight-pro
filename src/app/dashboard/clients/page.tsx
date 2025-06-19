@@ -236,11 +236,9 @@ export default function ClientsPage() {
                                     <td>
                                         <div className="flex gap-2">
                                             <Link href={`/dashboard/clients/${client.id}`} className="btn btn-sm btn-outline">
-                                                View
+                                                <i className="far fa-eye mr-2"></i>
+                                                Details
                                             </Link>
-                                            <button className="btn btn-sm btn-ghost">
-                                                <i className="far fa-ellipsis-v"></i>
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
