@@ -338,12 +338,11 @@ export default function DailyLogsList({
                 )}
             </div>
 
-            {/* Create Daily Log Modal
             <DailyLogModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSave={handleNewLog}
-            /> */}
+            />
         </>
     );
 }
