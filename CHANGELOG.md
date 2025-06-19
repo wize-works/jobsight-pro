@@ -1,3 +1,11 @@
+## [1.53.1](https://github.com/wize-works/jobsight-pro/compare/v1.53.0...v1.53.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* Update input and select styles in InvoicesList for improved UI consistency ([29a1323](https://github.com/wize-works/jobsight-pro/commit/29a1323017da3b7a58a1344f0f77cc2ddaf54d8e))
+* Update invoice status selection to properly set state in InvoicesList ([60c00a0](https://github.com/wize-works/jobsight-pro/commit/60c00a07d707098d54bb8ea8e03f7cda148c6b00))
+
 # [1.53.0](https://github.com/wize-works/jobsight-pro/compare/v1.52.1...v1.53.0) (2025-06-19)
 
 
