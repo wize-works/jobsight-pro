@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type React from "react";
 import { Navbar } from "./navbar";
 import { Sidebar } from "./sidebar";
@@ -8,12 +8,7 @@ import { BottomNav } from "./bottom-nav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BusinessProvider, useBusiness } from "@/lib/business-context";
 import { usePathname } from "next/navigation";
-import PushManager from "@/components/push-manager";
-import OfflineIndicator from "@/components/offline-indicator";
-import SyncStatusIndicator from "@/components/sync-status-indicator";
 import { AIAssistantButton } from "@/components/ai-assistant-button";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { User } from "@/types/users";
 import { Toaster } from "@/components/toaster";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -38,11 +33,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                     sidebarCollapsed={sidebarCollapsed}
                 />
                 <BusinessProvider>
-                    <OfflineIndicator />
-                    <div className="fixed bottom-24 right-0 z-60">
-                        <SyncStatusIndicator />
-                    </div>
-                    <AIAssistantButton />
                     {pathname === "/dashboard/map" ? (
                         <div className="pb-20 lg:pb-6">{children}</div>
                     ) : (
@@ -50,6 +40,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
                             {children}
                         </div>
                     )}
+                    <AIAssistantButton />
                 </BusinessProvider>
                 {isMobile && <BottomNav />}
             </div>
