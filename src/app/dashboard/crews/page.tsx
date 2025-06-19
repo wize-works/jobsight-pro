@@ -156,7 +156,7 @@ export default function CrewsList() {
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
-                        <label className="input input-bordered input-secondary flex items-center gap-2">
+                        <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
                             <i className="far fa-search"></i>
                             <input
                                 type="text"
@@ -168,7 +168,8 @@ export default function CrewsList() {
                         </label>
                         {crewStatusOptions.select(
                             statusFilter as CrewStatus | null | undefined,
-                            (value) => setStatusFilter(value as CrewStatus | "all")
+                            (value) => setStatusFilter(value as CrewStatus | "all"),
+                            "select-bordered select-secondary w-full"
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
@@ -208,10 +209,10 @@ export default function CrewsList() {
                                                 <i className="far fa-screwdriver-wrench ml-2"></i> {crew.current_project}
                                             </Link>
                                         ) : (
-                                            <span className="text-base-300"><i className="far fa-screwdriver-wrench ml-2"></i> No current project</span>
+                                            <span className="text-base-content/40"><i className="far fa-screwdriver-wrench ml-2"></i> No current project</span>
                                         )}
                                     </td>
-                                    <td><span className={`${crew.leader_id ? "text-primary" : "text-base-300"}`}>{crew.leader}</span></td>
+                                    <td><span className={`${crew.leader_id ? "text-primary" : "text-base-content/40"}`}>{crew.leader}</span></td>
                                     <td>{crew.member_count}</td>
                                     <td><span className={`badge ${crew.status === "active" ? "badge-primary" : "badge-neutral"}`}>{crew.status}</span></td>
                                     <td>
