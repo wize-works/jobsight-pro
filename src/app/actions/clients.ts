@@ -126,23 +126,65 @@ export const updateClient = async (businessId: string, id: string, client: Clien
     }
 }
 
-export const deleteClient = async (businessId: string, id: string): Promise<boolean> => {
+export const archiveClient = async (businessId: string, clientId: string): Promise<boolean> => {
     try {
+        const { business, userId } = await withBusinessServer();
+        
+        // Get current client data first
+        const currentClient = await getClientById(businessId, clientId);
+        
+        // Update client status to archived
+        const updatedClient = {
+            ...currentClient,
+            status: "archived" as const,
+            updated_at: new Date().toISOString(),
+            updated_by: userId || null
+        };
 
-
-        const { data, error } = await deleteWithBusinessCheck("clients", id, businessId);
+        const { data, error } = await updateWithBusinessCheck("clients", clientId, updatedClient, businessId);
 
         if (error) {
-            console.error("Error deleting client:", error);
-            return false;
+            console.error("Error archiving client:", error);
+            throw new Error("Failed to archive client");
         }
 
+        console.log(`Client ${clientId} successfully archived`);
         return true;
     } catch (err) {
-        console.error("Error in deleteClient:", err);
-        return false;
+        console.error("Error in archiveClient:", err);
+        throw new Error("Failed to archive client");
     }
-}
+};
+
+export const unarchiveClient = async (businessId: string, clientId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+        
+        // Get current client data first
+        const currentClient = await getClientById(businessId, clientId);
+        
+        // Update client status to active
+        const updatedClient = {
+            ...currentClient,
+            status: "active" as const,
+            updated_at: new Date().toISOString(),
+            updated_by: userId || null
+        };
+
+        const { data, error } = await updateWithBusinessCheck("clients", clientId, updatedClient, businessId);
+
+        if (error) {
+            console.error("Error unarchiving client:", error);
+            throw new Error("Failed to unarchive client");
+        }
+
+        console.log(`Client ${clientId} successfully unarchived`);
+        return true;
+    } catch (err) {
+        console.error("Error in unarchiveClient:", err);
+        throw new Error("Failed to unarchive client");
+    }
+};
 
 export const searchClients = async (businessId: string, query: string): Promise<Client[]> => {
     try {
@@ -234,5 +276,45 @@ export const uploadClientLogo = async (businessId: string, clientId: string, fil
     } catch (error) {
         console.error("Error uploading client logo:", error);
         return null;
+    }
+};
+
+export const getClientArchiveInfo = async (businessId: string, clientId: string): Promise<{
+    relatedData: {
+        projectCount: number;
+        contactCount: number;
+        interactionCount: number;
+        invoiceCount: number;
+    };
+}> => {
+    try {
+        // Check for related data to show user what will be preserved
+        const [projectsData, contactsData, interactionsData, invoicesData] = await Promise.all([
+            fetchByBusiness("projects", businessId, ["id"], { filter: { client_id: clientId } }),
+            fetchByBusiness("client_contacts", businessId, ["id"], { filter: { client_id: clientId } }),
+            fetchByBusiness("client_interactions", businessId, ["id"], { filter: { client_id: clientId } }),
+            fetchByBusiness("invoices", businessId, ["id"], { filter: { client_id: clientId } })
+        ]);
+
+        const relatedData = {
+            projectCount: projectsData.data?.length || 0,
+            contactCount: contactsData.data?.length || 0,
+            interactionCount: interactionsData.data?.length || 0,
+            invoiceCount: invoicesData.data?.length || 0,
+        };
+
+        return {
+            relatedData
+        };
+    } catch (error) {
+        console.error("Error getting client archive info:", error);
+        return {
+            relatedData: {
+                projectCount: 0,
+                contactCount: 0,
+                interactionCount: 0,
+                invoiceCount: 0,
+            }
+        };
     }
 };
