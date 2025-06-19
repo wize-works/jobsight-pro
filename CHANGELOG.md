@@ -1,3 +1,10 @@
+## [1.53.2](https://github.com/wize-works/jobsight-pro/compare/v1.53.1...v1.53.2) (2025-06-19)
+
+
+### Bug Fixes
+
+* Improve UI consistency by adjusting input styles and updating class names in CrewsList ([bec3d09](https://github.com/wize-works/jobsight-pro/commit/bec3d0901f074fa8fb5eec179106011ee3c83785))
+
 ## [1.53.1](https://github.com/wize-works/jobsight-pro/compare/v1.53.0...v1.53.1) (2025-06-19)
 
 
