@@ -54,21 +54,24 @@ export default function ProjectsPage() {
         if (typeof window !== "undefined") {
             localStorage.setItem("projectsViewType", type);
         }
-    };
-
-    const handleIssueSave = async (issue: any) => {
+    }; const handleIssueSave = async (issue: any) => {
         // Placeholder for issue saving logic
         console.log("Issue saved:", issue);
         setShowAddProjectModal(false);
-    }
+    }; const handleProjectSave = async (projectData: any) => {
+        try {
+            // Create the new project
+            await createProject(businessId, projectData);
 
-    const handleProjectSave = async (project: any) => {
-        if (project.id) {
-            updateProject(businessId, project.id, project);
-        } else {
-            createProject(businessId, project);
+            // Refresh the projects list after successful creation
+            const projectsData = await getProjectsWithDetails(businessId);
+            setProjects(projectsData);
+            setShowAddProjectModal(false);
+        } catch (error) {
+            console.error("Error saving project:", error);
+            // Don't close modal on error so user can retry
+            throw error; // Re-throw so modal can handle the error
         }
-        setShowAddProjectModal(false);
     };
 
     if (loading) {
@@ -295,11 +298,9 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* Add Project Modal */}
+            )}            {/* Add Project Modal */}
             {showAddProjectModal && (
-                <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={() => setShowAddProjectModal(false)} />
+                <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
             )}
         </>
     );

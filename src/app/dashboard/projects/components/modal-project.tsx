@@ -4,7 +4,6 @@ import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
 import { Client } from "@/types/clients";
 import { CrewMember } from "@/types/crew-members";
-import { createProject } from "@/app/actions/projects";
 import { getClients } from "@/app/actions/clients";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { useBusiness } from "@/lib/business-context";
@@ -12,7 +11,7 @@ import { useBusiness } from "@/lib/business-context";
 interface ProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (project: Project) => void;
+    onSave: (projectData: ProjectInsert) => Promise<void>;
 }
 
 export default function ProjectModal({
@@ -118,9 +117,7 @@ export default function ProjectModal({
             setError("Please select a client");
             setLoading(false);
             return;
-        }
-
-        try {
+        } try {
             const projectData = {
                 name: formData.name,
                 description: formData.description,
@@ -134,29 +131,27 @@ export default function ProjectModal({
                 status: formData.status,
             } as ProjectInsert;
 
-            const newProject = await createProject(businessId, projectData);
+            // Pass the project data to parent for creation and list refresh
+            await onSave(projectData);
 
-            if (newProject) {
-                toast.success({
-                    title: "Success",
-                    description: "Project created successfully"
-                });
-                onSave(newProject);
-                onClose();
-                // Reset form
-                setFormData({
-                    name: "",
-                    description: "",
-                    client_id: "",
-                    manager_id: "",
-                    budget: "0",
-                    location: "",
-                    type: "other" as ProjectType,
-                    start_date: "",
-                    end_date: "",
-                    status: "pending" as ProjectStatus,
-                });
-            }
+            toast.success({
+                title: "Success",
+                description: "Project created successfully"
+            });
+
+            // Reset form
+            setFormData({
+                name: "",
+                description: "",
+                client_id: "",
+                manager_id: "",
+                budget: "0",
+                location: "",
+                type: "other" as ProjectType,
+                start_date: "",
+                end_date: "",
+                status: "pending" as ProjectStatus,
+            });
         } catch (error) {
             console.error("Error creating project:", error);
             const errorMessage = "Failed to create project";
