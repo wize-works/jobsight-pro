@@ -22,6 +22,11 @@ export const getCrewMembers = async (businessId: string): Promise<CrewMember[]> 
 };
 
 export const getCrewMemberById = async (businessId: string, id: string): Promise<CrewMember | null> => {
+    if (businessId === "undefined" || !id) {
+        console.error("Invalid businessId or id provided");
+        return null;
+    }
+
     const { data, error } = await fetchByBusiness("crew_members", businessId, "*", {
         filter: { id },
     });

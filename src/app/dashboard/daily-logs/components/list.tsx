@@ -3,8 +3,9 @@
 import { Crew } from "@/types/crews";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Project } from "@/types/projects";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DailyLogModal from "./modal-log";
+import { formatDateForInput, formatDate } from "@/utils/date";
 
 interface DailyLogsListProps {
     logs: DailyLogWithDetails[];
@@ -20,25 +21,86 @@ export default function DailyLogsList({
     const [filteredLogs, setFilteredLogs] = useState<DailyLogWithDetails[]>(logs);
     const [selectedLog, setSelectedLog] = useState<DailyLogWithDetails | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    // Filter states
+    const [selectedCrewId, setSelectedCrewId] = useState<string>("");
+    const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+    const [selectedDate, setSelectedDate] = useState<string>("");
+    const [dateFilterType, setDateFilterType] = useState<"exact" | "from" | "range">("exact");
+    const [fromDate, setFromDate] = useState<string>("");
+    const [toDate, setToDate] = useState<string>("");
 
-    const handleNewLog = (newLog: DailyLogWithDetails) => {
+    // Update filtered logs when filters change
+    useEffect(() => {
+        let filtered = [...logs];
+
+        // Filter by crew
+        if (selectedCrewId) {
+            filtered = filtered.filter(log => log.crew_id === selectedCrewId);
+        }
+
+        // Filter by project
+        if (selectedProjectId) {
+            filtered = filtered.filter(log => log.project_id === selectedProjectId);
+        }        // Filter by date
+        if (dateFilterType === "exact" && selectedDate) {
+            filtered = filtered.filter(log => {
+                if (!log.date) return false;
+                const logDate = new Date(log.date).toISOString().split('T')[0];
+                return logDate === selectedDate;
+            });
+        } else if (dateFilterType === "from" && fromDate) {
+            filtered = filtered.filter(log => {
+                if (!log.date) return false;
+                const logDate = new Date(log.date).toISOString().split('T')[0];
+                return logDate >= fromDate;
+            });
+        } else if (dateFilterType === "range" && fromDate && toDate) {
+            filtered = filtered.filter(log => {
+                if (!log.date) return false;
+                const logDate = new Date(log.date).toISOString().split('T')[0];
+                return logDate >= fromDate && logDate <= toDate;
+            });
+        }
+
+        setFilteredLogs(filtered);
+    }, [logs, selectedCrewId, selectedProjectId, selectedDate, dateFilterType, fromDate, toDate]); const handleNewLog = (newLog: DailyLogWithDetails) => {
         setFilteredLogs(prev => [newLog, ...prev]);
+    }; const clearFilters = () => {
+        setSelectedCrewId("");
+        setSelectedProjectId("");
+        setSelectedDate("");
+        setDateFilterType("exact");
+        setFromDate("");
+        setToDate("");
     };
 
-    const filterByCrew = (crewId: string) => {
-        if (crewId) {
-            setFilteredLogs(logs.filter(log => log.crew_id === crewId));
-        } else {
-            setFilteredLogs(logs); // Reset to all logs
-        }
+    const setTodayFilter = () => {
+        setDateFilterType("exact");
+        setSelectedDate(new Date().toISOString().split('T')[0]);
+        setFromDate("");
+        setToDate("");
     };
 
-    const filterByProject = (projectId: string) => {
-        if (projectId) {
-            setFilteredLogs(logs.filter(log => log.project_id === projectId));
-        } else {
-            setFilteredLogs(logs); // Reset to all logs
-        }
+    const setThisWeekFilter = () => {
+        const today = new Date();
+        const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+
+        setDateFilterType("range");
+        setFromDate(firstDayOfWeek.toISOString().split('T')[0]);
+        setToDate(lastDayOfWeek.toISOString().split('T')[0]);
+        setSelectedDate("");
+    };
+
+    const setThisMonthFilter = () => {
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        setDateFilterType("range");
+        setFromDate(firstDayOfMonth.toISOString().split('T')[0]);
+        setToDate(lastDayOfMonth.toISOString().split('T')[0]);
+        setSelectedDate("");
     };
 
     return (
@@ -102,14 +164,14 @@ export default function DailyLogsList({
                     </div>
                     <div className="stat-desc">Ongoing projects</div>
                 </div>
-            </div>
-
-            {/* Filters */}
+            </div>            {/* Filters */}
             <div className="bg-base-100 p-4 rounded-lg shadow mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+                <div className="flex flex-col md:flex-row gap-6 mb-4">
                     <select
                         className="select select-bordered select-secondary w-full"
-                        onChange={(e) => filterByCrew(e.target.value)}
+                        value={selectedCrewId}
+                        onChange={(e) => setSelectedCrewId(e.target.value)}
                     >
                         <option value="">All Crews</option>
                         {crews.map(crew => (
@@ -119,7 +181,8 @@ export default function DailyLogsList({
 
                     <select
                         className="select select-bordered select-secondary w-full"
-                        onChange={(e) => filterByProject(e.target.value)}
+                        value={selectedProjectId}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
                     >
                         <option value="">All Projects</option>
                         {projects.map(project => (
@@ -127,11 +190,82 @@ export default function DailyLogsList({
                         ))}
                     </select>
 
-                    <input type="date" className="input input-bordered input-secondary w-full" />
+                    <select
+                        className="select select-bordered select-secondary w-full"
+                        value={dateFilterType}
+                        onChange={(e) => setDateFilterType(e.target.value as "exact" | "from" | "range")}
+                    >
+                        <option value="exact">Exact Date</option>
+                        <option value="from">From Date</option>
+                        <option value="range">Date Range</option>
+                    </select>
+                    {dateFilterType === "exact" && (
+                        <input
+                            type="date"
+                            className="input input-bordered input-secondary w-full"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            placeholder="Select date"
+                        />
+                    )}
 
-                    <div className="form-control">
-                        <button className="btn btn-primary">Apply Filters</button>
-                    </div>
+                    {dateFilterType === "from" && (
+                        <input
+                            type="date"
+                            className="input input-bordered input-secondary w-full"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            placeholder="From date"
+                        />
+                    )}
+
+                    {dateFilterType === "range" && (
+                        <>
+                            <input
+                                type="date"
+                                className="input input-bordered input-secondary w-full"
+                                value={fromDate}
+                                onChange={(e) => setFromDate(e.target.value)}
+                                placeholder="From date"
+                            />
+                            <input
+                                type="date"
+                                className="input input-bordered input-secondary w-full"
+                                value={toDate}
+                                onChange={(e) => setToDate(e.target.value)}
+                                placeholder="To date"
+                            />
+                        </>
+                    )}
+                </div>
+                <div className="flex flex-col md:flex-row justify-end gap-4">
+                    {/* Quick Date Filters */}
+                    <button
+                        className="btn btn-sm btn-outline btn-secondary"
+                        onClick={setTodayFilter}
+                    >
+                        Today
+                    </button>
+                    <button
+                        className="btn btn-sm btn-outline btn-secondary"
+                        onClick={setThisWeekFilter}
+                    >
+                        This Week
+                    </button>
+                    <button
+                        className="btn btn-sm btn-outline btn-secondary"
+                        onClick={setThisMonthFilter}
+                    >
+                        This Month
+                    </button>
+                    <button
+                        className="btn btn-outline btn-sm btn-secondary"
+                        onClick={clearFilters}
+                        disabled={!selectedCrewId && !selectedProjectId && !selectedDate && !fromDate && !toDate}
+                    >
+                        <i className="far fa-refresh mr-2"></i>
+                        Clear Filters
+                    </button>
                 </div>
             </div>
 
@@ -158,9 +292,8 @@ export default function DailyLogsList({
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-base-content/50">Crew: {log.crew?.name}</span>
-                                </div>
-                                <div className="mt-2">
-                                    <span className="badge badge-secondary">{new Date(log.date).toLocaleDateString()}</span>
+                                </div>                                <div className="mt-2">
+                                    <span className="badge badge-secondary">{formatDate(log.date)}</span>
                                     <span className="badge badge-info ml-2">Hours: {log.hours_worked || 0}</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/app/actions/clients"
-import { ClientStatus, clientStatusOptions, type Client, type ClientInsert, type ClientWithStats } from "@/types/clients"
+import { ClientStatus, clientStatusOptions, ClientType, clientTypeOptions, type Client, type ClientInsert, type ClientWithStats } from "@/types/clients"
 import { toast } from "@/hooks/use-toast"
 import { ClientCard } from "./components/card"
 import ClientModal from "./components/modal-client"
@@ -156,23 +156,15 @@ export default function ClientsPage() {
                                 />
                             </label>
                         </div>
-                        <select
-                            className="select select-bordered select-secondary w-full"
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                        >
-                            <option value="all">All Types</option>
-                            {clientTypes
-                                .filter((type) => type !== "all")
-                                .map((type) => (
-                                    <option key={type} value={type}>
-                                        {type}
-                                    </option>
-                                ))}
-                        </select>
+                        {clientTypeOptions.select(
+                            typeFilter as ClientType | "all",
+                            (value) => setTypeFilter(value as string | "all"),
+                            "select-secondary w-full"
+                        )}
                         {clientStatusOptions.select(
                             statusFilter as ClientStatus,
-                            (value) => setStatusFilter(value as ClientStatus | "all")
+                            (value) => setStatusFilter(value as ClientStatus | "all"),
+                            "select-secondary w-full"
                         )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>

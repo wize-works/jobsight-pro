@@ -37,44 +37,6 @@ export default function TaskDetailComponent({ task: initialTask, projects, crews
     const project = projectMap[task.project_id]
     const assignedCrew = task.assigned_to ? crewMap[task.assigned_to] : null
 
-    // Get status badge color
-    const getStatusBadgeColor = (status: string) => {
-        switch (status) {
-            case "completed":
-                return "badge-success"
-            case "in_progress":
-                return "badge-primary"
-            case "not_started":
-                return "badge-ghost"
-            default:
-                return "badge-ghost"
-        }
-    }
-
-    // Get priority badge color
-    const getPriorityBadgeColor = (priority: string) => {
-        switch (priority) {
-            case "high":
-                return "badge-error"
-            case "medium":
-                return "badge-warning"
-            case "low":
-                return "badge-info"
-            default:
-                return "badge-ghost"
-        }
-    }
-
-    // Format status for display
-    const formatStatus = (status: string) => {
-        return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-    }
-
-    // Format priority for display
-    const formatPriority = (priority: string) => {
-        return priority.charAt(0).toUpperCase() + priority.slice(1)
-    }
-
     // Handle task deletion
     const handleDeleteTask = async () => {
         if (confirm("Are you sure you want to delete this task?")) {
