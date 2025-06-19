@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAIQuery } from '@/app/actions/ai';
-//import { processAIQuery, transcribeAudio, createDailyLogFromAI } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
 import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
@@ -164,36 +163,6 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         }
     };
 
-    // const processQuery = async (message: string) => {
-    //     setIsProcessing(true);
-    //     setError("");
-
-    //     try {
-    //         // Convert conversation to the format expected by the action
-    //         const conversationHistory = conversation.slice(-5).map(msg => ({
-    //             role: msg.type, // Explicitly use "user" or "assistant" from msg.type
-    //             content: msg.content,
-    //             timestamp: msg.timestamp.toISOString()
-    //         }));
-
-    //         const result = await processAIQuery(businessId, message, conversationHistory);
-
-    //         // Ensure result.path is defined before using it
-    //         if (result.action === 'navigate' && result.path) {
-    //             addToConversation("assistant", result.response);
-    //             setTimeout(() => router.push(result.path!), 1500); // Use non-null assertion after the check
-    //         } else {
-    //             addToConversation("assistant", result.response);
-    //         }
-
-    //     } catch (err) {
-    //         const errorMsg = "I encountered an issue processing your request: " + (err as Error).message;
-    //         addToConversation("assistant", errorMsg);
-    //         console.error("AI processing error:", err);
-    //     } finally {
-    //         setIsProcessing(false);
-    //     }
-    // };
     const processQuery = async (message: string) => {
         setIsProcessing(true);
         setError("");
@@ -285,7 +254,7 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
     return (
         <>
             {/* Sliding panel */}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`} style={{ maxWidth: '100vw', overflow: 'hidden' }}>
+            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`} style={{ maxWidth: '100vw' }}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
                     <div className="flex items-center gap-3">
@@ -323,7 +292,7 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                 {/* Chat area */}
                 <div className="flex flex-col h-full">
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" style={{ maxHeight: 'calc(100vh - 190px)' }}>
                         {conversation.length === 0 && (
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
