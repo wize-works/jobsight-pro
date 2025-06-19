@@ -12,6 +12,7 @@ import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow, set } from "date-fns";
+import { formatDate, formatCurrency } from "@/utils/date";
 import TasksTab from "../components/tab-tasks";
 import { Client } from "@/types/clients";
 import CrewsTab from "../components/tab-crews";
@@ -30,25 +31,6 @@ import ProjectEditModal from "../components/modal-edit";
 import TaskModal from "../components/modal-task";
 import MediaModal from "../components/modal-media";
 import { useBusiness } from "@/lib/business-context";
-
-const formatDate = (dateString: string): string => {
-    if (!dateString) return "Not set";
-
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString();
-    } catch (error) {
-        return dateString;
-    }
-};
-
-const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-    }).format(amount || 0);
-};
 
 type ProjectDetailParams = {
     project: Project;

@@ -7,6 +7,7 @@ import { CrewMember } from "@/types/crew-members";
 import { getClients } from "@/app/actions/clients";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { useBusiness } from "@/lib/business-context";
+import { formatDateForInput } from "@/utils/date";
 
 interface ProjectModalProps {
     isOpen: boolean;
