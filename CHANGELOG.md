@@ -1,3 +1,10 @@
+## [1.52.1](https://github.com/wize-works/jobsight-pro/compare/v1.52.0...v1.52.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* Remove commented-out DailyLogModal component from DailyLogsList ([0900407](https://github.com/wize-works/jobsight-pro/commit/090040795b92f0a2cec099bd7712d785730b4db7))
+
 # [1.52.0](https://github.com/wize-works/jobsight-pro/compare/v1.51.0...v1.52.0) (2025-06-19)
 
 
