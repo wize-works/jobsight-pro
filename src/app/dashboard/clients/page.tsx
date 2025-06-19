@@ -6,6 +6,7 @@ import { createClient } from "@/app/actions/clients"
 import { ClientStatus, clientStatusOptions, type Client, type ClientInsert, type ClientWithStats } from "@/types/clients"
 import { toast } from "@/hooks/use-toast"
 import { ClientCard } from "./components/card"
+import ClientModal from "./components/modal-client"
 import { v4 as uuidv4 } from "uuid"
 import { getClientsWithStats } from "@/app/actions/clients"
 import Loading from "@/app/loading"
@@ -17,29 +18,7 @@ export default function ClientsPage() {
     const [loading, setLoading] = useState(true);
     const [clients, setClients] = useState<ClientWithStats[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [typeFilter, setTypeFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [showAddClientModal, setShowAddClientModal] = useState(false);
-    const [newClient, setNewClient] = useState<{
-        id: string;
-        name: string;
-        type: string;
-        contact_name: string;
-        contact_email: string;
-        contact_phone: string;
-        address: string;
-        status: "prospect" | "active" | "inactive" | "archived";
-    }>({
-        id: uuidv4(),
-        name: "",
-        type: "Commercial",
-        contact_name: "",
-        contact_email: "",
-        contact_phone: "",
-        address: "",
-        status: "prospect",
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [typeFilter, setTypeFilter] = useState("all"); const [statusFilter, setStatusFilter] = useState("all"); const [showAddClientModal, setShowAddClientModal] = useState(false);
     const [viewType, setViewType] = useState<"grid" | "list">(
         typeof window !== "undefined" && localStorage.getItem("clientsViewType") === "list" ? "list" : "grid"
     );
@@ -78,39 +57,24 @@ export default function ClientsPage() {
     })
 
     // Get unique client types for filter dropdown
-    const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))];
+    const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))]; const handleAddClient = async (formData: any) => {
+        const clientData = {
+            id: uuidv4(),
+            ...formData
+        };
 
-    const handleAddClient = async () => {
-        setIsSubmitting(true);
-        try {
-            const data = await createClient(businessId, newClient as ClientInsert);
-            if (data) {
-                setClients((prev) => [
-                    ...prev,
-                    {
-                        ...data,
-                        total_projects: 0,
-                        active_projects: 0,
-                        total_budget: 0,
-                    },
-                ]);
-                setNewClient({
-                    id: uuidv4(),
-                    name: "",
-                    type: "Commercial",
-                    contact_name: "",
-                    contact_email: "",
-                    contact_phone: "",
-                    address: "",
-                    status: "prospect",
-                });
-                setShowAddClientModal(false);
-            }
-        } catch (error) {
-            toast.error("Error adding client. Please try again.");
-            console.error("Error adding client:", error);
-        } finally {
-            setIsSubmitting(false);
+        const data = await createClient(businessId, clientData as ClientInsert);
+        if (data) {
+            setClients((prev) => [
+                ...prev,
+                {
+                    ...data,
+                    total_projects: 0,
+                    active_projects: 0,
+                    total_budget: 0,
+                },
+            ]);
+            setShowAddClientModal(false);
         }
     }
 
@@ -309,129 +273,12 @@ export default function ClientsPage() {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* Add Client Modal */}
-            {showAddClientModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-3xl">
-                        <h3 className="font-bold text-lg mb-4">Add New Client</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Client Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter client name"
-                                    className="input input-bordered"
-                                    value={newClient.name}
-                                    onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Client Type</span>
-                                </label>
-                                <select
-                                    className="select select-bordered"
-                                    value={newClient.type}
-                                    onChange={(e) => setNewClient({ ...newClient, type: e.target.value })}
-                                >
-                                    <option>Commercial</option>
-                                    <option>Residential</option>
-                                    <option>Government</option>
-                                    <option>Education</option>
-                                    <option>Healthcare</option>
-                                    <option>Hospitality</option>
-                                    <option>Non-Profit</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="divider">Contact Information</div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Contact Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter primary contact name"
-                                    className="input input-bordered"
-                                    value={newClient.contact_name}
-                                    onChange={(e) => setNewClient({ ...newClient, contact_name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Contact Email</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    placeholder="Enter email address"
-                                    className="input input-bordered"
-                                    value={newClient.contact_email}
-                                    onChange={(e) => setNewClient({ ...newClient, contact_email: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Contact Phone</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    placeholder="Enter phone number"
-                                    className="input input-bordered"
-                                    value={newClient.contact_phone}
-                                    onChange={(e) => setNewClient({ ...newClient, contact_phone: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Status</span>
-                                </label>
-                                <select
-                                    className="select select-bordered"
-                                    value={newClient.status}
-                                    onChange={(e) =>
-                                        setNewClient({ ...newClient, status: e.target.value as "prospect" | "active" | "inactive" })
-                                    }
-                                >
-                                    <option value="prospect">Prospect</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Address</span>
-                            </label>
-                            <textarea
-                                className="textarea textarea-bordered"
-                                placeholder="Enter client address"
-                                value={newClient.address}
-                                onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
-                            ></textarea>
-                        </div>
-
-                        <div className="modal-action">
-                            <button className="btn btn-ghost" onClick={() => setShowAddClientModal(false)}>
-                                Cancel
-                            </button>
-                            <button className="btn btn-primary" onClick={handleAddClient} disabled={isSubmitting}>
-                                {isSubmitting ? <span className="loading loading-spinner loading-sm"></span> : null}
-                                Add Client
-                            </button>
-                        </div>
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowAddClientModal(false)}></div>
-                </div>
-            )}
+            )}            {/* Client Modal */}
+            <ClientModal
+                isOpen={showAddClientModal}
+                onClose={() => setShowAddClientModal(false)}
+                onSubmit={handleAddClient}
+            />
         </>
     )
 }
