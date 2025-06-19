@@ -12,6 +12,8 @@ import { getUserByAuthId } from "../actions/users";
 import { useEffect, useState } from "react";
 import { get } from "http";
 import { useBusiness } from "@/lib/business-context";
+import OfflineIndicator from "@/components/offline-indicator";
+import SyncStatusIndicator from "@/components/sync-status-indicator";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
@@ -103,6 +105,8 @@ export const Navbar = ({
             </div>
 
             <div className="flex items-center gap-4">
+                <OfflineIndicator />
+                <SyncStatusIndicator />
                 <ThemeToggle />
                 <Notifications />
 
