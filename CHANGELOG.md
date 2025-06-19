@@ -1,3 +1,10 @@
+# [1.53.0](https://github.com/wize-works/jobsight-pro/compare/v1.52.1...v1.53.0) (2025-06-19)
+
+
+### Features
+
+* Implement client archiving and unarchiving functionality with related data preservation ([e7b1fef](https://github.com/wize-works/jobsight-pro/commit/e7b1fef0807659fb5748d57ba9514eb56d45d7d9))
+
 ## [1.52.1](https://github.com/wize-works/jobsight-pro/compare/v1.52.0...v1.52.1) (2025-06-19)
 
 
