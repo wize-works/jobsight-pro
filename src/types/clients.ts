@@ -17,7 +17,7 @@ export type ClientType = "all" | "commercial" | "residential" | "government" | "
 export type ClientIndustry = "all" | "construction" | "real_estate" | "manufacturing" | "retail" | "technology" | "finance" | "healthcare" | "education" | "government" | "nonprofit" | "other";
 
 export const clientStatusOptions = createOptions<ClientStatus>({
-    "all": { label: "All", badge: "badge-neutral" },
+    "all": { label: "Any Status", badge: "badge-neutral" },
     "active": { label: "Active", badge: "badge-success" },
     "inactive": { label: "Inactive", badge: "badge-secondary" },
     "prospect": { label: "Prospect", badge: "badge-info" },
@@ -25,7 +25,7 @@ export const clientStatusOptions = createOptions<ClientStatus>({
 });
 
 export const clientTypeOptions = createOptions<ClientType>({
-    "all": { label: "All", badge: "badge-neutral" },
+    "all": { label: "All Types", badge: "badge-neutral" },
     "commercial": { label: "Commercial", badge: "badge-primary" },
     "residential": { label: "Residential", badge: "badge-secondary" },
     "government": { label: "Government", badge: "badge-info" },
@@ -36,7 +36,7 @@ export const clientTypeOptions = createOptions<ClientType>({
 });
 
 export const clientIndustryOptions = createOptions<ClientIndustry>({
-    "all": { label: "All", badge: "badge-neutral" },
+    "all": { label: "All Industries", badge: "badge-neutral" },
     "construction": { label: "Construction", badge: "badge-primary" },
     "real_estate": { label: "Real Estate", badge: "badge-secondary" },
     "manufacturing": { label: "Manufacturing", badge: "badge-info" },

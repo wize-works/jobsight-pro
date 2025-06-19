@@ -46,13 +46,11 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     return (
         <div className="min-h-screen bg-base-200">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                    <Link href="/dashboard/daily-logs" className="btn btn-outline">
-                        <i className="far fa-arrow-left"></i>Back to Daily Logs
-                    </Link>
-                </div>
-                <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row space-y-4 items-center justify-between">
+                <Link href="/dashboard/daily-logs" className="btn btn-outline">
+                    <i className="far fa-arrow-left"></i>Back to Daily Logs
+                </Link>
+                <div className="flex gap-4">
                     <button
                         className="btn btn-primary btn-sm"
                         onClick={() => setIsEditModalOpen(true)}

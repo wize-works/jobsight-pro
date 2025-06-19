@@ -4,6 +4,7 @@ import { getTaskById } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { withBusinessServer } from '@/lib/auth/with-business-server';
+import Loading from "@/app/loading";
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -23,12 +24,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         }
 
         return (
-            <Suspense fallback={<div className="loading loading-spinner loading-lg"></div>}>
+            <Suspense fallback={<Loading />}>
                 <TaskDetailComponent task={task} projects={projects} crews={crews} />
             </Suspense>
         );
     } catch (error) {
-        console.error("Error loading task:", error);
         return (
             <div className="alert alert-error">
                 <i className="far fa-exclamation-triangle mr-2"></i>

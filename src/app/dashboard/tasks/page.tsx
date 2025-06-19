@@ -4,6 +4,7 @@ import { getTasks, getTasksWithDetails } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { withBusinessServer } from '@/lib/auth/with-business-server';
+import Loading from "@/app/loading";
 
 export default async function TasksPage() {
     const { business } = await withBusinessServer();
@@ -19,7 +20,7 @@ export default async function TasksPage() {
     return (
         <Suspense
             fallback={
-                <div className="loading loading-spinner loading-lg"></div>
+                <Loading />
             }
         >
             <TasksComponent

@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { progressBar } from "@/utils/progress";
-import { formatDistance, formatDistanceToNow, set } from "date-fns";
+import { formatDistance, formatDistanceToNow } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/date";
 import TasksTab from "../components/tab-tasks";
 import { Client } from "@/types/clients";
@@ -67,6 +67,7 @@ export default function ProjectDetail(params: ProjectDetailParams) {
 
     useEffect(() => {
         const fetchClients = async () => {
+            setLoading(true);
             const { project, milestones, tasks, crews, issues, documents, client, contacts } = await params;
             try {
                 setProject(project);
@@ -76,17 +77,22 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                 setIssues(issues);
                 setDocuments(documents);
                 setProgress(project.progress || 0);
+                setClient(client);
+                setContacts(contacts);
 
                 if (client) {
+                    console.log("Client data fetched:", client);
                     setClient(client);
                     setContacts(contacts);
                 } else if (project && project.client_id) {
+                    console.log("Fetching client by ID:", project.client_id);
                     const clientData = await getClientById(businessId, project.client_id);
                     setClient(clientData);
 
                     const contactsData = await getClientContactsByClientId(businessId, project.client_id);
                     setContacts(contactsData);
                 } else {
+                    console.log("No client data available for this project.");
                     setClient(null);
                 }
 
@@ -551,16 +557,18 @@ export default function ProjectDetail(params: ProjectDetailParams) {
                                     onMouseUp={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
                                     onTouchEnd={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
                                 />
-                            </div>
-                            <div className="stats stats-vertical shadow">
+                            </div>                            <div className="stats stats-vertical shadow">
                                 <div className="stat">
                                     <div className="stat-title">Elapsed Time</div>
                                     <div className="stat-value text-lg">
-                                        {formatDistanceToNow(project.start_date || "")}
+                                        {project.start_date ? formatDistanceToNow(new Date(project.start_date)) : "Not started"}
                                     </div>
 
                                     <div className="stat-desc">
-                                        of {formatDistance(project.start_date || "", project.end_date || new Date())}
+                                        {project.start_date && project.end_date
+                                            ? `of ${formatDistance(new Date(project.start_date), new Date(project.end_date))}`
+                                            : "Duration not set"
+                                        }
                                     </div>
                                 </div>
 
