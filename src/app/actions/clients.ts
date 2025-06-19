@@ -129,10 +129,10 @@ export const updateClient = async (businessId: string, id: string, client: Clien
 export const archiveClient = async (businessId: string, clientId: string): Promise<boolean> => {
     try {
         const { business, userId } = await withBusinessServer();
-        
+
         // Get current client data first
         const currentClient = await getClientById(businessId, clientId);
-        
+
         // Update client status to archived
         const updatedClient = {
             ...currentClient,
@@ -159,10 +159,10 @@ export const archiveClient = async (businessId: string, clientId: string): Promi
 export const unarchiveClient = async (businessId: string, clientId: string): Promise<boolean> => {
     try {
         const { business, userId } = await withBusinessServer();
-        
+
         // Get current client data first
         const currentClient = await getClientById(businessId, clientId);
-        
+
         // Update client status to active
         const updatedClient = {
             ...currentClient,
