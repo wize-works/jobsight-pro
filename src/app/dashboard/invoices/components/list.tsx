@@ -89,6 +89,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                         {invoiceStatusOptions.select(
                             invoiceStatus,
                             (value: InvoiceStatus | "all") => {
+                                setInvoiceStatus(value);
                                 if (value === "all") {
                                     setInvoices(initialInvoices);
                                 } else {
