@@ -1,3 +1,10 @@
+## [1.58.2](https://github.com/wize-works/jobsight-pro/compare/v1.58.1...v1.58.2) (2025-06-20)
+
+
+### Bug Fixes
+
+* Improve form submission error handling and update modal styles for consistency ([56817a2](https://github.com/wize-works/jobsight-pro/commit/56817a25def474a35852c8bd95b8b45ecd2f9c64))
+
 ## [1.58.1](https://github.com/wize-works/jobsight-pro/compare/v1.58.0...v1.58.1) (2025-06-20)
 
 
