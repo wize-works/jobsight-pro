@@ -1,3 +1,10 @@
+## [1.55.1](https://github.com/wize-works/jobsight-pro/compare/v1.55.0...v1.55.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Add missing Tailwind CSS utility for badge component in globals.css ([c3f697d](https://github.com/wize-works/jobsight-pro/commit/c3f697d8ab1cec1ec41896ff9bf9655de31fe475))
+
 # [1.55.0](https://github.com/wize-works/jobsight-pro/compare/v1.54.0...v1.55.0) (2025-06-20)
 
 
