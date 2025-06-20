@@ -35,6 +35,7 @@ import MilestoneModal from "../components/modal-milestone";
 import ProjectEditModal from "../components/modal-edit";
 import TaskModal from "../components/modal-task";
 import MediaModal from "../components/modal-media";
+import WeatherWidget from "@/components/weather-widget";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
@@ -636,7 +637,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                     </div>
 
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-sm mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Assigned Crews</h3>
@@ -658,6 +659,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             )) || <p>No crews assigned.</p>}
                         </div>
                     </div>
+
+                    <WeatherWidget location={project.location || "Project Location"} />
                 </div>
             </div>
             {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
