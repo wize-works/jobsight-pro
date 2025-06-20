@@ -38,6 +38,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
     // Load notification preferences
     useEffect(() => {
         async function loadPreferences() {
+            if (!businessId || businessId === "") return;
             if (!userId) return;
 
             try {

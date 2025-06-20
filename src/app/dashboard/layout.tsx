@@ -12,8 +12,6 @@ import { AIAssistantButton } from "@/components/ai-assistant-button";
 import { Toaster } from "@/components/toaster";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { businessId, loading } = useBusiness();
-
     const storedSidebarCollapsed =
         typeof window !== "undefined"
             ? localStorage.getItem("sidebarCollapsed")
@@ -24,29 +22,28 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     const isMobile = useIsMobile();
     const pathname = usePathname();
 
-    return (
-        <div className={`${!isMobile && "drawer lg:drawer-open"}`}>
-            <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content flex flex-col bg-base-200 relative">
+    return (<div className={`${!isMobile && "drawer lg:drawer-open"}`}>
+        <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-content flex flex-col bg-base-200 relative">
+            <BusinessProvider>
                 <Navbar
                     setSidebarCollapsed={setSidebarCollapsed}
                     sidebarCollapsed={sidebarCollapsed}
                 />
-                <BusinessProvider>
-                    {pathname === "/dashboard/map" ? (
-                        <div className="pb-20 lg:pb-6">{children}</div>
-                    ) : (
-                        <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
-                            {children}
-                        </div>
-                    )}
-                    <AIAssistantButton />
-                </BusinessProvider>
-                {isMobile && <BottomNav />}
-            </div>
-            {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
-            <Toaster />
+                {pathname === "/dashboard/map" ? (
+                    <div className="pb-20 lg:pb-6">{children}</div>
+                ) : (
+                    <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
+                        {children}
+                    </div>
+                )}
+                <AIAssistantButton />
+            </BusinessProvider>
+            {isMobile && <BottomNav />}
         </div>
+        {!isMobile && <Sidebar sidebarCollapsed={sidebarCollapsed} />}
+        <Toaster />
+    </div>
     );
 }
 

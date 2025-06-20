@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -7,16 +6,12 @@ import PushManager from "@/components/push-manager";
 import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "@/hooks/use-toast";
 import { uploadUserAvatar } from "@/app/actions/user-avatar";
-import { getUserById } from "@/app/actions/users";
+import { getUserByAuthId, getUserById } from "@/app/actions/users";
 import { useBusiness } from "@/lib/business-context";
+import { NotificationTypeOptions, NotificationChannelOptions } from "@/types/notifications";
 
-type NotificationType =
-    | "projectUpdates"
-    | "taskAssignments"
-    | "equipmentAlerts"
-    | "invoiceUpdates"
-    | "systemAnnouncements";
-type NotificationChannel = "email" | "push" | "inApp";
+type NotificationType = NotificationTypeOptions;
+type NotificationChannel = NotificationChannelOptions;
 
 interface NotificationPreferences {
     email: boolean;
@@ -86,17 +81,17 @@ export default function ProfilePage() {
 
     // Load user data when component mounts
     useEffect(() => {
-        if (user && !isLoading) {
+        if (user && !isLoading && businessId) {
             // Load current user data from database first
             loadCurrentUser();
         }
-    }, [user, isLoading]);
+    }, [user, isLoading, businessId]);
 
     const loadCurrentUser = async () => {
-        if (!user?.id) return;
-
+        if (!user?.id || !businessId) return;
+        console.log("Loading user data for:", user.id, "Business ID:", businessId);
         try {
-            const dbUser = await getUserById(businessId, user.id);
+            const dbUser = await getUserByAuthId(businessId, user.id);
             if (dbUser) {
                 setCurrentUser(dbUser);
                 setAvatarUrl(dbUser.avatar_url);
@@ -235,9 +230,7 @@ export default function ProfilePage() {
             console.error("Error updating notification preferences:", error);
             toast.error("Failed to update notification preferences");
         }
-    };
-
-    if (isLoading) {
+    }; if (isLoading || !user) {
         return (
             <div className="flex items-center justify-center h-64">
                 <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -507,9 +500,7 @@ export default function ProfilePage() {
                 <div className="card-body">
                     <h2 className="text-xl font-semibold mb-6">
                         Notification Preferences
-                    </h2>
-
-                    {notificationsLoading ? (
+                    </h2>                    {notificationsLoading ? (
                         <div className="flex justify-center py-8">
                             <span className="loading loading-spinner loading-lg"></span>
                         </div>
@@ -717,18 +708,28 @@ export default function ProfilePage() {
                                                         }
                                                     />
                                                 </td>
-                                                <td className="text-center">
-                                                    <button
-                                                        className="btn btn-xs btn-ghost tooltip"
-                                                        data-tip="Send test notification"
-                                                        onClick={() =>
-                                                            sendTestNotification(
+                                                <td className="text-center">                                                    <button
+                                                    className="btn btn-xs btn-ghost tooltip"
+                                                    data-tip="Send test notification"
+                                                    onClick={async () => {
+                                                        try {
+                                                            console.log("Sending test notification for type:", key);
+                                                            console.log("BusinessId:", businessId);
+                                                            console.log("UserId:", user?.id);
+
+                                                            await sendTestNotification(
                                                                 key as NotificationType,
-                                                            )
+                                                            );
+                                                            console.log("Test notification sent successfully");
+                                                            toast.success("Test notification sent!");
+                                                        } catch (error) {
+                                                            console.error("Error sending test notification:", error);
+                                                            toast.error("Failed to send test notification");
                                                         }
-                                                    >
-                                                        <i className="far fa-paper-plane"></i>
-                                                    </button>
+                                                    }}
+                                                >
+                                                    <i className="far fa-paper-plane"></i>
+                                                </button>
                                                 </td>
                                             </tr>
                                         ))}

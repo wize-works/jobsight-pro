@@ -12,14 +12,15 @@ import { useNotificationRefresh } from "@/hooks/use-notifications-refresh";
 
 export const Notifications = () => {
     const { user } = useKindeAuth();
-    const { businessId } = useBusiness();
+    const { businessId, loading: businessLoading, error: businessError } = useBusiness();
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isOpen, setIsOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false); const loadNotifications = useCallback(async () => {
+        if (!user?.id || !businessId || businessId === "") {
+            setLoading(false);
+            return;
+        }
 
-    const loadNotifications = useCallback(async () => {
-        if (!user?.id || !businessId) return;
-        
         try {
             setLoading(true);
             const unreadNotifications = await getUnreadNotifications(businessId, user.id);
@@ -29,13 +30,22 @@ export const Notifications = () => {
         } finally {
             setLoading(false);
         }
-    }, [user?.id, businessId]);
-
-    useEffect(() => {
-        if (user?.id && businessId) {
-            loadNotifications();
+    }, [user?.id, businessId]); useEffect(() => {
+        if (user?.id && businessId && businessId !== "") {
+            // Load notifications when prerequisites are met
+            (async () => {
+                setLoading(true);
+                try {
+                    const unreadNotifications = await getUnreadNotifications(businessId, user.id);
+                    setNotifications(unreadNotifications);
+                } catch (error) {
+                    console.error("Error loading notifications:", error);
+                } finally {
+                    setLoading(false);
+                }
+            })();
         }
-    }, [user?.id, businessId, loadNotifications]);
+    }, [user?.id, businessId]);
 
     // Auto-refresh notifications every 30 seconds
     useNotificationRefresh({
@@ -95,18 +105,21 @@ export const Notifications = () => {
             default:
                 return 'fas fa-bell';
         }
-    };
-
-    if (!user?.id || !businessId) {
-        return null;
+    }; if (!user?.id || !businessId) {
+        return (
+            <div className="btn btn-circle btn-disabled" title={businessError || "Loading business context..."}>
+                <i className="far fa-bell opacity-50"></i>
+                {businessLoading && <span className="loading loading-xs"></span>}
+            </div>
+        );
     }
 
     return (
         <div className="dropdown dropdown-end">
             <div className="indicator">
-                <div 
-                    tabIndex={0} 
-                    role="button" 
+                <div
+                    tabIndex={0}
+                    role="button"
                     className="btn btn-circle relative"
                     onClick={() => setIsOpen(!isOpen)}
                 >
@@ -119,8 +132,8 @@ export const Notifications = () => {
                 </div>
             </div>
             {isOpen && (
-                <div 
-                    tabIndex={0} 
+                <div
+                    tabIndex={0}
                     className="mt-3 z-[1] card card-compact w-96 dropdown-content bg-base-100 shadow-xl border"
                 >
                     <div className="card-body">
@@ -150,7 +163,7 @@ export const Notifications = () => {
                         ) : (
                             <div className="max-h-96 overflow-y-auto">
                                 {notifications.slice(0, 10).map((notification) => (
-                                    <div 
+                                    <div
                                         key={notification.id}
                                         className="py-3 border-b border-base-300 last:border-b-0 hover:bg-base-200 rounded px-2 -mx-2 cursor-pointer"
                                         onClick={() => {
@@ -196,8 +209,8 @@ export const Notifications = () => {
                         )}
 
                         <div className="card-actions mt-4">
-                            <Link 
-                                href="/dashboard/notifications" 
+                            <Link
+                                href="/dashboard/notifications"
                                 className="btn btn-primary btn-block btn-sm"
                                 onClick={() => setIsOpen(false)}
                             >

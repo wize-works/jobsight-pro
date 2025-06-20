@@ -3,8 +3,6 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Notification, NotificationInsert, NotificationUpdate } from "@/types/notifications";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
-import { applyCreated } from "@/utils/apply-created";
-import { applyUpdated } from "@/utils/apply-updated";
 
 
 // Get all notifications for the current business
@@ -30,7 +28,6 @@ export const getNotifications = async (businessId: string): Promise<Notification
 // Get a specific notification by ID
 export const getNotificationById = async (businessId: string, id: string): Promise<Notification | null> => {
 
-
     const { data, error } = await fetchByBusiness("notifications", businessId, "*", {
         filter: { id },
     });
@@ -50,9 +47,6 @@ export const getNotificationById = async (businessId: string, id: string): Promi
 // Create a new notification
 export const createNotification = async (businessId: string, notification: NotificationInsert): Promise<Notification | null> => {
 
-
-    notification = await applyCreated<NotificationInsert>(notification);
-
     const { data, error } = await insertWithBusiness("notifications", notification, businessId);
 
     if (error) {
@@ -65,9 +59,6 @@ export const createNotification = async (businessId: string, notification: Notif
 
 // Update an existing notification
 export const updateNotification = async (businessId: string, id: string, notification: NotificationUpdate): Promise<Notification | null> => {
-
-
-    notification = await applyUpdated<NotificationUpdate>(notification);
 
     const { data, error } = await updateWithBusinessCheck("notifications", id, notification, businessId);
 

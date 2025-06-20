@@ -8,6 +8,7 @@ import { getNotificationsByUserId, markNotificationAsRead, markAllNotificationsA
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
+import Loading from "@/app/loading";
 
 export default function NotificationsPage() {
     const { user } = useKindeAuth();
@@ -24,7 +25,7 @@ export default function NotificationsPage() {
 
     const loadNotifications = async () => {
         if (!user?.id || !businessId) return;
-        
+
         try {
             setLoading(true);
             const allNotifications = await getNotificationsByUserId(businessId, user.id);
@@ -41,7 +42,7 @@ export default function NotificationsPage() {
 
         try {
             await markNotificationAsRead(businessId, notificationId);
-            setNotifications(prev => 
+            setNotifications(prev =>
                 prev.map(n => n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n)
             );
         } catch (error) {
@@ -55,7 +56,7 @@ export default function NotificationsPage() {
 
         try {
             await markAllNotificationsAsRead(businessId, user.id);
-            setNotifications(prev => 
+            setNotifications(prev =>
                 prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() }))
             );
             toast.success("All notifications marked as read");
@@ -87,12 +88,12 @@ export default function NotificationsPage() {
         }
     };
 
-    const filteredNotifications = notifications.filter(n => 
+    const filteredNotifications = notifications.filter(n =>
         filter === 'all' || (filter === 'unread' && !n.read)
     );
 
     if (!user?.id || !businessId) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     return (
@@ -102,13 +103,13 @@ export default function NotificationsPage() {
                     <h1 className="text-3xl font-bold">Notifications</h1>
                     <div className="flex gap-2">
                         <div className="join">
-                            <button 
+                            <button
                                 className={`btn join-item btn-sm ${filter === 'all' ? 'btn-active' : ''}`}
                                 onClick={() => setFilter('all')}
                             >
                                 All
                             </button>
-                            <button 
+                            <button
                                 className={`btn join-item btn-sm ${filter === 'unread' ? 'btn-active' : ''}`}
                                 onClick={() => setFilter('unread')}
                             >
@@ -142,7 +143,7 @@ export default function NotificationsPage() {
                 ) : (
                     <div className="space-y-2">
                         {filteredNotifications.map((notification) => (
-                            <div 
+                            <div
                                 key={notification.id}
                                 className={`card bg-base-100 border ${!notification.read ? 'border-primary/30 bg-primary/5' : 'border-base-300'} hover:shadow-md transition-all`}
                             >
@@ -169,7 +170,7 @@ export default function NotificationsPage() {
                                             <div className="flex justify-between items-center mt-3">
                                                 <div className="flex gap-2">
                                                     {notification.link && (
-                                                        <Link 
+                                                        <Link
                                                             href={notification.link}
                                                             className="btn btn-xs btn-primary"
                                                             onClick={() => !notification.read && handleMarkAsRead(notification.id)}
