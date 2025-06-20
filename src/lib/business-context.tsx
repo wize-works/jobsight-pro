@@ -29,6 +29,7 @@ const BusinessContext = createContext<BusinessContextType>({
 export function BusinessProvider({ children }: { children: ReactNode }) {
     const [businessId, setBusinessId] = useState<string>("")
     const [business, setBusinessData] = useState<Business>({} as Business)
+    const [subscription, setSubscription] = useState<string>("") // Adjust type as needed
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const { user, isLoading: isKindeLoading } = useKindeBrowserClient()

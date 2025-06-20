@@ -1,7 +1,12 @@
 import { invoiceStatusOptions, InvoiceWithClient, InvoiceStatus } from '@/types/invoices';
 import Link from 'next/link';
 
-export default function InvoiceCard({ invoice }: { invoice: InvoiceWithClient }) {
+interface InvoiceCardProps {
+    invoice: InvoiceWithClient;
+    onEdit?: (invoice: InvoiceWithClient) => void;
+}
+
+export default function InvoiceCard({ invoice, onEdit }: InvoiceCardProps) {
     return (
         <div className="card bg-base-100 shadow-sm">
             <div className="card-body">
@@ -16,10 +21,18 @@ export default function InvoiceCard({ invoice }: { invoice: InvoiceWithClient })
                     style: 'currency',
                     currency: 'USD'
                 }).format(invoice.amount || 0)}</p>
-                <div className='card-actions justify-end mt-4'>
+                <div className='card-actions justify-end mt-4 gap-2'>
                     <Link href={`/dashboard/invoices/${invoice.id}`} className="btn btn-sm btn-outline">
                         <i className="far fa-eye mr-2"></i> View
                     </Link>
+                    {onEdit && invoice.status !== "paid" && (
+                        <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => onEdit(invoice)}
+                        >
+                            <i className="far fa-edit mr-2"></i> Edit
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
