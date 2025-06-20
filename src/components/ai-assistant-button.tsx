@@ -4,10 +4,12 @@
 import { useState } from 'react';
 import { AIAssistantPanel } from './ai-assistant-panel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useBusiness } from '@/lib/business-context';
 
 export function AIAssistantButton() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isMobile = useIsMobile();
+    const { business } = useBusiness();
     return (
         <>
             {/* Floating AI Button */}
