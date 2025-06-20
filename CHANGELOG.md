@@ -1,3 +1,10 @@
+# [1.56.0](https://github.com/wize-works/jobsight-pro/compare/v1.55.1...v1.56.0) (2025-06-20)
+
+
+### Features
+
+* added weather ([6c8404c](https://github.com/wize-works/jobsight-pro/commit/6c8404ce7c46469d021700f5e56840529737db73))
+
 ## [1.55.1](https://github.com/wize-works/jobsight-pro/compare/v1.55.0...v1.55.1) (2025-06-20)
 
 
