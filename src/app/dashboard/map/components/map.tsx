@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { set } from "zod";
 import { getEquipments, setEquipmentLocation } from "@/app/actions/equipments";
 import { useBusiness } from "@/lib/business-context";
+import { useRouter } from "next/navigation";
 
 const defaultIcon = new DivIcon({
     className: "far fa-map-marker-alt fa-xl",
@@ -46,6 +47,7 @@ interface MapComponentProps {
 
 export default function MapComponent({ location }: MapComponentProps) {
     const { businessId } = useBusiness();
+    const router = useRouter();
     const [projects, setProjects] = useState<Project[]>([]);
     const [equipments, setEquipments] = useState<Equipment[]>([]);
     const [markers, setMarkers] = useState<L.LatLng[]>([]);
@@ -349,11 +351,17 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <button className="btn btn-accent btn-xs flex-1">
+                                        <button 
+                                            className="btn btn-accent btn-xs flex-1"
+                                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                                        >
                                             <i className="far fa-eye"></i>
                                             View Details
                                         </button>
-                                        <button className="btn btn-outline btn-xs">
+                                        <button 
+                                            className="btn btn-outline btn-xs"
+                                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                                        >
                                             <i className="far fa-edit"></i>
                                         </button>
                                     </div>
@@ -412,11 +420,17 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <button className="btn btn-secondary btn-xs flex-1">
+                                        <button 
+                                            className="btn btn-secondary btn-xs flex-1"
+                                            onClick={() => router.push(`/dashboard/equipment/${item.id}`)}
+                                        >
                                             <i className="far fa-eye"></i>
                                             View Details
                                         </button>
-                                        <button className="btn btn-outline btn-xs">
+                                        <button 
+                                            className="btn btn-outline btn-xs"
+                                            onClick={() => router.push(`/dashboard/equipment/${item.id}/edit`)}
+                                        >
                                             <i className="far fa-edit"></i>
                                         </button>
                                     </div>
