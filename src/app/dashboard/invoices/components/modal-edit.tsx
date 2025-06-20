@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { updateInvoice } from "@/app/actions/invoices";
+import { getInvoiceItemsByInvoiceId, createInvoiceItem, updateInvoiceItem, deleteInvoiceItem } from "@/app/actions/invoice-items";
 import { getClients } from "@/app/actions/clients";
 import { getProjects } from "@/app/actions/projects";
 import { InvoiceUpdate, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient } from "@/types/invoices";
+import { InvoiceItem, InvoiceItemInsert } from "@/types/invoice-items";
 import { Client } from "@/types/clients";
 import { Project } from "@/types/projects";
 import { toast } from "@/hooks/use-toast";
@@ -23,10 +25,20 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
     const router = useRouter();
     const { businessId } = useBusiness();
     const { user } = useKindeAuth();
-    const [loading, setLoading] = useState(false);
-    const [loadingData, setLoadingData] = useState(true);
+    const [loading, setLoading] = useState(false); const [loadingData, setLoadingData] = useState(true);
     const [clients, setClients] = useState<Client[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    // Invoice items state
+    interface InvoiceItemRow {
+        id: string;
+        description: string;
+        quantity: number;
+        unit_price: number;
+        amount: number;
+        isExisting?: boolean;
+    }
+    const [items, setItems] = useState<InvoiceItemRow[]>([]);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -49,17 +61,40 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
             loadInitialData();
             populateForm();
         }
-    }, [isOpen, invoice, businessId]);
-
-    const loadInitialData = async () => {
+    }, [isOpen, invoice, businessId]); const loadInitialData = async () => {
         setLoadingData(true);
         try {
-            const [clientsData, projectsData] = await Promise.all([
+            const [clientsData, projectsData, invoiceItemsData] = await Promise.all([
                 getClients(businessId),
                 getProjects(businessId),
+                getInvoiceItemsByInvoiceId(businessId, invoice.id),
             ]);
             setClients(clientsData);
             setProjects(projectsData);
+
+            // Convert invoice items to the format we need
+            const formattedItems = invoiceItemsData.map((item: InvoiceItem) => ({
+                id: item.id,
+                description: item.description || "",
+                quantity: item.quantity || 1,
+                unit_price: item.unit_price || 0,
+                amount: item.amount || 0,
+                isExisting: true,
+            }));
+
+            // If no items exist, add one empty item
+            if (formattedItems.length === 0) {
+                formattedItems.push({
+                    id: `item${Date.now()}`,
+                    description: "",
+                    quantity: 1,
+                    unit_price: 0,
+                    amount: 0,
+                    isExisting: false,
+                });
+            }
+
+            setItems(formattedItems);
         } catch (error) {
             console.error("Error loading data:", error);
             toast.error({
@@ -93,25 +128,106 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
     // Get filtered projects based on selected client
     const filteredProjects = formData.client_id
         ? projects.filter((p) => p.client_id === formData.client_id)
-        : projects;
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        // Reset project when client changes
-        if (name === "client_id") {
+        : projects; const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+            const { name, value } = e.target;
             setFormData(prev => ({
                 ...prev,
-                project_id: ""
+                [name]: value
             }));
+
+            // Reset project when client changes
+            if (name === "client_id") {
+                setFormData(prev => ({
+                    ...prev,
+                    project_id: ""
+                }));
+            }
+
+            // Recalculate totals when tax rate changes
+            if (name === "tax_rate") {
+                const newTaxRate = Number(value);
+                const newSubtotal = items.reduce((sum, item) => sum + Number(item.amount), 0);
+                const newTax = newSubtotal * (newTaxRate / 100);
+                const newTotal = newSubtotal + newTax;
+                setFormData(prev => ({ ...prev, amount: newTotal }));
+            }
+        };
+
+    // Invoice item management functions
+    const updateItem = (index: number, field: string, value: string | number) => {
+        const newItems = [...items];
+        newItems[index] = { ...newItems[index], [field]: value };
+
+        // Recalculate amount if quantity or unit_price changes
+        if (field === "quantity" || field === "unit_price") {
+            newItems[index].amount = Number(newItems[index].quantity) * Number(newItems[index].unit_price);
         }
+
+        setItems(newItems);
+
+        // Update total amount in form
+        const newTotal = newItems.reduce((sum, item) => sum + Number(item.amount), 0);
+        const taxAmount = newTotal * (formData.tax_rate / 100);
+        setFormData(prev => ({ ...prev, amount: newTotal + taxAmount }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const addItem = () => {
+        setItems([...items, {
+            id: `item${Date.now()}`,
+            description: "",
+            quantity: 1,
+            unit_price: 0,
+            amount: 0,
+            isExisting: false,
+        }]);
+    };
+
+    const removeItem = async (index: number) => {
+        if (items.length <= 1) return;
+
+        const itemToRemove = items[index];
+
+        // If it's an existing item, delete it from the database
+        if (itemToRemove.isExisting) {
+            try {
+                await deleteInvoiceItem(businessId, itemToRemove.id);
+                toast.success({
+                    title: "Success",
+                    description: "Item removed successfully"
+                });
+            } catch (error) {
+                console.error("Error deleting item:", error);
+                toast.error({
+                    title: "Error",
+                    description: "Failed to remove item"
+                });
+                return;
+            }
+        }
+
+        const newItems = [...items];
+        newItems.splice(index, 1);
+        setItems(newItems);
+
+        // Update total amount
+        const newTotal = newItems.reduce((sum, item) => sum + Number(item.amount), 0);
+        const taxAmount = newTotal * (formData.tax_rate / 100);
+        setFormData(prev => ({ ...prev, amount: newTotal + taxAmount }));
+    };
+
+    // Calculate totals
+    const subtotal = items.reduce((sum, item) => sum + Number(item.amount), 0);
+    const tax = subtotal * (formData.tax_rate / 100);
+    const total = subtotal + tax;
+
+    // Format currency
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 2,
+        }).format(amount);
+    }; const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
@@ -126,7 +242,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                 due_date: formData.due_date,
                 paid_date: formData.paid_date || null,
                 payment_method: formData.payment_method || null,
-                amount: formData.amount,
+                amount: total, // Use calculated total from items
                 tax_rate: formData.tax_rate,
                 notes: formData.notes || null,
                 status: formData.status,
@@ -139,6 +255,51 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
             const updatedInvoice = await updateInvoice(businessId, invoice.id, invoiceData);
 
             if (updatedInvoice) {
+                // Handle invoice items
+                const itemPromises = items.map(async (item) => {
+                    if (item.isExisting) {
+                        // Update existing item
+                        const itemData = {
+                            id: item.id,
+                            invoice_id: invoice.id,
+                            business_id: businessId,
+                            description: item.description,
+                            quantity: item.quantity,
+                            unit_price: item.unit_price,
+                            amount: item.amount,
+                            tax_rate: null,
+                            tax_amount: null,
+                            total_price: item.amount,
+                            created_at: new Date().toISOString(), // This will be ignored for existing items
+                            created_by: user?.id || null,
+                            updated_at: new Date().toISOString(),
+                            updated_by: user?.id || null,
+                        };
+                        return updateInvoiceItem(businessId, item.id, itemData);
+                    } else {
+                        // Create new item
+                        const itemData = {
+                            id: crypto.randomUUID(),
+                            invoice_id: invoice.id,
+                            business_id: businessId,
+                            description: item.description,
+                            quantity: item.quantity,
+                            unit_price: item.unit_price,
+                            amount: item.amount,
+                            tax_rate: null,
+                            tax_amount: null,
+                            total_price: item.amount,
+                            created_at: new Date().toISOString(),
+                            created_by: user?.id || null,
+                            updated_at: new Date().toISOString(),
+                            updated_by: user?.id || null,
+                        };
+                        return createInvoiceItem(businessId, itemData);
+                    }
+                });
+
+                await Promise.all(itemPromises);
+
                 toast.success({
                     title: "Success",
                     description: "Invoice updated successfully"
@@ -167,7 +328,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box max-w-4xl max-h-[90vh] p-0 rounded-lg">
+            <div className="modal-box max-w-6xl max-h-[90vh] p-0 rounded-lg">
                 {/* Modal Header */}
                 <div className="bg-primary text-primary-content p-6 rounded-t-lg">
                     <div className="flex justify-between items-center">
@@ -190,9 +351,9 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Left column */}
-                                <div className="space-y-6">
+                                <div className="space-y-6 lg:col-span-2">
                                     {/* Client & Project Information */}
                                     <div className="card bg-base-100 border border-base-300">
                                         <div className="card-body p-4">
@@ -274,23 +435,18 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                                                 <i className="far fa-dollar-sign text-primary"></i>
                                                 Financial Details
                                             </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="form-control">
-                                                    <label className="label">
-                                                        <span className="label-text font-medium">Amount *</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="amount"
-                                                        className="input input-bordered input-secondary"
-                                                        value={formData.amount}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        step="0.01"
-                                                        required
-                                                        disabled={loading}
-                                                    />
-                                                </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                                                <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Amount (Calculated) *</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered input-secondary"
+                                                    value={formatCurrency(total)}
+                                                    readOnly
+                                                    disabled={loading}
+                                                />
+                                            </div>
 
                                                 <div className="form-control">
                                                     <label className="label">
@@ -345,6 +501,97 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                                                         </div>
                                                     </>
                                                 )}
+                                            </div>
+                                        </div>
+                                    </div>                                    {/* Invoice Items */}
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                                    <i className="far fa-list text-primary"></i>
+                                                    Invoice Items
+                                                </h3>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-outline"
+                                                    onClick={addItem}
+                                                    disabled={loading}
+                                                >
+                                                    <i className="far fa-plus mr-2"></i> Add Item
+                                                </button>
+                                            </div>
+
+                                            <div className="overflow-x-auto">
+                                                <table className="table w-full">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Description *</th>
+                                                            <th>Quantity</th>
+                                                            <th>Unit Price</th>
+                                                            <th>Amount</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {items.map((item, index) => (
+                                                            <tr key={item.id}>
+                                                                <td>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        placeholder="Item description"
+                                                                        value={item.description}
+                                                                        onChange={(e) => updateItem(index, "description", e.target.value)}
+                                                                        required
+                                                                        disabled={loading}
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <input
+                                                                        type="number"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        min="1"
+                                                                        step="1"
+                                                                        value={item.quantity}
+                                                                        onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}
+                                                                        required
+                                                                        disabled={loading}
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <input
+                                                                        type="number"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        min="0"
+                                                                        step="0.01"
+                                                                        value={item.unit_price}
+                                                                        onChange={(e) => updateItem(index, "unit_price", Number(e.target.value))}
+                                                                        required
+                                                                        disabled={loading}
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={formatCurrency(item.amount)}
+                                                                        readOnly
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-ghost btn-sm text-error"
+                                                                        onClick={() => removeItem(index)}
+                                                                        disabled={items.length <= 1 || loading}
+                                                                    >
+                                                                        <i className="far fa-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -451,9 +698,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Invoice Summary */}
+                                    </div>                                    {/* Invoice Summary */}
                                     <div className="card bg-base-100 border border-base-300">
                                         <div className="card-body p-4">
                                             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
@@ -463,16 +708,16 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                                             <div className="space-y-2">
                                                 <div className="flex justify-between">
                                                     <span>Subtotal:</span>
-                                                    <span>${(formData.amount / (1 + formData.tax_rate / 100)).toFixed(2)}</span>
+                                                    <span>{formatCurrency(subtotal)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span>Tax ({formData.tax_rate}%):</span>
-                                                    <span>${(formData.amount - formData.amount / (1 + formData.tax_rate / 100)).toFixed(2)}</span>
+                                                    <span>{formatCurrency(tax)}</span>
                                                 </div>
                                                 <div className="divider my-2"></div>
                                                 <div className="flex justify-between font-bold text-lg">
                                                     <span>Total:</span>
-                                                    <span>${formData.amount.toFixed(2)}</span>
+                                                    <span>{formatCurrency(total)}</span>
                                                 </div>
                                             </div>
                                         </div>
