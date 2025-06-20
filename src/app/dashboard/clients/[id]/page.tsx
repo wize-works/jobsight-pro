@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo } from "@/app/actions/clients";
+import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo, getClientDetailsByID } from "@/app/actions/clients";
 import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
 import { getProjectsByClientId, createProject } from "@/app/actions/projects";
@@ -69,7 +69,8 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             interactionCount: number;
             invoiceCount: number;
         };
-    } | null>(null); useEffect(() => {
+    } | null>(null);
+    useEffect(() => {
         const fetchData = async () => {
             if (!businessId) {
                 return;
@@ -77,17 +78,15 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             setLoading(true);
             const { id } = await params;
             try {
-                const [clientData, projectsData, contactsData, interactionsData] = await Promise.all([
-                    getClientById(businessId, id),
-                    getProjectsByClientId(businessId, id),
-                    getClientContactsByClientId(businessId, id),
-                    getClientInteractionsByClientId(businessId, id)
-                ]);
-                setClient(clientData);
-                setProjects(projectsData);
-                setContacts(contactsData);
-                setInteractions(interactionsData);
-                setClientNotes(clientData.notes || "");
+                const clientDetails = await getClientDetailsByID(businessId, id);
+                if (clientDetails) {
+                    const { client, projects, contacts, interactions, stats } = clientDetails;
+                    setClient(client);
+                    setProjects(projects);
+                    setContacts(contacts);
+                    setInteractions(interactions);
+                    // Can also use stats for dashboard metrics
+                }
 
                 // Get archive info in the background
                 getClientArchiveInfo(businessId, id).then(info => {

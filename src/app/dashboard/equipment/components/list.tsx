@@ -3,10 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { searchEquipments } from "@/app/actions/equipments";
-import type { Equipment, EquipmentStatus } from "@/types/equipment";
+import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
+import type { Equipment, EquipmentStatus, EquipmentWithDetails } from "@/types/equipment";
+import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { equipmentStatusOptions } from "@/types/equipment";
 import { EquipmentCard } from "./card";
 import EquipmentNewModal from "./modal-new";
+import EquipmentEditModal from "./modal-edit";
 import { useBusiness } from "@/lib/business-context";
 
 export default function EquipmentList({ initialEquipments }: { initialEquipments: Equipment[] }) {
@@ -19,6 +22,9 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
         typeof window !== "undefined" && localStorage.getItem("equipmentViewType") === "list" ? "list" : "grid"
     );
     const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
+    const [showEditEquipmentModal, setShowEditEquipmentModal] = useState(false);
+    const [selectedEquipment, setSelectedEquipment] = useState<EquipmentWithDetails | null>(null);
+    const [selectedSpecifications, setSelectedSpecifications] = useState<EquipmentSpecification[]>([]);
 
     // Filter logic
     const filteredEquipments = equipments.filter((item) => {
@@ -30,7 +36,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
         return matchesSearch && matchesStatus && matchesType;
     });
 
-    // Unique types for filter dropdown
+    // Unique types for filter dropdown    // Unique types for filter dropdown
     const equipmentTypes = ["all", ...Array.from(new Set(equipments.map((item) => item.type).filter(Boolean)))];
 
     // Search handler
@@ -44,6 +50,17 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
         setViewType(type);
         if (typeof window !== "undefined") {
             localStorage.setItem("equipmentViewType", type);
+        }
+    };
+
+    const handleEditEquipment = async (equipment: Equipment) => {
+        try {
+            const specifications = await getEquipmentSpecificationsByEquipmentId(businessId, equipment.id);
+            setSelectedEquipment(equipment as EquipmentWithDetails);
+            setSelectedSpecifications(specifications);
+            setShowEditEquipmentModal(true);
+        } catch (error) {
+            console.error("Error fetching equipment specifications:", error);
         }
     };
 
@@ -155,7 +172,7 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEquipments.map((item) => (
                         <div key={item.id}>
-                            <EquipmentCard {...item} />
+                            <EquipmentCard {...item} onEdit={handleEditEquipment} />
                         </div>
                     ))}
                 </div>
@@ -215,6 +232,17 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 <EquipmentNewModal isOpen={showAddEquipmentModal} onClose={() => setShowAddEquipmentModal(false)} onSave={function (equipment: any): void {
                     setEquipments([...equipments, equipment]);
                 }} />
+            )}
+            {showEditEquipmentModal && selectedEquipment && (
+                <EquipmentEditModal
+                    isOpen={showEditEquipmentModal}
+                    onClose={() => setShowEditEquipmentModal(false)}
+                    equipment={selectedEquipment}
+                    specifications={selectedSpecifications}
+                    onSave={function (updatedEquipment: EquipmentWithDetails): void {
+                        setEquipments(equipments.map((item) => item.id === updatedEquipment.id ? updatedEquipment : item));
+                    }}
+                />
             )}
         </div>
     );

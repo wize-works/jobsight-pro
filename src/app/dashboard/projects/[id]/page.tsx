@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { getProjectById, updateProject } from "@/app/actions/projects";
+import { getProjectById, getProjectDetailsByID, updateProject } from "@/app/actions/projects";
 import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project_milestones";
 import { getTasksByProjectId, createTask, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
@@ -97,34 +97,42 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             try {
                 console.log("Making API calls for project:", projectId);
 
-                const [projectData, milestonesData, tasksData, crewsData, issuesData] = await Promise.all([
-                    getProjectById(businessId, projectId),
-                    getProjectMilestonesByProjectId(businessId, projectId),
-                    getTasksByProjectId(businessId, projectId),
-                    getCrewsByProjectId(businessId, projectId),
-                    getProjectIssuesWithDetailsByProjectId(businessId, projectId)
-                ]);
+                const projectDetails = await getProjectDetailsByID(businessId, projectId);
+                if (projectDetails) {
+                    const {
+                        project,
+                        milestones,
+                        tasks,
+                        crews,
+                        issues,
+                        client,
+                        contacts,
+                        manager,
+                        stats
+                    } = projectDetails;
 
-                console.log("Main API calls completed, processing data...");
+                    setProject(project);
+                    setMilestones(milestones);
+                    setTasks(tasks);
+                    setCrews(crews);
+                    setIssues(issues);
+                    setClient(client);
+                    setContacts(contacts);
+                    setManager(manager);
+                    // Can also use stats for dashboard metrics
+                }
 
-                setProject(projectData);
-                setMilestones(milestonesData);
-                setTasks(tasksData);
-                setCrews(crewsData);
-                setIssues(issuesData);
-                setProgress(projectData.progress || 0);
-
-                if (projectData && projectData.client_id) {
-                    console.log("Fetching client data for:", projectData.client_id);
-                    const clientData = await getClientById(businessId, projectData.client_id);
-                    const contactsData = await getClientContactsByClientId(businessId, projectData.client_id);
+                if (project && project.client_id) {
+                    console.log("Fetching client data for:", project.client_id);
+                    const clientData = await getClientById(businessId, project.client_id);
+                    const contactsData = await getClientContactsByClientId(businessId, project.client_id);
                     setClient(clientData);
                     setContacts(contactsData);
                 }
 
-                if (projectData && projectData.manager_id) {
-                    console.log("Fetching manager data for:", projectData.manager_id);
-                    const managerData = await getCrewMemberById(businessId, projectData.manager_id);
+                if (project && project.manager_id) {
+                    console.log("Fetching manager data for:", project.manager_id);
+                    const managerData = await getCrewMemberById(businessId, project.manager_id);
                     setManager(managerData);
                 }
 

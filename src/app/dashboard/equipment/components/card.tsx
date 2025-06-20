@@ -3,7 +3,13 @@ import Link from "next/link";
 import { EquipmentStatus } from "@/types/equipment";
 import { equipmentStatusOptions } from "@/types/equipment";
 
-export const EquipmentCard = (equipment: Equipment) => {
+interface EquipmentCardProps extends Equipment {
+    onEdit?: (equipment: Equipment) => void;
+}
+
+export const EquipmentCard = (props: EquipmentCardProps) => {
+    const { onEdit, ...equipment } = props;
+
     return (
         <div className="card bg-base-100 shadow-lg">
             <figure className="px-4 pt-4">
@@ -22,8 +28,20 @@ export const EquipmentCard = (equipment: Equipment) => {
                     <p><span className="font-semibold">Location:</span> {equipment.location}</p>
                     <p><span className="font-semibold">Description:</span> {equipment.description}</p>
                 </div>
-                <div className="card-actions justify-end mt-4">
-                    <Link href={`/dashboard/equipment/${equipment.id}`} className="btn btn-outline btn-sm">View Details</Link>
+                <div className="card-actions justify-end mt-4 gap-2">
+                    <Link href={`/dashboard/equipment/${equipment.id}`} className="btn btn-outline btn-sm">
+                        <i className="far fa-eye"></i>
+                        View Details
+                    </Link>
+                    {onEdit && (
+                        <button
+                            onClick={() => onEdit(equipment)}
+                            className="btn btn-primary btn-sm"
+                        >
+                            <i className="far fa-edit"></i>
+                            Edit
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

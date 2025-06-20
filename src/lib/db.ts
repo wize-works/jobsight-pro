@@ -7,6 +7,40 @@ import { v4 as uuidv4 } from "uuid"
 type Tables = Database["public"]["Tables"]
 type TableName = keyof Tables
 
+// Query builder types
+interface JoinConfig {
+    table: string;
+    type?: 'left' | 'inner' | 'right'; // default to left
+    on?: Record<string, string>; // { foreign_key: "main_table.primary_key" } - Optional for Supabase relationships
+    select?: string[]; // fields to include from joined table
+    alias?: string; // alias for the joined data in results
+    where?: Record<string, any>; // additional filters for joined table
+}
+
+interface AggregateConfig {
+    function: 'count' | 'sum' | 'avg' | 'max' | 'min';
+    table: string;
+    column?: string; // not needed for count
+    alias: string; // name in the result set
+    where?: Record<string, any>; // filter conditions for the aggregate
+}
+
+interface OrderByConfig {
+    column: string;
+    ascending?: boolean;
+}
+
+interface QueryBuilderConfig {
+    from: string; // main table
+    select?: string[]; // fields from main table
+    joins?: JoinConfig[];
+    aggregates?: AggregateConfig[];
+    where?: Record<string, any>;
+    orderBy?: OrderByConfig;
+    limit?: number;
+    page?: number;
+}
+
 // Update the withBusinessId function to also include tracking fields
 function withBusinessId<T extends Record<string, any>>(
     data: T,
@@ -414,4 +448,168 @@ export async function serverDeleteWithBusinessCheck<T extends TableName>(table: 
     }
 
     return await supabase.from(table).delete().eq("id", id).eq("business_id", businessId)
+}
+
+// New query builder function for complex relational queries
+export async function fetchByBusinessWithQuery(
+    businessId: string,
+    config: QueryBuilderConfig,
+    options?: {
+        client?: SupabaseClient<Database>
+    }
+): Promise<{
+    data: any[] | null
+    error: Error | null
+}> {
+    const supabase = options?.client || createServerClient()
+    if (!supabase) {
+        return { data: null, error: new Error("Supabase client not initialized") }
+    }
+
+    try {
+        const { from, select = ["*"], joins = [], aggregates = [], where, orderBy, limit, page } = config
+
+        // Build the select clause with relationships using Supabase syntax
+        let selectClause = select.join(",")
+
+        // Handle joins using Supabase's relationship syntax
+        if (joins.length > 0) {
+            const joinSelects = joins.map(join => {
+                const { table: joinTable, select: joinSelect = ["*"], alias } = join
+                const joinFields = joinSelect.join(",")
+                return `${alias || joinTable}(${joinFields})`
+            })
+
+            selectClause = `${selectClause},${joinSelects.join(",")}`
+        }
+
+        let query = supabase.from(from).select(selectClause).eq("business_id", businessId)
+
+        // Apply main table filters
+        if (where) {
+            for (const [key, value] of Object.entries(where)) {
+                if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+                    for (const [op, opValue] of Object.entries(value)) {
+                        switch (op) {
+                            case "eq":
+                                query = query.eq(key, opValue);
+                                break;
+                            case "neq":
+                                if (opValue === null) {
+                                    query = query.not(key, "is", null);
+                                } else {
+                                    query = query.neq(key, opValue);
+                                }
+                                break;
+                            case "gt":
+                                query = query.gt(key, opValue);
+                                break;
+                            case "gte":
+                                query = query.gte(key, opValue);
+                                break;
+                            case "lt":
+                                query = query.lt(key, opValue);
+                                break;
+                            case "lte":
+                                query = query.lte(key, opValue);
+                                break;
+                            case "ilike":
+                                query = query.ilike(key, String(opValue));
+                                break;
+                            case "in":
+                                query = query.in(key, opValue as readonly any[]);
+                                break;
+                            default:
+                                console.warn(`Unsupported operator: ${op}`);
+                        }
+                    }
+                } else {
+                    if (value === null) {
+                        query = query.is(key, null);
+                    } else {
+                        query = query.eq(key, value);
+                    }
+                }
+            }
+        }
+
+        // Apply ordering
+        if (orderBy) {
+            query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
+        }
+
+        // Apply pagination
+        if (limit) {
+            query = query.limit(limit)
+            if (page && page > 1) {
+                query = query.range((page - 1) * limit, page * limit - 1)
+            }
+        }
+
+        // Execute main query
+        const { data: mainData, error: mainError } = await query
+
+        if (mainError) {
+            return { data: null, error: mainError }
+        }
+
+        // Handle aggregates separately if needed
+        if (aggregates.length > 0 && mainData) {
+            const aggregatePromises = aggregates.map(async (agg) => {
+                const { function: func, table: aggTable, column, alias, where: aggWhere } = agg
+
+                let aggQuery = supabase.from(aggTable)
+                    .select("*", { count: "exact", head: func === "count" })
+                    .eq("business_id", businessId)
+
+                // Apply aggregate-specific filters
+                if (aggWhere) {
+                    for (const [key, value] of Object.entries(aggWhere)) {
+                        aggQuery = aggQuery.eq(key, value)
+                    }
+                }
+
+                if (func === "count") {
+                    const { count } = await aggQuery
+                    return { alias, value: count || 0 }
+                } else {
+                    // For other aggregates, fetch data and compute client-side
+                    const { data: aggData } = await aggQuery
+                    if (!aggData || !column) return { alias, value: 0 }
+
+                    switch (func) {
+                        case "sum":
+                            return { alias, value: aggData.reduce((sum, item) => sum + (item[column] || 0), 0) }
+                        case "avg":
+                            const total = aggData.reduce((sum, item) => sum + (item[column] || 0), 0)
+                            return { alias, value: aggData.length > 0 ? total / aggData.length : 0 }
+                        case "max":
+                            return { alias, value: Math.max(...aggData.map(item => item[column] || 0)) }
+                        case "min":
+                            return { alias, value: Math.min(...aggData.map(item => item[column] || 0)) }
+                        default:
+                            return { alias, value: 0 }
+                    }
+                }
+            })
+
+            const aggregateResults = await Promise.all(aggregatePromises)
+            // Add aggregate results to main data
+            const enhancedData = mainData.map((item: any) => {
+                const aggregateData = aggregateResults.reduce((acc, { alias, value }) => {
+                    acc[alias] = value
+                    return acc
+                }, {} as Record<string, any>)
+
+                return { ...item, ...aggregateData }
+            })
+
+            return { data: enhancedData, error: null }
+        }
+
+        return { data: mainData, error: null }
+    } catch (error) {
+        console.error("Error in fetchByBusinessWithQuery:", error)
+        return { data: null, error: error as Error }
+    }
 }

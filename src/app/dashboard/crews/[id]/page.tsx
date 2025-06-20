@@ -1,9 +1,6 @@
 "use client";
-import { getCrewWithDetailsById, getCrewMembersByCrewId, getCrewSchedule, getCrewEquipment, getCrewScheduleCurrent, getCrewScheduleHistory } from "@/app/actions/crews";
-import { getCrewMembers } from "@/app/actions/crew-members";
-import { getProjects } from "@/app/actions/projects";
+import { getCrewDetailsByID } from "@/app/actions/crews";
 import CrewDetailComponent from "../components/detail";
-import { getEquipments } from "@/app/actions/equipments";
 import { useBusiness } from "@/lib/business-context";
 import { useEffect, useState } from "react";
 import Loading from "@/app/loading";
@@ -24,9 +21,7 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
     const [history, setHistory] = useState<ProjectCrewWithDetails[]>([]);
     const [equipment, setEquipment] = useState<EquipmentAssignmentWithEquipmentDetails[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
-
-    useEffect(() => {
+    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]); useEffect(() => {
         if (!businessId) {
             return;
         }
@@ -34,24 +29,31 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
             setLoading(true);
             const { id: crewId } = await params;
             try {
-                const [crewData, membersData, allMembersData, scheduleData, historyData, equipmentData, projectsData, allEquipmentData] = await Promise.all([
-                    getCrewWithDetailsById(businessId, crewId),
-                    getCrewMembersByCrewId(businessId, crewId),
-                    getCrewMembers(businessId),
-                    getCrewSchedule(businessId, crewId),
-                    getCrewScheduleHistory(businessId, crewId),
-                    getCrewEquipment(businessId, crewId),
-                    getProjects(businessId),
-                    getEquipments(businessId)
-                ]);
-                setCrew(crewData);
-                setMembers(membersData);
-                setAllMembers(allMembersData);
-                setSchedule(scheduleData);
-                setHistory(historyData);
-                setEquipment(equipmentData);
-                setProjects(projectsData);
-                setAllEquipment(allEquipmentData);
+                const crewDetails = await getCrewDetailsByID(businessId, crewId);
+
+                if (crewDetails) {
+                    const {
+                        crew: crewData,
+                        members: membersData,
+                        allMembers: allMembersData,
+                        schedule: scheduleData,
+                        history: historyData,
+                        equipment: equipmentData,
+                        projects: projectsData,
+                        allEquipment: allEquipmentData
+                    } = crewDetails;
+
+                    setCrew(crewData);
+                    setMembers(membersData);
+                    setAllMembers(allMembersData);
+                    setSchedule(scheduleData);
+                    setHistory(historyData);
+                    setEquipment(equipmentData);
+                    setProjects(projectsData);
+                    setAllEquipment(allEquipmentData);
+                } else {
+                    console.error("No crew details returned");
+                }
             } catch (error) {
                 console.error("Error fetching crew details:", error);
             }
