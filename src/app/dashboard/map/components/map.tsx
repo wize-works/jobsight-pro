@@ -214,13 +214,36 @@ export default function MapComponent({ location }: MapComponentProps) {
                         position={[parseFloat(lat), parseFloat(lon)]}
                         icon={projectIcon}
                     >
-                        <Popup>
-                            <div>
-                                <h3 className="font-bold">{project.name}</h3>
-                                <p>Location: {project.location}</p>
-                                <p>Client: {project.client_id}</p>
+                        
+                    <Popup className="custom-popup" maxWidth={280}>
+                        <div className="p-2">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-3 h-3 bg-accent rounded-full"></div>
+                                <h3 className="font-semibold text-base-content truncate">{project.name}</h3>
                             </div>
-                        </Popup>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <i className="far fa-map-marker-alt text-accent w-4"></i>
+                                    <span className="text-base-content/70 font-mono text-xs">
+                                        {match[1]}, {match[2]}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <i className="far fa-user text-accent w-4"></i>
+                                    <span className="text-base-content/70">Client: {project.client_id}</span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-3">
+                                    <button className="btn btn-accent btn-xs flex-1">
+                                        <i className="far fa-eye"></i>
+                                        View Details
+                                    </button>
+                                    <button className="btn btn-outline btn-xs">
+                                        <i className="far fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Popup>
                     </Marker>
                 );
             })}
@@ -235,13 +258,45 @@ export default function MapComponent({ location }: MapComponentProps) {
                         position={[parseFloat(lat), parseFloat(lon)]}
                         icon={equipmentIcon}
                     >
-                        <Popup>
-                            <div>
-                                <h3 className="font-bold">{item.name}</h3>
-                                <p>Status: {item.status}</p>
-                                <p>Type: {item.type}</p>
+                        
+                    <Popup className="custom-popup" maxWidth={280}>
+                        <div className="p-2">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                                <h3 className="font-semibold text-base-content truncate">{item.name}</h3>
                             </div>
-                        </Popup>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <i className="far fa-map-marker-alt text-secondary w-4"></i>
+                                    <span className="text-base-content/70 font-mono text-xs">
+                                        {match[1]}, {match[2]}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <i className="far fa-circle text-secondary w-4"></i>
+                                    <span className={`badge badge-sm ${
+                                        item.status === 'available' ? 'badge-success' : 
+                                        item.status === 'in_use' ? 'badge-warning' : 'badge-error'
+                                    }`}>
+                                        {item.status?.replace('_', ' ')}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <i className="far fa-tools text-secondary w-4"></i>
+                                    <span className="text-base-content/70">{item.type}</span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-3">
+                                    <button className="btn btn-secondary btn-xs flex-1">
+                                        <i className="far fa-eye"></i>
+                                        View Details
+                                    </button>
+                                    <button className="btn btn-outline btn-xs">
+                                        <i className="far fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Popup>
                     </Marker>
                 );
             })}

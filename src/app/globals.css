@@ -50,3 +50,55 @@
         max-width: 1536px;
     }
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Map Styles */
+.leaflet-popup-content-wrapper {
+  @apply bg-base-100 text-base-content rounded-lg shadow-lg border border-base-300;
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+}
+
+.leaflet-popup-tip {
+  @apply bg-base-100 border-base-300;
+}
+
+.leaflet-popup-close-button {
+  @apply text-base-content/50 hover:text-base-content text-lg;
+  right: 8px;
+  top: 8px;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  @apply min-w-[280px];
+}
+
+/* Map marker animations */
+.map-marker-temp {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Map container styles */
+.leaflet-container {
+  @apply bg-base-200;
+}
+
+.leaflet-control-attribution {
+  @apply bg-base-100/90 text-base-content/70 text-xs;
+}

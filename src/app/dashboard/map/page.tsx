@@ -44,11 +44,60 @@ export default function MapPage() {
     }, []);
 
     if (!isLoaded) {
-        return <div>Loading...</div>;
+        return (
+            <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center bg-base-200">
+                <div className="text-center">
+                    <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
+                    <p className="text-base-content/70">Loading map and getting your location...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] w-full">
+        <div className="h-[calc(100vh-4rem)] w-full relative">
+            {/* Map Header */}
+            <div className="absolute top-4 left-4 z-10">
+                <div className="card bg-base-100/90 backdrop-blur shadow-lg">
+                    <div className="card-body p-3">
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                            <i className="far fa-map text-primary"></i>
+                            Site Map
+                        </h2>
+                        <p className="text-sm text-base-content/70">
+                            Click anywhere to add equipment or project locations
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Legend */}
+            <div className="absolute top-4 right-4 z-10">
+                <div className="card bg-base-100/90 backdrop-blur shadow-lg">
+                    <div className="card-body p-3">
+                        <h3 className="text-sm font-semibold mb-2">Legend</h3>
+                        <div className="space-y-1 text-xs">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-primary rounded-full"></div>
+                                <span>Your Location</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-accent rounded-full"></div>
+                                <span>Projects</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                                <span>Equipment</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-warning rounded-full animate-pulse"></div>
+                                <span>New Marker</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <MapComponent location={location} />
         </div>
     );
