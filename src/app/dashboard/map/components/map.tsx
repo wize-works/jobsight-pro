@@ -88,6 +88,10 @@ export default function MapComponent({ location }: MapComponentProps) {
         setMarkers((prev) => [...prev, latlng]);
     };
 
+    if (!businessId) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <MapContainer
             center={[location.latitude, location.longitude]}
@@ -351,16 +355,24 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <button 
+                                        <button
                                             className="btn btn-accent btn-xs flex-1"
-                                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                                            onClick={() =>
+                                                router.push(
+                                                    `/dashboard/projects/${project.id}`,
+                                                )
+                                            }
                                         >
                                             <i className="far fa-eye"></i>
                                             View Details
                                         </button>
-                                        <button 
+                                        <button
                                             className="btn btn-outline btn-xs"
-                                            onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                                            onClick={() =>
+                                                router.push(
+                                                    `/dashboard/projects/${project.id}`,
+                                                )
+                                            }
                                         >
                                             <i className="far fa-edit"></i>
                                         </button>
@@ -420,16 +432,24 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <button 
+                                        <button
                                             className="btn btn-secondary btn-xs flex-1"
-                                            onClick={() => router.push(`/dashboard/equipment/${item.id}`)}
+                                            onClick={() =>
+                                                router.push(
+                                                    `/dashboard/equipment/${item.id}`,
+                                                )
+                                            }
                                         >
                                             <i className="far fa-eye"></i>
                                             View Details
                                         </button>
-                                        <button 
+                                        <button
                                             className="btn btn-outline btn-xs"
-                                            onClick={() => router.push(`/dashboard/equipment/${item.id}/edit`)}
+                                            onClick={() =>
+                                                router.push(
+                                                    `/dashboard/equipment/${item.id}/edit`,
+                                                )
+                                            }
                                         >
                                             <i className="far fa-edit"></i>
                                         </button>
