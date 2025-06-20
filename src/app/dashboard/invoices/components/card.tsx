@@ -23,7 +23,7 @@ export default function InvoiceCard({ invoice, onEdit }: InvoiceCardProps) {
                 }).format(invoice.amount || 0)}</p>
                 <div className='card-actions justify-end mt-4 gap-2'>
                     <Link href={`/dashboard/invoices/${invoice.id}`} className="btn btn-sm btn-outline">
-                        <i className="far fa-eye mr-2"></i> View
+                        <i className="far fa-eye mr-2"></i> Details
                     </Link>
                     {onEdit && invoice.status !== "paid" && (
                         <button
