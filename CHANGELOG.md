@@ -1,3 +1,17 @@
+# [1.57.0](https://github.com/wize-works/jobsight-pro/compare/v1.56.0...v1.57.0) (2025-06-20)
+
+
+### Bug Fixes
+
+* Clean up formatting and spacing in equipment components for better readability ([0641eb7](https://github.com/wize-works/jobsight-pro/commit/0641eb7a03c799ed30c1d2fca6622d7b2b87c16c))
+* resolved zindex of map features. ([7f7ae97](https://github.com/wize-works/jobsight-pro/commit/7f7ae977094233b12ddf19316398def2843c3b47))
+
+
+### Features
+
+* Implement equipment editing functionality with modal and specifications management ([e95ed1c](https://github.com/wize-works/jobsight-pro/commit/e95ed1c9695742d8871aab91281e658f878d564c))
+* Implement fetchByBusinessWithQuery for complex relational queries ([6520a73](https://github.com/wize-works/jobsight-pro/commit/6520a73c2f328da539cc6a8119a7ec7594c3c077))
+
 # [1.56.0](https://github.com/wize-works/jobsight-pro/compare/v1.55.1...v1.56.0) (2025-06-20)
 
 
