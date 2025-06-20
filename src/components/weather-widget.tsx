@@ -124,7 +124,7 @@ export default function WeatherWidget({
                             date: formatDay(day.dt, index),
                             high: Math.round(day.temp.max),
                             low: Math.round(day.temp.min),
-                            condition: day.weather[0].description
+                            condition: day.summary || day.weather[0].description
                                 .split(" ")
                                 .map(
                                     (word: string) =>
