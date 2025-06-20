@@ -93,7 +93,9 @@ export default function WeatherWidget({
                 }
 
                 // Fetch weather data using OneCall API
-                const response = await fetch(`/api/weather/current?lat=${lat}&lon=${lon}`);
+                const response = await fetch(
+                    `/api/weather/current?lat=${lat}&lon=${lon}`,
+                );
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch weather data");
@@ -124,14 +126,16 @@ export default function WeatherWidget({
                             date: formatDay(day.dt, index),
                             high: Math.round(day.temp.max),
                             low: Math.round(day.temp.min),
-                            condition: day.summary || day.weather[0].description
-                                .split(" ")
-                                .map(
-                                    (word: string) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1),
-                                )
-                                .join(" "),
+                            condition:
+                                day.summary ||
+                                day.weather[0].description
+                                    .split(" ")
+                                    .map(
+                                        (word: string) =>
+                                            word.charAt(0).toUpperCase() +
+                                            word.slice(1),
+                                    )
+                                    .join(" "),
                             icon: getWeatherIcon(day.weather[0].description),
                         })),
                 };
@@ -180,9 +184,9 @@ export default function WeatherWidget({
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Weather</h3>
-                    <span className="text-sm text-base-content/70">
+                    {/* <span className="text-sm text-base-content/70">
                         {location}
-                    </span>
+                    </span> */}
                 </div>
 
                 {/* Current Weather */}
