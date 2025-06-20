@@ -11,14 +11,14 @@ interface UseNotificationRefreshProps {
     enabled?: boolean;
 }
 
-export function useNotificationRefresh({ 
-    onRefresh, 
+export function useNotificationRefresh({
+    onRefresh,
     interval = 30000, // 30 seconds default
-    enabled = true 
+    enabled = true
 }: UseNotificationRefreshProps) {
     const { user } = useKindeAuth();
     const { businessId } = useBusiness();
-    const intervalRef = useRef<NodeJS.Timeout>();
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!enabled || !user?.id || !businessId) {
