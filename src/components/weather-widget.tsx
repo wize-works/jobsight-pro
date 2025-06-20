@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -24,33 +23,41 @@ interface WeatherWidgetProps {
     location?: string;
 }
 
-export default function WeatherWidget({ location = "Current Location" }: WeatherWidgetProps) {
+export default function WeatherWidget({
+    location = "Current Location",
+}: WeatherWidgetProps) {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const getWeatherIcon = (condition: string): string => {
         const conditionLower = condition.toLowerCase();
-        if (conditionLower.includes('clear') || conditionLower.includes('sunny')) return '☀️';
-        if (conditionLower.includes('cloud')) return '☁️';
-        if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) return '🌧️';
-        if (conditionLower.includes('thunderstorm')) return '⛈️';
-        if (conditionLower.includes('snow')) return '❄️';
-        if (conditionLower.includes('mist') || conditionLower.includes('fog')) return '🌫️';
-        if (conditionLower.includes('partly') || conditionLower.includes('few')) return '⛅';
-        return '🌤️';
-    };
-
-    const kelvinToFahrenheit = (kelvin: number): number => {
-        return Math.round((kelvin - 273.15) * 9/5 + 32);
+        if (
+            conditionLower.includes("clear") ||
+            conditionLower.includes("sunny")
+        )
+            return "☀️";
+        if (conditionLower.includes("cloud")) return "☁️";
+        if (
+            conditionLower.includes("rain") ||
+            conditionLower.includes("drizzle")
+        )
+            return "🌧️";
+        if (conditionLower.includes("thunderstorm")) return "⛈️";
+        if (conditionLower.includes("snow")) return "❄️";
+        if (conditionLower.includes("mist") || conditionLower.includes("fog"))
+            return "🌫️";
+        if (conditionLower.includes("partly") || conditionLower.includes("few"))
+            return "⛅";
+        return "🌤️";
     };
 
     const formatDay = (timestamp: number, index: number): string => {
-        if (index === 0) return 'Today';
-        if (index === 1) return 'Tomorrow';
-        
+        if (index === 0) return "Today";
+        if (index === 1) return "Tomorrow";
+
         const date = new Date(timestamp * 1000);
-        return date.toLocaleDateString('en-US', { weekday: 'long' });
+        return date.toLocaleDateString("en-US", { weekday: "long" });
     };
 
     useEffect(() => {
@@ -63,10 +70,13 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
                 const getCurrentLocation = (): Promise<GeolocationPosition> => {
                     return new Promise((resolve, reject) => {
                         if (!navigator.geolocation) {
-                            reject(new Error('Geolocation is not supported'));
+                            reject(new Error("Geolocation is not supported"));
                             return;
                         }
-                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                        navigator.geolocation.getCurrentPosition(
+                            resolve,
+                            reject,
+                        );
                     });
                 };
 
@@ -85,11 +95,11 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
                 // Fetch current weather and 5-day forecast
                 const [currentResponse, forecastResponse] = await Promise.all([
                     fetch(`/api/weather/current?lat=${lat}&lon=${lon}`),
-                    fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`)
+                    fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`),
                 ]);
 
                 if (!currentResponse.ok || !forecastResponse.ok) {
-                    throw new Error('Failed to fetch weather data');
+                    throw new Error("Failed to fetch weather data");
                 }
 
                 const currentData = await currentResponse.json();
@@ -97,33 +107,43 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
 
                 const weatherData: WeatherData = {
                     current: {
-                        temperature: kelvinToFahrenheit(currentData.main.temp),
+                        temperature: currentData.main.temp,
                         condition: currentData.weather[0].description
-                            .split(' ')
-                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' '),
-                        icon: getWeatherIcon(currentData.weather[0].description),
+                            .split(" ")
+                            .map(
+                                (word: string) =>
+                                    word.charAt(0).toUpperCase() +
+                                    word.slice(1),
+                            )
+                            .join(" "),
+                        icon: getWeatherIcon(
+                            currentData.weather[0].description,
+                        ),
                         humidity: currentData.main.humidity,
-                        windSpeed: Math.round(currentData.wind?.speed * 2.237) // Convert m/s to mph
+                        windSpeed: Math.round(currentData.wind?.speed * 2.237), // Convert m/s to mph
                     },
                     forecast: forecastData.list
                         .filter((_: any, index: number) => index % 8 === 0) // Get one forecast per day (every 8th 3-hour forecast)
                         .slice(0, 5)
                         .map((item: any, index: number) => ({
                             date: formatDay(item.dt, index),
-                            high: kelvinToFahrenheit(item.main.temp_max),
-                            low: kelvinToFahrenheit(item.main.temp_min),
+                            high: item.main.temp_max,
+                            low: item.main.temp_min,
                             condition: item.weather[0].description
-                                .split(' ')
-                                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                                .join(' '),
-                            icon: getWeatherIcon(item.weather[0].description)
-                        }))
+                                .split(" ")
+                                .map(
+                                    (word: string) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1),
+                                )
+                                .join(" "),
+                            icon: getWeatherIcon(item.weather[0].description),
+                        })),
                 };
 
                 setWeather(weatherData);
             } catch (err) {
-                console.error('Weather fetch error:', err);
+                console.error("Weather fetch error:", err);
                 setError("Failed to fetch weather data");
             } finally {
                 setLoading(false);
@@ -165,15 +185,21 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Weather</h3>
-                    <span className="text-sm text-base-content/70">{location}</span>
+                    <span className="text-sm text-base-content/70">
+                        {location}
+                    </span>
                 </div>
 
                 {/* Current Weather */}
                 <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-lg p-4 mb-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="text-3xl font-bold">{weather.current.temperature}°F</div>
-                            <div className="text-sm text-base-content/70">{weather.current.condition}</div>
+                            <div className="text-3xl font-bold">
+                                {weather.current.temperature}°F
+                            </div>
+                            <div className="text-sm text-base-content/70">
+                                {weather.current.condition}
+                            </div>
                         </div>
                         <div className="text-4xl">{weather.current.icon}</div>
                     </div>
@@ -191,20 +217,33 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
 
                 {/* 5-Day Forecast */}
                 <div>
-                    <h4 className="text-sm font-medium text-base-content/70 mb-3">5-Day Forecast</h4>
+                    <h4 className="text-sm font-medium text-base-content/70 mb-3">
+                        5-Day Forecast
+                    </h4>
                     <div className="space-y-2">
                         {weather.forecast.map((day, index) => (
-                            <div key={index} className="flex items-center justify-between py-2 border-b border-base-200 last:border-b-0">
+                            <div
+                                key={index}
+                                className="flex items-center justify-between py-2 border-b border-base-200 last:border-b-0"
+                            >
                                 <div className="flex items-center gap-3">
                                     <span className="text-lg">{day.icon}</span>
                                     <div>
-                                        <div className="text-sm font-medium">{day.date}</div>
-                                        <div className="text-xs text-base-content/70">{day.condition}</div>
+                                        <div className="text-sm font-medium">
+                                            {day.date}
+                                        </div>
+                                        <div className="text-xs text-base-content/70">
+                                            {day.condition}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-medium">{day.high}°</div>
-                                    <div className="text-xs text-base-content/70">{day.low}°</div>
+                                    <div className="text-sm font-medium">
+                                        {day.high}°
+                                    </div>
+                                    <div className="text-xs text-base-content/70">
+                                        {day.low}°
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -216,9 +255,12 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
                     <div className="flex items-start gap-2">
                         <i className="far fa-hard-hat text-yellow-600 mt-0.5"></i>
                         <div className="text-sm">
-                            <div className="font-medium text-yellow-800 dark:text-yellow-200">Safety Reminder</div>
+                            <div className="font-medium text-yellow-800 dark:text-yellow-200">
+                                Safety Reminder
+                            </div>
                             <div className="text-yellow-700 dark:text-yellow-300">
-                                Check weather conditions before starting work. Adjust schedules for severe weather.
+                                Check weather conditions before starting work.
+                                Adjust schedules for severe weather.
                             </div>
                         </div>
                     </div>
