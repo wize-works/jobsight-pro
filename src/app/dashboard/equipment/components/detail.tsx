@@ -20,6 +20,8 @@ import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
+import EquipmentEditModal from "./modal-edit";
+import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 
 interface EquipmentDetailProps {
     equipment: Equipment;
@@ -62,6 +64,8 @@ export default function EquipmentDetail({
     const [isLoadingMedia, setIsLoadingMedia] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [equipmentSpecifications, setEquipmentSpecifications] = useState<EquipmentSpecification[]>(specifications);
 
     // Handle media linking
     const handleMediaSelect = async (selectedMedia: Media | Media[]) => {
@@ -271,11 +275,13 @@ export default function EquipmentDetail({
                             <i className="far fa-arrow-left"></i>Back to Equipment
                         </Link>
                     </div>
-                </div>
-                <div className="flex gap-2">
-                    <Link href={`/dashboard/equipment/${equipment.id}/edit`} className="btn btn-primary">
+                </div>                <div className="flex gap-2">
+                    <button 
+                        onClick={() => setShowEditModal(true)} 
+                        className="btn btn-primary"
+                    >
                         <i className="far fa-edit"></i> Edit
-                    </Link>
+                    </button>
                     <button className="btn btn-error hidden" onClick={() => {
                         // Handle delete action here
                         if (confirm("Are you sure you want to delete this equipment?")) {
@@ -918,6 +924,21 @@ export default function EquipmentDetail({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Edit Modal */}
+            {showEditModal && (
+                <EquipmentEditModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    onSave={(updatedEquipment) => {
+                        // The equipment will be refreshed by the page
+                        setShowEditModal(false);
+                        window.location.reload(); // Simple refresh for now
+                    }}
+                    equipment={equipment}
+                    specifications={equipmentSpecifications}
+                />
             )}
         </div >
     );
