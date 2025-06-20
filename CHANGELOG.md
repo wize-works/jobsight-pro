@@ -1,3 +1,186 @@
+## [1.58.2](https://github.com/wize-works/jobsight-pro/compare/v1.58.1...v1.58.2) (2025-06-20)
+
+
+### Bug Fixes
+
+* Improve form submission error handling and update modal styles for consistency ([56817a2](https://github.com/wize-works/jobsight-pro/commit/56817a25def474a35852c8bd95b8b45ecd2f9c64))
+
+## [1.58.1](https://github.com/wize-works/jobsight-pro/compare/v1.58.0...v1.58.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Update useNotificationRefresh to handle interval reference correctly ([7a7673b](https://github.com/wize-works/jobsight-pro/commit/7a7673b1caea03b54845145e17ce2aa8f09a970c))
+
+# [1.58.0](https://github.com/wize-works/jobsight-pro/compare/v1.57.1...v1.58.0) (2025-06-20)
+
+
+### Bug Fixes
+
+* css error fix ([0d84217](https://github.com/wize-works/jobsight-pro/commit/0d84217d6bfb399d336c21cdb5791c70f41e7377))
+
+
+### Features
+
+* Enhance data loading with comprehensive queries across daily logs, equipment, and tasks ([6ac9e1a](https://github.com/wize-works/jobsight-pro/commit/6ac9e1a2512f74acf2bd3470d7cd379258dc9138))
+
+## [1.57.1](https://github.com/wize-works/jobsight-pro/compare/v1.57.0...v1.57.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Refactor reports dashboard: remove loading component, simplify reports page, and delete saved reports page. Update global styles to remove Tailwind directives. ([33dcb70](https://github.com/wize-works/jobsight-pro/commit/33dcb704c64b382956f0f5e0337403ea4c6a649b))
+
+# [1.57.0](https://github.com/wize-works/jobsight-pro/compare/v1.56.0...v1.57.0) (2025-06-20)
+
+
+### Bug Fixes
+
+* Clean up formatting and spacing in equipment components for better readability ([0641eb7](https://github.com/wize-works/jobsight-pro/commit/0641eb7a03c799ed30c1d2fca6622d7b2b87c16c))
+* resolved zindex of map features. ([7f7ae97](https://github.com/wize-works/jobsight-pro/commit/7f7ae977094233b12ddf19316398def2843c3b47))
+
+
+### Features
+
+* Implement equipment editing functionality with modal and specifications management ([e95ed1c](https://github.com/wize-works/jobsight-pro/commit/e95ed1c9695742d8871aab91281e658f878d564c))
+* Implement fetchByBusinessWithQuery for complex relational queries ([6520a73](https://github.com/wize-works/jobsight-pro/commit/6520a73c2f328da539cc6a8119a7ec7594c3c077))
+
+# [1.56.0](https://github.com/wize-works/jobsight-pro/compare/v1.55.1...v1.56.0) (2025-06-20)
+
+
+### Features
+
+* added weather ([6c8404c](https://github.com/wize-works/jobsight-pro/commit/6c8404ce7c46469d021700f5e56840529737db73))
+
+## [1.55.1](https://github.com/wize-works/jobsight-pro/compare/v1.55.0...v1.55.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Add missing Tailwind CSS utility for badge component in globals.css ([c3f697d](https://github.com/wize-works/jobsight-pro/commit/c3f697d8ab1cec1ec41896ff9bf9655de31fe475))
+
+# [1.55.0](https://github.com/wize-works/jobsight-pro/compare/v1.54.0...v1.55.0) (2025-06-20)
+
+
+### Features
+
+* Enhance invoice editing with item management and calculated totals ([319e122](https://github.com/wize-works/jobsight-pro/commit/319e122995dfa0b21876091145205ace4a64156c))
+
+# [1.54.0](https://github.com/wize-works/jobsight-pro/compare/v1.53.3...v1.54.0) (2025-06-20)
+
+
+### Features
+
+* Refactor invoice management with new edit and create modals ([bdc9db7](https://github.com/wize-works/jobsight-pro/commit/bdc9db779d48f4000a2ddde3ad075b7e748284e2))
+
+## [1.53.3](https://github.com/wize-works/jobsight-pro/compare/v1.53.2...v1.53.3) (2025-06-19)
+
+
+### Bug Fixes
+
+* Update client link text to improve clarity and remove unused button in ClientsPage ([1683a06](https://github.com/wize-works/jobsight-pro/commit/1683a06a2d722f019c0e023c544d33867ed4b976))
+
+## [1.53.2](https://github.com/wize-works/jobsight-pro/compare/v1.53.1...v1.53.2) (2025-06-19)
+
+
+### Bug Fixes
+
+* Improve UI consistency by adjusting input styles and updating class names in CrewsList ([bec3d09](https://github.com/wize-works/jobsight-pro/commit/bec3d0901f074fa8fb5eec179106011ee3c83785))
+
+## [1.53.1](https://github.com/wize-works/jobsight-pro/compare/v1.53.0...v1.53.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* Update input and select styles in InvoicesList for improved UI consistency ([29a1323](https://github.com/wize-works/jobsight-pro/commit/29a1323017da3b7a58a1344f0f77cc2ddaf54d8e))
+* Update invoice status selection to properly set state in InvoicesList ([60c00a0](https://github.com/wize-works/jobsight-pro/commit/60c00a07d707098d54bb8ea8e03f7cda148c6b00))
+
+# [1.53.0](https://github.com/wize-works/jobsight-pro/compare/v1.52.1...v1.53.0) (2025-06-19)
+
+
+### Features
+
+* Implement client archiving and unarchiving functionality with related data preservation ([e7b1fef](https://github.com/wize-works/jobsight-pro/commit/e7b1fef0807659fb5748d57ba9514eb56d45d7d9))
+
+## [1.52.1](https://github.com/wize-works/jobsight-pro/compare/v1.52.0...v1.52.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* Remove commented-out DailyLogModal component from DailyLogsList ([0900407](https://github.com/wize-works/jobsight-pro/commit/090040795b92f0a2cec099bd7712d785730b4db7))
+
+# [1.52.0](https://github.com/wize-works/jobsight-pro/compare/v1.51.0...v1.52.0) (2025-06-19)
+
+
+### Features
+
+* refactor date and currency formatting by consolidating utility functions ([9ecc97b](https://github.com/wize-works/jobsight-pro/commit/9ecc97bcf8598447bdfa0059a6b0baf940d7eb9b))
+
+# [1.51.0](https://github.com/wize-works/jobsight-pro/compare/v1.50.0...v1.51.0) (2025-06-19)
+
+
+### Features
+
+* refactor priority and status selection in IssueModal to use custom select components ([bb818c2](https://github.com/wize-works/jobsight-pro/commit/bb818c21f20291d59498e566ca9638ecd7c55ed3))
+* refactor status selection in MilestoneModal to use a custom select component ([65a0369](https://github.com/wize-works/jobsight-pro/commit/65a0369be729eb9736838a66f508ee6e4c1f7381))
+
+# [1.50.0](https://github.com/wize-works/jobsight-pro/compare/v1.49.0...v1.50.0) (2025-06-19)
+
+
+### Features
+
+* add sorting functionality to project list and improve no projects found message ([9b5d28e](https://github.com/wize-works/jobsight-pro/commit/9b5d28e3931bfaffe1a5293cd8701dcbb498fd41))
+* update project modal to handle project creation and reset form on success ([574ef9a](https://github.com/wize-works/jobsight-pro/commit/574ef9aa8d93eba53abd5fa6c59eaa1f31bffdb3))
+
+# [1.49.0](https://github.com/wize-works/jobsight-pro/compare/v1.48.0...v1.49.0) (2025-06-19)
+
+
+### Features
+
+* implement client logo upload functionality and refactor client modal ([d431091](https://github.com/wize-works/jobsight-pro/commit/d43109161e4294050e978a1e74ee899a4a4f955c))
+
+# [1.48.0](https://github.com/wize-works/jobsight-pro/compare/v1.47.0...v1.48.0) (2025-06-18)
+
+
+### Features
+
+* Implement voice input components with transcription capabilities for enhanced user interaction ([50935c1](https://github.com/wize-works/jobsight-pro/commit/50935c1cb154c7d893c5635235d89ec43597fc36))
+
+# [1.47.0](https://github.com/wize-works/jobsight-pro/compare/v1.46.0...v1.47.0) (2025-06-18)
+
+
+### Features
+
+* Add ROI Calculator component to Pricing page for enhanced user insights ([fdd515c](https://github.com/wize-works/jobsight-pro/commit/fdd515c8113a5d189a4b9059fafb007e83ae05a3))
+
+# [1.46.0](https://github.com/wize-works/jobsight-pro/compare/v1.45.0...v1.46.0) (2025-06-18)
+
+
+### Features
+
+* Enhance Pricing page with annual/monthly toggle and improved layout ([4ab5fb0](https://github.com/wize-works/jobsight-pro/commit/4ab5fb02b611b3dd8f3b7bc7979f606db8dec901))
+
+# [1.45.0](https://github.com/wize-works/jobsight-pro/compare/v1.44.0...v1.45.0) (2025-06-18)
+
+
+### Features
+
+* Daily Log Detail and Equipment Detail components for improved UI and functionality ([5f40f9e](https://github.com/wize-works/jobsight-pro/commit/5f40f9e40b053df69f1f1ca3a20ef0712605de66))
+
+# [1.44.0](https://github.com/wize-works/jobsight-pro/compare/v1.43.1...v1.44.0) (2025-06-18)
+
+
+### Features
+
+* Add modal components for editing crews, equipment assignments, linking crew members, and adding crew members ([678d0e4](https://github.com/wize-works/jobsight-pro/commit/678d0e40760dcce25f2339a9e6aec1f22f575257))
+
+## [1.43.1](https://github.com/wize-works/jobsight-pro/compare/v1.43.0...v1.43.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* adjust position and z-index of SyncStatusIndicator in DashboardLayout ([d24cb74](https://github.com/wize-works/jobsight-pro/commit/d24cb7450ac3b5a10eba260d296eba8991fa2b01))
+
 # [1.43.0](https://github.com/wize-works/jobsight-pro/compare/v1.42.1...v1.43.0) (2025-06-17)
 
 
