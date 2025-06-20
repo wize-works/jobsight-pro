@@ -1,7 +1,6 @@
-
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
 import { useRouter, usePathname } from "next/navigation"
 import { getUserBusiness } from "@/app/actions/business"
@@ -38,14 +37,13 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const { toast } = useToast()
 
     // Check if we're in a registration flow
-    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'
-
-    // Function to fetch business data using server action
+    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'    // Function to fetch business data using server action
     const fetchBusinessData = async (userId: string) => {
         try {
-            const response = await getUserBusiness(userId)
+            const response = await getUserBusiness(userId);
 
             if (!response) {
+                setLoading(false);
                 // User is valid but has no business
                 if (!isRegistrationFlow) {
                     router.push('/register')
@@ -55,9 +53,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     })
                 }
                 return
-            }
-
-            if ('success' in response && !response.success) {
+            } if ('success' in response && !response.success) {
+                console.log("❌ Business auth error:", response.error);
+                setLoading(false);
                 // If there's an error with authentication
                 if (!isRegistrationFlow) {
                     toast.error({
@@ -68,14 +66,19 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     router.push(response.redirect)
                 }
                 return
-            }
-
-            if ('id' in response) {
+            } if ('id' in response) {
+                // Batch all state updates together
                 setBusinessId(response.id)
                 setBusinessData(response as Business)
                 localStorage.setItem("businessId", response.id)
-            }
-            else {
+
+                // Use setTimeout to ensure state update happens after current call stack
+                setTimeout(() => {
+                    setLoading(false)
+                }, 0)
+            } else {
+                console.log("❌ Response doesn't have ID, redirecting to register");
+                setLoading(false);
                 router.push('/register');
                 toast.warning({
                     title: "No Business Found",
@@ -83,7 +86,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                 });
             }
         } catch (err) {
-            console.error("Error fetching business data:", err)
+            console.error("💥 Error fetching business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
 
             if (!isRegistrationFlow) {
@@ -109,25 +112,20 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             if (!user) {
                 setLoading(false)
                 return
-            }
-
-            // Try to get from localStorage first
+            }            // Try to get from localStorage first
             const storedBusinessId = localStorage.getItem("businessId")
 
             if (storedBusinessId && user) {
                 // Verify the stored business ID is still valid by fetching it
                 await fetchBusinessData(user.id)
-                setLoading(false)
                 return
             }
 
             // Fetch user's business using server action
             await fetchBusinessData(user.id)
         } catch (err) {
-            console.error("Error loading business data:", err)
             setError(err instanceof Error ? err.message : "Unknown error loading business data")
-        } finally {
-            setLoading(false)
+            setLoading(false) // Only set loading false on error
         }
     }
 
@@ -140,26 +138,25 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const setBusinessIdWithStorage = (id: string) => {
         setBusinessId(id)
         localStorage.setItem("businessId", id)
-    }
-
-    // Function to manually refresh business data
-    const refreshBusiness = async () => {
+    }    // Function to manually refresh business data
+    const refreshBusiness = useCallback(async () => {
         if (user) {
             await fetchBusinessData(user.id)
         }
-    }
+    }, [user])
+
+    // Memoize context value to ensure proper re-renders
+    const contextValue = useMemo(() => ({
+        businessId,
+        business,
+        setBusinessId: setBusinessIdWithStorage,
+        loading,
+        error,
+        refreshBusiness,
+    }), [businessId, business, loading, error, refreshBusiness]);
 
     return (
-        <BusinessContext.Provider
-            value={{
-                businessId,
-                business,
-                setBusinessId: setBusinessIdWithStorage,
-                loading,
-                error,
-                refreshBusiness,
-            }}
-        >
+        <BusinessContext.Provider value={contextValue}>
             {children}
         </BusinessContext.Provider>
     )
