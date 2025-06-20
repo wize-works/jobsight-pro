@@ -1,39 +1,43 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
 // Dynamically import the map component with no SSR
 const MapComponent = dynamic(
-    () => import('./components/map').then(mod => mod.default),
+    () => import("./components/map").then((mod) => mod.default),
     {
         ssr: false,
-        loading: () => <div>Loading map...</div>
-    }
+        loading: () => <div>Loading map...</div>,
+    },
 );
 
-
 export default function MapPage() {
-    const [location, setLocation] = useState({ latitude: 0.00, longitude: 0.00 });
+    const [location, setLocation] = useState({ latitude: 0.0, longitude: 0.0 });
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 // Get position first
-                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
+                const position = await new Promise<GeolocationPosition>(
+                    (resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(
+                            resolve,
+                            reject,
+                        );
+                    },
+                );
 
                 setLocation({
                     latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
+                    longitude: position.coords.longitude,
                 });
 
                 // Only set loaded when both are done
                 setIsLoaded(true);
             } catch (error) {
-                console.error('Error loading map data:', error);
+                console.error("Error loading map data:", error);
                 // Set default location if geolocation fails
                 setLocation({ latitude: 51.505, longitude: -0.09 }); // London coordinates as fallback
                 setIsLoaded(true);
@@ -48,7 +52,9 @@ export default function MapPage() {
             <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center bg-base-200">
                 <div className="text-center">
                     <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
-                    <p className="text-base-content/70">Loading map and getting your location...</p>
+                    <p className="text-base-content/70">
+                        Loading map and getting your location...
+                    </p>
                 </div>
             </div>
         );
@@ -57,7 +63,7 @@ export default function MapPage() {
     return (
         <div className="h-[calc(100vh-4rem)] w-full relative">
             {/* Map Header */}
-            <div className="absolute top-4 left-4 z-10">
+            <div className="absolute top-4 left-20 z-50 max-w-50">
                 <div className="card bg-base-100/90 backdrop-blur shadow-lg">
                     <div className="card-body p-3">
                         <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -72,7 +78,7 @@ export default function MapPage() {
             </div>
 
             {/* Legend */}
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-50">
                 <div className="card bg-base-100/90 backdrop-blur shadow-lg">
                     <div className="card-body p-3">
                         <h3 className="text-sm font-semibold mb-2">Legend</h3>
