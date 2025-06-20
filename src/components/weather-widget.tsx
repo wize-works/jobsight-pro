@@ -92,23 +92,19 @@ export default function WeatherWidget({
                     lon = -87.6298;
                 }
 
-                // Fetch current weather and 5-day forecast
-                const [currentResponse, forecastResponse] = await Promise.all([
-                    fetch(`/api/weather/current?lat=${lat}&lon=${lon}`),
-                    fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`),
-                ]);
+                // Fetch weather data using OneCall API
+                const response = await fetch(`/api/weather/current?lat=${lat}&lon=${lon}`);
 
-                if (!currentResponse.ok || !forecastResponse.ok) {
+                if (!response.ok) {
                     throw new Error("Failed to fetch weather data");
                 }
 
-                const currentData = await currentResponse.json();
-                const forecastData = await forecastResponse.json();
+                const data = await response.json();
 
                 const weatherData: WeatherData = {
                     current: {
-                        temperature: currentData.main.temp,
-                        condition: currentData.weather[0].description
+                        temperature: Math.round(data.current.temp),
+                        condition: data.current.weather[0].description
                             .split(" ")
                             .map(
                                 (word: string) =>
@@ -117,19 +113,18 @@ export default function WeatherWidget({
                             )
                             .join(" "),
                         icon: getWeatherIcon(
-                            currentData.weather[0].description,
+                            data.current.weather[0].description,
                         ),
-                        humidity: currentData.main.humidity,
-                        windSpeed: Math.round(currentData.wind?.speed * 2.237), // Convert m/s to mph
+                        humidity: data.current.humidity,
+                        windSpeed: Math.round(data.current.wind_speed), // Already in mph from imperial units
                     },
-                    forecast: forecastData.list
-                        .filter((_: any, index: number) => index % 8 === 0) // Get one forecast per day (every 8th 3-hour forecast)
+                    forecast: data.daily
                         .slice(0, 5)
-                        .map((item: any, index: number) => ({
-                            date: formatDay(item.dt, index),
-                            high: item.main.temp_max,
-                            low: item.main.temp_min,
-                            condition: item.weather[0].description
+                        .map((day: any, index: number) => ({
+                            date: formatDay(day.dt, index),
+                            high: Math.round(day.temp.max),
+                            low: Math.round(day.temp.min),
+                            condition: day.weather[0].description
                                 .split(" ")
                                 .map(
                                     (word: string) =>
@@ -137,7 +132,7 @@ export default function WeatherWidget({
                                         word.slice(1),
                                 )
                                 .join(" "),
-                            icon: getWeatherIcon(item.weather[0].description),
+                            icon: getWeatherIcon(day.weather[0].description),
                         })),
                 };
 
