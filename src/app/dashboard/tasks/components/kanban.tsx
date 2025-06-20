@@ -120,10 +120,10 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
                 <div className="flex justify-between items-center mt-3">
                     <Link
                         href={`/dashboard/tasks/${task.id}`}
-                        className="btn btn-ghost btn-xs"
+                        className="btn btn-outline btn-xs"
                         title="View Details"
                     >
-                        <i className="far fa-eye"></i>
+                        <i className="far fa-eye"></i> Details
                     </Link>
                     <div className="text-xs text-base-content/50">
                         {task.created_at && formatDate(task.created_at)}
