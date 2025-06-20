@@ -58,7 +58,6 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Submit logic here
         if (!equipment.id) {
             throw new Error("Equipment ID is required to update equipment.");
         }

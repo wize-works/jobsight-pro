@@ -63,6 +63,10 @@ export default function ProjectsPage() {
     });
 
     useEffect(() => {
+        if (businessId === undefined || businessId === null || businessId === "") {
+            setLoading(true);
+            return;
+        }
         const fetchProjects = async () => {
             setLoading(true);
             const projectsData = await getProjectsWithDetails(businessId);
@@ -77,11 +81,15 @@ export default function ProjectsPage() {
         if (typeof window !== "undefined") {
             localStorage.setItem("projectsViewType", type);
         }
-    }; const handleIssueSave = async (issue: any) => {
+    };
+
+    const handleIssueSave = async (issue: any) => {
         // Placeholder for issue saving logic
         console.log("Issue saved:", issue);
         setShowAddProjectModal(false);
-    }; const handleProjectSave = async (projectData: any) => {
+    };
+
+    const handleProjectSave = async (projectData: any) => {
         try {
             // Create the new project
             await createProject(businessId, projectData);
