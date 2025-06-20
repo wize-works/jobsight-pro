@@ -1,6 +1,6 @@
 "use server";
 import type { Project, ProjectInsert, ProjectUpdate, ProjectWithDetails } from "@/types/projects";
-import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Client } from "@/types/clients";
@@ -207,6 +207,179 @@ export const getProjectsWithDetails = async (businessId: string): Promise<Projec
     } catch (err) {
         console.error("Error in getProjects:", err);
         return [];
+    }
+};
+
+export const getProjectDetailsByID = async (businessId: string, projectId: string): Promise<{
+    project: Project;
+    milestones: any[];
+    tasks: any[];
+    crews: any[];
+    issues: any[];
+    client: any | null;
+    contacts: any[];
+    manager: any | null;
+    stats: {
+        totalTasks: number;
+        completedTasks: number;
+        totalMilestones: number;
+        completedMilestones: number;
+        totalIssues: number;
+        openIssues: number;
+        totalCrews: number;
+    };
+} | null> => {
+    try {
+        // First, get the project with related data using joins
+        const { data: projectWithRelations, error: projectError } = await fetchByBusinessWithQuery(businessId, {
+            from: "projects",
+            select: ["*"], joins: [
+                {
+                    table: "project_milestones",
+                    select: ["id", "name", "description", "due_date", "status", "created_at", "updated_at"],
+                    alias: "project_milestones"
+                },
+                {
+                    table: "tasks",
+                    select: ["id", "name", "description", "status", "priority", "end_date", "created_at", "updated_at"],
+                    alias: "tasks"
+                },
+                {
+                    table: "project_crews",
+                    select: ["id", "crew_id", "created_at"],
+                    alias: "project_crews"
+                },
+                {
+                    table: "project_issues",
+                    select: ["id", "title", "description", "priority", "status", "created_at", "updated_at"],
+                    alias: "project_issues"
+                }
+            ],
+            where: { id: projectId }
+        });
+
+        if (projectError) {
+            console.error("Error fetching project details:", projectError);
+            throw new Error("Failed to fetch project details");
+        }
+
+        if (!projectWithRelations || projectWithRelations.length === 0) {
+            throw new Error("Project not found");
+        }
+
+        const projectData = projectWithRelations[0];
+
+        // Get aggregated stats
+        const { data: statsData, error: statsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "projects",
+            select: ["id"],
+            aggregates: [
+                { function: "count", table: "tasks", alias: "total_tasks", where: { project_id: projectId } },
+                { function: "count", table: "tasks", alias: "completed_tasks", where: { project_id: projectId, status: "completed" } },
+                { function: "count", table: "project_milestones", alias: "total_milestones", where: { project_id: projectId } },
+                { function: "count", table: "project_milestones", alias: "completed_milestones", where: { project_id: projectId, status: "completed" } },
+                { function: "count", table: "project_issues", alias: "total_issues", where: { project_id: projectId } },
+                { function: "count", table: "project_issues", alias: "open_issues", where: { project_id: projectId, status: { neq: "closed" } } },
+                { function: "count", table: "project_crews", alias: "total_crews", where: { project_id: projectId } }
+            ],
+            where: { id: projectId }
+        });
+
+        const statsResult = statsData?.[0] || {};
+
+        // Extract the main project data
+        const project: Project = {
+            id: projectData.id,
+            business_id: projectData.business_id,
+            name: projectData.name,
+            type: projectData.type,
+            status: projectData.status,
+            start_date: projectData.start_date,
+            end_date: projectData.end_date,
+            budget: projectData.budget,
+            location: projectData.location,
+            description: projectData.description,
+            client_id: projectData.client_id,
+            manager_id: projectData.manager_id,
+            progress: projectData.progress,
+            created_by: projectData.created_by,
+            created_at: projectData.created_at,
+            updated_by: projectData.updated_by,
+            updated_at: projectData.updated_at
+        };
+
+        // Extract related data
+        const milestones = projectData.project_milestones || [];
+        const tasks = projectData.tasks || [];
+        const crews = projectData.project_crews || [];
+        const issues = projectData.project_issues || [];
+
+        // Get client data if client_id exists
+        let client = null;
+        let contacts: any[] = [];
+        if (project.client_id) {
+            try {
+                const { data: clientData } = await fetchByBusinessWithQuery(businessId, {
+                    from: "clients",
+                    select: ["*"],
+                    joins: [
+                        {
+                            table: "client_contacts",
+                            select: ["id", "name", "title", "email", "phone", "is_primary"],
+                            alias: "client_contacts"
+                        }
+                    ],
+                    where: { id: project.client_id }
+                });
+
+                if (clientData && clientData.length > 0) {
+                    client = clientData[0];
+                    contacts = client.client_contacts || [];
+                }
+            } catch (error) {
+                console.error("Error fetching client data:", error);
+            }
+        }
+
+        // Get manager data if manager_id exists
+        let manager = null;
+        if (project.manager_id) {
+            try {
+                const { data: managerData } = await fetchByBusiness("crew_members", businessId, "*", {
+                    filter: { id: project.manager_id }
+                });
+                if (managerData && managerData.length > 0) {
+                    manager = managerData[0];
+                }
+            } catch (error) {
+                console.error("Error fetching manager data:", error);
+            }
+        }
+
+        const stats = {
+            totalTasks: statsResult.total_tasks || 0,
+            completedTasks: statsResult.completed_tasks || 0,
+            totalMilestones: statsResult.total_milestones || 0,
+            completedMilestones: statsResult.completed_milestones || 0,
+            totalIssues: statsResult.total_issues || 0,
+            openIssues: statsResult.open_issues || 0,
+            totalCrews: statsResult.total_crews || 0
+        };
+
+        return {
+            project,
+            milestones,
+            tasks,
+            crews,
+            issues,
+            client,
+            contacts,
+            manager,
+            stats
+        };
+    } catch (err) {
+        console.error("Error in getProjectDetailsByID:", err);
+        throw new Error("Failed to fetch project details");
     }
 };
 

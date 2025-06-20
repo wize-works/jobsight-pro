@@ -3,7 +3,7 @@
 import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import type { ClientInsert, ClientUpdate, Client } from "@/types/clients";
-import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { Project } from "@/types/projects";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -55,33 +55,34 @@ export const getClients = async (businessId: string): Promise<Client[]> => {
 
 export const getClientsWithStats = async (businessId: string,): Promise<Client[]> => {
     try {
-
-        const { data: clients, error: clientErrors } = await fetchByBusiness("clients", businessId, "*", {
-            orderBy: { column: "name", ascending: true },
+        // Use the new query builder to get clients with project statistics in a single query
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "clients",
+            select: ["*"],
+            aggregates: [
+                { function: "count", table: "projects", alias: "total_projects" },
+                { function: "count", table: "projects", alias: "active_projects", where: { status: "active" } },
+                { function: "sum", table: "projects", column: "budget", alias: "total_budget" }
+            ],
+            orderBy: { column: "name", ascending: true }
         });
 
-        if (!clients) {
+        if (error) {
+            console.error("Error fetching clients with stats:", error);
             return [];
         }
 
-        const clientIds = clients.map((client) => client.id);
+        if (!data || data.length === 0) {
+            return [];
+        }
 
-        const { data: projects } = await fetchByBusiness("projects", businessId, "*", {
-            filter: { client_id: { in: clientIds } },
-        });
-
-        return clients.map((client) => {
-            const clientProjects = projects?.filter((project: Project) => project.client_id === client.id) || [];
-            const totalBudget = clientProjects.reduce((acc, project) => acc + (project.budget || 0), 0);
-            const activeProjects = clientProjects.filter((project) => project.status === "active").length;
-
-            return {
-                ...client,
-                total_projects: clientProjects.length,
-                active_projects: activeProjects,
-                total_budget: totalBudget,
-            };
-        });
+        // Map the results to ensure proper typing and handle potential null values
+        return data.map((client: any) => ({
+            ...client,
+            total_projects: client.total_projects || 0,
+            active_projects: client.active_projects || 0,
+            total_budget: client.total_budget || 0,
+        }));
     } catch (err) {
         console.error("Error in getClientsWithStats:", err);
         return [];
@@ -288,19 +289,37 @@ export const getClientArchiveInfo = async (businessId: string, clientId: string)
     };
 }> => {
     try {
-        // Check for related data to show user what will be preserved
-        const [projectsData, contactsData, interactionsData, invoicesData] = await Promise.all([
-            fetchByBusiness("projects", businessId, ["id"], { filter: { client_id: clientId } }),
-            fetchByBusiness("client_contacts", businessId, ["id"], { filter: { client_id: clientId } }),
-            fetchByBusiness("client_interactions", businessId, ["id"], { filter: { client_id: clientId } }),
-            fetchByBusiness("invoices", businessId, ["id"], { filter: { client_id: clientId } })
-        ]);
+        // Use the new query builder to get all counts in a single operation
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "clients",
+            select: ["id"],
+            aggregates: [
+                { function: "count", table: "projects", alias: "project_count", where: { client_id: clientId } },
+                { function: "count", table: "client_contacts", alias: "contact_count", where: { client_id: clientId } },
+                { function: "count", table: "client_interactions", alias: "interaction_count", where: { client_id: clientId } },
+                { function: "count", table: "invoices", alias: "invoice_count", where: { client_id: clientId } }
+            ],
+            where: { id: clientId }
+        });
 
+        if (error || !data || data.length === 0) {
+            console.error("Error getting client archive info:", error);
+            return {
+                relatedData: {
+                    projectCount: 0,
+                    contactCount: 0,
+                    interactionCount: 0,
+                    invoiceCount: 0,
+                }
+            };
+        }
+
+        const clientData = data[0];
         const relatedData = {
-            projectCount: projectsData.data?.length || 0,
-            contactCount: contactsData.data?.length || 0,
-            interactionCount: interactionsData.data?.length || 0,
-            invoiceCount: invoicesData.data?.length || 0,
+            projectCount: clientData.project_count || 0,
+            contactCount: clientData.contact_count || 0,
+            interactionCount: clientData.interaction_count || 0,
+            invoiceCount: clientData.invoice_count || 0,
         };
 
         return {
@@ -316,5 +335,131 @@ export const getClientArchiveInfo = async (businessId: string, clientId: string)
                 invoiceCount: 0,
             }
         };
+    }
+};
+
+export const getClientDetailsByID = async (businessId: string, clientId: string): Promise<{
+    client: Client;
+    projects: any[];
+    contacts: any[];
+    interactions: any[];
+    stats: {
+        totalProjects: number;
+        activeProjects: number;
+        totalBudget: number;
+        totalContacts: number;
+        totalInteractions: number;
+        recentInteractions: number;
+    };
+} | null> => {
+    try {
+        // First, let's get the basic client data with simple joins using Supabase relationship syntax
+        const { data: clientWithRelations, error: clientError } = await fetchByBusinessWithQuery(businessId, {
+            from: "clients",
+            select: ["*"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status", "budget", "start_date", "end_date", "description", "location", "type", "progress", "created_at", "updated_at"],
+                    alias: "projects"
+                },
+                {
+                    table: "client_contacts",
+                    select: ["id", "name", "title", "email", "phone", "is_primary", "created_at", "updated_at"],
+                    alias: "client_contacts" // Use the actual table name as alias
+                },
+                {
+                    table: "client_interactions",
+                    select: ["id", "type", "date", "summary", "staff", "follow_up_date", "follow_up_task", "created_at", "updated_at"],
+                    alias: "client_interactions" // Use the actual table name as alias
+                }
+            ],
+            where: { id: clientId }
+        });
+
+        // Get the aggregated stats separately for now since complex aggregations might not work well with joins
+        const { data: statsData, error: statsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "clients",
+            select: ["id"],
+            aggregates: [
+                { function: "count", table: "projects", alias: "total_projects", where: { client_id: clientId } },
+                { function: "count", table: "projects", alias: "active_projects", where: { client_id: clientId, status: "active" } },
+                { function: "sum", table: "projects", column: "budget", alias: "total_budget", where: { client_id: clientId } },
+                { function: "count", table: "client_contacts", alias: "total_contacts", where: { client_id: clientId } },
+                { function: "count", table: "client_interactions", alias: "total_interactions", where: { client_id: clientId } },
+                {
+                    function: "count",
+                    table: "client_interactions",
+                    alias: "recent_interactions",
+                    where: {
+                        client_id: clientId,
+                        date: {
+                            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() // Last 30 days
+                        }
+                    }
+                }
+            ],
+            where: { id: clientId }
+        });
+
+        if (clientError) {
+            console.error("Error fetching client details:", clientError);
+            throw new Error("Failed to fetch client details");
+        }
+
+        if (!clientWithRelations || clientWithRelations.length === 0) {
+            throw new Error("Client not found");
+        }
+
+        const clientData = clientWithRelations[0];
+        const statsResult = statsData?.[0] || {};
+
+        // Extract and structure the data
+        const client: Client = {
+            id: clientData.id,
+            business_id: clientData.business_id,
+            name: clientData.name,
+            type: clientData.type,
+            industry: clientData.industry,
+            contact_name: clientData.contact_name,
+            contact_email: clientData.contact_email,
+            contact_phone: clientData.contact_phone,
+            website: clientData.website,
+            address: clientData.address,
+            city: clientData.city,
+            state: clientData.state,
+            zip: clientData.zip,
+            country: clientData.country,
+            tax_id: clientData.tax_id,
+            notes: clientData.notes,
+            logo_url: clientData.logo_url,
+            status: clientData.status,
+            created_at: clientData.created_at,
+            created_by: clientData.created_by,
+            updated_at: clientData.updated_at,
+            updated_by: clientData.updated_by
+        }; const projects = clientData.projects || [];
+        const contacts = clientData.client_contacts || []; // Use the correct property name
+        const interactions = clientData.client_interactions || []; // Use the correct property name
+
+        const stats = {
+            totalProjects: statsResult.total_projects || 0,
+            activeProjects: statsResult.active_projects || 0,
+            totalBudget: statsResult.total_budget || 0,
+            totalContacts: statsResult.total_contacts || 0,
+            totalInteractions: statsResult.total_interactions || 0,
+            recentInteractions: statsResult.recent_interactions || 0
+        };
+
+        return {
+            client,
+            projects,
+            contacts,
+            interactions,
+            stats
+        };
+    } catch (err) {
+        console.error("Error in getClientDetailsByID:", err);
+        throw new Error("Failed to fetch client details");
     }
 };

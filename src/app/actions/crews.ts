@@ -1,7 +1,7 @@
 "use server";
 import type { Crew, CrewWithDetails, CrewWithMemberInfo } from "@/types/crews";
 import type { CrewInsert, CrewUpdate } from "@/types/crews";
-import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { ProjectCrew, ProjectCrewWithDetails } from "@/types/project-crews";
 import { Project } from "@/types/projects";
@@ -526,3 +526,212 @@ export const deleteCrewMember = async (businessId: string, id: string): Promise<
 
     return true;
 }
+
+export const getCrewDetailsByID = async (businessId: string, crewId: string): Promise<{
+    crew: CrewWithDetails;
+    members: CrewMember[];
+    allMembers: CrewMember[];
+    schedule: any[];
+    history: any[];
+    equipment: any[];
+    projects: any[];
+    allEquipment: any[];
+    stats: {
+        totalMembers: number;
+        totalProjects: number;
+        activeProjects: number;
+        totalEquipment: number;
+        totalHours: number;
+    };
+} | null> => {
+    try {
+        // First, get the crew with basic related data using joins
+        const { data: crewWithRelations, error: crewError } = await fetchByBusinessWithQuery(businessId, {
+            from: "crews",
+            select: ["*"],
+            joins: [
+                {
+                    table: "crew_member_assignments",
+                    select: ["id", "crew_member_id"],
+                    alias: "crew_member_assignments"
+                },
+                {
+                    table: "project_crews",
+                    select: ["id", "project_id", "start_date", "end_date"],
+                    alias: "project_crews"
+                },
+                {
+                    table: "equipment_assignments",
+                    select: ["id", "equipment_id", "start_date", "end_date"],
+                    alias: "equipment_assignments"
+                }
+            ],
+            where: { id: crewId }
+        });
+
+        if (crewError) {
+            console.error("Error fetching crew details:", crewError);
+            throw new Error("Failed to fetch crew details");
+        }
+
+        if (!crewWithRelations || crewWithRelations.length === 0) {
+            throw new Error("Crew not found");
+        }
+
+        const crewData = crewWithRelations[0];
+
+        // Get aggregated stats
+        const { data: statsData, error: statsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "crews",
+            select: ["id"],
+            aggregates: [
+                { function: "count", table: "crew_member_assignments", alias: "total_members", where: { crew_id: crewId } },
+                { function: "count", table: "project_crews", alias: "total_projects", where: { crew_id: crewId } },
+                {
+                    function: "count",
+                    table: "project_crews",
+                    alias: "active_projects",
+                    where: {
+                        crew_id: crewId,
+                        start_date: { lte: new Date().toISOString() },
+                        end_date: { gte: new Date().toISOString() }
+                    }
+                },
+                { function: "count", table: "equipment_assignments", alias: "total_equipment", where: { crew_id: crewId } },
+                { function: "sum", table: "daily_logs", column: "hours_worked", alias: "total_hours", where: { crew_id: crewId } }
+            ],
+            where: { id: crewId }
+        });
+
+        const statsResult = statsData?.[0] || {};
+
+        // Get crew member details
+        const memberAssignments = crewData.crew_member_assignments || [];
+        const memberIds = memberAssignments.map((assignment: any) => assignment.crew_member_id);
+
+        let members: CrewMember[] = [];
+        if (memberIds.length > 0) {
+            const { data: membersData } = await fetchByBusiness("crew_members", businessId, "*", {
+                filter: { id: { in: memberIds } },
+                orderBy: { column: "name", ascending: true }
+            });
+            members = membersData || [];
+        }
+
+        // Get all crew members for dropdowns
+        const { data: allMembersData } = await fetchByBusiness("crew_members", businessId, "*", {
+            orderBy: { column: "name", ascending: true }
+        });
+        const allMembers = allMembersData || [];
+
+        // Get project details for schedule
+        const projectAssignments = crewData.project_crews || [];
+        const projectIds = projectAssignments.map((assignment: any) => assignment.project_id);
+
+        let projects: any[] = [];
+        if (projectIds.length > 0) {
+            const { data: projectsData } = await fetchByBusiness("projects", businessId, "*", {
+                filter: { id: { in: projectIds } }
+            });
+            projects = projectsData || [];
+        }
+
+        // Get all projects for dropdowns
+        const { data: allProjectsData } = await fetchByBusiness("projects", businessId, "*", {
+            orderBy: { column: "name", ascending: true }
+        });
+        const allProjects = allProjectsData || [];
+
+        // Process schedule data
+        const today = new Date().toISOString();
+        const schedule = projectAssignments.map((assignment: any) => {
+            const project = projects.find(p => p.id === assignment.project_id);
+            return {
+                ...assignment,
+                project_name: project?.name || "Unknown Project",
+                project: project
+            };
+        });
+
+        // Separate current schedule from history
+        const currentSchedule = schedule.filter((item: any) =>
+            item.start_date <= today && (!item.end_date || item.end_date >= today)
+        );
+        const history = schedule.filter((item: any) =>
+            item.end_date && item.end_date < today
+        );
+
+        // Get equipment details
+        const equipmentAssignments = crewData.equipment_assignments || [];
+        const equipmentIds = equipmentAssignments.map((assignment: any) => assignment.equipment_id);
+
+        let equipment: any[] = [];
+        if (equipmentIds.length > 0) {
+            const { data: equipmentData } = await fetchByBusiness("equipment", businessId, "*", {
+                filter: { id: { in: equipmentIds } }
+            });
+
+            equipment = equipmentAssignments.map((assignment: any) => {
+                const equipmentItem = equipmentData?.find((e: any) => e.id === assignment.equipment_id);
+                return {
+                    ...assignment,
+                    equipment_name: equipmentItem?.name || "Unknown Equipment",
+                    equipment_type: equipmentItem?.type || "Unknown",
+                    equipment_model: equipmentItem?.model || "Unknown",
+                    equipment: equipmentItem
+                };
+            });
+        }
+
+        // Get all equipment for dropdowns
+        const { data: allEquipmentData } = await fetchByBusiness("equipment", businessId, "*", {
+            orderBy: { column: "name", ascending: true }
+        });
+        const allEquipment = allEquipmentData || [];
+
+        // Get leader information
+        let leaderName = "No Assigned Leader";
+        if (crewData.leader_id) {
+            const { data: leaderData } = await fetchByBusiness("crew_members", businessId, "*", {
+                filter: { id: crewData.leader_id }
+            });
+            if (leaderData && leaderData.length > 0) {
+                leaderName = leaderData[0].name;
+            }
+        }
+
+        // Build the crew with details
+        const crew: CrewWithDetails = {
+            ...crewData,
+            member_count: statsResult.total_members || 0,
+            leader: leaderName,
+            current_project_id: currentSchedule[0]?.project_id || null,
+            current_project: currentSchedule[0]?.project_name || "No Current Project",
+            active_projects: statsResult.active_projects || 0,
+            total_hours: statsResult.total_hours || 0
+        };
+
+        const stats = {
+            totalMembers: statsResult.total_members || 0,
+            totalProjects: statsResult.total_projects || 0,
+            activeProjects: statsResult.active_projects || 0,
+            totalEquipment: statsResult.total_equipment || 0,
+            totalHours: statsResult.total_hours || 0
+        };
+
+        return {
+            crew,
+            members,
+            allMembers,
+            schedule: currentSchedule,
+            history,
+            equipment,
+            projects: allProjects,
+            allEquipment,
+            stats
+        };
+    } catch (err) {
+        console.error("Error in getCrewDetailsByID:", err);
+        throw new Error("Failed to fetch crew details");
+    }
+};
