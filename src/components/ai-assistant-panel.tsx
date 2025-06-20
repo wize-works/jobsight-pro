@@ -311,43 +311,56 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                     <p>"Show me tasks that are behind schedule"</p>
                                 </div>
                             </div>
-                        )}
-
-                        {conversation.map((msg, index) => (
-                            <div
-                                key={index}
-                                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div
-                                    className={`max-w-[85%] p-3 rounded-lg ${msg.type === 'user'
-                                        ? 'bg-primary text-primary-content ml-2'
-                                        : 'bg-base-200 text-base-content mr-2'
-                                        }`}
-                                >
-                                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                                    <div className="text-xs opacity-70 mt-1">
-                                        {msg.timestamp.toLocaleTimeString()}
+                        )}                        {conversation.map((msg, index) => (
+                            <div key={index} className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}>
+                                <div className="chat-image avatar">
+                                    <div className={`w-8 h-8 rounded-full ${msg.type === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <i
+                                                className={`far ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
+                                                    } text-xs text-white`}
+                                            ></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === 'user' ? 'order-1 bg-primary' : 'order-2 bg-secondary'
-                                        }`}
-                                >
-                                    <i
-                                        className={`far ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
-                                            } text-xs text-white`}
-                                    ></i>
+                                <div className="chat-header">
+                                    {msg.type === 'user' ? 'You' : 'AI Assistant'}
+                                    <time className="text-xs opacity-50 ml-1">
+                                        {msg.timestamp.toLocaleTimeString()}
+                                    </time>
+                                </div>
+                                <div className={`chat-bubble ${msg.type === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
+                                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                                </div>
+                                <div className="chat-footer opacity-50">
+                                    {msg.type === 'assistant' && (
+                                        <span className="text-xs">AI Response</span>
+                                    )}
                                 </div>
                             </div>
-                        ))}
-
-                        {isProcessing && (
-                            <div className="flex justify-start">
-                                <div className="bg-base-200 text-base-content p-3 rounded-lg">
+                        ))}                        {isProcessing && (
+                            <div className="chat chat-start">
+                                <div className="chat-image avatar">
+                                    <div className="w-8 h-8 rounded-full bg-secondary">
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <i className="far fa-brain text-xs text-white"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="chat-header">
+                                    AI Assistant
+                                    <time className="text-xs opacity-50 ml-1">
+                                        {new Date().toLocaleTimeString()}
+                                    </time>
+                                </div>
+                                <div className="chat-bubble chat-bubble-secondary">
                                     <div className="flex items-center gap-2">
                                         <span className="loading loading-dots loading-sm"></span>
                                         <span className="text-sm">Processing...</span>
                                     </div>
+                                </div>
+                                <div className="chat-footer opacity-50">
+                                    <span className="text-xs">Thinking...</span>
                                 </div>
                             </div>
                         )}

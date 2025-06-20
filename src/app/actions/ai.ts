@@ -6,6 +6,7 @@ import { getProjects } from "./projects";
 import { getClients } from "./clients";
 import { getCrews } from "./crews";
 import { DailyLogInsert } from "@/types/daily-logs";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 
 interface AIQueryResult {
     response: string;
@@ -19,35 +20,339 @@ interface ConversationMessage {
     content: string;
 }
 
+// Enhanced AI context data function
+export const getAIContextData = async (businessId: string) => {
+    try {
+        // Get projects with enhanced relational data and analytics
+        const { data: projects, error: projectsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "projects",
+            select: ["id", "name", "status", "client_id", "manager_id", "location", "description", "budget", "start_date", "end_date", "progress"],
+            joins: [
+                {
+                    table: "clients",
+                    select: ["id", "name", "type", "industry"],
+                    alias: "client"
+                }
+            ],
+            aggregates: [
+                { function: "count", table: "tasks", alias: "total_tasks" },
+                { function: "count", table: "tasks", alias: "active_tasks", where: { status: { neq: "completed" } } },
+                { function: "count", table: "tasks", alias: "completed_tasks", where: { status: "completed" } },
+                { function: "count", table: "project_issues", alias: "open_issues", where: { status: { neq: "closed" } } },
+                { function: "count", table: "daily_logs", alias: "log_count" },
+                { function: "sum", table: "daily_logs", alias: "total_hours_logged", column: "hours_worked" },
+                { function: "avg", table: "daily_logs", alias: "avg_daily_hours", column: "hours_worked" }
+            ],
+            orderBy: { column: "updated_at", ascending: false }
+        });
+
+        // Get clients with project and financial analytics
+        const { data: clients, error: clientsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "clients",
+            select: ["id", "name", "type", "industry", "contact_email", "phone", "address"],
+            aggregates: [
+                { function: "count", table: "projects", alias: "total_projects" },
+                { function: "count", table: "projects", alias: "active_projects", where: { status: { in: ["active", "planning"] } } },
+                { function: "sum", table: "projects", alias: "total_budget", column: "budget" },
+                { function: "avg", table: "projects", alias: "avg_project_budget", column: "budget" },
+                { function: "sum", table: "invoices", alias: "total_invoiced", column: "amount" },
+                { function: "count", table: "invoices", alias: "invoice_count" }
+            ],
+            orderBy: { column: "name", ascending: true }
+        });
+
+        // Get crews with assignment and productivity data
+        const { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "crews",
+            select: ["id", "name", "type", "size", "status", "location"],
+            aggregates: [
+                { function: "count", table: "crew_members", alias: "member_count" },
+                { function: "count", table: "project_crews", alias: "total_assignments" },
+                {
+                    function: "count", table: "project_crews", alias: "active_assignments",
+                    where: { end_date: { gte: new Date().toISOString() } }
+                },
+                { function: "sum", table: "daily_logs", alias: "total_hours_worked", column: "hours_worked" },
+                { function: "avg", table: "daily_logs", alias: "avg_productivity", column: "hours_worked" },
+                { function: "count", table: "daily_logs", alias: "log_entries" }
+            ],
+            orderBy: { column: "name", ascending: true }
+        });
+
+        // Get recent daily logs with rich context (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const { data: dailyLogs, error: dailyLogsError } = await fetchByBusinessWithQuery(businessId, {
+            from: "daily_logs",
+            select: ["id", "date", "project_id", "crew_id", "work_completed", "work_planned", "hours_worked", "overtime", "weather", "safety", "delays"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status"],
+                    alias: "project"
+                },
+                {
+                    table: "crews",
+                    select: ["id", "name"],
+                    alias: "crew"
+                }
+            ],
+            aggregates: [
+                { function: "sum", table: "daily_log_materials", alias: "material_cost", column: "cost" },
+                { function: "sum", table: "daily_log_equipment", alias: "equipment_hours", column: "hours_used" }
+            ],
+            where: { date: { gte: thirtyDaysAgo.toISOString().split('T')[0] } },
+            orderBy: { column: "date", ascending: false }
+        });
+
+        // Get active/critical tasks with context
+        const { data: tasks, error: tasksError } = await fetchByBusinessWithQuery(businessId, {
+            from: "tasks",
+            select: ["id", "title", "status", "priority", "project_id", "assigned_to", "due_date", "estimated_hours", "actual_hours"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status"],
+                    alias: "project"
+                },
+                {
+                    table: "crew_members",
+                    select: ["id", "name", "role"],
+                    alias: "assignee"
+                }
+            ],
+            aggregates: [
+                { function: "count", table: "task_comments", alias: "comment_count" },
+                { function: "sum", table: "task_time_logs", alias: "logged_hours", column: "hours" }
+            ],
+            where: {
+                status: { in: ["pending", "in_progress", "blocked"] },
+                due_date: { gte: new Date().toISOString().split('T')[0] }
+            },
+            orderBy: { column: "due_date", ascending: true }
+        });
+
+        // Get equipment with utilization and maintenance data
+        const { data: equipment, error: equipmentError } = await fetchByBusinessWithQuery(businessId, {
+            from: "equipment",
+            select: ["id", "name", "type", "model", "status", "location"],
+            aggregates: [
+                {
+                    function: "count", table: "equipment_assignments", alias: "active_assignments",
+                    where: { status: "active" }
+                },
+                { function: "sum", table: "equipment_usage", alias: "total_hours", column: "hours_used" },
+                { function: "sum", table: "equipment_maintenance", alias: "maintenance_cost", column: "cost" },
+                { function: "max", table: "equipment_usage", alias: "last_used", column: "date" },
+                { function: "avg", table: "equipment_usage", alias: "utilization_rate", column: "hours_used" }
+            ],
+            where: { status: { neq: "retired" } },
+            orderBy: { column: "name", ascending: true }
+        });
+
+        return {
+            projects: projects || [],
+            clients: clients || [],
+            crews: crews || [],
+            dailyLogs: dailyLogs || [],
+            tasks: tasks || [],
+            equipment: equipment || [],
+            metadata: {
+                contextDate: new Date().toISOString(),
+                dataRange: "30 days for daily logs, all active data for other entities",
+                totalRecords: {
+                    projects: projects?.length || 0,
+                    clients: clients?.length || 0,
+                    crews: crews?.length || 0,
+                    dailyLogs: dailyLogs?.length || 0,
+                    tasks: tasks?.length || 0,
+                    equipment: equipment?.length || 0
+                }
+            },
+            errors: {
+                projects: projectsError,
+                clients: clientsError,
+                crews: crewsError,
+                dailyLogs: dailyLogsError,
+                tasks: tasksError,
+                equipment: equipmentError
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching AI context data:", error);
+        return {
+            projects: [],
+            clients: [],
+            crews: [],
+            dailyLogs: [],
+            tasks: [],
+            equipment: [],
+            metadata: {
+                contextDate: new Date().toISOString(),
+                error: "Failed to fetch comprehensive context"
+            },
+            errors: { general: error }
+        };
+    }
+};
+
 export async function processAIQuery(
     businessId: string,
     message: string,
     conversationHistory: ConversationMessage[] = []
 ): Promise<AIQueryResult> {
     try {
-        // Get context data
-        const projects = await getProjects(businessId);
-        const clients = await getClients(businessId);
-        const crews = await getCrews(businessId);
+        // Get comprehensive context data using the new relational query
+        const contextData = await getAIContextData(businessId);
+        // Build rich context summary for AI with comprehensive analytics
+        const projectSummary = contextData.projects.map(p => {
+            const client = p.client?.name || 'Unknown Client';
+            const progress = p.progress || 0;
+            const activeTasks = p.active_tasks || 0;
+            const completedTasks = p.completed_tasks || 0;
+            const totalTasks = p.total_tasks || 0;
+            const openIssues = p.open_issues || 0;
+            const totalHours = p.total_hours_logged || 0;
+            const taskCompletion = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-        // Build system prompt with context
-        const systemPrompt = `You are a helpful construction project management assistant. 
+            return `${p.name} (${client}):
+  - Progress: ${progress}% complete, Budget: $${p.budget?.toLocaleString() || 'N/A'}
+  - Tasks: ${completedTasks}/${totalTasks} completed (${taskCompletion}%), ${activeTasks} active, ${openIssues} issues
+  - Work Hours: ${totalHours} total logged, ${Math.round(p.avg_daily_hours || 0)} avg/day
+  - Status: ${p.status}, Location: ${p.location || 'Not specified'}`;
+        }).join('\n\n');
 
-Your capabilities:
-1. Answer questions about projects, daily logs, tasks, and schedules
-2. Create daily logs when users provide work summaries
-3. Help with project management tasks
+        const clientSummary = contextData.clients.map(c => {
+            const projects = c.total_projects || 0;
+            const activeProjects = c.active_projects || 0;
+            const totalBudget = c.total_budget || 0;
+            const totalInvoiced = c.total_invoiced || 0;
+            const avgBudget = c.avg_project_budget || 0;
 
-Available projects: ${projects.map(p => p.name).join(', ')}
+            return `${c.name} (${c.type || 'Unknown'}, ${c.industry || 'N/A'}):
+  - Projects: ${activeProjects}/${projects} active
+  - Budget: $${totalBudget.toLocaleString()} total, $${avgBudget.toLocaleString()} avg per project
+  - Invoiced: $${totalInvoiced.toLocaleString()} (${projects > 0 ? Math.round((totalInvoiced / totalBudget) * 100) : 0}% of budget)`;
+        }).join('\n\n');
 
-Available clients: ${clients.map(c => c.name).join(', ')}
+        const crewSummary = contextData.crews.map(c => {
+            const members = c.member_count || 0;
+            const assignments = c.active_assignments || 0;
+            const totalHours = c.total_hours_worked || 0;
+            const productivity = c.avg_productivity || 0;
+            const logEntries = c.log_entries || 0;
 
-Available crews: ${crews.map(c => c.name).join(', ')}
+            return `${c.name} (${c.type || 'General'}, ${members} members):
+  - Active Assignments: ${assignments}, Total Hours: ${totalHours}
+  - Productivity: ${Math.round(productivity)} avg hours/day, ${logEntries} log entries
+  - Status: ${c.status || 'Active'}, Location: ${c.location || 'Various'}`;
+        }).join('\n\n');
 
-When a user wants to create a daily log, respond with action: "create_daily_log" and include the structured data.
-When answering questions, provide helpful responses based on the context.
+        const recentActivity = contextData.dailyLogs.slice(0, 8).map(log => {
+            const project = log.project?.name || 'Unknown Project';
+            const crew = log.crew?.name || 'Unknown Crew';
+            const hours = log.hours_worked || 0;
+            const overtime = log.overtime || 0;
+            const materialCost = log.material_cost || 0;
+            const equipmentHours = log.equipment_hours || 0;
 
-Current conversation context: The user has been talking about construction work and project management.`;
+            return `${log.date} - ${project} (${crew}):
+  - Work: ${log.work_completed?.substring(0, 120)}${log.work_completed?.length > 120 ? '...' : ''}
+  - Hours: ${hours}${overtime > 0 ? ` + ${overtime} OT` : ''}, Equipment: ${equipmentHours}h
+  - Weather: ${log.weather || 'N/A'}, Materials: $${materialCost.toLocaleString()}
+  ${log.delays ? `- Delays: ${log.delays}` : ''}
+  ${log.safety ? `- Safety: ${log.safety}` : ''}`;
+        }).join('\n\n');
+
+        const taskSummary = contextData.tasks.slice(0, 10).map(t => {
+            const project = t.project?.name || 'Unknown Project';
+            const assignee = t.assignee?.name || 'Unassigned';
+            const estimated = t.estimated_hours || 0;
+            const actual = t.actual_hours || 0;
+            const logged = t.logged_hours || 0;
+            const comments = t.comment_count || 0;
+
+            return `${t.title} (${t.priority || 'Normal'} priority):
+  - Project: ${project}, Assigned: ${assignee}
+  - Status: ${t.status}, Due: ${t.due_date || 'No due date'}
+  - Hours: ${estimated}h estimated, ${actual}h actual, ${logged}h logged
+  - Activity: ${comments} comments`;
+        }).join('\n\n');
+
+        const equipmentStatus = contextData.equipment.map(e => {
+            const assignments = e.active_assignments || 0;
+            const totalHours = e.total_hours || 0;
+            const maintenanceCost = e.maintenance_cost || 0;
+            const utilization = e.utilization_rate || 0;
+            const lastUsed = e.last_used || 'Never';
+
+            return `${e.name} (${e.type}, ${e.model || 'N/A'}):
+  - Status: ${e.status}, Location: ${e.location || 'Unknown'}
+  - Usage: ${totalHours}h total, ${Math.round(utilization)}h avg/use, ${assignments} active assignments
+  - Maintenance: $${maintenanceCost.toLocaleString()}, Last used: ${lastUsed}`;
+        }).join('\n\n');
+
+        // Calculate business-wide analytics
+        const totalProjects = contextData.projects.length;
+        const activeProjects = contextData.projects.filter(p => p.status === 'active').length;
+        const totalTasks = contextData.tasks.length;
+        const urgentTasks = contextData.tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').length;
+        const recentLogs = contextData.dailyLogs.length;
+        const totalEquipment = contextData.equipment.length;
+        const activeEquipment = contextData.equipment.filter(e => e.status === 'active').length;
+
+        // Build comprehensive system prompt with rich context
+        const systemPrompt = `You are an advanced construction project management AI assistant with access to comprehensive, real-time business data and analytics.
+
+BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
+- Projects: ${activeProjects}/${totalProjects} active
+- Tasks: ${totalTasks} total (${urgentTasks} urgent/high priority)
+- Recent Activity: ${recentLogs} daily logs (last 30 days)
+- Equipment: ${activeEquipment}/${totalEquipment} active units
+- Data Coverage: ${contextData.metadata?.dataRange}
+
+DETAILED CONTEXT:
+
+PROJECTS:
+${projectSummary}
+
+CLIENTS:
+${clientSummary}
+
+CREWS:
+${crewSummary}
+
+RECENT WORK ACTIVITY:
+${recentActivity}
+
+ACTIVE/URGENT TASKS:
+${taskSummary}
+
+EQUIPMENT STATUS:
+${equipmentStatus}
+
+ADVANCED CAPABILITIES:
+1. **Project Intelligence**: Analyze progress, budget performance, resource allocation, and timeline risks
+2. **Productivity Analytics**: Track crew performance, equipment utilization, and efficiency trends
+3. **Financial Insights**: Monitor budget vs. actual costs, invoice status, and profitability
+4. **Operational Planning**: Suggest resource reallocation, identify bottlenecks, predict delays
+5. **Quality & Safety Monitoring**: Track safety incidents, quality issues, and compliance
+6. **Predictive Analysis**: Forecast project completion, resource needs, and potential risks
+7. **Daily Log Creation**: Convert work descriptions into structured, comprehensive daily logs
+8. **Equipment Management**: Monitor utilization, maintenance schedules, and assignment optimization
+
+CONTEXT INTELLIGENCE:
+- Real-time access to project progress, task completion rates, and issue tracking
+- Cross-referenced client information with project performance and financial data
+- Crew productivity metrics, workload distribution, and assignment optimization
+- Equipment utilization rates, maintenance costs, and operational efficiency
+- Historical work patterns, productivity trends, and seasonal variations
+- Financial performance, budget adherence, and profitability analysis
+
+When creating daily logs, leverage project and crew context for enhanced accuracy and completeness.
+When answering questions, provide data-driven insights with specific metrics and actionable recommendations.
+Always consider the interconnections between projects, resources, schedules, and business objectives.`;
 
         // Build messages array
         const messages = [
@@ -70,15 +375,13 @@ Current conversation context: The user has been talking about construction work 
                 response: "I'm sorry, I couldn't process your request at the moment.",
                 action: "none"
             };
-        }
-
-        // Check if this is a daily log creation request
+        }        // Check if this is a daily log creation request
         if (message.toLowerCase().includes('daily log') ||
             message.toLowerCase().includes('work today') ||
             message.toLowerCase().includes('completed today')) {
 
             // Try to extract project and work details
-            const projectMatch = projects.find(p =>
+            const projectMatch = contextData.projects.find(p =>
                 message.toLowerCase().includes(p.name.toLowerCase()) ||
                 message.toLowerCase().includes(p.name.toLowerCase().replace(/\s+/g, ''))
             );
@@ -96,7 +399,7 @@ Current conversation context: The user has been talking about construction work 
                 };
             } else {
                 return {
-                    response: `I'd like to help you create a daily log, but I couldn't identify which project you're referring to. Available projects: ${projects.map(p => p.name).join(', ')}. Could you specify the project name?`,
+                    response: `I'd like to help you create a daily log, but I couldn't identify which project you're referring to. Available projects: ${contextData.projects.map(p => p.name).join(', ')}. Could you specify the project name?`,
                     action: "clarify_project"
                 };
             }
@@ -207,6 +510,9 @@ export async function createDailyLogFromAI(businessId: string, data: {
     userId: string;
 }): Promise<{ success: boolean; logId?: string; error?: string }> {
     try {
+        // Get context data for enhanced crew matching
+        const contextData = await getAIContextData(businessId);
+
         // Enhanced AI prompt to extract all available information
         const enhancementPrompt = `Analyze this construction work summary and extract ALL available information into a structured format:
 
@@ -269,12 +575,24 @@ Only include information that is actually present in the input. Be precise and f
             overtime = hoursWorked - 8;
         }
 
+        // Try to match crew from extracted crew_info
+        let crewId = "";
+        if (extractedData.crew_info && contextData.crews.length > 0) {
+            const crewMatch = contextData.crews.find(crew =>
+                extractedData.crew_info.toLowerCase().includes(crew.name.toLowerCase()) ||
+                crew.name.toLowerCase().includes(extractedData.crew_info.toLowerCase())
+            );
+            if (crewMatch) {
+                crewId = crewMatch.id;
+            }
+        }
+
         // Create the daily log using existing action with enhanced data
         const result = await createDailyLog(
             businessId,
             {
                 project_id: data.projectId,
-                crew_id: "", // TODO: Match crew_info to actual crew IDs from database
+                crew_id: crewId, // Now using intelligent crew matching
                 date: new Date().toISOString().split('T')[0],
                 work_completed: extractedData.work_completed || data.workSummary,
                 work_planned: extractedData.work_planned || "",

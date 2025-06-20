@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
 import { getUserBusiness } from "@/app/actions/business";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
@@ -292,3 +292,161 @@ export const getDailyLogWithDetailsById = async (businessId: string, id: string)
     } as DailyLogWithDetails;
 
 }
+
+export const getDailyLogDetailsByID = async (businessId: string, id: string) => {
+    try {
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "daily_logs",
+            select: ["id", "date", "project_id", "crew_id", "author_id", "work_completed", "work_planned",
+                "start_time", "end_time", "hours_worked", "overtime", "weather", "safety",
+                "quality", "delays", "notes", "created_at", "updated_at"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "description", "status", "client_id", "location"],
+                    alias: "project"
+                },
+                {
+                    table: "crews",
+                    select: ["id", "name", "type", "size"],
+                    alias: "crew"
+                },
+                {
+                    table: "daily_log_materials",
+                    select: ["id", "material_id", "quantity", "unit", "cost"],
+                    alias: "materials"
+                },
+                {
+                    table: "daily_log_equipment",
+                    select: ["id", "equipment_id", "hours_used", "condition"],
+                    alias: "equipment_usage"
+                },
+                {
+                    table: "daily_log_labor",
+                    select: ["id", "crew_member_id", "hours_worked", "overtime", "task"],
+                    alias: "labor"
+                }
+            ],
+            aggregates: [
+                { function: "sum", table: "daily_log_materials", alias: "total_material_cost", column: "cost" },
+                { function: "sum", table: "daily_log_equipment", alias: "total_equipment_hours", column: "hours_used" },
+                { function: "sum", table: "daily_log_labor", alias: "total_labor_hours", column: "hours_worked" },
+                { function: "count", table: "daily_log_materials", alias: "material_count" },
+                { function: "count", table: "daily_log_equipment", alias: "equipment_count" },
+                { function: "count", table: "daily_log_labor", alias: "labor_count" }
+            ],
+            where: { id },
+            orderBy: { column: "created_at", ascending: false }
+        });
+
+        if (error) {
+            console.error("Error fetching daily log details:", error);
+            return null;
+        }
+
+        return data?.[0] || null;
+    } catch (error) {
+        console.error("Error in getDailyLogDetailsByID:", error);
+        return null;
+    }
+};
+
+export const getDailyLogsWithStats = async (businessId: string, filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+    projectId?: string;
+    crewId?: string;
+}) => {
+    try {
+        let whereClause: Record<string, any> = {};
+
+        if (filters?.dateFrom) {
+            whereClause.date = { gte: filters.dateFrom };
+        }
+        if (filters?.dateTo) {
+            whereClause.date = { ...whereClause.date, lte: filters.dateTo };
+        }
+        if (filters?.projectId) {
+            whereClause.project_id = filters.projectId;
+        }
+        if (filters?.crewId) {
+            whereClause.crew_id = filters.crewId;
+        }
+
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "daily_logs",
+            select: ["id", "date", "project_id", "crew_id", "work_completed", "hours_worked",
+                "overtime", "weather", "safety", "quality", "delays"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status", "client_id"],
+                    alias: "project"
+                },
+                {
+                    table: "crews",
+                    select: ["id", "name", "type"],
+                    alias: "crew"
+                },
+                {
+                    table: "clients",
+                    select: ["id", "name"],
+                    alias: "client"
+                }
+            ],
+            aggregates: [
+                { function: "sum", table: "daily_log_materials", alias: "material_cost", column: "cost" },
+                { function: "sum", table: "daily_log_equipment", alias: "equipment_hours", column: "hours_used" },
+                { function: "sum", table: "daily_log_labor", alias: "labor_hours", column: "hours_worked" },
+                { function: "count", table: "daily_log_materials", alias: "material_entries" },
+                { function: "count", table: "daily_log_equipment", alias: "equipment_entries" }
+            ],
+            where: whereClause,
+            orderBy: { column: "date", ascending: false }
+        });
+
+        if (error) {
+            console.error("Error fetching daily logs with stats:", error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.error("Error in getDailyLogsWithStats:", error);
+        return [];
+    }
+};
+
+export const getDailyLogAnalytics = async (businessId: string, projectId?: string) => {
+    try {
+        let whereClause: Record<string, any> = {};
+        if (projectId) {
+            whereClause.project_id = projectId;
+        }
+
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "daily_logs",
+            select: ["id", "date", "project_id", "hours_worked", "overtime"],
+            aggregates: [
+                { function: "count", table: "daily_logs", alias: "total_logs" },
+                { function: "sum", table: "daily_logs", alias: "total_hours", column: "hours_worked" },
+                { function: "sum", table: "daily_logs", alias: "total_overtime", column: "overtime" },
+                { function: "avg", table: "daily_logs", alias: "avg_hours_per_day", column: "hours_worked" },
+                { function: "sum", table: "daily_log_materials", alias: "total_material_cost", column: "cost" },
+                { function: "sum", table: "daily_log_equipment", alias: "total_equipment_hours", column: "hours_used" }
+            ],
+            where: whereClause,
+            orderBy: { column: "date", ascending: false }
+        });
+
+        if (error) {
+            console.error("Error fetching daily log analytics:", error);
+            return null;
+        }
+
+        return data?.[0] || null;
+    } catch (error) {
+        console.error("Error in getDailyLogAnalytics:", error);
+        return null;
+    }
+};
