@@ -276,8 +276,8 @@ export default function EquipmentDetail({
                         </Link>
                     </div>
                 </div>                <div className="flex gap-2">
-                    <button 
-                        onClick={() => setShowEditModal(true)} 
+                    <button
+                        onClick={() => setShowEditModal(true)}
                         className="btn btn-primary"
                     >
                         <i className="far fa-edit"></i> Edit

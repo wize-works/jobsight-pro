@@ -9,7 +9,7 @@ interface EquipmentCardProps extends Equipment {
 
 export const EquipmentCard = (props: EquipmentCardProps) => {
     const { onEdit, ...equipment } = props;
-    
+
     return (
         <div className="card bg-base-100 shadow-lg">
             <figure className="px-4 pt-4">
@@ -34,8 +34,8 @@ export const EquipmentCard = (props: EquipmentCardProps) => {
                         View Details
                     </Link>
                     {onEdit && (
-                        <button 
-                            onClick={() => onEdit(equipment)} 
+                        <button
+                            onClick={() => onEdit(equipment)}
                             className="btn btn-primary btn-sm"
                         >
                             <i className="far fa-edit"></i>

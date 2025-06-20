@@ -45,7 +45,7 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
     useEffect(() => {
         if (equipment) {
             setFormData({
-                name: equipment.name || "",                type: equipment.type as EquipmentType || "other",
+                name: equipment.name || "", type: equipment.type as EquipmentType || "other",
                 status: equipment.status as EquipmentStatus || "available",
                 description: equipment.description || "",
                 serial_number: equipment.serial_number || "",
@@ -115,7 +115,7 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                 return; // Don't remove from UI if backend delete failed
             }
         }
-        
+
         setEquipmentSpecs((prev) => prev.filter((_, i) => i !== idx));
     };
 
@@ -143,19 +143,20 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                     updated_at: null,
                     updated_by: null
                 });
-                  // Update the local state with the new ID
+                // Update the local state with the new ID
                 if (newSpec) {
-                    setEquipmentSpecs(prev => 
+                    setEquipmentSpecs(prev =>
                         prev.map((s, i) => i === idx ? { ...s, id: newSpec.id } : s)
                     );
-                }            } else {
+                }
+            } else {
                 // Update existing specification
                 await updateEquipmentSpecification(businessId, spec.id, {
                     name: spec.name,
                     value: spec.value
                 } as EquipmentSpecificationUpdate);
             }
-            
+
             toast.success({
                 title: "Success",
                 description: "Specification saved successfully"
@@ -176,7 +177,7 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         try {
             if (!equipment.id) {
                 throw new Error("Equipment ID is required to update equipment.");
-            }            const equipmentData = {
+            } const equipmentData = {
                 name: formData.name,
                 type: formData.type,
                 status: formData.status,
