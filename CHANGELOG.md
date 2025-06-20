@@ -1,3 +1,15 @@
+# [1.58.0](https://github.com/wize-works/jobsight-pro/compare/v1.57.1...v1.58.0) (2025-06-20)
+
+
+### Bug Fixes
+
+* css error fix ([0d84217](https://github.com/wize-works/jobsight-pro/commit/0d84217d6bfb399d336c21cdb5791c70f41e7377))
+
+
+### Features
+
+* Enhance data loading with comprehensive queries across daily logs, equipment, and tasks ([6ac9e1a](https://github.com/wize-works/jobsight-pro/commit/6ac9e1a2512f74acf2bd3470d7cd379258dc9138))
+
 ## [1.57.1](https://github.com/wize-works/jobsight-pro/compare/v1.57.0...v1.57.1) (2025-06-20)
 
 
