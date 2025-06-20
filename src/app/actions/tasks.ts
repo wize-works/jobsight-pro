@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
+import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -284,3 +284,90 @@ export const getTasksWithDetails = async (businessId: string): Promise<TaskWithD
         return [];
     }
 }
+
+export const getTaskDetailsByID = async (businessId: string, id: string) => {
+    try {
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "tasks",
+            select: ["id", "title", "description", "status", "priority", "project_id", "assigned_to",
+                "due_date", "start_date", "completed_date", "estimated_hours", "actual_hours",
+                "created_at", "updated_at"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status", "client_id"],
+                    alias: "project"
+                },
+                {
+                    table: "crew_members",
+                    select: ["id", "name", "role", "crew_id"],
+                    alias: "assignee"
+                },
+                {
+                    table: "task_comments",
+                    select: ["id", "comment", "author_id", "created_at"],
+                    alias: "comments"
+                },
+                {
+                    table: "task_dependencies",
+                    select: ["id", "dependent_task_id", "dependency_type"],
+                    alias: "dependencies"
+                }
+            ],
+            aggregates: [
+                { function: "count", table: "task_comments", alias: "comment_count" },
+                { function: "count", table: "task_dependencies", alias: "dependency_count" },
+                { function: "sum", table: "task_time_logs", alias: "logged_hours", column: "hours" }
+            ],
+            where: { id },
+            orderBy: { column: "updated_at", ascending: false }
+        });
+
+        if (error) {
+            console.error("Error fetching task details:", error);
+            return null;
+        }
+
+        return data?.[0] || null;
+    } catch (error) {
+        console.error("Error in getTaskDetailsByID:", error);
+        return null;
+    }
+};
+
+export const getTasksWithStats = async (businessId: string) => {
+    try {
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "tasks",
+            select: ["id", "title", "status", "priority", "project_id", "assigned_to", "due_date",
+                "estimated_hours", "actual_hours"],
+            joins: [
+                {
+                    table: "projects",
+                    select: ["id", "name", "status"],
+                    alias: "project"
+                },
+                {
+                    table: "crew_members",
+                    select: ["id", "name", "role"],
+                    alias: "assignee"
+                }
+            ],
+            aggregates: [
+                { function: "count", table: "task_comments", alias: "comment_count" },
+                { function: "sum", table: "task_time_logs", alias: "logged_hours", column: "hours" }
+            ],
+            orderBy: { column: "due_date", ascending: true }
+        });
+
+        if (error) {
+            console.error("Error fetching tasks with stats:", error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.error("Error in getTasksWithStats:", error);
+        return [];
+    }
+};
