@@ -1,3 +1,10 @@
+## [1.58.3](https://github.com/wize-works/jobsight-pro/compare/v1.58.2...v1.58.3) (2025-06-20)
+
+
+### Bug Fixes
+
+* Update link text from 'View' to 'Details' for clarity in InvoiceCard component ([8edb1dc](https://github.com/wize-works/jobsight-pro/commit/8edb1dc25fd096faf8c98a8dcefe0ffa9140541b))
+
 ## [1.58.2](https://github.com/wize-works/jobsight-pro/compare/v1.58.1...v1.58.2) (2025-06-20)
 
 
