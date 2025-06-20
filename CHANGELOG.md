@@ -1,3 +1,10 @@
+# [1.55.0](https://github.com/wize-works/jobsight-pro/compare/v1.54.0...v1.55.0) (2025-06-20)
+
+
+### Features
+
+* Enhance invoice editing with item management and calculated totals ([319e122](https://github.com/wize-works/jobsight-pro/commit/319e122995dfa0b21876091145205ace4a64156c))
+
 # [1.54.0](https://github.com/wize-works/jobsight-pro/compare/v1.53.3...v1.54.0) (2025-06-20)
 
 
