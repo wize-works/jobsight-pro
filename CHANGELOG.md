@@ -1,3 +1,10 @@
+## [1.57.1](https://github.com/wize-works/jobsight-pro/compare/v1.57.0...v1.57.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Refactor reports dashboard: remove loading component, simplify reports page, and delete saved reports page. Update global styles to remove Tailwind directives. ([33dcb70](https://github.com/wize-works/jobsight-pro/commit/33dcb704c64b382956f0f5e0337403ea4c6a649b))
+
 # [1.57.0](https://github.com/wize-works/jobsight-pro/compare/v1.56.0...v1.57.0) (2025-06-20)
 
 
