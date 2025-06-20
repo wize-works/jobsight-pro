@@ -1,3 +1,10 @@
+# [1.54.0](https://github.com/wize-works/jobsight-pro/compare/v1.53.3...v1.54.0) (2025-06-20)
+
+
+### Features
+
+* Refactor invoice management with new edit and create modals ([bdc9db7](https://github.com/wize-works/jobsight-pro/commit/bdc9db779d48f4000a2ddde3ad075b7e748284e2))
+
 ## [1.53.3](https://github.com/wize-works/jobsight-pro/compare/v1.53.2...v1.53.3) (2025-06-19)
 
 
