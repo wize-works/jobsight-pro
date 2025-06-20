@@ -1,3 +1,10 @@
+## [1.58.1](https://github.com/wize-works/jobsight-pro/compare/v1.58.0...v1.58.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* Update useNotificationRefresh to handle interval reference correctly ([7a7673b](https://github.com/wize-works/jobsight-pro/commit/7a7673b1caea03b54845145e17ce2aa8f09a970c))
+
 # [1.58.0](https://github.com/wize-works/jobsight-pro/compare/v1.57.1...v1.58.0) (2025-06-20)
 
 
