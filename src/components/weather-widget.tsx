@@ -29,39 +29,103 @@ export default function WeatherWidget({ location = "Current Location" }: Weather
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const getWeatherIcon = (condition: string): string => {
+        const conditionLower = condition.toLowerCase();
+        if (conditionLower.includes('clear') || conditionLower.includes('sunny')) return '☀️';
+        if (conditionLower.includes('cloud')) return '☁️';
+        if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) return '🌧️';
+        if (conditionLower.includes('thunderstorm')) return '⛈️';
+        if (conditionLower.includes('snow')) return '❄️';
+        if (conditionLower.includes('mist') || conditionLower.includes('fog')) return '🌫️';
+        if (conditionLower.includes('partly') || conditionLower.includes('few')) return '⛅';
+        return '🌤️';
+    };
+
+    const kelvinToFahrenheit = (kelvin: number): number => {
+        return Math.round((kelvin - 273.15) * 9/5 + 32);
+    };
+
+    const formatDay = (timestamp: number, index: number): string => {
+        if (index === 0) return 'Today';
+        if (index === 1) return 'Tomorrow';
+        
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleDateString('en-US', { weekday: 'long' });
+    };
+
     useEffect(() => {
         const fetchWeather = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                // For demo purposes, we'll use mock data
-                // In production, you would integrate with a real weather API like OpenWeatherMap
-                const mockWeatherData: WeatherData = {
-                    current: {
-                        temperature: 72,
-                        condition: "Partly Cloudy",
-                        icon: "⛅",
-                        humidity: 65,
-                        windSpeed: 8
-                    },
-                    forecast: [
-                        { date: "Today", high: 75, low: 62, condition: "Partly Cloudy", icon: "⛅" },
-                        { date: "Tomorrow", high: 78, low: 64, condition: "Sunny", icon: "☀️" },
-                        { date: "Wednesday", high: 73, low: 59, condition: "Cloudy", icon: "☁️" },
-                        { date: "Thursday", high: 69, low: 55, condition: "Rain", icon: "🌧️" },
-                        { date: "Friday", high: 71, low: 58, condition: "Partly Cloudy", icon: "⛅" }
-                    ]
+                // Get user's current location
+                const getCurrentLocation = (): Promise<GeolocationPosition> => {
+                    return new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            reject(new Error('Geolocation is not supported'));
+                            return;
+                        }
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
                 };
 
-                // Simulate API delay
-                setTimeout(() => {
-                    setWeather(mockWeatherData);
-                    setLoading(false);
-                }, 1000);
+                let lat: number, lon: number;
 
+                try {
+                    const position = await getCurrentLocation();
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+                } catch (locationError) {
+                    // Default to a generic location (Chicago) if geolocation fails
+                    lat = 41.8781;
+                    lon = -87.6298;
+                }
+
+                // Fetch current weather and 5-day forecast
+                const [currentResponse, forecastResponse] = await Promise.all([
+                    fetch(`/api/weather/current?lat=${lat}&lon=${lon}`),
+                    fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`)
+                ]);
+
+                if (!currentResponse.ok || !forecastResponse.ok) {
+                    throw new Error('Failed to fetch weather data');
+                }
+
+                const currentData = await currentResponse.json();
+                const forecastData = await forecastResponse.json();
+
+                const weatherData: WeatherData = {
+                    current: {
+                        temperature: kelvinToFahrenheit(currentData.main.temp),
+                        condition: currentData.weather[0].description
+                            .split(' ')
+                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' '),
+                        icon: getWeatherIcon(currentData.weather[0].description),
+                        humidity: currentData.main.humidity,
+                        windSpeed: Math.round(currentData.wind?.speed * 2.237) // Convert m/s to mph
+                    },
+                    forecast: forecastData.list
+                        .filter((_: any, index: number) => index % 8 === 0) // Get one forecast per day (every 8th 3-hour forecast)
+                        .slice(0, 5)
+                        .map((item: any, index: number) => ({
+                            date: formatDay(item.dt, index),
+                            high: kelvinToFahrenheit(item.main.temp_max),
+                            low: kelvinToFahrenheit(item.main.temp_min),
+                            condition: item.weather[0].description
+                                .split(' ')
+                                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' '),
+                            icon: getWeatherIcon(item.weather[0].description)
+                        }))
+                };
+
+                setWeather(weatherData);
             } catch (err) {
+                console.error('Weather fetch error:', err);
                 setError("Failed to fetch weather data");
+            } finally {
                 setLoading(false);
             }
         };
