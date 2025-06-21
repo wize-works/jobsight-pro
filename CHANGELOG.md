@@ -1,3 +1,10 @@
+# [1.60.0](https://github.com/wize-works/jobsight-pro/compare/v1.59.1...v1.60.0) (2025-06-21)
+
+
+### Features
+
+* Enhance notification preferences loading with improved error handling and timeout; refactor useNotifications hook to include businessId in dependencies ([06c4f3e](https://github.com/wize-works/jobsight-pro/commit/06c4f3e11b5cd4adcebe47558c5ff4c703b2ab15))
+
 ## [1.59.1](https://github.com/wize-works/jobsight-pro/compare/v1.59.0...v1.59.1) (2025-06-21)
 
 
