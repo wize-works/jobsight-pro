@@ -156,13 +156,13 @@ const createClientInteractionNotification = async (
 
         // Get client info for context
         let clientName = "Unknown Client";
-        
+
         if (interactionData.client_id) {
             try {
                 const { data: clientData } = await fetchByBusiness("clients", businessId, "*", {
                     filter: { id: interactionData.client_id }
                 });
-                
+
                 if (clientData && clientData[0]) {
                     clientName = clientData[0].name || "Unknown Client";
                 }
@@ -174,9 +174,9 @@ const createClientInteractionNotification = async (
         const interactionType = interactionData.interaction_type || "interaction";
         const interactionDate = interactionData.interaction_date ? new Date(interactionData.interaction_date).toLocaleDateString() : "";
 
-        const title = eventType === "created" 
+        const title = eventType === "created"
             ? "Client Interaction Recorded"
-            : eventType === "updated" 
+            : eventType === "updated"
                 ? "Client Interaction Updated"
                 : "Client Interaction Removed";
 
