@@ -1,3 +1,10 @@
+# [1.64.0](https://github.com/wize-works/jobsight-pro/compare/v1.63.0...v1.64.0) (2025-06-21)
+
+
+### Features
+
+* replace type and status filter dropdowns with reusable components for improved consistency and maintainability ([fce8b09](https://github.com/wize-works/jobsight-pro/commit/fce8b09bd07ab80dddf6129c53b8b4d8d186bd47))
+
 # [1.63.0](https://github.com/wize-works/jobsight-pro/compare/v1.62.0...v1.63.0) (2025-06-21)
 
 
