@@ -128,7 +128,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
     if (!isOpen) return null;
 
     return (
-        <div className="modal modal-open rounded-xl">
+        <div className="modal modal-open">
             <div className="modal-box max-w-4xl max-h-[90vh] p-0 rounded-xl">
                 {/* Modal Header */}
                 <div className="bg-primary text-primary-content p-6 rounded-t-lg">
