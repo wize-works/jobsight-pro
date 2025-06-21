@@ -33,19 +33,40 @@ export function useNotifications({ userId }: UseNotificationsProps) {
         types: {} as Record<NotificationTypeOptions, {
             [key in NotificationChannelOptions]: boolean;
         }>
-    });
-
-    // Load notification preferences
+    });    // Load notification preferences
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+
         async function loadPreferences() {
-            if (!businessId || businessId === "") return;
-            if (!userId) return;
+            console.log("useNotifications effect triggered with:", { userId, businessId });
+
+            if (!businessId || businessId === "") {
+                console.log("No businessId available, skipping notification preferences load");
+                setLoading(false);
+                return;
+            }
+            if (!userId || userId === "") {
+                console.log("No userId available, skipping notification preferences load");
+                setLoading(false);
+                return;
+            }
+
+            console.log("Loading notification preferences for user:", userId, "business:", businessId);
 
             try {
                 setLoading(true);
 
+                // Set a timeout to prevent infinite loading
+                timeoutId = setTimeout(() => {
+                    console.warn("Notification preferences loading timed out");
+                    setLoading(false);
+                }, 10000); // 10 second timeout
+
                 // Load global preferences
+                console.log("Fetching global preferences...");
                 const globalPrefs = await getUserNotificationPreferences(businessId, userId);
+                console.log("Global preferences result:", globalPrefs);
+
                 const globalSettings = globalPrefs[0] || {
                     email_enabled: true,
                     push_enabled: false,
@@ -53,21 +74,31 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                 };
 
                 // Load type-specific preferences
+                console.log("Fetching type preferences...");
                 const typePrefs = await getAllNotificationTypePreferences(businessId, userId);
+                console.log("Type preferences result:", typePrefs);
+
                 const typeSettings: Record<string, any> = {};
 
                 // If no type preferences exist, initialize defaults
                 if (typePrefs.length === 0) {
-                    await initializeDefaultNotificationTypePreferences(businessId, userId);
-                    // Reload type preferences after initialization
-                    const initializedPrefs = await getAllNotificationTypePreferences(businessId, userId);
-                    initializedPrefs.forEach(pref => {
-                        typeSettings[pref.notification_type] = {
-                            email: pref.email_enabled,
-                            push: pref.push_enabled,
-                            inApp: pref.in_app_enabled
-                        };
-                    });
+                    console.log("No type preferences found, initializing defaults");
+                    const initResult = await initializeDefaultNotificationTypePreferences(businessId, userId);
+                    console.log("Initialization result:", initResult);
+
+                    if (initResult) {
+                        // Reload type preferences after initialization
+                        const initializedPrefs = await getAllNotificationTypePreferences(businessId, userId);
+                        console.log("Reloaded type preferences:", initializedPrefs);
+
+                        initializedPrefs.forEach(pref => {
+                            typeSettings[pref.notification_type] = {
+                                email: pref.email_enabled,
+                                push: pref.push_enabled,
+                                inApp: pref.in_app_enabled
+                            };
+                        });
+                    }
                 } else {
                     typePrefs.forEach(pref => {
                         typeSettings[pref.notification_type] = {
@@ -78,6 +109,8 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                     });
                 }
 
+                console.log("Final type settings:", typeSettings);
+
                 setPreferences({
                     email: globalSettings.email_enabled,
                     push: globalSettings.push_enabled,
@@ -86,15 +119,25 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                         [key in NotificationChannelOptions]: boolean;
                     }>
                 });
+
+                console.log("Notification preferences loaded successfully");
+                clearTimeout(timeoutId);
             } catch (error) {
                 console.error("Error loading notification preferences:", error);
+                clearTimeout(timeoutId);
             } finally {
                 setLoading(false);
             }
         }
 
         loadPreferences();
-    }, [userId]);
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [userId, businessId]); // Added businessId to dependency array
 
     // Update global preferences
     const updateGlobalPreferences = async (channel: NotificationChannelOptions, enabled: boolean) => {

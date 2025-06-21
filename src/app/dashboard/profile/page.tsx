@@ -67,17 +67,18 @@ export default function ProfilePage() {
                 invoiceUpdates: { email: true, push: false, inApp: true },
                 systemAnnouncements: { email: true, push: false, inApp: true },
             },
+        }); const {
+            loading: notificationsLoading,
+            preferences,
+            updateGlobalPreferences,
+            updateTypePreferences,
+            sendTestNotification,
+        } = useNotifications({
+            userId: user?.id || "",
         });
 
-    const {
-        loading: notificationsLoading,
-        preferences,
-        updateGlobalPreferences,
-        updateTypePreferences,
-        sendTestNotification,
-    } = useNotifications({
-        userId: user?.id || "",
-    });
+    // Check if we should show the notifications loading state
+    const shouldShowNotificationsLoading = notificationsLoading && user?.id;
 
     // Load user data when component mounts
     useEffect(() => {
@@ -499,245 +500,248 @@ export default function ProfilePage() {
             <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <h2 className="text-xl font-semibold mb-6">
-                        Notification Preferences
-                    </h2>                    {notificationsLoading ? (
-                        <div className="flex justify-center py-8">
-                            <span className="loading loading-spinner loading-lg"></span>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="space-y-6 mb-8">
-                                <div className="form-control">
-                                    <label className="label cursor-pointer justify-start gap-4">
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-primary"
-                                            checked={
-                                                notificationPreferences.email
-                                            }
-                                            onChange={(e) =>
-                                                handleNotificationChange(
-                                                    "general",
-                                                    "email",
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-                                        <div className="flex-1">
-                                            <div className="font-medium">
-                                                Email Notifications
-                                            </div>
-                                            <div className="text-sm text-base-content/70">
-                                                Receive email notifications
-                                                for important updates
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer justify-start gap-4">
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-primary"
-                                            checked={
-                                                notificationPreferences.push
-                                            }
-                                            onChange={(e) =>
-                                                handleNotificationChange(
-                                                    "general",
-                                                    "push",
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-                                        <div className="flex-1">
-                                            <div className="font-medium">
-                                                Push Notifications
-                                            </div>
-                                            <div className="text-sm text-base-content/70">
-                                                Receive push notifications
-                                                on your device
-                                            </div>
-                                        </div>
-                                    </label>
-                                    {notificationPreferences.push && (
-                                        <div className="ml-16 mt-2">
-                                            <PushManager />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="form-control">
-                                    <label className="label cursor-pointer justify-start gap-4">
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-primary"
-                                            checked={
-                                                notificationPreferences.inApp
-                                            }
-                                            onChange={(e) =>
-                                                handleNotificationChange(
-                                                    "general",
-                                                    "inApp",
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-                                        <div className="flex-1">
-                                            <div className="font-medium">
-                                                In-App Notifications
-                                            </div>
-                                            <div className="text-sm text-base-content/70">
-                                                Receive notifications within
-                                                the application
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
+                        Notification Preferences                    </h2>                    {shouldShowNotificationsLoading ? (
+                            <div className="flex justify-center py-8">
+                                <span className="loading loading-spinner loading-lg"></span>
                             </div>
-
-                            <div className="divider"></div>
-
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-semibold">
-                                    Notification Types
-                                </h3>
-                                <div className="text-sm text-base-content/70">
-                                    Configure which types of notifications
-                                    you want to receive
-                                </div>
+                        ) : !user?.id ? (
+                            <div className="flex justify-center py-8">
+                                <div className="text-base-content/70">Please log in to manage notification preferences</div>
                             </div>
+                        ) : (
+                            <>
+                                <div className="space-y-6 mb-8">
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer justify-start gap-4">
+                                            <input
+                                                type="checkbox"
+                                                className="toggle toggle-primary"
+                                                checked={
+                                                    notificationPreferences.email
+                                                }
+                                                onChange={(e) =>
+                                                    handleNotificationChange(
+                                                        "general",
+                                                        "email",
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-medium">
+                                                    Email Notifications
+                                                </div>
+                                                <div className="text-sm text-base-content/70">
+                                                    Receive email notifications
+                                                    for important updates
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra">
-                                    <thead>
-                                        <tr>
-                                            <th className="font-semibold">
-                                                Notification Type
-                                            </th>
-                                            <th className="text-center">
-                                                Email
-                                            </th>
-                                            <th className="text-center">
-                                                Push
-                                            </th>
-                                            <th className="text-center">
-                                                In-App
-                                            </th>
-                                            <th className="text-center">
-                                                Test
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(
-                                            Object.entries(
-                                                notificationPreferences.types,
-                                            ) as [NotificationType, any][]
-                                        ).map(([key, value]) => (
-                                            <tr key={key}>
-                                                <td className="font-medium">
-                                                    {key
-                                                        .replace(
-                                                            /([A-Z])/g,
-                                                            " $1",
-                                                        )
-                                                        .trim()}
-                                                </td>
-                                                <td className="text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="checkbox checkbox-primary"
-                                                        checked={
-                                                            value.email &&
-                                                            notificationPreferences.email
-                                                        }
-                                                        disabled={
-                                                            !notificationPreferences.email
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleNotificationChange(
-                                                                key,
-                                                                "email",
-                                                                e.target
-                                                                    .checked,
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="checkbox checkbox-primary"
-                                                        checked={
-                                                            value.push &&
-                                                            notificationPreferences.push
-                                                        }
-                                                        disabled={
-                                                            !notificationPreferences.push
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleNotificationChange(
-                                                                key,
-                                                                "push",
-                                                                e.target
-                                                                    .checked,
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="checkbox checkbox-primary"
-                                                        checked={
-                                                            value.inApp &&
-                                                            notificationPreferences.inApp
-                                                        }
-                                                        disabled={
-                                                            !notificationPreferences.inApp
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleNotificationChange(
-                                                                key,
-                                                                "inApp",
-                                                                e.target
-                                                                    .checked,
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="text-center">                                                    <button
-                                                    className="btn btn-xs btn-ghost tooltip"
-                                                    data-tip="Send test notification"
-                                                    onClick={async () => {
-                                                        try {
-                                                            console.log("Sending test notification for type:", key);
-                                                            console.log("BusinessId:", businessId);
-                                                            console.log("UserId:", user?.id);
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer justify-start gap-4">
+                                            <input
+                                                type="checkbox"
+                                                className="toggle toggle-primary"
+                                                checked={
+                                                    notificationPreferences.push
+                                                }
+                                                onChange={(e) =>
+                                                    handleNotificationChange(
+                                                        "general",
+                                                        "push",
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-medium">
+                                                    Push Notifications
+                                                </div>
+                                                <div className="text-sm text-base-content/70">
+                                                    Receive push notifications
+                                                    on your device
+                                                </div>
+                                            </div>
+                                        </label>
+                                        {notificationPreferences.push && (
+                                            <div className="ml-16 mt-2">
+                                                <PushManager />
+                                            </div>
+                                        )}
+                                    </div>
 
-                                                            await sendTestNotification(
-                                                                key as NotificationType,
-                                                            );
-                                                            console.log("Test notification sent successfully");
-                                                            toast.success("Test notification sent!");
-                                                        } catch (error) {
-                                                            console.error("Error sending test notification:", error);
-                                                            toast.error("Failed to send test notification");
-                                                        }
-                                                    }}
-                                                >
-                                                    <i className="far fa-paper-plane"></i>
-                                                </button>
-                                                </td>
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer justify-start gap-4">
+                                            <input
+                                                type="checkbox"
+                                                className="toggle toggle-primary"
+                                                checked={
+                                                    notificationPreferences.inApp
+                                                }
+                                                onChange={(e) =>
+                                                    handleNotificationChange(
+                                                        "general",
+                                                        "inApp",
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-medium">
+                                                    In-App Notifications
+                                                </div>
+                                                <div className="text-sm text-base-content/70">
+                                                    Receive notifications within
+                                                    the application
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="divider"></div>
+
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-lg font-semibold">
+                                        Notification Types
+                                    </h3>
+                                    <div className="text-sm text-base-content/70">
+                                        Configure which types of notifications
+                                        you want to receive
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra">
+                                        <thead>
+                                            <tr>
+                                                <th className="font-semibold">
+                                                    Notification Type
+                                                </th>
+                                                <th className="text-center">
+                                                    Email
+                                                </th>
+                                                <th className="text-center">
+                                                    Push
+                                                </th>
+                                                <th className="text-center">
+                                                    In-App
+                                                </th>
+                                                <th className="text-center">
+                                                    Test
+                                                </th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </>
-                    )}
+                                        </thead>
+                                        <tbody>
+                                            {(
+                                                Object.entries(
+                                                    notificationPreferences.types,
+                                                ) as [NotificationType, any][]
+                                            ).map(([key, value]) => (
+                                                <tr key={key}>
+                                                    <td className="font-medium">
+                                                        {key
+                                                            .replace(
+                                                                /([A-Z])/g,
+                                                                " $1",
+                                                            )
+                                                            .trim()}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="checkbox checkbox-primary"
+                                                            checked={
+                                                                value.email &&
+                                                                notificationPreferences.email
+                                                            }
+                                                            disabled={
+                                                                !notificationPreferences.email
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleNotificationChange(
+                                                                    key,
+                                                                    "email",
+                                                                    e.target
+                                                                        .checked,
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="checkbox checkbox-primary"
+                                                            checked={
+                                                                value.push &&
+                                                                notificationPreferences.push
+                                                            }
+                                                            disabled={
+                                                                !notificationPreferences.push
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleNotificationChange(
+                                                                    key,
+                                                                    "push",
+                                                                    e.target
+                                                                        .checked,
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="checkbox checkbox-primary"
+                                                            checked={
+                                                                value.inApp &&
+                                                                notificationPreferences.inApp
+                                                            }
+                                                            disabled={
+                                                                !notificationPreferences.inApp
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleNotificationChange(
+                                                                    key,
+                                                                    "inApp",
+                                                                    e.target
+                                                                        .checked,
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                    <td className="text-center">                                                    <button
+                                                        className="btn btn-xs btn-ghost tooltip"
+                                                        data-tip="Send test notification"
+                                                        onClick={async () => {
+                                                            try {
+                                                                console.log("Sending test notification for type:", key);
+                                                                console.log("BusinessId:", businessId);
+                                                                console.log("UserId:", user?.id);
+
+                                                                await sendTestNotification(
+                                                                    key as NotificationType,
+                                                                );
+                                                                console.log("Test notification sent successfully");
+                                                                toast.success("Test notification sent!");
+                                                            } catch (error) {
+                                                                console.error("Error sending test notification:", error);
+                                                                toast.error("Failed to send test notification");
+                                                            }
+                                                        }}
+                                                    >
+                                                        <i className="far fa-paper-plane"></i>
+                                                    </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        )}
                 </div>
             </div>
 
