@@ -543,7 +543,7 @@ export default function EquipmentDetail({
                                         <tbody>
                                             {maintenanceList.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={4} className="text-center bg-warning/20">No maintenance records available.</td>
+                                                    <td colSpan={5} className="text-center bg-warning/20">No maintenance records available.</td>
                                                 </tr>
                                             )}
                                             {maintenanceList.map((m) => (
