@@ -103,9 +103,7 @@ export default function ProjectsPage() {
             // Don't close modal on error so user can retry
             throw error; // Re-throw so modal can handle the error
         }
-    };
-
-    if (loading) {
+    }; if (loading) {
         return (
             <Loading />
         );
@@ -340,16 +338,18 @@ export default function ProjectsPage() {
                                     setSearch("");
                                     setStatusFilter("all");
                                     setTypeFilter("all");
-                                }}
-                            >
+                                }}                            >
                                 <i className="far fa-refresh mr-2"></i> Clear Filters
                             </button>
                         </div>
                     </div>
                 </div>
-            )}{/* Add Project Modal */}
+            )}
+
+            {/* Add Project Modal */}
             {showAddProjectModal && (
                 <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
-            )}        </>
+            )}
+        </>
     );
 }

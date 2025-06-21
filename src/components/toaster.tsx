@@ -1,12 +1,14 @@
 "use client"
 
 import { TOAST_REMOVE_DELAY, useToast } from "@/hooks/use-toast"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 export function Toaster() {
     const { toasts } = useToast()
     const [isMounted, setIsMounted] = useState(false)
     const [progress, setProgress] = useState<{ [key: string]: number }>({})
+    const progressTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
+    const progressIntervalsRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
     useEffect(() => {
         setIsMounted(true)
@@ -14,8 +16,8 @@ export function Toaster() {
 
     // Add progress bar animation effect
     useEffect(() => {
-        const progressTimers: { [key: string]: NodeJS.Timeout } = {}
-        const progressIntervals: { [key: string]: NodeJS.Timeout } = {}
+        const progressTimers = progressTimersRef.current
+        const progressIntervals = progressIntervalsRef.current
 
         toasts.forEach(toast => {
             if (toast.open && toast.autoClose && !progressTimers[toast.id]) {

@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useMemo, SetStateAction } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSafeRouter } from "@/hooks/use-safe-router";
 import { createTask, updateTask, deleteTask } from "@/app/actions/tasks";
 import { Task, TaskInsert, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { Project } from "@/types/projects";
@@ -21,7 +21,7 @@ interface TasksComponentProps {
 }
 
 export default function TasksComponent({ tasks: initialTasks, projects, crews }: TasksComponentProps) {
-    const router = useRouter();
+    const router = useSafeRouter();
     const { businessId } = useBusiness();
     const [tasks, setTasks] = useState(initialTasks);
     const [filteredTasks, setFilteredTasks] = useState(initialTasks);

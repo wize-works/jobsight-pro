@@ -9,6 +9,7 @@ import type { EquipmentWithDetails, EquipmentUpdate, EquipmentStatus, EquipmentT
 import type { EquipmentSpecification, EquipmentSpecificationUpdate } from "@/types/equipment-specifications";
 import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";
 import { useBusiness } from "@/lib/business-context";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 interface EquipmentEditModalProps {
     isOpen: boolean;
@@ -221,27 +222,31 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         }
     };
 
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        refetch: requestLocation
+    } = useCurrentPosition();
+
     const getCurrentLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setFormData(prev => ({
-                        ...prev,
-                        location: `Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}`
-                    }));
-                },
-                (error) => {
-                    toast.error({
-                        title: "Location Error",
-                        description: "Unable to get current location"
-                    });
-                }
-            );
-        } else {
+        requestLocation();
+
+        // Watch for position updates
+        if (position) {
+            const { latitude, longitude } = position.coords;
+            setFormData(prev => ({
+                ...prev,
+                location: `Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}`
+            }));
+            toast.success({
+                title: "Location Updated",
+                description: "Current location has been set"
+            });
+        } else if (geoError) {
             toast.error({
                 title: "Location Error",
-                description: "Geolocation is not supported by this browser"
+                description: "Unable to get current location"
             });
         }
     };

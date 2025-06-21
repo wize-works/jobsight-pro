@@ -18,45 +18,75 @@ class SyncManager {
         isSyncing: false,
         queueCount: 0,
     };
+    private onlineHandler!: () => void;
+    private offlineHandler!: () => void;
+    private messageHandler!: (event: MessageEvent) => void;
+    private isInitialized = false;
 
     constructor() {
         if (typeof window !== 'undefined') {
+            this.initializeHandlers();
             this.setupEventListeners();
             this.setupServiceWorkerListeners();
             this.loadQueueCount();
+            this.isInitialized = true;
         }
+    }
+
+    private initializeHandlers() {
+        this.onlineHandler = () => {
+            this.updateStatus({ isOnline: true, syncError: undefined });
+            this.syncWhenOnline();
+        };
+
+        this.offlineHandler = () => {
+            this.updateStatus({ isOnline: false, isSyncing: false });
+        };
+
+        this.messageHandler = (event: MessageEvent) => {
+            const { type, items, error } = event.data;
+
+            switch (type) {
+                case 'SYNC_REQUIRED':
+                    console.log('Service Worker requested sync for', items?.length || 0, 'items');
+                    this.syncWhenOnline();
+                    break;
+                case 'SYNC_FAILED':
+                    this.updateStatus({
+                        syncError: `Background sync failed: ${error}`,
+                        isSyncing: false
+                    });
+                    break;
+            }
+        };
     }
 
     private setupEventListeners() {
-        window.addEventListener("online", () => {
-            this.updateStatus({ isOnline: true, syncError: undefined });
-            this.syncWhenOnline();
-        });
-
-        window.addEventListener("offline", () => {
-            this.updateStatus({ isOnline: false, isSyncing: false });
-        });
+        if (!this.isInitialized) {
+            window.addEventListener("online", this.onlineHandler, { passive: true });
+            window.addEventListener("offline", this.offlineHandler, { passive: true });
+        }
     }
 
     private setupServiceWorkerListeners() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                const { type, items, error } = event.data;
-                
-                switch (type) {
-                    case 'SYNC_REQUIRED':
-                        console.log('Service Worker requested sync for', items?.length || 0, 'items');
-                        this.syncWhenOnline();
-                        break;
-                    case 'SYNC_FAILED':
-                        this.updateStatus({ 
-                            syncError: `Background sync failed: ${error}`,
-                            isSyncing: false 
-                        });
-                        break;
-                }
-            });
+        if ('serviceWorker' in navigator && !this.isInitialized) {
+            navigator.serviceWorker.addEventListener('message', this.messageHandler);
         }
+    }
+
+    // Clean up event listeners
+    public destroy() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener("online", this.onlineHandler);
+            window.removeEventListener("offline", this.offlineHandler);
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.removeEventListener('message', this.messageHandler);
+        }
+
+        this.listeners = [];
+        this.isInitialized = false;
     } private async loadQueueCount() {
         try {
             // Get business ID from context or storage

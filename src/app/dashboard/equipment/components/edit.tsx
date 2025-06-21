@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { updateEquipment } from "@/app/actions/equipments";
 import { createEquipmentSpecification, updateEquipmentSpecification } from "@/app/actions/equipment-specifications";
 import { useBusiness } from "@/lib/business-context";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
+import { toast } from "@/hooks/use-toast";
 
 // Use only the fields needed for the form UI
 interface SpecFormState {
@@ -15,6 +17,36 @@ interface SpecFormState {
 
 export default function EditEquipment({ initialEquipment, initialSpecifications }: { initialEquipment: EquipmentWithDetails, initialSpecifications: EquipmentSpecification[] }) {
     const { businessId } = useBusiness();
+
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        refetch: requestLocation
+    } = useCurrentPosition();
+
+    const updateLocationFromGPS = () => {
+        requestLocation();
+
+        // Watch for position updates
+        if (position) {
+            const { latitude, longitude } = position.coords;
+            const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
+            setEquipment((prev) => ({
+                ...prev,
+                location: newLocation,
+            }));
+            toast.success({
+                title: "Location Updated",
+                description: "Equipment location has been updated"
+            });
+        } else if (geoError) {
+            toast.error({
+                title: "Location Error",
+                description: "Unable to get current location"
+            });
+        }
+    };
     const [equipment, setEquipment] = useState<Partial<EquipmentWithDetails>>(initialEquipment);
     const [specifications, setSpecifications] = useState<EquipmentSpecification[]>(initialSpecifications);
     const router = useRouter();
@@ -200,14 +232,7 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                 name="location"
                                                 value={equipment.location || ""}
                                                 onChange={handleEquipmentChange}
-                                            />
-                                            <button className="btn btn-secondary join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
-                                                const { latitude, longitude } = position.coords;
-                                                setEquipment((prev) => ({
-                                                    ...prev,
-                                                    location: `Lat: ${latitude}, Lon: ${longitude}`,
-                                                }));
-                                            })}>
+                                            />                                            <button className="btn btn-secondary join-item" type="button" onClick={updateLocationFromGPS}>
                                                 <i className="far fa-map-marker-alt"></i>
                                             </button>
                                         </div>

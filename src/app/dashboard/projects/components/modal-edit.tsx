@@ -9,6 +9,7 @@ import { formatDateForInput } from "@/utils/date";
 import { getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 interface ProjectEditModalProps {
     isOpen: boolean;
@@ -75,34 +76,32 @@ export default function ProjectEditModal({
             ...prev,
             [name]: value
         }));
-    };
+    };    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        refetch: requestLocation
+    } = useCurrentPosition();
 
     const getCurrentLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setFormData(prev => ({
-                        ...prev,
-                        location: `${latitude}, ${longitude}`
-                    }));
-                    toast.success({
-                        title: "Location Updated",
-                        description: "Current location has been set"
-                    });
-                },
-                (error) => {
-                    console.error("Geolocation error:", error);
-                    toast.error({
-                        title: "Location Error",
-                        description: "Unable to get current location"
-                    });
-                }
-            );
-        } else {
+        requestLocation();
+
+        // Watch for position updates
+        if (position) {
+            const { latitude, longitude } = position.coords;
+            setFormData(prev => ({
+                ...prev,
+                location: `${latitude}, ${longitude}`
+            }));
+            toast.success({
+                title: "Location Updated",
+                description: "Current location has been set"
+            });
+        } else if (geoError) {
+            console.error("Geolocation error:", geoError);
             toast.error({
                 title: "Location Error",
-                description: "Geolocation is not supported by this browser"
+                description: "Unable to get current location"
             });
         }
     };

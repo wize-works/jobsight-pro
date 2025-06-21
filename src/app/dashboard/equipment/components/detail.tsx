@@ -22,6 +22,7 @@ import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
 import EquipmentEditModal from "./modal-edit";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 interface EquipmentDetailProps {
     equipment: Equipment;
@@ -42,6 +43,34 @@ export default function EquipmentDetail({
 }: EquipmentDetailProps) {
     const [mounted, setMounted] = useState(false);
     const { businessId } = useBusiness();
+
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        refetch: requestLocation
+    } = useCurrentPosition();
+
+    const updateLocationFromGPS = () => {
+        requestLocation();
+
+        // Watch for position updates
+        if (position) {
+            const { latitude, longitude } = position.coords;
+            const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
+            setLocation(newLocation);
+            setEquipmentLocation(businessId, { id: equipment.id, location: newLocation } as EquipmentUpdate);
+            toast.success({
+                title: "Location Updated",
+                description: "Equipment location has been updated"
+            });
+        } else if (geoError) {
+            toast.error({
+                title: "Location Error",
+                description: "Unable to get current location"
+            });
+        }
+    };
     useEffect(() => {
         setMounted(true);
     }
@@ -351,13 +380,7 @@ export default function EquipmentDetail({
                                 <div className="flex items-center gap-2 ml-2">
                                     <div className="rounded-lg bg-primary/50 p-2 flex items-center gap-2">
                                         <span className="">{location || "No location assigned"}</span>
-                                    </div>
-
-                                    <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
-                                        const { latitude, longitude } = position.coords;
-                                        setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
-                                        setEquipmentLocation(businessId, { id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
-                                    })}>
+                                    </div>                                    <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateLocationFromGPS}>
                                         <i className="far fa-map-marker-alt"></i>
                                     </button>
                                 </div>

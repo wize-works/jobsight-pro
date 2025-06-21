@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     getUserNotificationPreferences,
     updateUserNotificationPreferences
@@ -33,62 +33,75 @@ export function useNotifications({ userId }: UseNotificationsProps) {
         types: {} as Record<NotificationTypeOptions, {
             [key in NotificationChannelOptions]: boolean;
         }>
-    });    // Load notification preferences
+    });
+
+    // Use refs to prevent stale closures
+    const userIdRef = useRef(userId);
+    const businessIdRef = useRef(businessId);
+
+    useEffect(() => {
+        userIdRef.current = userId;
+        businessIdRef.current = businessId;
+    }, [userId, businessId]);
+
+    // Load notification preferences
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
+        let isMounted = true;
 
         async function loadPreferences() {
-            console.log("useNotifications effect triggered with:", { userId, businessId });
+            console.log("useNotifications effect triggered with:", { userId: userIdRef.current, businessId: businessIdRef.current });
 
-            if (!businessId || businessId === "") {
+            if (!businessIdRef.current || businessIdRef.current === "") {
                 console.log("No businessId available, skipping notification preferences load");
-                setLoading(false);
+                if (isMounted) setLoading(false);
                 return;
             }
-            if (!userId || userId === "") {
+            if (!userIdRef.current || userIdRef.current === "") {
                 console.log("No userId available, skipping notification preferences load");
-                setLoading(false);
-                return;
+                if (isMounted) setLoading(false); return;
             }
 
-            console.log("Loading notification preferences for user:", userId, "business:", businessId);
+            console.log("Loading notification preferences for user:", userIdRef.current, "business:", businessIdRef.current);
 
             try {
-                setLoading(true);
+                if (isMounted) setLoading(true);
 
                 // Set a timeout to prevent infinite loading
                 timeoutId = setTimeout(() => {
                     console.warn("Notification preferences loading timed out");
-                    setLoading(false);
+                    if (isMounted) setLoading(false);
                 }, 10000); // 10 second timeout
 
                 // Load global preferences
                 console.log("Fetching global preferences...");
-                const globalPrefs = await getUserNotificationPreferences(businessId, userId);
+                const globalPrefs = await getUserNotificationPreferences(businessIdRef.current, userIdRef.current);
                 console.log("Global preferences result:", globalPrefs);
+
+                if (!isMounted) return; // Component unmounted, don't update state
 
                 const globalSettings = globalPrefs[0] || {
                     email_enabled: true,
                     push_enabled: false,
                     in_app_enabled: true
-                };
-
-                // Load type-specific preferences
+                };                // Load type-specific preferences
                 console.log("Fetching type preferences...");
-                const typePrefs = await getAllNotificationTypePreferences(businessId, userId);
+                const typePrefs = await getAllNotificationTypePreferences(businessIdRef.current, userIdRef.current);
                 console.log("Type preferences result:", typePrefs);
+
+                if (!isMounted) return; // Component unmounted, don't update state
 
                 const typeSettings: Record<string, any> = {};
 
                 // If no type preferences exist, initialize defaults
                 if (typePrefs.length === 0) {
                     console.log("No type preferences found, initializing defaults");
-                    const initResult = await initializeDefaultNotificationTypePreferences(businessId, userId);
+                    const initResult = await initializeDefaultNotificationTypePreferences(businessIdRef.current, userIdRef.current);
                     console.log("Initialization result:", initResult);
 
                     if (initResult) {
                         // Reload type preferences after initialization
-                        const initializedPrefs = await getAllNotificationTypePreferences(businessId, userId);
+                        const initializedPrefs = await getAllNotificationTypePreferences(businessIdRef.current, userIdRef.current);
                         console.log("Reloaded type preferences:", initializedPrefs);
 
                         initializedPrefs.forEach(pref => {
@@ -107,32 +120,36 @@ export function useNotifications({ userId }: UseNotificationsProps) {
                             inApp: pref.in_app_enabled
                         };
                     });
+                } console.log("Final type settings:", typeSettings);
+
+                if (isMounted) {
+                    setPreferences({
+                        email: globalSettings.email_enabled,
+                        push: globalSettings.push_enabled,
+                        inApp: globalSettings.in_app_enabled,
+                        types: typeSettings as Record<NotificationTypeOptions, {
+                            [key in NotificationChannelOptions]: boolean;
+                        }>
+                    });
                 }
-
-                console.log("Final type settings:", typeSettings);
-
-                setPreferences({
-                    email: globalSettings.email_enabled,
-                    push: globalSettings.push_enabled,
-                    inApp: globalSettings.in_app_enabled,
-                    types: typeSettings as Record<NotificationTypeOptions, {
-                        [key in NotificationChannelOptions]: boolean;
-                    }>
-                });
 
                 console.log("Notification preferences loaded successfully");
                 clearTimeout(timeoutId);
             } catch (error) {
                 console.error("Error loading notification preferences:", error);
+                if (isMounted) {
+                    setPreferences(prev => prev); // Keep existing state on error
+                }
                 clearTimeout(timeoutId);
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         }
 
         loadPreferences();
 
         return () => {
+            isMounted = false;
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
