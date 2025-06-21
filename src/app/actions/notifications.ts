@@ -3,6 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Notification, NotificationInsert, NotificationUpdate } from "@/types/notifications";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { sendBulkEmailNotifications } from "@/app/actions/email-notifications-bulk";
 
 
 // Get all notifications for the current business
@@ -55,6 +56,41 @@ export const createNotification = async (businessId: string, notification: Notif
     }
 
     return data as Notification;
+};
+
+// Create a notification and optionally send email
+export const createNotificationWithEmail = async (
+    businessId: string,
+    notification: NotificationInsert,
+    sendEmail: boolean = true,
+    excludeUserId?: string,
+    businessName?: string
+): Promise<Notification | null> => {
+    // Create the in-app notification
+    const createdNotification = await createNotification(businessId, notification);
+
+    if (!createdNotification) {
+        return null;
+    }
+
+    // Send email notifications if enabled
+    if (sendEmail) {
+        try {
+            const emailResults = await sendBulkEmailNotifications(
+                businessId,
+                notification,
+                excludeUserId || notification.user_id,
+                businessName
+            );
+
+            console.log(`Email notifications sent: ${emailResults.successful} successful, ${emailResults.failed} failed`);
+        } catch (error) {
+            console.error("Error sending email notifications:", error);
+            // Don't fail the notification creation if email fails
+        }
+    }
+
+    return createdNotification;
 };
 
 // Update an existing notification

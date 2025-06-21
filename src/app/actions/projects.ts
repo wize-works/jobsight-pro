@@ -4,7 +4,7 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Client } from "@/types/clients";
-import { createNotification } from "@/app/actions/notifications";
+import { createNotificationWithEmail } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
 import type { NotificationInsert } from "@/types/notifications";
 
@@ -413,49 +413,41 @@ async function triggerProjectNotification(
     triggeredBy?: string
 ) {
     try {
-        // Get all users in the business
-        const users = await getUsers(businessId);
-
-        if (users.length === 0) {
-            console.log("No users found for business to notify");
-            return;
-        } const title = eventType === "created" ? "New Project Created"
+        const title = eventType === "created" ? "New Project Created"
             : eventType === "updated" ? "Project Updated"
                 : "Project Deleted";
         const message = eventType === "created"
             ? `A new project "${projectName}" has been created.`
             : eventType === "updated"
                 ? `Project "${projectName}" has been updated.`
-                : `Project "${projectName}" has been deleted.`;// Create notifications for all users in the business
-        const notificationPromises = users.map(async (user) => {
-            // Skip users without auth_id or the user who triggered the action
-            if (!user.auth_id || user.auth_id === triggeredBy) {
-                return;
+                : `Project "${projectName}" has been deleted.`;
+
+        const notificationData: NotificationInsert = {
+            user_id: triggeredBy || "system", // Will be ignored for bulk notifications
+            type: "projectUpdates",
+            title,
+            message,
+            link: eventType !== "deleted" ? `/dashboard/projects/${projectId}` : `/dashboard/projects`,
+            read: false,
+            read_at: null,
+            metadata: {
+                projectId,
+                projectName,
+                eventType,
+                triggeredBy
             }
+        };
 
-            const notificationData: NotificationInsert = {
-                user_id: user.auth_id,
-                type: "projectUpdates",
-                title,
-                message,
-                link: `/dashboard/projects/${projectId}`,
-                read: false,
-                read_at: null,
-                metadata: {
-                    projectId,
-                    projectName,
-                    eventType,
-                    triggeredBy
-                }
-            };
+        // Send notification with email to all users in the business (excluding triggering user)
+        await createNotificationWithEmail(
+            businessId,
+            notificationData,
+            true, // Send email
+            triggeredBy, // Exclude triggering user
+            "JobSight Pro" // Business name for email
+        );
 
-            return createNotification(businessId, notificationData);
-        });
-
-        // Wait for all notifications to be created
-        await Promise.all(notificationPromises.filter(Boolean));
-
-        console.log(`Notifications created for project ${projectName} (${projectId}) - ${eventType} for ${users.length} users`);
+        console.log(`Notifications (with email) created for project ${projectName} (${projectId}) - ${eventType}`);
     } catch (error) {
         console.error("Error creating project notification:", error);
     }
