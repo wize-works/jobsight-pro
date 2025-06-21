@@ -202,24 +202,21 @@ export default function MediaLibrary() {
             {/* Filters and search */}
             <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                    <div className="form-control flex-1">
-                        <div className="input-group">
-                            <input
-                                type="text"
-                                placeholder="Search files..."
-                                className="input input-bordered w-full"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <button className="btn btn-square">
-                                <i className="far fa-search"></i>
-                            </button>
-                        </div>
-                    </div>
 
-                    <div className="flex gap-2">
+                    <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
+                        <i className="far fa-search"></i>
+                        <input
+                            type="text"
+                            placeholder="Search projects..."
+                            className="input input-bordered w-full"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </label>
+
+                    <div className="flex gap-6">
                         <select
-                            className="select select-bordered w-full max-w-xs"
+                            className="select select-bordered select-secondary w-full max-w-xs"
                             value={selectedProject || ""}
                             onChange={(e) => setSelectedProject(e.target.value || null)}
                         >
@@ -232,7 +229,7 @@ export default function MediaLibrary() {
                         </select>
 
                         <select
-                            className="select select-bordered w-full max-w-xs"
+                            className="select select-bordered select-secondary w-full max-w-xs"
                             value={selectedType || ""}
                             onChange={(e) => setSelectedType(e.target.value || null)}
                         >
@@ -243,14 +240,11 @@ export default function MediaLibrary() {
                                 </option>
                             ))}
                         </select>
-
-                        <div className="btn-group">
-                            <button className={`btn ${view === "grid" ? "btn-active" : ""}`} onClick={() => setView("grid")}>
-                                <i className="far fa-th-large"></i>
-                            </button>
-                            <button className={`btn ${view === "list" ? "btn-active" : ""}`} onClick={() => setView("list")}>
-                                <i className="far fa-list"></i>
-                            </button>
+                        <div className="flex items-center gap-2">
+                            <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
+                                <button role="tab" className={`tab tab-secondary ${view === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => setView("grid")}> <i className="far fa-grid-2"></i> </button>
+                                <button role="tab" className={`tab ${view === "list" ? "tab-active" : ""}`} onClick={() => setView("list")}> <i className="far fa-table-rows"></i> </button>
+                            </div>
                         </div>
                     </div>
                 </div>
