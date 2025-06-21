@@ -112,11 +112,12 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
-                        <div className="form-control w-full">
+                        <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
+                            <i className="far fa-search"></i>
                             <input
                                 type="text"
-                                placeholder="Search by number or client"
-                                className="input input-bordered input-secondary w-full"
+                                placeholder="Search projects..."
+                                className="input input-bordered w-full"
                                 onChange={(e) => {
                                     const query = e.target.value.toLowerCase();
                                     setInvoices(initialInvoices.filter(invoice =>
@@ -125,7 +126,7 @@ export const InvoicesList = ({ initialInvoices }: { initialInvoices: InvoiceWith
                                     ));
                                 }}
                             />
-                        </div>
+                        </label>
                         {invoiceStatusOptions.select(
                             invoiceStatus,
                             (value: InvoiceStatus | "all") => {
