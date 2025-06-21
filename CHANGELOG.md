@@ -1,3 +1,10 @@
+# [1.61.0](https://github.com/wize-works/jobsight-pro/compare/v1.60.0...v1.61.0) (2025-06-21)
+
+
+### Features
+
+* Implement email notification system; add createNotificationWithEmail function, bulk email sending, and email template for notifications; update relevant components and hooks to support email notifications. ([613de03](https://github.com/wize-works/jobsight-pro/commit/613de038bc4916c8af62f7dfca09b5c6aca20c1a))
+
 # [1.60.0](https://github.com/wize-works/jobsight-pro/compare/v1.59.1...v1.60.0) (2025-06-21)
 
 
