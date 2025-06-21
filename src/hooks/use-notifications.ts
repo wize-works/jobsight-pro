@@ -10,7 +10,7 @@ import {
     updateNotificationTypePreference,
     initializeDefaultNotificationTypePreferences
 } from "@/app/actions/notification-type-preferences";
-import { createNotification } from "@/app/actions/notifications";
+import { createNotificationWithEmail } from "@/app/actions/notifications";
 import {
     NotificationTypeOptions,
     NotificationChannelOptions,
@@ -216,7 +216,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
             };
             console.log("Sending notification:", notification);
 
-            await createNotification(businessId, notification);
+            await createNotificationWithEmail(businessId, notification, true, userId);
         } catch (error) {
             console.error("Error sending test notification:", error);
             throw error;

@@ -105,7 +105,9 @@ export const Notifications = () => {
             default:
                 return 'fas fa-bell';
         }
-    }; if (!user?.id || !businessId) {
+    };
+
+    if (!user?.id || !businessId) {
         return (
             <div className="btn btn-circle btn-disabled" title={businessError || "Loading business context..."}>
                 <i className="far fa-bell opacity-50"></i>
@@ -120,12 +122,12 @@ export const Notifications = () => {
                 <div
                     tabIndex={0}
                     role="button"
-                    className="btn btn-circle relative"
+                    className="btn btn-circle relative indicator"
                     onClick={() => setIsOpen(!isOpen)}
                 >
                     <i className="far fa-bell"></i>
                     {notifications.length > 0 && (
-                        <span className="badge badge-xs badge-primary indicator-item indicator-bottom">
+                        <span className="indicator-item indicator-bottom">
                             {notifications.length > 99 ? '99+' : notifications.length}
                         </span>
                     )}
