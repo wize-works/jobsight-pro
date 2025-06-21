@@ -8,6 +8,93 @@ import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { triggerEquipmentNotification } from "@/lib/push/notification-triggers";
+import { createNotification } from "@/app/actions/notifications";
+import { getUsers } from "@/app/actions/users";
+import type { NotificationInsert } from "@/types/notifications";
+
+// Create notifications for equipment events
+async function triggerEquipmentManagementNotification(
+    businessId: string,
+    equipmentId: string,
+    equipmentName: string,
+    eventType: string,
+    status?: string,
+    location?: string,
+    triggeredBy?: string
+) {
+    try {
+        // Get all users in the business
+        const users = await getUsers(businessId);
+
+        if (users.length === 0) {
+            console.log("No users found for business to notify");
+            return;
+        }
+
+        let title = "";
+        let message = "";
+
+        switch (eventType) {
+            case "created":
+                title = "New Equipment Added";
+                message = `Equipment "${equipmentName}" has been added to the system.`;
+                break;
+            case "updated":
+                title = "Equipment Updated";
+                message = `Equipment "${equipmentName}" has been updated${status ? ` (Status: ${status})` : ''}.`;
+                break;
+            case "deleted":
+                title = "Equipment Removed";
+                message = `Equipment "${equipmentName}" has been removed from the system.`;
+                break;
+            case "maintenance_scheduled":
+                title = "Maintenance Scheduled";
+                message = `Maintenance has been scheduled for equipment "${equipmentName}".`;
+                break;
+            case "status_changed":
+                title = "Equipment Status Changed";
+                message = `Equipment "${equipmentName}" status changed to ${status || 'unknown'}.`;
+                break;
+            default:
+                title = "Equipment Modified";
+                message = `Equipment "${equipmentName}" has been modified.`;
+        }
+
+        // Create notifications for all users in the business
+        const notificationPromises = users.map(async (user) => {
+            // Skip users without auth_id or the user who triggered the action
+            if (!user.auth_id || user.auth_id === triggeredBy) {
+                return;
+            }
+
+            const notificationData: NotificationInsert = {
+                user_id: user.auth_id,
+                type: "equipmentAlerts",
+                title,
+                message,
+                link: `/dashboard/equipment/${equipmentId}`,
+                read: false,
+                read_at: null,
+                metadata: {
+                    equipmentId,
+                    equipmentName,
+                    eventType,
+                    status,
+                    location,
+                    triggeredBy
+                }
+            };
+
+            return createNotification(businessId, notificationData);
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises.filter(Boolean));
+
+    } catch (error) {
+        console.error("Error creating equipment notification:", error);
+    }
+}
 
 export const getEquipments = async (businessId: string): Promise<Equipment[]> => {
 
@@ -191,46 +278,112 @@ export const getEquipmentDetail = async (businessId: string, id: string) => {
 }
 
 export const createEquipment = async (businessId: string, equipment: EquipmentInsert): Promise<Equipment | null> => {
+    try {
+        equipment = await applyCreated<EquipmentInsert>(equipment);
 
+        const { data, error } = await insertWithBusiness("equipment", equipment, businessId);
 
-    equipment = await applyCreated<EquipmentInsert>(equipment);
+        if (error) {
+            console.error("Error creating equipment:", error);
+            return null;
+        }
 
-    const { data, error } = await insertWithBusiness("equipment", equipment, businessId);
+        if (data) {
+            // Get the current user session to identify who created the equipment
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
 
-    if (error) {
-        console.error("Error creating equipment:", error);
+            // Trigger notification
+            await triggerEquipmentManagementNotification(
+                businessId,
+                data.id,
+                data.name || "Unnamed Equipment",
+                "created",
+                data.status || undefined,
+                data.location || undefined,
+                user?.id
+            );
+        }
+
+        return data as unknown as Equipment;
+    } catch (err) {
+        console.error("Error in createEquipment:", err);
         return null;
     }
-
-    return data as unknown as Equipment;
 }
 
 export const updateEquipment = async (businessId: string, id: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
+    try {
+        equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
+        const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, businessId);
 
-    equipment = await applyUpdated<EquipmentUpdate>(equipment);
+        if (error) {
+            console.error("Error updating equipment:", error);
+            return null;
+        }
 
-    const { data, error } = await updateWithBusinessCheck("equipment", id, equipment, businessId);
+        if (data) {
+            // Get the current user session to identify who updated the equipment
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
 
-    if (error) {
-        console.error("Error updating equipment:", error);
+            // Trigger notification
+            await triggerEquipmentManagementNotification(
+                businessId,
+                data.id,
+                data.name || "Unnamed Equipment",
+                "updated",
+                data.status || undefined,
+                data.location || undefined,
+                user?.id
+            );
+        }
+
+        return data as unknown as Equipment;
+    } catch (err) {
+        console.error("Error in updateEquipment:", err);
         return null;
     }
-
-    return data as unknown as Equipment;
 }
 
 export const deleteEquipment = async (businessId: string, id: string): Promise<boolean> => {
+    try {
+        // Get the equipment data before deletion for notification
+        const { data: equipmentData } = await fetchByBusiness("equipment", businessId, "*", {
+            filter: { id },
+        });
+        const equipment = equipmentData?.[0] as Equipment | undefined;
 
+        const { error } = await deleteWithBusinessCheck("equipment", id, businessId);
 
-    const { error } = await deleteWithBusinessCheck("equipment", id, businessId);
+        if (error) {
+            console.error("Error deleting equipment:", error);
+            return false;
+        }
 
-    if (error) {
-        console.error("Error deleting equipment:", error);
+        if (equipment) {
+            // Get the current user session to identify who deleted the equipment
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
+
+            // Trigger notification
+            await triggerEquipmentManagementNotification(
+                businessId,
+                equipment.id,
+                equipment.name || "Unnamed Equipment",
+                "deleted",
+                equipment.status || undefined,
+                equipment.location || undefined,
+                user?.id
+            );
+        }
+
+        return true;
+    } catch (err) {
+        console.error("Error in deleteEquipment:", err);
         return false;
     }
-
-    return true;
 }
 
 export const searchEquipments = async (businessId: string, query: string): Promise<Equipment[]> => {
@@ -264,22 +417,45 @@ export const setEquipmentStatus = async (businessId: string, id: string, status:
         return null;
     }
 
+    // Notify users about the status change
+    triggerEquipmentManagementNotification(businessId, id, "", "status_changed", status);
+
     return data as unknown as Equipment;
 }
 
 export const setEquipmentLocation = async (businessId: string, equipment: EquipmentUpdate): Promise<Equipment | null> => {
+    try {
+        equipment = await applyUpdated<EquipmentUpdate>(equipment);
 
+        const { data, error } = await updateWithBusinessCheck("equipment", equipment.id, equipment, businessId);
 
-    equipment = await applyUpdated<EquipmentUpdate>(equipment);
+        if (error) {
+            console.error("Error setting equipment location:", error);
+            return null;
+        }
 
-    const { data, error } = await updateWithBusinessCheck("equipment", equipment.id, equipment, businessId);
+        if (data) {
+            // Get the current user session to identify who updated the location
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
 
-    if (error) {
-        console.error("Error setting equipment location:", error);
+            // Trigger notification for location change
+            await triggerEquipmentManagementNotification(
+                businessId,
+                data.id,
+                data.name || "Unnamed Equipment",
+                "updated",
+                data.status || undefined,
+                data.location || undefined,
+                user?.id
+            );
+        }
+
+        return data as unknown as Equipment;
+    } catch (err) {
+        console.error("Error in setEquipmentLocation:", err);
         return null;
     }
-
-    return data as unknown as Equipment;
 }
 
 export const getEquipmentDetailsByID = async (businessId: string, id: string) => {

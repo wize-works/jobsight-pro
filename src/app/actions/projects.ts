@@ -4,6 +4,9 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { Client } from "@/types/clients";
+import { createNotification } from "@/app/actions/notifications";
+import { getUsers } from "@/app/actions/users";
+import type { NotificationInsert } from "@/types/notifications";
 
 
 export const getProjects = async (businessId: string): Promise<Project[]> => {
@@ -61,7 +64,10 @@ export const createProject = async (businessId: string, project: ProjectInsert):
             return null;
         }
 
-        return data as Project;
+        const createdProject = data as Project;        // Create notification for project creation
+        await triggerProjectNotification(businessId, createdProject.id, createdProject.name, "created", createdProject.created_by || undefined);
+
+        return createdProject;
     } catch (err) {
         console.error("Error in createProject:", err);
         return null;
@@ -79,7 +85,10 @@ export const updateProject = async (businessId: string, id: string, project: Pro
             return null;
         }
 
-        return data as Project;
+        const updatedProject = data as Project;        // Create notification for project update
+        await triggerProjectNotification(businessId, updatedProject.id, updatedProject.name, "updated", updatedProject.updated_by || undefined);
+
+        return updatedProject;
     } catch (err) {
         console.error("Error in updateProject:", err);
         return null;
@@ -88,12 +97,24 @@ export const updateProject = async (businessId: string, id: string, project: Pro
 
 export const deleteProject = async (businessId: string, id: string): Promise<boolean> => {
     try {
+        // Get project details before deletion for notification
+        let projectName = "Unknown Project";
+        try {
+            const project = await getProjectById(businessId, id);
+            projectName = project.name;
+        } catch (error) {
+            console.warn("Could not fetch project name for notification:", error);
+        }
+
         const { error } = await deleteWithBusinessCheck("projects", id, businessId);
 
         if (error) {
             console.error("Error deleting project:", error);
             return false;
         }
+
+        // Create notification for project deletion
+        await triggerProjectNotification(businessId, id, projectName, "deleted");
 
         return true;
     } catch (err) {
@@ -383,7 +404,59 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
     }
 };
 
-// Placeholder function for triggering project notifications.  This would need to be implemented.
-async function triggerProjectNotification(projectId: string, projectName: string, eventType: string) {
-    console.log(`Simulating push notification for project ${projectName} (${projectId}) - ${eventType}`);
+// Create notifications for project events
+async function triggerProjectNotification(
+    businessId: string,
+    projectId: string,
+    projectName: string,
+    eventType: string,
+    triggeredBy?: string
+) {
+    try {
+        // Get all users in the business
+        const users = await getUsers(businessId);
+
+        if (users.length === 0) {
+            console.log("No users found for business to notify");
+            return;
+        } const title = eventType === "created" ? "New Project Created"
+            : eventType === "updated" ? "Project Updated"
+                : "Project Deleted";
+        const message = eventType === "created"
+            ? `A new project "${projectName}" has been created.`
+            : eventType === "updated"
+                ? `Project "${projectName}" has been updated.`
+                : `Project "${projectName}" has been deleted.`;// Create notifications for all users in the business
+        const notificationPromises = users.map(async (user) => {
+            // Skip users without auth_id or the user who triggered the action
+            if (!user.auth_id || user.auth_id === triggeredBy) {
+                return;
+            }
+
+            const notificationData: NotificationInsert = {
+                user_id: user.auth_id,
+                type: "projectUpdates",
+                title,
+                message,
+                link: `/dashboard/projects/${projectId}`,
+                read: false,
+                read_at: null,
+                metadata: {
+                    projectId,
+                    projectName,
+                    eventType,
+                    triggeredBy
+                }
+            };
+
+            return createNotification(businessId, notificationData);
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises.filter(Boolean));
+
+        console.log(`Notifications created for project ${projectName} (${projectId}) - ${eventType} for ${users.length} users`);
+    } catch (error) {
+        console.error("Error creating project notification:", error);
+    }
 }

@@ -5,7 +5,98 @@ import { Invoice, InvoiceInsert, InvoiceUpdate, InvoiceWithClient, InvoiceWithDe
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { createNotification } from "@/app/actions/notifications";
+import { getUsers } from "@/app/actions/users";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import type { NotificationInsert } from "@/types/notifications";
 
+// Create notifications for invoice events
+async function triggerInvoiceNotification(
+    businessId: string,
+    invoiceId: string,
+    invoiceNumber: string,
+    clientName: string,
+    eventType: string,
+    amount?: number,
+    triggeredBy?: string
+) {
+    try {
+        // Get all users in the business
+        const users = await getUsers(businessId);
+
+        if (users.length === 0) {
+            console.log("No users found for business to notify");
+            return;
+        }
+
+        let title = "";
+        let message = "";
+
+        switch (eventType) {
+            case "created":
+                title = "New Invoice Created";
+                message = `Invoice ${invoiceNumber} has been created for ${clientName}${amount ? ` ($${amount.toFixed(2)})` : ''}.`;
+                break;
+            case "updated":
+                title = "Invoice Updated";
+                message = `Invoice ${invoiceNumber} for ${clientName} has been updated.`;
+                break;
+            case "sent":
+                title = "Invoice Sent";
+                message = `Invoice ${invoiceNumber} has been sent to ${clientName}.`;
+                break;
+            case "paid":
+                title = "Invoice Paid";
+                message = `Invoice ${invoiceNumber} from ${clientName} has been marked as paid.`;
+                break;
+            case "overdue":
+                title = "Invoice Overdue";
+                message = `Invoice ${invoiceNumber} for ${clientName} is now overdue.`;
+                break;
+            case "deleted":
+                title = "Invoice Deleted";
+                message = `Invoice ${invoiceNumber} for ${clientName} has been deleted.`;
+                break;
+            default:
+                title = "Invoice Updated";
+                message = `Invoice ${invoiceNumber} for ${clientName} has been modified.`;
+        }
+
+        // Create notifications for all users in the business
+        const notificationPromises = users.map(async (user) => {
+            // Skip users without auth_id or the user who triggered the action
+            if (!user.auth_id || user.auth_id === triggeredBy) {
+                return;
+            }
+
+            const notificationData: NotificationInsert = {
+                user_id: user.auth_id,
+                type: "invoiceUpdates",
+                title,
+                message,
+                link: `/dashboard/invoices/${invoiceId}`,
+                read: false,
+                read_at: null,
+                metadata: {
+                    invoiceId,
+                    invoiceNumber,
+                    clientName,
+                    eventType,
+                    amount,
+                    triggeredBy
+                }
+            };
+
+            return createNotification(businessId, notificationData);
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises.filter(Boolean));
+
+    } catch (error) {
+        console.error("Error creating invoice notification:", error);
+    }
+}
 
 export const getInvoices = async (businessId: string): Promise<Invoice[]> => {
 
@@ -51,6 +142,27 @@ export const createInvoice = async (businessId: string, invoice: InvoiceInsert):
     if (error) {
         console.error("Error creating invoice:", error);
         return null;
+    } if (data) {
+        // Get the current user session to identify who created the invoice
+        const { getUser } = getKindeServerSession();
+        const user = await getUser();
+
+        // Get client name for notification
+        const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
+            filter: { id: data.client_id },
+        });
+        const clientName = clientData?.[0]?.name || "Unknown Client";
+
+        // Trigger notification
+        await triggerInvoiceNotification(
+            businessId,
+            data.id,
+            data.invoice_number || "Unknown",
+            clientName,
+            "created",
+            data.amount || undefined,
+            user?.id
+        );
     }
 
     return data as unknown as Invoice;
@@ -66,22 +178,75 @@ export const updateInvoice = async (businessId: string, id: string, invoice: Inv
     if (error) {
         console.error("Error updating invoice:", error);
         return null;
+    } if (data) {
+        // Get the current user session to identify who updated the invoice
+        const { getUser } = getKindeServerSession();
+        const user = await getUser();
+
+        // Get client name for notification
+        const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
+            filter: { id: data.client_id },
+        });
+        const clientName = clientData?.[0]?.name || "Unknown Client";
+
+        // Trigger notification
+        await triggerInvoiceNotification(
+            businessId,
+            data.id,
+            data.invoice_number || "Unknown",
+            clientName,
+            "updated",
+            data.amount || undefined,
+            user?.id
+        );
     }
 
     return data as unknown as Invoice;
 }
 
 export const deleteInvoice = async (businessId: string, id: string): Promise<boolean> => {
+    try {
+        // Get the invoice data before deletion for notification
+        const { data: invoiceData } = await fetchByBusiness("invoices", businessId, "*", {
+            filter: { id },
+        });
+        const invoice = invoiceData?.[0] as Invoice | undefined;
 
+        const { error } = await deleteWithBusinessCheck("invoices", id, businessId);
 
-    const { error } = await deleteWithBusinessCheck("invoices", id, businessId);
+        if (error) {
+            console.error("Error deleting invoice:", error);
+            return false;
+        }
 
-    if (error) {
-        console.error("Error deleting invoice:", error);
+        if (invoice) {
+            // Get the current user session to identify who deleted the invoice
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
+
+            // Get client name for notification
+            const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
+                filter: { id: invoice.client_id },
+            });
+            const clientName = clientData?.[0]?.name || "Unknown Client";
+
+            // Trigger notification
+            await triggerInvoiceNotification(
+                businessId,
+                invoice.id,
+                invoice.invoice_number || "Unknown",
+                clientName,
+                "deleted",
+                invoice.amount || undefined,
+                user?.id
+            );
+        }
+
+        return true;
+    } catch (err) {
+        console.error("Error in deleteInvoice:", err);
         return false;
     }
-
-    return true;
 }
 
 export const searchInvoices = async (businessId: string, query: string): Promise<Invoice[]> => {

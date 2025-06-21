@@ -2,11 +2,75 @@
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
-import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { createNotification } from "@/app/actions/notifications";
+import { getUsers } from "@/app/actions/users";
+import type { NotificationInsert } from "@/types/notifications";
+
+// Create notifications for daily log events
+async function triggerDailyLogNotification(
+    businessId: string,
+    dailyLogId: string,
+    projectName: string,
+    date: string,
+    eventType: string,
+    triggeredBy?: string
+) {
+    try {
+        // Get all users in the business
+        const users = await getUsers(businessId);
+
+        if (users.length === 0) {
+            console.log("No users found for business to notify");
+            return;
+        }
+
+        const title = eventType === "created" ? "New Daily Log Created"
+            : eventType === "updated" ? "Daily Log Updated"
+                : "Daily Log Deleted";
+
+        const message = eventType === "created"
+            ? `A new daily log has been created for ${projectName} on ${date}.`
+            : eventType === "updated"
+                ? `Daily log for ${projectName} on ${date} has been updated.`
+                : `Daily log for ${projectName} on ${date} has been deleted.`;
+
+        // Create notifications for all users in the business
+        const notificationPromises = users.map(async (user) => {
+            // Skip users without auth_id or the user who triggered the action
+            if (!user.auth_id || user.auth_id === triggeredBy) {
+                return;
+            }
+
+            const notificationData: NotificationInsert = {
+                user_id: user.auth_id,
+                type: "projectUpdates", // Daily logs are project-related updates
+                title,
+                message,
+                link: `/dashboard/daily-logs/${dailyLogId}`,
+                read: false,
+                read_at: null,
+                metadata: {
+                    dailyLogId,
+                    projectName,
+                    date,
+                    eventType,
+                    triggeredBy
+                }
+            };
+
+            return createNotification(businessId, notificationData);
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises.filter(Boolean));
+
+        console.log(`Notifications created for daily log ${dailyLogId} - ${eventType} for ${users.length} users`);
+    } catch (error) {
+        console.error("Error creating daily log notification:", error);
+    }
+}
 
 export const getDailyLogs = async (businessId: string): Promise<DailyLog[]> => {
 
@@ -45,8 +109,6 @@ export const getDailyLogById = async (businessId: string, id: string): Promise<D
 };
 
 export const createDailyLog = async (businessId: string, log: DailyLogInsert): Promise<DailyLog | null> => {
-
-
     log = await applyCreated<DailyLogInsert>(log);
 
     const { data, error } = await insertWithBusiness("daily_logs", log, businessId);
@@ -56,12 +118,37 @@ export const createDailyLog = async (businessId: string, log: DailyLogInsert): P
         return null;
     }
 
-    return data as unknown as DailyLog;
+    const createdLog = data as unknown as DailyLog;
+
+    // Get project name for notification and trigger notification
+    try {
+        let projectName = "Unknown Project";
+        if (createdLog.project_id) {
+            const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                filter: { id: createdLog.project_id }
+            });
+            if (projectData && projectData[0]) {
+                projectName = projectData[0].name;
+            }
+        }
+
+        await triggerDailyLogNotification(
+            businessId,
+            createdLog.id,
+            projectName,
+            createdLog.date || new Date().toISOString().split('T')[0],
+            "created",
+            createdLog.created_by || undefined
+        );
+    } catch (notificationError) {
+        console.error("Error creating notification for daily log:", notificationError);
+        // Don't fail the daily log creation if notification fails
+    }
+
+    return createdLog;
 }
 
 export const updateDailyLog = async (businessId: string, id: string, log: DailyLogUpdate): Promise<DailyLog | null> => {
-
-
     log = await applyUpdated<DailyLogUpdate>(log);
 
     const { data, error } = await updateWithBusinessCheck("daily_logs", id, log, businessId);
@@ -71,17 +158,75 @@ export const updateDailyLog = async (businessId: string, id: string, log: DailyL
         return null;
     }
 
-    return data as unknown as DailyLog;
+    const updatedLog = data as unknown as DailyLog;
+
+    // Get project name for notification and trigger notification
+    try {
+        let projectName = "Unknown Project";
+        if (updatedLog.project_id) {
+            const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                filter: { id: updatedLog.project_id }
+            });
+            if (projectData && projectData[0]) {
+                projectName = projectData[0].name;
+            }
+        }
+
+        await triggerDailyLogNotification(
+            businessId,
+            updatedLog.id,
+            projectName,
+            updatedLog.date || new Date().toISOString().split('T')[0],
+            "updated",
+            updatedLog.updated_by || undefined
+        );
+    } catch (notificationError) {
+        console.error("Error creating notification for daily log update:", notificationError);
+        // Don't fail the daily log update if notification fails
+    }
+
+    return updatedLog;
 }
 
 export const deleteDailyLog = async (businessId: string, id: string): Promise<boolean> => {
+    // Get daily log details before deletion for notification
+    let projectName = "Unknown Project";
+    let logDate = new Date().toISOString().split('T')[0];
 
+    try {
+        const { data: logData } = await fetchByBusiness("daily_logs", businessId, ["project_id", "date"], {
+            filter: { id }
+        });
+
+        if (logData && logData[0]) {
+            logDate = logData[0].date || logDate;
+
+            if (logData[0].project_id) {
+                const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                    filter: { id: logData[0].project_id }
+                });
+                if (projectData && projectData[0]) {
+                    projectName = projectData[0].name;
+                }
+            }
+        }
+    } catch (error) {
+        console.warn("Could not fetch daily log details for notification:", error);
+    }
 
     const { error } = await deleteWithBusinessCheck("daily_logs", id, businessId);
 
     if (error) {
         console.error("Error deleting daily log:", error);
         return false;
+    }
+
+    // Create notification for daily log deletion
+    try {
+        await triggerDailyLogNotification(businessId, id, projectName, logDate, "deleted");
+    } catch (notificationError) {
+        console.error("Error creating notification for daily log deletion:", notificationError);
+        // Don't fail the deletion if notification fails
     }
 
     return true;

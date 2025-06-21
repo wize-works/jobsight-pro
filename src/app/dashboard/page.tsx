@@ -18,13 +18,11 @@ import { getDashboardData } from "@/app/actions/dashboard"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
 import ProjectModal from "./projects/components/modal-project"
-import { Project } from "@/types/projects"
-import { set } from "date-fns"
 import TaskModal from "./tasks/components/modal-task"
 import EquipmentNewModal from "./equipment/components/modal-new"
 import DailyLogModal from "./daily-logs/components/modal-log"
-import { DailyLogWithDetails } from "@/types/daily-logs"
 import { useBusiness } from "@/lib/business-context"
+import Loading from "@/app/loading";
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -161,14 +159,7 @@ export default function Dashboard() {
     }, [businessId, loading])
 
     if (!dashboardData || loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="loading loading-spinner loading-lg mb-4"></div>
-                    <p className="text-lg">Loading your command center dashboard...</p>
-                </div>
-            </div>
-        )
+        return <Loading />
     }
 
     // Enhanced Chart Configurations
