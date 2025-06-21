@@ -114,7 +114,6 @@ export default function Dashboard() {
     useEffect(() => {
         async function fetchData() {
             if (!businessId || loading) {
-                console.error("Invalid or missing businessId");
                 return;
             }
 
