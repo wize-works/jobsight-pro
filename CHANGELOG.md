@@ -1,3 +1,10 @@
+# [1.66.0](https://github.com/wize-works/jobsight-pro/compare/v1.65.0...v1.66.0) (2025-06-21)
+
+
+### Features
+
+* enhance search input styling and improve layout in invoices and media pages ([15e4ded](https://github.com/wize-works/jobsight-pro/commit/15e4ded8531321bbd2c9ba275f2abb26c987739b))
+
 # [1.65.0](https://github.com/wize-works/jobsight-pro/compare/v1.64.0...v1.65.0) (2025-06-21)
 
 
