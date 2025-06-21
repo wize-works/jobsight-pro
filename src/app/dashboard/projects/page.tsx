@@ -267,7 +267,8 @@ export default function ProjectsPage() {
                                         <th>Progress</th>
                                         <th>Actions</th>
                                     </tr>
-                                </thead>                                <tbody>
+                                </thead>
+                                <tbody>
                                     {sortedAndFilteredProjects.map((project) => (
                                         <tr key={project.id}>
                                             <td>

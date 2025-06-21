@@ -20,7 +20,7 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
         <div className="drawer-side bg-base-100">
             <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
             <div className={`menu ${sidebarCollapsed ? "w-16" : "w-64"} min-h-full text-base-content transition-all duration-300`} >
-                <div className="mb-6 flex items-center justify-center">
+                <div className="m-2 flex items-start justify-start">
                     {sidebarCollapsed ? (
                         <img src="/logo.png" alt="JobSight" className="h-10" />
                     ) : (

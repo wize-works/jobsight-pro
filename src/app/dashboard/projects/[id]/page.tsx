@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { getProjectById, getProjectDetailsByID, updateProject } from "@/app/actions/projects";
-import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project_milestones";
+import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project-milestones";
 import { getTasksByProjectId, createTask, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
 import { toast } from "@/hooks/use-toast";

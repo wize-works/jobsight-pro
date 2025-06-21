@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { updateProject } from "@/app/actions/projects";
-import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
+import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
 import { createTask, getTasksByProjectId, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
 import { toast } from "@/hooks/use-toast";

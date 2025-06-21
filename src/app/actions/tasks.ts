@@ -4,6 +4,95 @@ import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, inse
 import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
+import { createNotification } from "@/app/actions/notifications";
+import { getUsers } from "@/app/actions/users";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import type { NotificationInsert } from "@/types/notifications";
+
+// Create notifications for task events
+async function triggerTaskNotification(
+    businessId: string,
+    taskId: string,
+    taskName: string,
+    projectName: string,
+    eventType: string,
+    assigneeId?: string,
+    triggeredBy?: string
+) {
+    try {
+        // Get all users in the business
+        const users = await getUsers(businessId);
+
+        if (users.length === 0) {
+            console.log("No users found for business to notify");
+            return;
+        }
+
+        let title = "";
+        let message = "";
+
+        switch (eventType) {
+            case "created":
+                title = "New Task Created";
+                message = assigneeId
+                    ? `A new task "${taskName}" has been created and assigned in project ${projectName}.`
+                    : `A new task "${taskName}" has been created in project ${projectName}.`;
+                break;
+            case "updated":
+                title = "Task Updated";
+                message = `Task "${taskName}" in project ${projectName} has been updated.`;
+                break;
+            case "assigned":
+                title = "Task Assigned";
+                message = `Task "${taskName}" in project ${projectName} has been assigned.`;
+                break;
+            case "completed":
+                title = "Task Completed";
+                message = `Task "${taskName}" in project ${projectName} has been completed.`;
+                break;
+            case "deleted":
+                title = "Task Deleted";
+                message = `Task "${taskName}" in project ${projectName} has been deleted.`;
+                break;
+            default:
+                title = "Task Updated";
+                message = `Task "${taskName}" in project ${projectName} has been modified.`;
+        }
+
+        // Create notifications for all users in the business
+        const notificationPromises = users.map(async (user) => {
+            // Skip users without auth_id or the user who triggered the action
+            if (!user.auth_id || user.auth_id === triggeredBy) {
+                return;
+            } const notificationData: NotificationInsert = {
+                user_id: user.auth_id,
+                type: "taskAssignments",
+                title,
+                message,
+                link: `/dashboard/tasks/${taskId}`,
+                read: false,
+                read_at: null,
+                metadata: {
+                    taskId,
+                    taskName,
+                    projectName,
+                    eventType,
+                    assigneeId,
+                    triggeredBy
+                }
+            };
+
+            return createNotification(businessId, notificationData);
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises.filter(Boolean));
+
+        console.log(`Notifications created for task ${taskName} (${taskId}) - ${eventType} for ${users.length} users`);
+    } catch (error) {
+        console.error("Error creating task notification:", error);
+    }
+}
 
 
 export const getTasks = async (businessId: string): Promise<Task[]> => {
@@ -59,30 +148,27 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
             return null;
         }
 
-        // Trigger push notification for task assignment
-        if (data && data.assigned_to) {
-            // Assuming getProjectById and triggerTaskNotification are defined elsewhere
-            // and are accessible in this scope.  Need to create dummy functions
-            async function getProjectById(project_id: string) {
-                return { name: "test" };
-            }
+        if (data) {
+            // Get the current user session to identify who created the task
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();            // Get project name for notification
+            const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                filter: { id: data.project_id },
+            });
+            const projectName = projectData?.[0]?.name || "Unknown Project";
 
-            async function triggerTaskNotification(
-                taskId: any,
-                title: any,
-                projectName: any,
-                assigned: any,
-                assigned_to: any
-            ) {
-                console.log("triggerTaskNotification called");
-            }
-            const project = await getProjectById(data.project_id);
+            // Determine event type based on whether task is assigned
+            const eventType = data.assigned_to ? "assigned" : "created";
+
+            // Trigger notification
             await triggerTaskNotification(
+                businessId,
                 data.id,
-                task.name,
-                project?.name || 'Unknown Project',
-                'assigned',
-                data.assigned_to
+                data.name || "Unnamed Task",
+                projectName,
+                eventType,
+                data.assigned_to || undefined,
+                user?.id
             );
         }
 
@@ -95,7 +181,12 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
 
 export const updateTask = async (businessId: string, id: string, task: TaskUpdate): Promise<Task> => {
     try {
-        console.log("updateTask called with id:", id, "and task:", task);
+        // Get the existing task to compare changes
+        const { data: existingTaskData } = await fetchByBusiness("tasks", businessId, "*", {
+            filter: { id },
+        });
+        const existingTask = existingTaskData?.[0] as Task | undefined;
+
         task = await applyUpdated<TaskUpdate>(task);
 
         const { data, error } = await updateWithBusinessCheck("tasks", id, task, businessId);
@@ -103,6 +194,41 @@ export const updateTask = async (businessId: string, id: string, task: TaskUpdat
         if (error) {
             console.error("Error updating task:", error);
             throw error;
+        }
+
+        if (data && existingTask) {
+            // Get the current user session to identify who updated the task
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
+
+            // Get project name for notification
+            const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                filter: { id: data.project_id },
+            });
+            const projectName = projectData?.[0]?.name || "Unknown Project";
+
+            // Determine event type based on changes
+            let eventType = "updated";
+
+            // Check if task was completed
+            if (existingTask.status !== "completed" && data.status === "completed") {
+                eventType = "completed";
+            }
+            // Check if task was assigned to someone new
+            else if (existingTask.assigned_to !== data.assigned_to && data.assigned_to) {
+                eventType = "assigned";
+            }
+
+            // Trigger notification
+            await triggerTaskNotification(
+                businessId,
+                data.id,
+                data.name || "Unnamed Task",
+                projectName,
+                eventType,
+                data.assigned_to || undefined,
+                user?.id
+            );
         }
 
         return data as unknown as Task;
@@ -114,11 +240,40 @@ export const updateTask = async (businessId: string, id: string, task: TaskUpdat
 
 export const deleteTask = async (businessId: string, id: string): Promise<boolean> => {
     try {
+        // Get the task data before deletion for notification
+        const { data: taskData } = await fetchByBusiness("tasks", businessId, "*", {
+            filter: { id },
+        });
+        const task = taskData?.[0] as Task | undefined;
+
         const { error } = await deleteWithBusinessCheck("tasks", id, businessId);
 
         if (error) {
             console.error("Error deleting task:", error);
             return false;
+        }
+
+        if (task) {
+            // Get the current user session to identify who deleted the task
+            const { getUser } = getKindeServerSession();
+            const user = await getUser();
+
+            // Get project name for notification
+            const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
+                filter: { id: task.project_id },
+            });
+            const projectName = projectData?.[0]?.name || "Unknown Project";
+
+            // Trigger notification
+            await triggerTaskNotification(
+                businessId,
+                task.id,
+                task.name || "Unnamed Task",
+                projectName,
+                "deleted",
+                task.assigned_to || undefined,
+                user?.id
+            );
         }
 
         return true;

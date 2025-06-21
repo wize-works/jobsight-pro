@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project_milestones";
+import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
