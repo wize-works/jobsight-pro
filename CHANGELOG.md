@@ -1,3 +1,10 @@
+# [1.62.0](https://github.com/wize-works/jobsight-pro/compare/v1.61.0...v1.62.0) (2025-06-21)
+
+
+### Features
+
+* Implement Microsoft Clarity integration with enhanced debugging utilities and CSP configuration; add ClarityScript and ClarityDebugPage components for improved tracking and validation. ([b66d35f](https://github.com/wize-works/jobsight-pro/commit/b66d35f96b2262c2ca95d8cd4120dc5ceddf7a32))
+
 # [1.61.0](https://github.com/wize-works/jobsight-pro/compare/v1.60.0...v1.61.0) (2025-06-21)
 
 
