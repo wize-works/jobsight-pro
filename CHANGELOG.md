@@ -1,3 +1,10 @@
+# [1.59.0](https://github.com/wize-works/jobsight-pro/compare/v1.58.3...v1.59.0) (2025-06-21)
+
+
+### Features
+
+* Refactor dashboard loading state with a dedicated Loading component; update project milestone action imports; enhance sidebar styling; add comprehensive notification implementation guide and summary; implement project milestone notifications with detailed context and user filtering. ([d55b23e](https://github.com/wize-works/jobsight-pro/commit/d55b23e9d1b63b117103e90993126700bac75848))
+
 ## [1.58.3](https://github.com/wize-works/jobsight-pro/compare/v1.58.2...v1.58.3) (2025-06-20)
 
 
