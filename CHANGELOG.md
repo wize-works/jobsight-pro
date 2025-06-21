@@ -1,3 +1,10 @@
+## [1.59.1](https://github.com/wize-works/jobsight-pro/compare/v1.59.0...v1.59.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* Improve notification message formatting for client contact and interaction actions ([751880e](https://github.com/wize-works/jobsight-pro/commit/751880ea88396181c95e027d595d3930b6b288e7))
+
 # [1.59.0](https://github.com/wize-works/jobsight-pro/compare/v1.58.3...v1.59.0) (2025-06-21)
 
 
