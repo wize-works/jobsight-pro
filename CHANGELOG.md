@@ -1,3 +1,10 @@
+## [1.66.1](https://github.com/wize-works/jobsight-pro/compare/v1.66.0...v1.66.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* update Permissions-Policy value to restrict geolocation access to self ([fb6084e](https://github.com/wize-works/jobsight-pro/commit/fb6084ec9dc5d32a7c6cb8b3f7381fe1c70ee9da))
+
 # [1.66.0](https://github.com/wize-works/jobsight-pro/compare/v1.65.0...v1.66.0) (2025-06-21)
 
 
