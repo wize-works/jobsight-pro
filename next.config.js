@@ -33,8 +33,7 @@ const nextConfig = {
                 hostname: '**',
             },
         ],
-    },
-    // PWA Configuration
+    },    // PWA Configuration
     async headers() {
         return [
             {
@@ -59,8 +58,41 @@ const nextConfig = {
                     },
                 ],
             },
+            {
+                source: '/(.*)',
+                headers: [{
+                    key: 'Content-Security-Policy',
+                    value: "default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com; " +
+                        "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net; " +
+                        "img-src 'self' data: https: blob: https://www.clarity.ms; " +
+                        "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com; " +
+                        "font-src 'self' https://kit.fontawesome.com; " +
+                        "frame-src 'self'; " +
+                        "object-src 'none'; " +
+                        "base-uri 'self'; " +
+                        "worker-src 'self' blob:;"
+                },
+                {
+                    key: 'X-Frame-Options',
+                    value: 'DENY'
+                },
+                {
+                    key: 'X-Content-Type-Options',
+                    value: 'nosniff'
+                },
+                {
+                    key: 'Referrer-Policy',
+                    value: 'strict-origin-when-cross-origin'
+                },
+                {
+                    key: 'Permissions-Policy',
+                    value: 'camera=(), microphone=(), geolocation=()'
+                }
+                ],
+            },
         ];
-    },    // Security headers
+    },// Security headers
     async rewrites() {
         return [
             {

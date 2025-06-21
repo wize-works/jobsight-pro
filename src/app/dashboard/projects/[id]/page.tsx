@@ -83,7 +83,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
         // Prevent duplicate fetches
         if (currentFetchKey.current === fetchKey && hasFetched.current) {
-            console.log("Skipping duplicate fetch for", fetchKey);
             return;
         }
 
@@ -91,11 +90,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         currentFetchKey.current = fetchKey;
         hasFetched.current = true;
         const fetchData = async () => {
-            console.log("useEffect triggered - businessId:", businessId, "projectId:", projectId);
             setLoading(true);
 
             try {
-                console.log("Making API calls for project:", projectId);
 
                 const projectDetails = await getProjectDetailsByID(businessId, projectId);
                 if (projectDetails) {
@@ -123,7 +120,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 }
 
                 if (project && project.client_id) {
-                    console.log("Fetching client data for:", project.client_id);
                     const clientData = await getClientById(businessId, project.client_id);
                     const contactsData = await getClientContactsByClientId(businessId, project.client_id);
                     setClient(clientData);
@@ -131,12 +127,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 }
 
                 if (project && project.manager_id) {
-                    console.log("Fetching manager data for:", project.manager_id);
                     const managerData = await getCrewMemberById(businessId, project.manager_id);
                     setManager(managerData);
                 }
 
-                console.log("Data fetch completed for", fetchKey);
             } catch (error) {
                 console.error("Error fetching project:", error);
                 toast.error("Failed to load project details.");
@@ -162,11 +156,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     const handleMilestoneSave = async (milestone: ProjectMilestone) => {
         if (selectedMilestone) {
-            console.log("Updating milestone:", milestone);
             await updateProjectMilestone(businessId, selectedMilestone.id, milestone);
             setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
         } else {
-            console.log("Creating new milestone:", milestone);
             await createProjectMilestone(businessId, milestone);
             setMilestones((prev) => [...prev, milestone]);
         }
@@ -178,7 +170,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const handleMilestoneModalClose = () => {
         setMilestoneModalOpen(false);
         setSelectedMilestone(null);
-    }; const handleTaskSave = async (task: Task) => {
+    };
+
+    const handleTaskSave = async (task: Task) => {
         if (selectedTask) {
             await updateTask(businessId, selectedTask.id, task);
             setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, ...task } as TaskWithDetails : t));
@@ -198,7 +192,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const handleTaskModalClose = () => {
         setTaskModalOpen(false);
         setSelectedTask(null);
-    }; if (loading || !projectId) {
+    };
+
+    if (loading || !projectId) {
         return <Loading />;
     }
 
