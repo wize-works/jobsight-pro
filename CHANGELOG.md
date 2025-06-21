@@ -1,3 +1,10 @@
+# [1.63.0](https://github.com/wize-works/jobsight-pro/compare/v1.62.0...v1.63.0) (2025-06-21)
+
+
+### Features
+
+* integrate geolocation functionality across project detail, edit, and modal components ([6af36e9](https://github.com/wize-works/jobsight-pro/commit/6af36e92b2655086c59052167b48e409db5e4924))
+
 # [1.62.0](https://github.com/wize-works/jobsight-pro/compare/v1.61.0...v1.62.0) (2025-06-21)
 
 
