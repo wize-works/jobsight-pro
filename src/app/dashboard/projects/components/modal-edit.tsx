@@ -177,7 +177,7 @@ export default function ProjectEditModal({
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-auto max-h-[75vh]">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Information */}
                         <div className="card bg-base-100 border border-base-300">

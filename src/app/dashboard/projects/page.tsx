@@ -8,6 +8,7 @@ import { formatDate, formatCurrency } from "@/utils/date";
 import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
 import Loading from "@/app/loading";
 import ProjectModal from "./components/modal-project";
+import ProjectEditModal from "./components/modal-edit";
 import { useBusiness } from "@/lib/business-context";
 
 
@@ -20,6 +21,8 @@ export default function ProjectsPage() {
     );
     const [search, setSearch] = useState("");
     const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+    const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
     const [showAddIssueModal, setShowAddIssueModal] = useState(false);
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
@@ -87,9 +90,7 @@ export default function ProjectsPage() {
         // Placeholder for issue saving logic
         console.log("Issue saved:", issue);
         setShowAddProjectModal(false);
-    };
-
-    const handleProjectSave = async (projectData: any) => {
+    }; const handleProjectSave = async (projectData: any) => {
         try {
             // Create the new project
             await createProject(businessId, projectData);
@@ -103,6 +104,19 @@ export default function ProjectsPage() {
             // Don't close modal on error so user can retry
             throw error; // Re-throw so modal can handle the error
         }
+    };
+
+    const handleEditProject = (project: ProjectWithDetails) => {
+        setSelectedProject(project);
+        setShowEditProjectModal(true);
+    };
+
+    const handleEditProjectSave = async (updatedProject: Project) => {
+        // Refresh the projects list after successful update
+        const projectsData = await getProjectsWithDetails(businessId);
+        setProjects(projectsData);
+        setShowEditProjectModal(false);
+        setSelectedProject(null);
     }; if (loading) {
         return (
             <Loading />
@@ -294,8 +308,10 @@ export default function ProjectsPage() {
                                                         className="btn btn-ghost btn-xs"
                                                     >
                                                         <i className="far fa-eye"></i>
-                                                    </Link>
-                                                    <button className="btn btn-ghost btn-xs">
+                                                    </Link>                                                    <button
+                                                        className="btn btn-ghost btn-xs"
+                                                        onClick={() => handleEditProject(project)}
+                                                    >
                                                         <i className="far fa-edit"></i>
                                                     </button>
                                                 </div>
@@ -344,11 +360,22 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* Add Project Modal */}
+            )}            {/* Add Project Modal */}
             {showAddProjectModal && (
                 <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
+            )}
+
+            {/* Edit Project Modal */}
+            {showEditProjectModal && selectedProject && (
+                <ProjectEditModal
+                    isOpen={showEditProjectModal}
+                    onClose={() => {
+                        setShowEditProjectModal(false);
+                        setSelectedProject(null);
+                    }}
+                    project={selectedProject}
+                    onSave={handleEditProjectSave}
+                />
             )}
         </>
     );
