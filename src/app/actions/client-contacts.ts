@@ -200,15 +200,15 @@ const createClientContactNotification = async (
             eventType === "created"
                 ? "Client Contact Added"
                 : eventType === "updated"
-                ? "Client Contact Updated"
-                : "Client Contact Removed";
+                    ? "Client Contact Updated"
+                    : "Client Contact Removed";
 
         const message =
             eventType === "created"
                 ? `New contact "${contactName}" has been added to client ${clientName}.`
                 : eventType === "updated"
-                ? `Contact "${contactName}" for client ${clientName} has been updated.`
-                : `Contact "${contactName}" has been removed from client ${clientName}.`;
+                    ? `Contact "${contactName}" for client ${clientName} has been updated.`
+                    : `Contact "${contactName}" has been removed from client ${clientName}.`;
 
         // Create notifications for all users in the business
         const notificationPromises = users.map(async (user) => {
