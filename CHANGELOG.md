@@ -1,3 +1,10 @@
+# [1.67.0](https://github.com/wize-works/jobsight-pro/compare/v1.66.1...v1.67.0) (2025-06-21)
+
+
+### Features
+
+* enhance equipment detail and project management UI with overflow handling and edit modal integration ([15d467f](https://github.com/wize-works/jobsight-pro/commit/15d467fdd099899ddda7a4002e9405195af4ee1b))
+
 ## [1.66.1](https://github.com/wize-works/jobsight-pro/compare/v1.66.0...v1.66.1) (2025-06-21)
 
 
