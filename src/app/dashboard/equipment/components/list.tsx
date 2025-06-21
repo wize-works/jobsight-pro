@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { searchEquipments } from "@/app/actions/equipments";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
-import type { Equipment, EquipmentStatus, EquipmentWithDetails } from "@/types/equipment";
+import type { Equipment, EquipmentStatus, EquipmentType, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
-import { equipmentStatusOptions } from "@/types/equipment";
+import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";
 import { EquipmentCard } from "./card";
 import EquipmentNewModal from "./modal-new";
 import EquipmentEditModal from "./modal-edit";
@@ -136,30 +136,16 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                                 />
                             </label>
                         </div>
-                        <select
-                            className="select select-bordered select-secondary w-full"
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                        >
-                            <option value="all">All Types</option>
-                            {equipmentTypes.filter((type) => type !== "all").map((type) => (
-                                <option key={type || "unknown"} value={type || "unknown"}>
-                                    {type || "Unknown"}
-                                </option>
-                            ))}
-                        </select>
-                        <select
-                            className="select select-bordered select-secondary w-full"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="all">All Statuses</option>
-                            {Object.entries(equipmentStatusOptions).map(([key, { label }]) => (
-                                <option key={key} value={key}>
-                                    {label}
-                                </option>
-                            ))}
-                        </select>
+                        {equipmentTypeOptions.select(
+                            typeFilter as EquipmentType,
+                            (value) => setTypeFilter(value),
+                            "select-secondary w-full"
+                        )}
+                        {equipmentStatusOptions.select(
+                            statusFilter as EquipmentStatus,
+                            (value) => setStatusFilter(value),
+                            "select-secondary w-full"
+                        )}
                         <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                             <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
                             <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
