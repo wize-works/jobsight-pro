@@ -1,3 +1,10 @@
+## [1.67.1](https://github.com/wize-works/jobsight-pro/compare/v1.67.0...v1.67.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* adjust colspan in maintenance records table for proper alignment ([b8a9f16](https://github.com/wize-works/jobsight-pro/commit/b8a9f16e87e662af118a2aacd3229e38a39c91db))
+
 # [1.67.0](https://github.com/wize-works/jobsight-pro/compare/v1.66.1...v1.67.0) (2025-06-21)
 
 
