@@ -376,7 +376,6 @@ export const getDailyLogWithDetailsById = async (businessId: string, id: string)
         filter: { id: { in: equipmentIds } },
         orderBy: { column: "created_at", ascending: true },
     });
-    console.log("Equipment Info Data:", equipmentData, equipmentInfoData, equipmentIds);
 
     const { data: crewData, error: crewError } = await fetchByBusiness("crews", businessId, "*", {
         filter: { id: { in: crewIds } },
@@ -397,7 +396,6 @@ export const getDailyLogWithDetailsById = async (businessId: string, id: string)
 
 
     const materials = materialData?.filter(material => material.daily_log_id === log.id) || [];
-    console.log("Materials Data:", materials);
     const equipment = equipmentData?.filter(equip => equip.daily_log_id === log.id) || [];
     const crew = crewData?.find(c => c.id === log.crew_id) || null;
     const project = projectData?.find(p => p.id === log.project_id) || null;

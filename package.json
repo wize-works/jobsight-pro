@@ -15,6 +15,7 @@
         "@langchain/openai": "^0.5.13",
         "@microsoft/clarity": "^1.0.0",
         "@sentry/nextjs": "^9.27.0",
+        "@sentry/types": "^9.30.0",
         "@stripe/react-stripe-js": "^3.7.0",
         "@stripe/stripe-js": "^7.3.1",
         "@supabase/supabase-js": "latest",
