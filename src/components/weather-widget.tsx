@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 interface WeatherData {
     current: {
@@ -29,6 +30,17 @@ export default function WeatherWidget({
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        loading: geoLoading
+    } = useCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 300000, // 5 minutes
+    });
 
     const getWeatherIcon = (condition: string): string => {
         const conditionLower = condition.toLowerCase();
@@ -66,30 +78,18 @@ export default function WeatherWidget({
                 setLoading(true);
                 setError(null);
 
-                // Get user's current location
-                const getCurrentLocation = (): Promise<GeolocationPosition> => {
-                    return new Promise((resolve, reject) => {
-                        if (!navigator.geolocation) {
-                            reject(new Error("Geolocation is not supported"));
-                            return;
-                        }
-                        navigator.geolocation.getCurrentPosition(
-                            resolve,
-                            reject,
-                        );
-                    });
-                };
-
                 let lat: number, lon: number;
 
-                try {
-                    const position = await getCurrentLocation();
+                if (position) {
                     lat = position.coords.latitude;
                     lon = position.coords.longitude;
-                } catch (locationError) {
+                } else if (geoError) {
                     // Default to a generic location (Chicago) if geolocation fails
                     lat = 41.8781;
                     lon = -87.6298;
+                } else {
+                    // Still waiting for geolocation
+                    return;
                 }
 
                 // Fetch weather data using OneCall API
@@ -143,14 +143,21 @@ export default function WeatherWidget({
                 setWeather(weatherData);
             } catch (err) {
                 console.error("Weather fetch error:", err);
-                setError("Failed to fetch weather data");
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load weather data",
+                );
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchWeather();
-    }, [location]);
+        // Only fetch weather when geolocation is done (success or failure)
+        if (!geoLoading) {
+            fetchWeather();
+        }
+    }, [position, geoError, geoLoading, location]);
 
     if (loading) {
         return (

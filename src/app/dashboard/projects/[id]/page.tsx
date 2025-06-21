@@ -13,6 +13,7 @@ import { ClientContact } from "@/types/client-contacts";
 import { getCrewsByProjectId } from "@/app/actions/crews";
 import { getProjectIssuesWithDetailsByProjectId } from "@/app/actions/projects-issues";
 import { getMediaByProjectId } from "@/app/actions/media";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
@@ -39,6 +40,19 @@ import WeatherWidget from "@/components/weather-widget";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
+
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        refetch: requestLocation
+    } = useCurrentPosition();
+
+    const updateProjectLocationFromGPS = () => {
+        requestLocation();
+
+        // This will trigger when position updates
+    };
     const [loading, setLoading] = useState(true);
     const [projectId, setProjectId] = useState<string | null>(null);
     const [project, setProject] = useState<Project>({} as Project);
@@ -359,13 +373,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     <div className="mb-1 flex flex-col justify-between">
                                         <span>Location:</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="badge badge-primary badge-outline mr-2">{project.location || "No location assigned"}</span>
-
-                                            <button className="btn btn-secondary btn-xs join-item" type="button" onClick={() => navigator.geolocation.getCurrentPosition((position) => {
-                                                const { latitude, longitude } = position.coords;
-                                                //setLocation(`Lat: ${latitude}, Lon: ${longitude}`);
-                                                //setProjectLocation({ id: equipment.id, location: `Lat: ${latitude}, Lon: ${longitude}` } as EquipmentUpdate);
-                                            })}>
+                                            <span className="badge badge-primary badge-outline mr-2">{project.location || "No location assigned"}</span>                                            <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateProjectLocationFromGPS}>
                                                 <i className="far fa-map-marker-alt"></i>
                                             </button>
                                         </div>

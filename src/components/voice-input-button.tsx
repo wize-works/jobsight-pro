@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { transcribeAudio } from '@/app/actions/ai';
+import { useMediaRecorder } from '@/hooks/use-media-recorder';
 
 interface VoiceInputButtonProps {
     onTranscriptionComplete: (text: string) => void;
@@ -22,43 +23,23 @@ export function VoiceInputButton({
     variant = 'secondary',
     tooltip = 'Click to record voice input'
 }: VoiceInputButtonProps) {
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const audioChunksRef = useRef<Blob[]>([]);
-
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunksRef.current.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-                await processVoiceNote(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.start();
-            setIsRecording(true);
-        } catch (err) {
+    const [isProcessing, setIsProcessing] = useState(false); const {
+        isRecording,
+        error: recordingError,
+        startRecording,
+        stopRecording
+    } = useMediaRecorder({
+        onDataAvailable: async (event: BlobEvent) => {
+            if (event.data.size > 0) {
+                await processVoiceNote(event.data);
+            }
+        },
+        onError: (error) => {
             const errorMsg = "Could not access microphone. Please check permissions.";
             onTranscriptionError?.(errorMsg);
-            console.error("Microphone access error:", err);
+            console.error("Microphone access error:", error);
         }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-        }
-    };
+    });
 
     const processVoiceNote = async (audioBlob: Blob) => {
         setIsProcessing(true);

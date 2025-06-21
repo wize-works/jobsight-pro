@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 // Dynamically import the map component with no SSR
 const MapComponent = dynamic(
@@ -16,36 +17,33 @@ export default function MapPage() {
     const [location, setLocation] = useState({ latitude: 0.0, longitude: 0.0 });
     const [isLoaded, setIsLoaded] = useState(false);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                // Get position first
-                const position = await new Promise<GeolocationPosition>(
-                    (resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(
-                            resolve,
-                            reject,
-                        );
-                    },
-                );
+    // Use the safe geolocation hook
+    const {
+        position,
+        error: geoError,
+        loading: geoLoading
+    } = useCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000, // 1 minute
+    });
 
+    useEffect(() => {
+        // Only update location when geolocation is complete
+        if (!geoLoading) {
+            if (position) {
                 setLocation({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                 });
-
-                // Only set loaded when both are done
-                setIsLoaded(true);
-            } catch (error) {
-                console.error("Error loading map data:", error);
+            } else {
+                console.error("Error loading map data:", geoError);
                 // Set default location if geolocation fails
                 setLocation({ latitude: 51.505, longitude: -0.09 }); // London coordinates as fallback
-                setIsLoaded(true);
             }
-        };
-
-        loadData();
-    }, []);
+            setIsLoaded(true);
+        }
+    }, [position, geoError, geoLoading]);
 
     if (!isLoaded) {
         return (

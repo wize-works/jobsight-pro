@@ -105,7 +105,6 @@ export default function RootLayout({
                     <ThemeProvider>
                         <ClarityProvider />
                         {children}
-                        <Toaster />
                     </ThemeProvider>
                 </body>
             </html>

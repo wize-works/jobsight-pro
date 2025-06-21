@@ -106,15 +106,23 @@ self.addEventListener('sync', (event) => {
     if (event.tag === 'background-sync') {
         event.waitUntil(
             syncOfflineData().catch(error => {
-                console.error('Service Worker: Sync failed:', error);
-                // Notify clients of sync failure
+                console.error('Service Worker: Sync failed:', error);                // Notify clients of sync failure
                 self.clients.matchAll().then(clients => {
-                    clients.forEach(client => {
-                        client.postMessage({
-                            type: 'SYNC_FAILED',
-                            error: error.message
+                    const promises = clients.map(client => {
+                        return new Promise((resolve) => {
+                            try {
+                                client.postMessage({
+                                    type: 'SYNC_FAILED',
+                                    error: error.message
+                                });
+                                resolve(true);
+                            } catch (err) {
+                                console.error('Failed to notify client:', err);
+                                resolve(false);
+                            }
                         });
                     });
+                    return Promise.all(promises);
                 });
             })
         );
@@ -157,21 +165,25 @@ async function syncOfflineData() {
             getAllRequest.onerror = () => reject(getAllRequest.error);
         });
 
-        console.log(`Service Worker: Found ${syncItems.length} items to sync`);
-
-        // Send sync items to the main application
+        console.log(`Service Worker: Found ${syncItems.length} items to sync`);        // Send sync items to the main application
         const clients = await self.clients.matchAll();
         if (clients.length > 0) {
-            clients.forEach(client => {
-                try {
-                    client.postMessage({
-                        type: 'SYNC_REQUIRED',
-                        items: syncItems
-                    });
-                } catch (error) {
-                    console.error('Service Worker: Failed to send message to client:', error);
-                }
+            const promises = clients.map(client => {
+                return new Promise((resolve, reject) => {
+                    try {
+                        client.postMessage({
+                            type: 'SYNC_REQUIRED',
+                            items: syncItems
+                        });
+                        resolve(true);
+                    } catch (error) {
+                        console.error('Service Worker: Failed to send message to client:', error);
+                        resolve(false);
+                    }
+                });
             });
+
+            await Promise.all(promises);
         } else {
             console.log('Service Worker: No clients available for sync');
         }
@@ -254,8 +266,17 @@ self.addEventListener('message', function (event) {
 
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
-        // Don't return true - this was causing the async response error
     }
 
-    // Explicitly don't return true to avoid the "asynchronous response" error
+    // Handle other message types safely
+    if (event.data && event.data.type === 'CACHE_UPDATE') {
+        event.waitUntil(
+            caches.delete(CACHE_NAME).then(() => {
+                return caches.open(CACHE_NAME);
+            })
+        );
+    }
+
+    // Never return true to avoid async response errors
+    // Use event.waitUntil() for async operations instead
 });
