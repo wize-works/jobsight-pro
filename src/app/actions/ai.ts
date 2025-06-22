@@ -201,13 +201,27 @@ export async function processAIQuery(
 ): Promise<AIQueryResult> {
     try {
         // Get comprehensive context data using the new relational query
-        const contextData = await getAIContextData(businessId);
-
-        // Analyze the query to understand what the user is asking for
+        const contextData = await getAIContextData(businessId);        // Analyze the query to understand what the user is asking for
         const queryContext = analyzeQuery(message, contextData);
 
+        // Add debugging info
+        console.log('Query Analysis Debug:', {
+            originalQuery: message,
+            intent: queryContext.intent,
+            requestedData: queryContext.requestedData,
+            projectNames: queryContext.projectNames,
+            limit: queryContext.limit,
+            timeframe: queryContext.timeframe
+        });
+
         // Filter context data based on the query
-        const filteredData = filterContextData(contextData, queryContext);        // Build rich context summary for AI with comprehensive analytics
+        const filteredData = filterContextData(contextData, queryContext);
+
+        console.log('Filtered Data Debug:', {
+            totalDailyLogs: filteredData.dailyLogs.length,
+            recentLogDates: filteredData.dailyLogs.slice(0, 3).map((log: any) => log.date),
+            totalProjects: filteredData.projects.length
+        });// Build rich context summary for AI with comprehensive analytics
         const projectSummary = filteredData.projects.map((p: any) => {
             const client = p.client?.name || 'Unknown Client';
             const progress = p.progress || 0;
@@ -305,10 +319,12 @@ export async function processAIQuery(
             ? `\n\nQUERY CONTEXT: User is asking specifically about: ${queryContext.projectNames.join(', ')}${queryContext.requestedData.length > 0 ? ` (focusing on: ${queryContext.requestedData.join(', ')})` : ''}${queryContext.limit ? ` (limited to ${queryContext.limit} items)` : ''}`
             : '';
 
-        const systemPrompt = `You are an advanced construction project management AI assistant with DIRECT ACCESS to real-time business data and analytics.
+        // Add debugging info to the system prompt when no logs are found
+        const debugInfo = filteredData.dailyLogs.length === 0
+            ? `\n\nDEBUG INFO: No daily logs found in the current dataset. The user may be asking about data that doesn't exist or is outside the current 30-day window.`
+            : `\n\nDATA AVAILABILITY: ${filteredData.dailyLogs.length} daily logs available for analysis.`; const systemPrompt = `You are an advanced construction project management AI assistant with DIRECT ACCESS to real-time business data and analytics.
 
-IMPORTANT: You DO have access to all the project data listed below. This is real, current data from the user's business database. You should analyze and reference this data directly in your responses.
-
+IMPORTANT: You DO have access to all the project data listed below. This is real, current data from the user's business database. You should analyze and reference this data directly in your responses.${debugInfo}
 BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
 - Projects: ${activeProjects}/${totalProjects} active${queryContext.projectNames.length > 0 ? ` (filtered for: ${queryContext.projectNames.join(', ')})` : ''}
 - Tasks: ${totalTasks} total (${urgentTasks} urgent/high priority)
@@ -361,10 +377,15 @@ CRITICAL INSTRUCTIONS:
 - Always reference specific data points, dates, hours, and metrics from the provided context
 - If asked about projects not in the filtered data, state that you don't see that project in the current data set
 - Provide concrete, data-driven insights using the actual numbers and details provided
+- NEVER create fictional or sample data - use only what is explicitly provided
+- If no data is available for a request, clearly state that no data was found
+- Always mention actual dates, project names, and figures from the provided data
 
 When creating daily logs, leverage project and crew context for enhanced accuracy and completeness.
 When answering questions, provide data-driven insights with specific metrics and actionable recommendations.
-Always consider the interconnections between projects, resources, schedules, and business objectives.`;
+Always consider the interconnections between projects, resources, schedules, and business objectives.
+
+REMEMBER: The data above is REAL and CURRENT. Reference it directly and specifically in your responses.`;
 
         // Build messages array
         const messages = [
@@ -385,10 +406,195 @@ Always consider the interconnections between projects, resources, schedules, and
                 response: "I'm sorry, I couldn't process your request at the moment.",
                 action: "none"
             };
-        }        // Check if this is a daily log creation request
-        if (message.toLowerCase().includes('daily log') ||
+        }        // Handle specific summary requests FIRST before daily log creation
+        if (queryContext.intent === 'summary' && queryContext.requestedData.includes('dailyLogs')) {
+            console.log('Summary handler triggered for daily logs');
+            const limit = queryContext.limit || 3;
+
+            // For all projects or no specific projects mentioned
+            if (queryContext.projectNames.length === 0) {
+                console.log('Cross-project summary requested');
+                // Cross-project summary
+                const recentLogs = filteredData.dailyLogs.slice(0, limit);
+                console.log(`Found ${recentLogs.length} recent logs for summary`);
+
+                if (recentLogs.length === 0) {
+                    return {
+                        response: `I don't see any daily logs in the available data for the requested timeframe. Debug info: Total logs in system: ${contextData.dailyLogs.length}, Filtered logs: ${filteredData.dailyLogs.length}`,
+                        action: "no_data"
+                    };
+                }
+
+                // Create explicit data output for AI
+                const logSummary = recentLogs.map((log: any, index: number) => {
+                    const project = log.project?.name || 'Unknown Project';
+                    const crew = log.crew?.name || 'Unknown Crew';
+                    const hours = log.hours_worked || 0;
+                    const overtime = log.overtime || 0;
+                    const materialCost = log.material_cost || 0;
+                    const equipmentHours = log.equipment_hours || 0;
+
+                    return `ACTUAL LOG #${index + 1} - DATE: ${log.date}:
+  PROJECT: ${project}
+  CREW: ${crew}
+  WORK COMPLETED: ${log.work_completed || 'No details provided'}
+  HOURS: ${hours}${overtime > 0 ? ` (+ ${overtime} OT)` : ''} | EQUIPMENT: ${equipmentHours}h
+  WEATHER: ${log.weather || 'Not recorded'} | MATERIALS: $${materialCost.toLocaleString()}
+  ${log.work_planned ? `PLANNED NEXT: ${log.work_planned}` : ''}
+  ${log.delays ? `DELAYS: ${log.delays}` : ''}
+  ${log.safety ? `SAFETY NOTES: ${log.safety}` : ''}`;
+                }).join('\n\n');
+
+                // Enhanced prompt to ensure AI uses actual data
+                const summaryPrompt = `You are provided with REAL daily log data from a construction business database. 
+
+CRITICAL INSTRUCTIONS:
+- Use ONLY the actual data provided below
+- Do NOT create any sample or fictional data
+- Reference the exact dates, projects, and details provided
+- If logs are empty or missing details, state that explicitly
+
+Here are the ${limit} most recent daily logs across all projects:
+
+${logSummary}
+
+ACTUAL DATA SUMMARY REQUESTED:
+Provide a professional summary of these actual daily logs, including:
+- The real dates and projects from the data above
+- Actual work completed as described in the logs
+- Real hours and productivity numbers
+- Any actual issues, delays, or safety notes mentioned
+- Total hours worked across all logs
+
+Format as a professional cross-project summary using ONLY the real data provided above.`;
+
+                const summaryCompletion = await openai.chat.completions.create({
+                    model: AI_MODELS.CHAT_GPT_3_5,
+                    messages: [
+                        { role: "system", content: "You are a construction project analyst. Use ONLY the actual data provided. Never create fictional examples. Always reference the real dates, projects, and details from the provided data." },
+                        { role: "user", content: summaryPrompt }
+                    ],
+                    temperature: 0.1, // Lower temperature for more factual responses
+                    max_tokens: 800,
+                });
+
+                const summaryResponse = summaryCompletion.choices[0]?.message?.content;
+
+                return {
+                    response: summaryResponse || `Here's a summary of the ${limit} most recent daily logs across all projects:\n\n${logSummary}`,
+                    action: "summary_provided",
+                    data: {
+                        logCount: recentLogs.length,
+                        dateRange: recentLogs.length > 0 ? `${recentLogs[recentLogs.length - 1].date} to ${recentLogs[0].date}` : null,
+                        scope: "all_projects"
+                    }
+                };
+            }
+            // For specific project
+            else {
+                const targetProject = filteredData.projects[0]; // First matching project
+                if (targetProject) {
+                    const projectLogs = filteredData.dailyLogs;
+                    const recentLogs = projectLogs.slice(0, limit);
+
+                    if (recentLogs.length === 0) {
+                        return {
+                            response: `I don't see any daily logs for the ${targetProject.name} project in the available data.`,
+                            action: "no_data"
+                        };
+                    }
+
+                    // Create a focused summary for the AI
+                    const logSummary = recentLogs.map((log: any, index: number) => {
+                        const crew = log.crew?.name || 'Unknown Crew';
+                        const hours = log.hours_worked || 0;
+                        const overtime = log.overtime || 0;
+                        const materialCost = log.material_cost || 0;
+                        const equipmentHours = log.equipment_hours || 0;
+
+                        return `Log #${index + 1} - ${log.date}:
+  Crew: ${crew}
+  Work Completed: ${log.work_completed || 'No details provided'}
+  Hours: ${hours}${overtime > 0 ? ` (+ ${overtime} OT)` : ''} | Equipment: ${equipmentHours}h
+  Weather: ${log.weather || 'Not recorded'} | Materials: $${materialCost.toLocaleString()}
+  ${log.work_planned ? `Planned Next: ${log.work_planned}` : ''}
+  ${log.delays ? `Delays: ${log.delays}` : ''}
+  ${log.safety ? `Safety Notes: ${log.safety}` : ''}`;
+                    }).join('\n\n');
+
+                    // Send targeted prompt to AI for summary
+                    const summaryPrompt = `Summarize the following ${limit} most recent daily logs for the ${targetProject.name} project:
+
+${logSummary}
+
+Provide a clear, concise summary highlighting:
+- Key work accomplished
+- Total hours and productivity
+- Any issues or delays
+- Progress trends
+- Notable safety or quality observations
+
+Format as a professional project summary.`;
+
+                    const summaryCompletion = await openai.chat.completions.create({
+                        model: AI_MODELS.CHAT_GPT_3_5,
+                        messages: [
+                            { role: "system", content: "You are a construction project analyst. Provide clear, professional summaries of daily log data." },
+                            { role: "user", content: summaryPrompt }
+                        ],
+                        temperature: 0.2,
+                        max_tokens: 800,
+                    });
+
+                    const summaryResponse = summaryCompletion.choices[0]?.message?.content;
+
+                    return {
+                        response: summaryResponse || `Here's a summary of the ${limit} most recent daily logs for ${targetProject.name}:\n\n${logSummary}`,
+                        action: "summary_provided",
+                        data: {
+                            projectName: targetProject.name,
+                            logCount: recentLogs.length,
+                            dateRange: recentLogs.length > 0 ? `${recentLogs[recentLogs.length - 1].date} to ${recentLogs[0].date}` : null
+                        }
+                    };
+                }
+            }
+        }        // Emergency debugging: Direct response for summary requests
+        if (message.toLowerCase().includes('summarize') &&
+            (message.toLowerCase().includes('daily logs') || message.toLowerCase().includes('daily log'))) {
+
+            const limit = queryContext.limit || 3;
+            const recentLogs = filteredData.dailyLogs.slice(0, limit);
+
+            console.log(`Direct debug response: Found ${recentLogs.length} logs out of ${contextData.dailyLogs.length} total`);
+
+            if (recentLogs.length === 0) {
+                return {
+                    response: `DEBUG: No daily logs found. Total logs in database: ${contextData.dailyLogs.length}, After filtering: ${filteredData.dailyLogs.length}. Query context: ${JSON.stringify(queryContext)}`,
+                    action: "debug_no_data"
+                };
+            }
+
+            // Direct response with actual data
+            const directSummary = recentLogs.map((log: any, index: number) => {
+                return `${index + 1}. Daily Log - ${log.date}:
+   Project: ${log.project?.name || 'Unknown'}
+   Work: ${log.work_completed || 'No work details'}
+   Hours: ${log.hours_worked || 0}
+   Crew: ${log.crew?.name || 'Unknown'}`;
+            }).join('\n\n');
+
+            return {
+                response: `Here are the ${limit} most recent daily logs from your actual database:\n\n${directSummary}\n\nDEBUG INFO: This is real data from ${recentLogs.length} actual logs.`,
+                action: "direct_summary"
+            };
+        }
+
+        // Check if this is a daily log creation request (moved after summary handling)
+        if ((message.toLowerCase().includes('daily log') ||
             message.toLowerCase().includes('work today') ||
-            message.toLowerCase().includes('completed today')) {
+            message.toLowerCase().includes('completed today')) &&
+            !queryContext.requestedData.includes('dailyLogs')) { // Only if not already a summary request
 
             // Try to extract project and work details
             const projectMatch = filteredData.projects.find((p: any) =>
@@ -411,77 +617,6 @@ Always consider the interconnections between projects, resources, schedules, and
                 return {
                     response: `I'd like to help you create a daily log, but I couldn't identify which project you're referring to. Available projects: ${filteredData.projects.map((p: any) => p.name).join(', ')}. Could you specify the project name?`,
                     action: "clarify_project"
-                };
-            }
-        }
-
-        // Handle specific summary requests with enhanced formatting
-        if (queryContext.intent === 'summary' && queryContext.projectNames.length > 0) {
-            const targetProject = filteredData.projects[0]; // First matching project
-            if (targetProject && queryContext.requestedData.includes('dailyLogs')) {
-                const projectLogs = filteredData.dailyLogs;
-                const limit = queryContext.limit || 3;
-                const recentLogs = projectLogs.slice(0, limit);
-
-                if (recentLogs.length === 0) {
-                    return {
-                        response: `I don't see any daily logs for the ${targetProject.name} project in the available data.`,
-                        action: "no_data"
-                    };
-                }
-
-                // Create a focused summary for the AI
-                const logSummary = recentLogs.map((log: any, index: number) => {
-                    const crew = log.crew?.name || 'Unknown Crew';
-                    const hours = log.hours_worked || 0;
-                    const overtime = log.overtime || 0;
-                    const materialCost = log.material_cost || 0;
-                    const equipmentHours = log.equipment_hours || 0;
-
-                    return `Log #${index + 1} - ${log.date}:
-  Crew: ${crew}
-  Work Completed: ${log.work_completed || 'No details provided'}
-  Hours: ${hours}${overtime > 0 ? ` (+ ${overtime} OT)` : ''} | Equipment: ${equipmentHours}h
-  Weather: ${log.weather || 'Not recorded'} | Materials: $${materialCost.toLocaleString()}
-  ${log.work_planned ? `Planned Next: ${log.work_planned}` : ''}
-  ${log.delays ? `Delays: ${log.delays}` : ''}
-  ${log.safety ? `Safety Notes: ${log.safety}` : ''}`;
-                }).join('\n\n');
-
-                // Send targeted prompt to AI for summary
-                const summaryPrompt = `Summarize the following ${limit} most recent daily logs for the ${targetProject.name} project:
-
-${logSummary}
-
-Provide a clear, concise summary highlighting:
-- Key work accomplished
-- Total hours and productivity
-- Any issues or delays
-- Progress trends
-- Notable safety or quality observations
-
-Format as a professional project summary.`;
-
-                const summaryCompletion = await openai.chat.completions.create({
-                    model: AI_MODELS.CHAT_GPT_3_5,
-                    messages: [
-                        { role: "system", content: "You are a construction project analyst. Provide clear, professional summaries of daily log data." },
-                        { role: "user", content: summaryPrompt }
-                    ],
-                    temperature: 0.2,
-                    max_tokens: 800,
-                });
-
-                const summaryResponse = summaryCompletion.choices[0]?.message?.content;
-
-                return {
-                    response: summaryResponse || `Here's a summary of the ${limit} most recent daily logs for ${targetProject.name}:\n\n${logSummary}`,
-                    action: "summary_provided",
-                    data: {
-                        projectName: targetProject.name,
-                        logCount: recentLogs.length,
-                        dateRange: recentLogs.length > 0 ? `${recentLogs[recentLogs.length - 1].date} to ${recentLogs[0].date}` : null
-                    }
                 };
             }
         }
@@ -729,29 +864,44 @@ function analyzeQuery(query: string, contextData: any): QueryContext {
 
     // Extract project names mentioned in the query
     const projectNames: string[] = [];
-    contextData.projects.forEach((project: any) => {
-        const projectNameLower = project.name.toLowerCase();
-        const projectNameNoSpaces = projectNameLower.replace(/\s+/g, '');
 
-        if (lowercaseQuery.includes(projectNameLower) ||
-            lowercaseQuery.includes(projectNameNoSpaces) ||
-            lowercaseQuery.includes(project.name.toLowerCase().split(' ')[0])) {
-            projectNames.push(project.name);
-        }
-    });
+    // Check for "across all projects" or similar phrases
+    const allProjectsPatterns = [
+        'across all projects',
+        'all projects',
+        'from all projects',
+        'company-wide',
+        'business-wide',
+        'overall',
+        'entire business'
+    ];
 
-    // Identify requested data types
+    const isAllProjects = allProjectsPatterns.some(pattern => lowercaseQuery.includes(pattern));
+
+    if (!isAllProjects) {
+        // Look for specific project names
+        contextData.projects.forEach((project: any) => {
+            const projectNameLower = project.name.toLowerCase();
+            const projectNameNoSpaces = projectNameLower.replace(/\s+/g, '');
+
+            if (lowercaseQuery.includes(projectNameLower) ||
+                lowercaseQuery.includes(projectNameNoSpaces) ||
+                lowercaseQuery.includes(project.name.toLowerCase().split(' ')[0])) {
+                projectNames.push(project.name);
+            }
+        });
+    }    // Identify requested data types
     const requestedData: string[] = [];
-    if (lowercaseQuery.includes('daily log') || lowercaseQuery.includes('work log')) {
+    if (lowercaseQuery.includes('daily log') || lowercaseQuery.includes('daily logs') || lowercaseQuery.includes('work log') || lowercaseQuery.includes('work logs')) {
         requestedData.push('dailyLogs');
     }
-    if (lowercaseQuery.includes('task') || lowercaseQuery.includes('todo')) {
+    if (lowercaseQuery.includes('task') || lowercaseQuery.includes('tasks') || lowercaseQuery.includes('todo')) {
         requestedData.push('tasks');
     }
     if (lowercaseQuery.includes('progress') || lowercaseQuery.includes('status')) {
         requestedData.push('progress');
     }
-    if (lowercaseQuery.includes('crew') || lowercaseQuery.includes('team')) {
+    if (lowercaseQuery.includes('crew') || lowercaseQuery.includes('crews') || lowercaseQuery.includes('team')) {
         requestedData.push('crews');
     }
     if (lowercaseQuery.includes('equipment') || lowercaseQuery.includes('machinery')) {
