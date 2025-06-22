@@ -1,3 +1,10 @@
+# [1.70.0](https://github.com/wize-works/jobsight-pro/compare/v1.69.0...v1.70.0) (2025-06-22)
+
+
+### Features
+
+* Implement dynamic imports for modal components and optimize loading experience across various pages ([aa6af7a](https://github.com/wize-works/jobsight-pro/commit/aa6af7a362a62d0b8d553b9208e406fc7a99a18a))
+
 # [1.69.0](https://github.com/wize-works/jobsight-pro/compare/v1.68.0...v1.69.0) (2025-06-22)
 
 
