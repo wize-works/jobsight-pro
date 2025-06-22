@@ -7,6 +7,7 @@ import { transcribeAudio } from '@/app/actions/ai';
 import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
+import ErrorBoundary from '@/components/error-boundary';
 
 interface AIAssistantPanelProps {
     isOpen: boolean;
@@ -252,194 +253,241 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
     if (!isOpen) return null;
 
     return (
-        <>
-            {/* Sliding panel */}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`} style={{ maxWidth: '100vw' }}>
-                {/* Header */}
-                <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center">
-                            <i className="far fa-brain text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">AI Assistant</h3>
-                            <p className="text-xs text-base-content/70">
-                                Intelligent project insights
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {conversation.length > 0 && (
-                            <button
-                                className="btn btn-xs btn-ghost"
-                                onClick={() => setConversation([])}
-                                disabled={isProcessing}
-                                title="Clear conversation"
-                            >
-                                <i className="far fa-trash text-xs"></i>
-                            </button>
-                        )}
-                        <button
-                            onClick={handleClose}
-                            className="btn btn-sm btn-circle btn-ghost"
-                            disabled={isProcessing}
-                        >
-                            <i className="far fa-times"></i>
-                        </button>
-                    </div>
+        <ErrorBoundary fallback={() => (
+            <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`}>
+                <div className="flex items-center justify-between p-4 border-b border-base-300 bg-base-200">
+                    <h3 className="font-semibold text-lg">AI Assistant</h3>
+                    <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
+                        <i className="far fa-times"></i>
+                    </button>
                 </div>
-
-                {/* Chat area */}
-                <div className="flex flex-col h-full">
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" style={{ maxHeight: 'calc(100vh - 190px)' }}>
-                        {conversation.length === 0 && (
-                            <div className="text-center py-8">
-                                <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
-                                    <i className="far fa-brain text-2xl text-primary"></i>
-                                </div>
-                                <p className="text-lg font-medium mb-2">
-                                    Hi! I'm your intelligent assistant.
-                                </p>
-                                <p className="text-sm text-base-content/70 mb-4">
-                                    I can analyze your project data, answer questions about work progress,
-                                    create daily logs, and provide insights about your construction projects.
-                                </p>
-                                <div className="text-xs text-base-content/50 space-y-1">
-                                    <p>"What safety issues happened this week?"</p>
-                                    <p>"Create a daily log for the Oakridge project"</p>
-                                    <p>"Show me tasks that are behind schedule"</p>
-                                </div>
-                            </div>
-                        )}                        {conversation.map((msg, index) => (
-                            <div key={index} className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}>
-                                <div className="chat-image avatar">
-                                    <div className={`w-8 h-8 rounded-full ${msg.type === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <i
-                                                className={`far ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
-                                                    } text-xs text-white`}
-                                            ></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="chat-header">
-                                    {msg.type === 'user' ? 'You' : 'AI Assistant'}
-                                    <time className="text-xs opacity-50 ml-1">
-                                        {msg.timestamp.toLocaleTimeString()}
-                                    </time>
-                                </div>
-                                <div className={`chat-bubble ${msg.type === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
-                                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                                </div>
-                                <div className="chat-footer opacity-50">
-                                    {msg.type === 'assistant' && (
-                                        <span className="text-xs">AI Response</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}                        {isProcessing && (
-                            <div className="chat chat-start">
-                                <div className="chat-image avatar">
-                                    <div className="w-8 h-8 rounded-full bg-secondary">
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <i className="far fa-brain text-xs text-white"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="chat-header">
-                                    AI Assistant
-                                    <time className="text-xs opacity-50 ml-1">
-                                        {new Date().toLocaleTimeString()}
-                                    </time>
-                                </div>
-                                <div className="chat-bubble chat-bubble-secondary">
-                                    <div className="flex items-center gap-2">
-                                        <span className="loading loading-dots loading-sm"></span>
-                                        <span className="text-sm">Processing...</span>
-                                    </div>
-                                </div>
-                                <div className="chat-footer opacity-50">
-                                    <span className="text-xs">Thinking...</span>
-                                </div>
-                            </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Input area */}
-                    <div className="p-3 sm:p-4 border-t border-base-300 bg-base-200">
-                        {error && (
-                            <div className="alert alert-error alert-sm mb-2">
-                                <span className="text-xs">{error}</span>
-                            </div>)}
-
-                        {/* Contextual Suggestions */}
-                        {conversation.length === 0 && getContextualSuggestions().length > 0 && (
-                            <div className="p-3 border-b border-base-300">
-                                <p className="text-xs text-base-content/60 mb-2">Quick suggestions:</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {getContextualSuggestions().map((suggestion, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => {
-                                                setTextInput(suggestion);
-                                                messageInputRef.current?.focus();
-                                            }}
-                                            className="btn btn-xs btn-outline btn-ghost text-xs"
-                                            disabled={isProcessing}
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="flex gap-2 items-end">
-                            <div className="flex-1">
-                                <textarea
-                                    ref={messageInputRef}
-                                    value={textInput}
-                                    onChange={(e) => setTextInput(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder={getContextualPlaceholder()}
-                                    className="textarea textarea-bordered textarea-sm w-full resize-none"
-                                    disabled={isProcessing}
-                                    rows={2}
-                                />
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={isRecording ? stopRecording : startRecording}
-                                className={`btn btn-sm btn-square ${isRecording ? 'btn-error' : 'btn-secondary'
-                                    }`}
-                                disabled={isProcessing}
-                            >
-                                <i className={`far ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="btn btn-primary btn-sm btn-square"
-                                disabled={!textInput.trim() || isProcessing}
-                            >
-                                <i className="far fa-paper-plane"></i>
-                            </button>
-                        </form>
-                        {isRecording && (
-                            <div className="text-center mt-2">
-                                <span className="text-xs text-error">
-                                    <i className="far fa-circle animate-pulse mr-1"></i>
-                                    Recording... Click stop when finished
-                                </span>
-                            </div>
-                        )}
+                <div className="flex-1 flex items-center justify-center p-8">
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">AI Assistant Error</h3>
+                            <div className="text-xs">The AI Assistant encountered an error. Please refresh the page.</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </>
+        )}>
+            {!isOpen ? null : (
+                <>
+                    {/* Sliding panel */}
+                    <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-base-100 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col border-l border-base-300`} style={{ maxWidth: '100vw' }}>
+                        {/* Header */}
+                        <ErrorBoundary fallback={() => (
+                            <div className="p-4 border-b border-base-300 bg-base-200">
+                                <div className="alert alert-warning">
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <h3 className="font-bold">Header temporarily unavailable</h3>
+                                        <div className="text-xs">AI Assistant header couldn't be loaded.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}>
+                            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center">
+                                        <i className="far fa-brain text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">AI Assistant</h3>
+                                        <p className="text-xs text-base-content/70">
+                                            Intelligent project insights
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {conversation.length > 0 && (
+                                        <button
+                                            className="btn btn-xs btn-ghost"
+                                            onClick={() => setConversation([])}
+                                            disabled={isProcessing}
+                                            title="Clear conversation"
+                                        >
+                                            <i className="far fa-trash text-xs"></i>
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleClose}
+                                        className="btn btn-sm btn-circle btn-ghost"
+                                        disabled={isProcessing}
+                                    >
+                                        <i className="far fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </ErrorBoundary>
+
+                        {/* Chat area */}
+                        <ErrorBoundary fallback={() => (
+                            <div className="flex-1 flex items-center justify-center p-8">
+                                <div className="alert alert-error">
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <h3 className="font-bold">Chat temporarily unavailable</h3>
+                                        <div className="text-xs">AI chat interface couldn't be loaded.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}>
+                            <div className="flex flex-col h-full">
+                                {/* Messages */}
+                                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" style={{ maxHeight: 'calc(100vh - 190px)' }}>
+                                    {conversation.length === 0 && (
+                                        <div className="text-center py-8">
+                                            <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                                                <i className="far fa-brain text-2xl text-primary"></i>
+                                            </div>
+                                            <p className="text-lg font-medium mb-2">
+                                                Hi! I'm your intelligent assistant.
+                                            </p>
+                                            <p className="text-sm text-base-content/70 mb-4">
+                                                I can analyze your project data, answer questions about work progress,
+                                                create daily logs, and provide insights about your construction projects.
+                                            </p>
+                                            <div className="text-xs text-base-content/50 space-y-1">
+                                                <p>"What safety issues happened this week?"</p>
+                                                <p>"Create a daily log for the Oakridge project"</p>
+                                                <p>"Show me tasks that are behind schedule"</p>
+                                            </div>
+                                        </div>
+                                    )}                        {conversation.map((msg, index) => (
+                                        <div key={index} className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}>
+                                            <div className="chat-image avatar">
+                                                <div className={`w-8 h-8 rounded-full ${msg.type === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <i
+                                                            className={`far ${msg.type === 'user' ? 'fa-user' : 'fa-brain'
+                                                                } text-xs text-white`}
+                                                        ></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="chat-header">
+                                                {msg.type === 'user' ? 'You' : 'AI Assistant'}
+                                                <time className="text-xs opacity-50 ml-1">
+                                                    {msg.timestamp.toLocaleTimeString()}
+                                                </time>
+                                            </div>
+                                            <div className={`chat-bubble ${msg.type === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
+                                                <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                                            </div>
+                                            <div className="chat-footer opacity-50">
+                                                {msg.type === 'assistant' && (
+                                                    <span className="text-xs">AI Response</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}                        {isProcessing && (
+                                        <div className="chat chat-start">
+                                            <div className="chat-image avatar">
+                                                <div className="w-8 h-8 rounded-full bg-secondary">
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <i className="far fa-brain text-xs text-white"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="chat-header">
+                                                AI Assistant
+                                                <time className="text-xs opacity-50 ml-1">
+                                                    {new Date().toLocaleTimeString()}
+                                                </time>
+                                            </div>
+                                            <div className="chat-bubble chat-bubble-secondary">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="loading loading-dots loading-sm"></span>
+                                                    <span className="text-sm">Processing...</span>
+                                                </div>
+                                            </div>
+                                            <div className="chat-footer opacity-50">
+                                                <span className="text-xs">Thinking...</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div ref={messagesEndRef} />
+                                </div>
+
+                                {/* Input area */}
+                                <div className="p-3 sm:p-4 border-t border-base-300 bg-base-200">
+                                    {error && (
+                                        <div className="alert alert-error alert-sm mb-2">
+                                            <span className="text-xs">{error}</span>
+                                        </div>)}
+
+                                    {/* Contextual Suggestions */}
+                                    {conversation.length === 0 && getContextualSuggestions().length > 0 && (
+                                        <div className="p-3 border-b border-base-300">
+                                            <p className="text-xs text-base-content/60 mb-2">Quick suggestions:</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {getContextualSuggestions().map((suggestion, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => {
+                                                            setTextInput(suggestion);
+                                                            messageInputRef.current?.focus();
+                                                        }}
+                                                        className="btn btn-xs btn-outline btn-ghost text-xs"
+                                                        disabled={isProcessing}
+                                                    >
+                                                        {suggestion}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+                                        <div className="flex-1">
+                                            <textarea
+                                                ref={messageInputRef}
+                                                value={textInput}
+                                                onChange={(e) => setTextInput(e.target.value)}
+                                                onKeyDown={handleKeyDown}
+                                                placeholder={getContextualPlaceholder()}
+                                                className="textarea textarea-bordered textarea-sm w-full resize-none"
+                                                disabled={isProcessing}
+                                                rows={2}
+                                            />
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={isRecording ? stopRecording : startRecording}
+                                            className={`btn btn-sm btn-square ${isRecording ? 'btn-error' : 'btn-secondary'
+                                                }`}
+                                            disabled={isProcessing}
+                                        >
+                                            <i className={`far ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary btn-sm btn-square"
+                                            disabled={!textInput.trim() || isProcessing}
+                                        >
+                                            <i className="far fa-paper-plane"></i>
+                                        </button>
+                                    </form>
+                                    {isRecording && (
+                                        <div className="text-center mt-2">
+                                            <span className="text-xs text-error">
+                                                <i className="far fa-circle animate-pulse mr-1"></i>
+                                                Recording... Click stop when finished
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </ErrorBoundary>
+
+                    </div>
+                </>
+            )}
+        </ErrorBoundary>
     );
 }

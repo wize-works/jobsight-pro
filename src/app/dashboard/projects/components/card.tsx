@@ -33,9 +33,8 @@ export const ProjectCard = ({ project }: {
     const statusInfo = getStatusInfo(project.status || "planning");
 
     return (
-        <Link
-            href={`/dashboard/projects/${project.id}`}
-            className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border"
+        <div
+            className="card bg-base-100 shadow-sm border"
         >
             <div className="card-body p-6">
                 {/* Header Section */}
@@ -150,12 +149,12 @@ export const ProjectCard = ({ project }: {
                             </button>
                         )}
                     </div>
-                    <div className="btn btn-primary btn-sm">
+                    <Link href={`/dashboard/projects/${project.id}`} className="btn btn-primary btn-sm">
                         <i className="fas fa-eye mr-1" />
                         View Details
-                    </div>
+                    </Link>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }

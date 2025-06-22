@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -6,6 +5,7 @@ import { getMediaByProjectId } from "@/app/actions/media"
 import { Media } from "@/types/media"
 import Link from "next/link"
 import { useBusiness } from "@/lib/business-context"
+import ErrorBoundary from "@/components/error-boundary"
 
 interface MediaTabProps {
     projectId: string
@@ -84,124 +84,133 @@ export default function MediaTab({ projectId }: MediaTabProps) {
     }
 
     return (
-        <div className="card bg-base-100 shadow-md p-6">
-            <div className="card-body">
-                <div className="flex flex-col gap-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold">Project Media</h2>
-                        <Link
-                            href={`/dashboard/media/upload?project=${projectId}`}
-                            className="btn btn-primary btn-sm"
-                        >
-                            <i className="far fa-upload mr-2"></i>
-                            Upload Media
-                        </Link>
-                    </div>
-
-                    <p className="text-base-content/70">
-                        Media files associated with this project ({mediaItems.length} items)
-                    </p>
-
-                    {/* Filter tabs */}
-                    <div className="tabs tabs-boxed">
-                        <button
-                            className={`tab ${selectedType === "all" ? "tab-active" : ""}`}
-                            onClick={() => setSelectedType("all")}
-                        >
-                            All ({mediaItems.length})
-                        </button>
-                        <button
-                            className={`tab ${selectedType === "images" ? "tab-active" : ""}`}
-                            onClick={() => setSelectedType("images")}
-                        >
-                            Images ({mediaItems.filter(m => m.type === "images").length})
-                        </button>
-                        <button
-                            className={`tab ${selectedType === "videos" ? "tab-active" : ""}`}
-                            onClick={() => setSelectedType("videos")}
-                        >
-                            Videos ({mediaItems.filter(m => m.type === "videos").length})
-                        </button>
-                        <button
-                            className={`tab ${selectedType === "documents" ? "tab-active" : ""}`}
-                            onClick={() => setSelectedType("documents")}
-                        >
-                            Documents ({mediaItems.filter(m => m.type === "documents").length})
-                        </button>
-                        <button
-                            className={`tab ${selectedType === "audios" ? "tab-active" : ""}`}
-                            onClick={() => setSelectedType("audios")}
-                        >
-                            Audio ({mediaItems.filter(m => m.type === "audios").length})
-                        </button>
-                    </div>
-
-                    {filteredMedia.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredMedia.map((item) => (
-                                <div key={item.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow duration-200">
-                                    <figure className="relative h-32 bg-base-200">
-                                        {item.type === "images" ? (
-                                            <img
-                                                src={item.url || "/placeholder.svg"}
-                                                alt={item.name ?? ""}
-                                                className="object-cover w-full h-full"
-                                            />
-                                        ) : (
-                                            <div className="flex items-center justify-center w-full h-full">
-                                                {getFileIcon(item.type || "")}
-                                            </div>
-                                        )}
-                                    </figure>
-                                    <div className="card-body p-4">
-                                        <h3 className="card-title text-sm flex items-center">
-                                            {getFileIcon(item.type ?? "")}
-                                            <span className="ml-2 truncate">{item.name}</span>
-                                        </h3>
-                                        {item.description && (
-                                            <p className="text-xs text-base-content/70 truncate">{item.description}</p>
-                                        )}
-                                        <div className="text-xs text-base-content/50">
-                                            <p>Uploaded {formatDate(item.created_at)}</p>
-                                            <p>{item.size || "Unknown size"}</p>
-                                        </div>
-                                        <div className="card-actions justify-end mt-2">
-                                            <Link
-                                                href={`/dashboard/media/${item.id}`}
-                                                className="btn btn-primary btn-xs"
-                                            >
-                                                View
-                                            </Link>
-                                            <a
-                                                href={item.url}
-                                                download
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-ghost btn-xs"
-                                            >
-                                                Download
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <i className="far fa-file text-4xl text-base-content/30 mb-4"></i>
-                            <p className="text-base-content/70 mb-4">
-                                No {selectedType === "all" ? "media files" : selectedType + " files"} found for this project
-                            </p>
-                            <Link
-                                href={`/dashboard/media/upload?project=${projectId}`}
-                                className="btn btn-primary"
-                            >
-                                Upload First File
-                            </Link>
-                        </div>
-                    )}
+        <ErrorBoundary fallback={(error) => (
+            <div className="alert alert-error">
+                <i className="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h3 className="font-bold">Failed to load media</h3>
+                    <div className="text-xs">Project media is temporarily unavailable.</div>
                 </div>
             </div>
-        </div>
+        )}>
+            <div className="card bg-base-100 shadow-md p-6">
+                <div className="card-body">
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">Project Media</h2>
+                            <Link
+                                href={`/dashboard/media/upload?project=${projectId}`}
+                                className="btn btn-primary btn-sm"
+                            >
+                                <i className="far fa-upload mr-2"></i>
+                                Upload Media
+                            </Link>
+                        </div>
+
+                        <p className="text-base-content/70">
+                            Media files associated with this project ({mediaItems.length} items)
+                        </p>
+
+                        {/* Filter tabs */}
+                        <div className="tabs tabs-boxed">
+                            <button
+                                className={`tab ${selectedType === "all" ? "tab-active" : ""}`}
+                                onClick={() => setSelectedType("all")}
+                            >
+                                All ({mediaItems.length})
+                            </button>
+                            <button
+                                className={`tab ${selectedType === "images" ? "tab-active" : ""}`}
+                                onClick={() => setSelectedType("images")}
+                            >
+                                Images ({mediaItems.filter(m => m.type === "images").length})
+                            </button>
+                            <button
+                                className={`tab ${selectedType === "videos" ? "tab-active" : ""}`}
+                                onClick={() => setSelectedType("videos")}
+                            >
+                                Videos ({mediaItems.filter(m => m.type === "videos").length})
+                            </button>
+                            <button
+                                className={`tab ${selectedType === "documents" ? "tab-active" : ""}`}
+                                onClick={() => setSelectedType("documents")}
+                            >
+                                Documents ({mediaItems.filter(m => m.type === "documents").length})
+                            </button>
+                            <button
+                                className={`tab ${selectedType === "audios" ? "tab-active" : ""}`}
+                                onClick={() => setSelectedType("audios")}
+                            >
+                                Audio ({mediaItems.filter(m => m.type === "audios").length})
+                            </button>
+                        </div>
+
+                        {filteredMedia.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredMedia.map((item) => (
+                                    <div key={item.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <figure className="relative h-32 bg-base-200">
+                                            {item.type === "images" ? (
+                                                <img
+                                                    src={item.url || "/placeholder.svg"}
+                                                    alt={item.name ?? ""}
+                                                    className="object-cover w-full h-full"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center w-full h-full">
+                                                    {getFileIcon(item.type || "")}
+                                                </div>
+                                            )}
+                                        </figure>
+                                        <div className="card-body p-4">
+                                            <h3 className="card-title text-sm flex items-center">
+                                                {getFileIcon(item.type ?? "")}
+                                                <span className="ml-2 truncate">{item.name}</span>
+                                            </h3>
+                                            {item.description && (
+                                                <p className="text-xs text-base-content/70 truncate">{item.description}</p>
+                                            )}
+                                            <div className="text-xs text-base-content/50">
+                                                <p>Uploaded {formatDate(item.created_at)}</p>
+                                                <p>{item.size || "Unknown size"}</p>
+                                            </div>
+                                            <div className="card-actions justify-end mt-2">
+                                                <Link
+                                                    href={`/dashboard/media/${item.id}`}
+                                                    className="btn btn-primary btn-xs"
+                                                >
+                                                    View
+                                                </Link>
+                                                <a
+                                                    href={item.url}
+                                                    download
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="btn btn-ghost btn-xs"
+                                                >
+                                                    Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <i className="far fa-file text-4xl text-base-content/30 mb-4"></i>
+                                <p className="text-base-content/70 mb-4">
+                                    No {selectedType === "all" ? "media files" : selectedType + " files"} found for this project
+                                </p>
+                                <Link
+                                    href={`/dashboard/media/upload?project=${projectId}`}
+                                    className="btn btn-primary"
+                                >
+                                    Upload First File
+                                </Link>
+                            </div>)}
+                    </div>
+                </div>
+            </div>
+        </ErrorBoundary>
     )
 }

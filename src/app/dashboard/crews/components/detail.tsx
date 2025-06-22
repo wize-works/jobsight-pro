@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ErrorBoundary from "@/components/error-boundary";
 import type { Crew, CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
 import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentUpdate, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
@@ -428,71 +429,82 @@ export default function CrewDetailComponent({
                         <i className="far fa-user-plus mr-2"></i> Add Member
                     </button>
                 </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-6">
+            </div>            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-6">
                 <div className="order-2 md:order-last">
-                    <div className="card bg-base-100 shadow-sm">
-                        <div className="card-body">
-                            <h2 className="card-title">Crew Leader</h2>
-                            <p className="text-base-content/70 mb-4">Contact information</p>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="avatar">
-                                    <div className="w-12 rounded-full">
-                                        <img src={leaderData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${leaderData.id}`} alt="Leader Avatar" />
+                    <ErrorBoundary fallback={() => (
+                        <div className="card bg-base-100 shadow-sm">
+                            <div className="card-body">
+                                <div className="alert alert-warning">
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <h3 className="font-bold">Crew leader section temporarily unavailable</h3>
+                                        <div className="text-xs">Leader information couldn't be loaded.</div>
                                     </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold">{leaderData.name}</h3>
-                                    <p className="text-sm opacity-70">{leaderData.role}</p>
-                                    <p className="text-sm text-primary"><i className="far fa-phone fa-fw mr-2"></i><Link href={`tel:${leaderData.phone}`}>{leaderData.phone}</Link></p>
-                                    <p className="text-sm text-primary"><i className="far fa-envelope fa-fw mr-2"></i><Link href={`mailto:${leaderData.email}`}>{leaderData.email}</Link></p>
+                            </div>
+                        </div>
+                    )}>
+                        <div className="card bg-base-100 shadow-sm">
+                            <div className="card-body">
+                                <h2 className="card-title">Crew Leader</h2>
+                                <p className="text-base-content/70 mb-4">Contact information</p>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="avatar">
+                                        <div className="w-12 rounded-full">
+                                            <img src={leaderData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${leaderData.id}`} alt="Leader Avatar" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold">{leaderData.name}</h3>
+                                        <p className="text-sm opacity-70">{leaderData.role}</p>
+                                        <p className="text-sm text-primary"><i className="far fa-phone fa-fw mr-2"></i><Link href={`tel:${leaderData.phone}`}>{leaderData.phone}</Link></p>
+                                        <p className="text-sm text-primary"><i className="far fa-envelope fa-fw mr-2"></i><Link href={`mailto:${leaderData.email}`}>{leaderData.email}</Link></p>
+                                    </div>
+                                </div>
+
+                                <p>Here you can change the leader of this crew:</p>
+                                <div className="join w-full">
+                                    <select
+                                        className="select select-bordered join-item w-full"
+                                        defaultValue={crew.leader_id || ""}
+                                        onChange={(e) => { setCrewLeader(e.target.value); }}
+                                    >
+                                        <option value="">Select Crew Leader</option>
+                                        {allMembers.map((member) => (
+                                            <option key={member.id} value={member.id}>
+                                                {member.name} - {member.role}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        className="btn btn-primary join-item"
+                                        onClick={() => { handleAssignLeader() }}
+                                    >
+                                        Change
+                                    </button>
                                 </div>
                             </div>
-
-                            <p>Here you can change the leader of this crew:</p>
-                            <div className="join w-full">
-                                <select
-                                    className="select select-bordered join-item w-full"
-                                    defaultValue={crew.leader_id || ""}
-                                    onChange={(e) => { setCrewLeader(e.target.value); }}
-                                >
-                                    <option value="">Select Crew Leader</option>
-                                    {allMembers.map((member) => (
-                                        <option key={member.id} value={member.id}>
-                                            {member.name} - {member.role}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button
-                                    className="btn btn-primary join-item"
-                                    onClick={() => { handleAssignLeader() }}
-                                >
-                                    Change
-                                </button>
+                        </div>
+                        <div className="card bg-base-100 shadow-sm mt-6">
+                            <div className="card-body">
+                                <h2 className="card-title">Notes</h2>
+                                <p className="text-base-content/70 mb-4">Add any important notes about the crew here.</p>
+                                <textarea
+                                    className="textarea textarea-bordered w-full"
+                                    placeholder="Add notes about the crew..."
+                                    rows={4}
+                                    defaultValue={crew.notes || ""}
+                                    onChange={(e) => {
+                                        setNotes(e.target.value);
+                                    }}
+                                ></textarea>                            <div className="mt-4">
+                                    <button className="btn btn-primary btn-sm" onClick={() => { handleUpdateNotes(); }}>
+                                        <i className="far fa-save mr-2"></i> Save Notes
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="card bg-base-100 shadow-sm mt-6">
-                        <div className="card-body">
-                            <h2 className="card-title">Notes</h2>
-                            <p className="text-base-content/70 mb-4">Add any important notes about the crew here.</p>
-                            <textarea
-                                className="textarea textarea-bordered w-full"
-                                placeholder="Add notes about the crew..."
-                                rows={4}
-                                defaultValue={crew.notes || ""}
-                                onChange={(e) => {
-                                    setNotes(e.target.value);
-                                }}
-                            ></textarea>
-
-                            <div className="mt-4">
-                                <button className="btn btn-primary btn-sm" onClick={() => { handleUpdateNotes(); }}>
-                                    <i className="far fa-save mr-2"></i> Save Notes
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    </ErrorBoundary>
                 </div>
                 <div className="flex flex-col gap-6 col-span-2">
 
@@ -573,298 +585,342 @@ export default function CrewDetailComponent({
                             <a className={`tab ${activeTab === "history" ? "tab-active" : ""}`} onClick={() => setActiveTab("history")}>
                                 Work History
                             </a>
-                        </div>
-
-                        {activeTab === "members" && (
-                            <div className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Crew Members</h3>
-                                        <div className="flex gap-2">
-                                            <button className="btn btn-sm btn-primary" onClick={() => setShowAddMemberModal(true)}>
-                                                <i className="far fa-user-plus mr-2"></i> Add New Member
-                                            </button>
-                                            <button className="btn btn-sm btn-secondary" onClick={() => setShowLinkMemberModal(true)}>
-                                                <i className="far fa-edit mr-2"></i> Link Crew Member
-                                            </button>
+                        </div>                        {activeTab === "members" && (
+                            <ErrorBoundary fallback={() => (
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="alert alert-warning">
+                                            <i className="fas fa-exclamation-triangle"></i>
+                                            <div>
+                                                <h3 className="font-bold">Members section temporarily unavailable</h3>
+                                                <div className="text-xs">Crew members couldn't be loaded.</div>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                            )}>
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Crew Members</h3>
+                                            <div className="flex gap-2">
+                                                <button className="btn btn-sm btn-primary" onClick={() => setShowAddMemberModal(true)}>
+                                                    <i className="far fa-user-plus mr-2"></i> Add New Member
+                                                </button>
+                                                <button className="btn btn-sm btn-secondary" onClick={() => setShowLinkMemberModal(true)}>
+                                                    <i className="far fa-edit mr-2"></i> Link Crew Member
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                    {members.length > 0 ? (
-                                        <div className="overflow-x-auto">
-                                            <table className="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Name</th>
-                                                        <th>Role</th>
-                                                        <th>Experience</th>
-                                                        <th>Contact</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {members.map((member: any) => (
-                                                        <tr key={member.id}>
-                                                            <td>
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="avatar">
-                                                                        <div className="w-10 rounded-full">
-                                                                            <img src={`/diverse-avatars.png?height=40&width=40&query=avatar${member.id}`} alt="Avatar" />
+                                        {members.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="table table-zebra">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Name</th>
+                                                            <th>Role</th>
+                                                            <th>Experience</th>
+                                                            <th>Contact</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {members.map((member: any) => (
+                                                            <tr key={member.id}>
+                                                                <td>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="avatar">
+                                                                            <div className="w-10 rounded-full">
+                                                                                <img src={`/diverse-avatars.png?height=40&width=40&query=avatar${member.id}`} alt="Avatar" />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="font-bold">{member.name}</div>
+                                                                            <div className="text-sm opacity-50">
+                                                                                {member.id === crew.leader_id ? "Leader" : "Member"}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <div className="font-bold">{member.name}</div>
-                                                                        <div className="text-sm opacity-50">
-                                                                            {member.id === crew.leader_id ? "Leader" : "Member"}
-                                                                        </div>
+                                                                </td>
+                                                                <td>{member.role}</td>
+                                                                <td>{member.experience}</td>
+                                                                <td>
+                                                                    <div>{member.phone}</div>
+                                                                    <div className="text-sm opacity-50">{member.email}</div>
+                                                                </td>
+                                                                <td>
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs"
+                                                                            onClick={() => handleEditMember(member)}
+                                                                        >
+                                                                            <i className="far fa-edit fa-xl"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs text-error"
+                                                                            onClick={() => {
+                                                                                if (window.confirm("Are you sure you want to remove this member from the crew?")) {
+                                                                                    // TODO: Implement remove member functionality
+                                                                                    console.log("Remove member:", member.id, "from crew:", crew.id);
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <i className="far fa-trash fa-xl"></i>
+                                                                        </button>
                                                                     </div>
-                                                                </div>
-                                                            </td>
-                                                            <td>{member.role}</td>
-                                                            <td>{member.experience}</td>
-                                                            <td>
-                                                                <div>{member.phone}</div>
-                                                                <div className="text-sm opacity-50">{member.email}</div>
-                                                            </td>
-                                                            <td>
-                                                                <div className="flex gap-2">
-                                                                    <button
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <p className="mb-4">No crew members have been added yet</p>                                            <button
+                                                    className="btn btn-primary"
+                                                    onClick={() => setShowAddMemberModal(true)}
+                                                >
+                                                    <i className="far fa-user-plus mr-2"></i> Add First Member
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </ErrorBoundary>
+                        )}                        {activeTab === "schedule" && (
+                            <ErrorBoundary fallback={() => (
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="alert alert-warning">
+                                            <i className="fas fa-exclamation-triangle"></i>
+                                            <div>
+                                                <h3 className="font-bold">Schedule section temporarily unavailable</h3>
+                                                <div className="text-xs">Crew schedule couldn't be loaded.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}>
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Upcoming Schedule</h3>
+                                            <button className="btn btn-sm btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
+                                                <i className="far fa-plus mr-2"></i> Add Assignment
+                                            </button>
+                                        </div>
+
+                                        {schedule.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="table table-zebra">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Project</th>
+                                                            <th>Notes</th>
+                                                            <th>Hours</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {schedule.map((item: any, index: number) => (
+                                                            <tr key={index}>
+                                                                <td>{item.start_date + ' - ' + item.end_date}</td>
+                                                                <td>
+                                                                    <Link href={`/dashboard/projects/${item.project_id}`} className="text-primary">
+                                                                        {item.project_name}
+                                                                        <i className="far fa-arrow-up-right-from-square fa-fw ml-2" />
+                                                                    </Link>
+                                                                </td>
+                                                                <td>{item.notes}</td>
+                                                                <td>{item.hours}</td>
+                                                                <td>
+                                                                    <div className="flex gap-2">                                                                    <button
                                                                         className="btn btn-ghost btn-xs"
-                                                                        onClick={() => handleEditMember(member)}
-                                                                    >
-                                                                        <i className="far fa-edit fa-xl"></i>
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-ghost btn-xs text-error"
                                                                         onClick={() => {
-                                                                            if (window.confirm("Are you sure you want to remove this member from the crew?")) {
-                                                                                // TODO: Implement remove member functionality
-                                                                                console.log("Remove member:", member.id, "from crew:", crew.id);
-                                                                            }
+                                                                            handleOpenEditAssignment(item);
                                                                         }}
                                                                     >
-                                                                        <i className="far fa-trash fa-xl"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8">
-                                            <p className="mb-4">No crew members have been added yet</p>
-                                            <button
-                                                className="btn btn-primary"
-                                                onClick={() => setShowAddMemberModal(true)}
-                                            >
-                                                <i className="far fa-user-plus mr-2"></i> Add First Member
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === "schedule" && (
-                            <div className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Upcoming Schedule</h3>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
-                                            <i className="far fa-plus mr-2"></i> Add Assignment
-                                        </button>
-                                    </div>
-
-                                    {schedule.length > 0 ? (
-                                        <div className="overflow-x-auto">
-                                            <table className="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Date</th>
-                                                        <th>Project</th>
-                                                        <th>Notes</th>
-                                                        <th>Hours</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {schedule.map((item: any, index: number) => (
-                                                        <tr key={index}>
-                                                            <td>{item.start_date + ' - ' + item.end_date}</td>
-                                                            <td>
-                                                                <Link href={`/dashboard/projects/${item.project_id}`} className="text-primary">
-                                                                    {item.project_name}
-                                                                    <i className="far fa-arrow-up-right-from-square fa-fw ml-2" />
-                                                                </Link>
-                                                            </td>
-                                                            <td>{item.notes}</td>
-                                                            <td>{item.hours}</td>
-                                                            <td>
-                                                                <div className="flex gap-2">                                                                    <button
-                                                                    className="btn btn-ghost btn-xs"
-                                                                    onClick={() => {
-                                                                        handleOpenEditAssignment(item);
-                                                                    }}
-                                                                >
-                                                                    <i className="far fa-edit fa-xl"></i>
-                                                                </button>                                                                    <button
-                                                                    className="btn btn-ghost btn-xs text-error"
-                                                                    onClick={() => handleDeleteAssignment(item)}
-                                                                >
-                                                                        <i className="far fa-trash fa-xl"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8">
+                                                                        <i className="far fa-edit fa-xl"></i>
+                                                                    </button>                                                                    <button
+                                                                        className="btn btn-ghost btn-xs text-error"
+                                                                        onClick={() => handleDeleteAssignment(item)}
+                                                                    >
+                                                                            <i className="far fa-trash fa-xl"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (<div className="text-center py-8">
                                             <p className="mb-4">No schedule items have been added yet</p>                                            <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
                                                 <i className="far fa-plus mr-2"></i> Add First Assignment
                                             </button>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === "equipment" && (
-                            <div className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Assigned Equipment</h3>                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
-                                            <i className="far fa-tools mr-2"></i> Assign Equipment
-                                        </button>
+                                        )}
                                     </div>
-
-                                    {equipment.length > 0 ? (
-                                        <div className="overflow-x-auto">
-                                            <table className="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Equipment</th>
-                                                        <th>Type</th>
-                                                        <th>Status</th>
-                                                        <th>Assigned Date</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {equipment.map((item: any, index: number) => (
-                                                        <tr key={index}>
-                                                            <td>{item.equipment_name}</td>
-                                                            <td>{item.equipment_type}</td>
-                                                            <td>
-                                                                {assignmentStatusOptions.badge(item.status as EquipmentAssignmentStatus)}
-                                                            </td>
-                                                            <td>{item.assigned_date}</td>
-                                                            <td>
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        className="btn btn-ghost btn-xs"
-                                                                        onClick={() => handleEditEquipmentAssignment(item)}
-                                                                    >
-                                                                        <i className="far fa-edit fa-fw fa-xl"></i>
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-ghost btn-xs text-error"
-                                                                        onClick={() => handleDeleteEquipmentAssignment(item.id)}
-                                                                    >
-                                                                        <i className="far fa-trash fa-fw fa-xl"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                </div>
+                            </ErrorBoundary>
+                        )}                        {activeTab === "equipment" && (
+                            <ErrorBoundary fallback={() => (
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="alert alert-warning">
+                                            <i className="fas fa-exclamation-triangle"></i>
+                                            <div>
+                                                <h3 className="font-bold">Equipment section temporarily unavailable</h3>
+                                                <div className="text-xs">Crew equipment assignments couldn't be loaded.</div>
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-8">
+                                    </div>
+                                </div>
+                            )}>
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Assigned Equipment</h3>                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
+                                                <i className="far fa-tools mr-2"></i> Assign Equipment
+                                            </button>
+                                        </div>
+
+                                        {equipment.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="table table-zebra">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Equipment</th>
+                                                            <th>Type</th>
+                                                            <th>Status</th>
+                                                            <th>Assigned Date</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {equipment.map((item: any, index: number) => (
+                                                            <tr key={index}>
+                                                                <td>{item.equipment_name}</td>
+                                                                <td>{item.equipment_type}</td>
+                                                                <td>
+                                                                    {assignmentStatusOptions.badge(item.status as EquipmentAssignmentStatus)}
+                                                                </td>
+                                                                <td>{item.assigned_date}</td>
+                                                                <td>
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs"
+                                                                            onClick={() => handleEditEquipmentAssignment(item)}
+                                                                        >
+                                                                            <i className="far fa-edit fa-fw fa-xl"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs text-error"
+                                                                            onClick={() => handleDeleteEquipmentAssignment(item.id)}
+                                                                        >
+                                                                            <i className="far fa-trash fa-fw fa-xl"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (<div className="text-center py-8">
                                             <p className="mb-4">No equipment has been assigned to this crew yet</p>                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
                                                 <i className="far fa-tools mr-2"></i> Assign First Equipment
                                             </button>
                                         </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {activeTab === "history" && (
-                            <div className="card bg-base-100 shadow-sm">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Work History</h3>
-                                        <div className="flex gap-2">
-                                            <select className="select select-bordered select-sm" defaultValue="all" onChange={(e) => {
-                                                // Handle project filter change
-                                                const selectedProjectId = e.target.value;
-                                                if (selectedProjectId === "all") {
-                                                    // Reset filter
-                                                    setWorkHistory(history);
-                                                } else {
-                                                    // Filter history by selected project
-                                                    const filteredHistory = history.filter((item: any) => item.project_id === selectedProjectId);
-                                                    setWorkHistory(filteredHistory);
-                                                }
-                                            }}>
-                                                <option value="all">All Projects</option>
-                                                {projects.map((project: Project) => (
-                                                    <option key={project.id} value={project.id}>
-                                                        {project.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <button className="btn btn-sm btn-outline">
-                                                <i className="far fa-filter mr-2"></i> Filter
-                                            </button>
+                            </ErrorBoundary>
+                        )}                        {activeTab === "history" && (
+                            <ErrorBoundary fallback={() => (
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="alert alert-warning">
+                                            <i className="fas fa-exclamation-triangle"></i>
+                                            <div>
+                                                <h3 className="font-bold">History section temporarily unavailable</h3>
+                                                <div className="text-xs">Crew work history couldn't be loaded.</div>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {workHistory.length > 0 ? (
-                                        <div className="overflow-x-auto">
-                                            <table className="table table-zebra">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Date</th>
-                                                        <th>Project</th>
-                                                        <th>Task</th>
-                                                        <th>Hours</th>
-                                                        <th>Completion</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {workHistory.map((item: any, index: number) => (
-                                                        <tr key={index}>
-                                                            <td>{item.start_date} - {item.end_date}</td>
-                                                            <td>{item.project_name}</td>
-                                                            <td>{item.tasks}</td>
-                                                            <td>{item.hours_worked}</td>
-                                                            <td>
-                                                                <progress
-                                                                    className="progress progress-success w-20"
-                                                                    value={item.completion}
-                                                                    max="100"
-                                                                ></progress>
-                                                                <span className="ml-2">{item.completion}%</span>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8">
-                                            <p>Feature will be released in future updates.</p>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
+                            )}>
+                                <div className="card bg-base-100 shadow-sm">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Work History</h3>
+                                            <div className="flex gap-2">
+                                                <select className="select select-bordered select-sm" defaultValue="all" onChange={(e) => {
+                                                    // Handle project filter change
+                                                    const selectedProjectId = e.target.value;
+                                                    if (selectedProjectId === "all") {
+                                                        // Reset filter
+                                                        setWorkHistory(history);
+                                                    } else {
+                                                        // Filter history by selected project
+                                                        const filteredHistory = history.filter((item: any) => item.project_id === selectedProjectId);
+                                                        setWorkHistory(filteredHistory);
+                                                    }
+                                                }}>
+                                                    <option value="all">All Projects</option>
+                                                    {projects.map((project: Project) => (
+                                                        <option key={project.id} value={project.id}>
+                                                            {project.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <button className="btn btn-sm btn-outline">
+                                                    <i className="far fa-filter mr-2"></i> Filter
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {workHistory.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="table table-zebra">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Project</th>
+                                                            <th>Task</th>
+                                                            <th>Hours</th>
+                                                            <th>Completion</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {workHistory.map((item: any, index: number) => (
+                                                            <tr key={index}>
+                                                                <td>{item.start_date} - {item.end_date}</td>
+                                                                <td>{item.project_name}</td>
+                                                                <td>{item.tasks}</td>
+                                                                <td>{item.hours_worked}</td>
+                                                                <td>
+                                                                    <progress
+                                                                        className="progress progress-success w-20"
+                                                                        value={item.completion}
+                                                                        max="100"
+                                                                    ></progress>
+                                                                    <span className="ml-2">{item.completion}%</span>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>) : (
+                                            <div className="text-center py-8">
+                                                <p>Feature will be released in future updates.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </ErrorBoundary>
                         )}
                     </div>                    {/* Add Member Modal */}
                     {showAddMemberModal && (

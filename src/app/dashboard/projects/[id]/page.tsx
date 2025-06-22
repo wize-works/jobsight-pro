@@ -38,6 +38,7 @@ import ProjectEditModal from "../components/modal-edit";
 import TaskModal from "../components/modal-task";
 import MediaModal from "../components/modal-media";
 import WeatherWidget from "@/components/weather-widget";
+import ErrorBoundary from "@/components/error-boundary";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
@@ -256,424 +257,444 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </li>
                         </ul>
                     </div>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-primary/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="far fa-calendar-alt fa-bounce fa-lg fa-fw text-primary"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg text-base-content font-medium">Last updated {formatDate(project.updated_at || "")}</span>
-                                <span className="text-sm text-base-content/50">Created on {formatDate(project.created_at || "")}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-accent/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="far fa-users fa-beat fa-lg fa-fw text-accent"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg text-base-content font-medium">Managed by {manager?.name || "Not assigned"}</span>
-                                <span className="text-sm text-base-content/50">Team size: {crews.length} crews</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="far fa-spinner-third fa-spin fa-lg fa-fw text-info"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg text-base-content font-medium">Progress: {progress || 0}%</span>
-                                <span className="text-sm text-base-content/50">Status: {projectStatusOptions.badge(project.status as ProjectStatus, "badge-xs")}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-4">
-                        <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-success/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
-                                <i className="far fa-dollar-sign fa-flip fa-lg fa-fw text-success"></i>
-                            </div>
+                </div>            </div>
 
-                            <div className="flex flex-col">
-                                <span className="text-lg text-base-content font-medium">Budget: {formatCurrency(project.budget || 0.00)}</span>
-                                <span className="text-sm text-base-content/50">Spent: {formatCurrency((project.budget || 0) * (progress / 100))}</span>
-                            </div>
-                        </div>
+            {/* Project Stats Cards */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error mb-6">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load project statistics</h3>
+                        <div className="text-xs">Project stats are temporarily unavailable.</div>
                     </div>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <div className="card bg-base-100 shadow-sm mb-6">
-                        <div className="card-body">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex flex-col justify-start items-start gap-2 mb-4">
-                                    <div className="flex justify-start items-start gap-6">
-                                        <h1 className="text-2xl font-bold">{project.name}</h1>
-                                        {projectStatusOptions.badge(project.status as ProjectStatus)}
-                                    </div>
-                                    <div className="mb-4">
-                                        <h4 className="font-medium">Project Manager</h4>
-                                        <p>{manager?.name || "Not assigned"}</p>
-                                    </div>
+            )}>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-4">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-full bg-primary/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                    <i className="far fa-calendar-alt fa-bounce fa-lg fa-fw text-primary"></i>
                                 </div>
-                                <div className="flex flex-col items-start gap-2">
-                                    <div className="text-base-content/70 mt-1">
-                                        <div className="text-xl">
-                                            Client:{" "}
-                                            <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
-                                                {client?.name || "Not specified"}
-                                            </Link>
-                                        </div>
-                                        <address className="text-sm text-base-content/70">
-                                            {client?.address}<br />
-                                            {client?.city}, {client?.state} {client?.zip}
-                                        </address>
-                                        <div className="text-sm text-base-content/70">
-                                            {client?.contact_email && (
-                                                <p>
-                                                    <a href={`mailto:${client?.contact_email}`} className="link link-primary">
-                                                        <i className="far fa-envelope mr-1"></i>{client?.contact_email || "Not provided"}
-                                                    </a>
-                                                </p>
-                                            )}
-                                            {client?.contact_phone && (
-                                                <p>
-                                                    <a href={`tel:${client?.contact_phone}`} className="link link-primary">
-                                                        <i className="far fa-phone mr-1"></i>{client?.contact_phone || "Not provided"}
-                                                    </a>
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
+                                <div className="flex flex-col">
+                                    <span className="text-lg text-base-content font-medium">Last updated {formatDate(project.updated_at || "")}</span>
+                                    <span className="text-sm text-base-content/50">Created on {formatDate(project.created_at || "")}</span>
                                 </div>
                             </div>
-                            <div className="divider my-4"></div>
-                            <h2 className="card-title">Project Details</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        </div>
+                    </div>
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-4">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-full bg-accent/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                    <i className="far fa-users fa-beat fa-lg fa-fw text-accent"></i>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-lg text-base-content font-medium">Managed by {manager?.name || "Not assigned"}</span>
+                                    <span className="text-sm text-base-content/50">Team size: {crews.length} crews</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-4">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                    <i className="far fa-spinner-third fa-spin fa-lg fa-fw text-info"></i>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-lg text-base-content font-medium">Progress: {progress || 0}%</span>
+                                    <span className="text-sm text-base-content/50">Status: {projectStatusOptions.badge(project.status as ProjectStatus, "badge-xs")}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-4">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-full bg-success/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
+                                    <i className="far fa-dollar-sign fa-flip fa-lg fa-fw text-success"></i>
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <span className="text-lg text-base-content font-medium">Budget: {formatCurrency(project.budget || 0.00)}</span>
+                                    <span className="text-sm text-base-content/50">Spent: {formatCurrency((project.budget || 0) * (progress / 100))}</span>
+                                </div>
+                            </div>                    </div>
+                    </div>
+                </div>
+            </ErrorBoundary>
+
+            {/* Project Details */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load project details</h3>
+                        <div className="text-xs">Project information is temporarily unavailable. Please refresh the page.</div>
+                    </div>
+                </div>
+            )}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                        <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card-body">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="flex flex-col justify-start items-start gap-2 mb-4">
+                                        <div className="flex justify-start items-start gap-6">
+                                            <h1 className="text-2xl font-bold">{project.name}</h1>
+                                            {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                        </div>
+                                        <div className="mb-4">
+                                            <h4 className="font-medium">Project Manager</h4>
+                                            <p>{manager?.name || "Not assigned"}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-start gap-2">
+                                        <div className="text-base-content/70 mt-1">
+                                            <div className="text-xl">
+                                                Client:{" "}
+                                                <Link href={`/dashboard/clients/${project.client_id}`} className="link link-hover">
+                                                    {client?.name || "Not specified"}
+                                                </Link>
+                                            </div>
+                                            <address className="text-sm text-base-content/70">
+                                                {client?.address}<br />
+                                                {client?.city}, {client?.state} {client?.zip}
+                                            </address>
+                                            <div className="text-sm text-base-content/70">
+                                                {client?.contact_email && (
+                                                    <p>
+                                                        <a href={`mailto:${client?.contact_email}`} className="link link-primary">
+                                                            <i className="far fa-envelope mr-1"></i>{client?.contact_email || "Not provided"}
+                                                        </a>
+                                                    </p>
+                                                )}
+                                                {client?.contact_phone && (
+                                                    <p>
+                                                        <a href={`tel:${client?.contact_phone}`} className="link link-primary">
+                                                            <i className="far fa-phone mr-1"></i>{client?.contact_phone || "Not provided"}
+                                                        </a>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="divider my-4"></div>
+                                <h2 className="card-title">Project Details</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-medium text-base-content/70">Project Type</h4>
+                                            <p>{project.type || "Not specified"}</p>
+                                        </div>
+
+                                        <div className="mb-1 flex flex-col justify-between">
+                                            <span>Location:</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="badge badge-primary badge-outline mr-2">{project.location || "No location assigned"}</span>                                            <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateProjectLocationFromGPS}>
+                                                    <i className="far fa-map-marker-alt"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-start gap-2 mb-6">
+                                            {project.location && project.location !== "No location assigned" && (
+                                                <>
+                                                    <Link href={`https://maps.apple.com/?q=${project.location}`} className="btn btn-accent btn-xs">
+                                                        <i className="fab fa-apple fa-lg"></i> View on Map
+                                                    </Link>
+                                                    <Link href={`https://google.com/maps/place/${project.location}`} className="btn btn-accent btn-xs">
+                                                        <i className="fab fa-google fa-lg"></i> View on Map
+                                                    </Link>
+                                                    <Link
+                                                        href={(() => {
+                                                            const match = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
+                                                            if (match) {
+                                                                const [_, lat, lon] = match;
+                                                                return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15&layers=M&marker=color:red|${lat},${lon}`;
+                                                            }
+                                                            return '#';
+                                                        })()}
+                                                        className="btn btn-accent btn-xs"
+                                                    >
+                                                        <i className="far fa-map fa-lg"></i> View on Map
+                                                    </Link>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-medium text-base-content/70">Start Date</h4>
+                                            <p>{formatDate(project.start_date || "")}</p>
+                                        </div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-medium text-base-content/70">End Date</h4>
+                                            <p>{formatDate(project.end_date || "")}</p>
+                                        </div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-medium text-base-content/70">Budget</h4>
+                                            <p>{formatCurrency(project.budget || 0.00)}</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">Project Type</h4>
-                                        <p>{project.type || "Not specified"}</p>
-                                    </div>
+                                    <h4 className="text-sm font-medium text-base-content/70 mb-2">Description</h4>
+                                    <p>{project.description || "No description provided"}</p>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div className="mb-1 flex flex-col justify-between">
-                                        <span>Location:</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="badge badge-primary badge-outline mr-2">{project.location || "No location assigned"}</span>                                            <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateProjectLocationFromGPS}>
-                                                <i className="far fa-map-marker-alt"></i>
+                        <div className="tabs tabs-box mb-6">
+                            <button className={`tab ${activeTab === "overview" ? "tab-active" : ""}`} onClick={() => setActiveTab("overview")} >Overview</button>
+                            <button className={`tab ${activeTab === "tasks" ? "tab-active" : ""}`} onClick={() => setActiveTab("tasks")}>Tasks</button>
+                            <button className={`tab ${activeTab === "crew" ? "tab-active" : ""}`} onClick={() => setActiveTab("crew")}>Crew</button>
+                            <button className={`tab ${activeTab === "budget" ? "tab-active" : ""}`} onClick={() => setActiveTab("budget")}>Budget</button>
+                            <button className={`tab ${activeTab === "issues" ? "tab-active" : ""}`} onClick={() => setActiveTab("issues")}>Issues</button>
+                            <button className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Media</button>
+                        </div>
+                        {activeTab === "overview" && (
+                            <>
+                                <div className="card bg-base-100 shadow-sm mb-6">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Milestones</h3>
+                                            <button className="btn btn-sm btn-outline" onClick={() => setMilestoneModalOpen(true)}>
+                                                <i className="far fa-plus mr-2"></i> Add Milestone
                                             </button>
                                         </div>
-                                    </div>
-                                    <div className="flex justify-start gap-2 mb-6">
-                                        {project.location && project.location !== "No location assigned" && (
-                                            <>
-                                                <Link href={`https://maps.apple.com/?q=${project.location}`} className="btn btn-accent btn-xs">
-                                                    <i className="fab fa-apple fa-lg"></i> View on Map
-                                                </Link>
-                                                <Link href={`https://google.com/maps/place/${project.location}`} className="btn btn-accent btn-xs">
-                                                    <i className="fab fa-google fa-lg"></i> View on Map
-                                                </Link>
-                                                <Link
-                                                    href={(() => {
-                                                        const match = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
-                                                        if (match) {
-                                                            const [_, lat, lon] = match;
-                                                            return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15&layers=M&marker=color:red|${lat},${lon}`;
-                                                        }
-                                                        return '#';
-                                                    })()}
-                                                    className="btn btn-accent btn-xs"
-                                                >
-                                                    <i className="far fa-map fa-lg"></i> View on Map
-                                                </Link>
-                                            </>
-                                        )}
+                                        <div className="overflow-x-auto">
+                                            <table className="table table-zebra">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Milestone</th>
+                                                        <th>Due Date</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {milestones?.map((milestone) => (
+                                                        <tr key={milestone.id}>
+                                                            <td>
+                                                                <div className="font-medium">{milestone.name}</div>
+                                                                <div className="text-sm text-base-content/70">{milestone.description}</div>
+                                                            </td>
+                                                            <td>{formatDate(milestone.due_date || "")}</td>
+                                                            <td>
+                                                                {projectMilestoneStatusOptions.badge(milestone.status as ProjectMilestoneStatus)}
+                                                            </td>
+                                                            <td>
+                                                                <div className="flex gap-2">
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs"
+                                                                        onClick={() => handleEditMilestone(milestone)}
+                                                                    >
+                                                                        <i className="far fa-edit fa-lg"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )) || (
+                                                            <tr>
+                                                                <td colSpan={4} className="text-center py-4">No milestones added yet</td>
+                                                            </tr>
+                                                        )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">Start Date</h4>
-                                        <p>{formatDate(project.start_date || "")}</p>
+
+                                <div className="card bg-base-100 shadow-sm mb-6">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-semibold">Recent Tasks</h3>
+                                            <button className="btn btn-sm btn-outline" onClick={() => setActiveTab("tasks")}>
+                                                <i className="far fa-eye mr-2"></i> View All
+                                            </button>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="table table-zebra">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Task</th>
+                                                        <th>Assigned To</th>
+                                                        <th>Status</th>
+                                                        <th>Progress</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {tasks?.slice(0, 3).map((task) => (
+                                                        <tr key={task.id}>
+                                                            <td>
+                                                                <div className="font-medium">{task.name}</div>
+                                                                <div className="text-xs text-base-content/70">
+                                                                    {formatDate(task.start_date || "")} - {formatDate(task.end_date || "")}
+                                                                </div>
+                                                            </td>
+                                                            <td>{task.crew_name || task.crew_name || "Unassigned"}</td>
+                                                            <td>
+                                                                {taskStatusOptions.badge(task.status as TaskStatus)}
+                                                            </td>
+                                                            <td>
+                                                                {progressBar(task.progress, 100)}
+                                                            </td>
+                                                            <td>
+                                                                <div className="flex gap-2">
+                                                                    <button
+                                                                        className="btn btn-ghost btn-xs"
+                                                                        onClick={() => handleEditTask(task)}
+                                                                    >
+                                                                        <i className="far fa-edit fa-lg"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )) || (
+                                                            <tr>
+                                                                <td colSpan={4} className="text-center py-4">No tasks added yet</td>
+                                                            </tr>
+                                                        )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">End Date</h4>
-                                        <p>{formatDate(project.end_date || "")}</p>
-                                    </div>
-                                    <div className="mb-4">
-                                        <h4 className="text-sm font-medium text-base-content/70">Budget</h4>
-                                        <p>{formatCurrency(project.budget || 0.00)}</p>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === "tasks" && (
+                            <TasksTab tasks={tasks} />
+                        )}
+                        {activeTab === "crew" && (
+                            <CrewsTab projectId={project.id} crews={crews} />
+                        )}
+                        {activeTab === "budget" && (
+                            <div className="card bg-base-100 shadow-sm">
+                                <div className="card-body">
+                                    <div className="alert alert-info">
+                                        <h3 className="text-lg font-semibold">Budget Overview</h3>
+                                        <p className="">Budget details coming soon.</p>
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-base-content/70 mb-2">Description</h4>
-                                <p>{project.description || "No description provided"}</p>
-                            </div>
-                        </div>
+                        )}
+                        {activeTab === "issues" && (
+                            <IssuesTab issues={issues} setIssues={setIssues} modalHandler={setIssueModalOpen} />
+                        )}
+                        {activeTab === "documents" && (
+                            <MediaTab projectId={project.id} />
+                        )}
                     </div>
 
-                    <div className="tabs tabs-box mb-6">
-                        <button className={`tab ${activeTab === "overview" ? "tab-active" : ""}`} onClick={() => setActiveTab("overview")} >Overview</button>
-                        <button className={`tab ${activeTab === "tasks" ? "tab-active" : ""}`} onClick={() => setActiveTab("tasks")}>Tasks</button>
-                        <button className={`tab ${activeTab === "crew" ? "tab-active" : ""}`} onClick={() => setActiveTab("crew")}>Crew</button>
-                        <button className={`tab ${activeTab === "budget" ? "tab-active" : ""}`} onClick={() => setActiveTab("budget")}>Budget</button>
-                        <button className={`tab ${activeTab === "issues" ? "tab-active" : ""}`} onClick={() => setActiveTab("issues")}>Issues</button>
-                        <button className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Media</button>
-                    </div>
-                    {activeTab === "overview" && (
-                        <>
-                            <div className="card bg-base-100 shadow-sm mb-6">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Milestones</h3>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setMilestoneModalOpen(true)}>
-                                            <i className="far fa-plus mr-2"></i> Add Milestone
-                                        </button>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="table table-zebra">
-                                            <thead>
-                                                <tr>
-                                                    <th>Milestone</th>
-                                                    <th>Due Date</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {milestones?.map((milestone) => (
-                                                    <tr key={milestone.id}>
-                                                        <td>
-                                                            <div className="font-medium">{milestone.name}</div>
-                                                            <div className="text-sm text-base-content/70">{milestone.description}</div>
-                                                        </td>
-                                                        <td>{formatDate(milestone.due_date || "")}</td>
-                                                        <td>
-                                                            {projectMilestoneStatusOptions.badge(milestone.status as ProjectMilestoneStatus)}
-                                                        </td>
-                                                        <td>
-                                                            <div className="flex gap-2">
-                                                                <button
-                                                                    className="btn btn-ghost btn-xs"
-                                                                    onClick={() => handleEditMilestone(milestone)}
-                                                                >
-                                                                    <i className="far fa-edit fa-lg"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )) || (
-                                                        <tr>
-                                                            <td colSpan={4} className="text-center py-4">No milestones added yet</td>
-                                                        </tr>
-                                                    )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="card bg-base-100 shadow-sm mb-6">
-                                <div className="card-body">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Recent Tasks</h3>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setActiveTab("tasks")}>
-                                            <i className="far fa-eye mr-2"></i> View All
-                                        </button>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="table table-zebra">
-                                            <thead>
-                                                <tr>
-                                                    <th>Task</th>
-                                                    <th>Assigned To</th>
-                                                    <th>Status</th>
-                                                    <th>Progress</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {tasks?.slice(0, 3).map((task) => (
-                                                    <tr key={task.id}>
-                                                        <td>
-                                                            <div className="font-medium">{task.name}</div>
-                                                            <div className="text-xs text-base-content/70">
-                                                                {formatDate(task.start_date || "")} - {formatDate(task.end_date || "")}
-                                                            </div>
-                                                        </td>
-                                                        <td>{task.crew_name || task.crew_name || "Unassigned"}</td>
-                                                        <td>
-                                                            {taskStatusOptions.badge(task.status as TaskStatus)}
-                                                        </td>
-                                                        <td>
-                                                            {progressBar(task.progress, 100)}
-                                                        </td>
-                                                        <td>
-                                                            <div className="flex gap-2">
-                                                                <button
-                                                                    className="btn btn-ghost btn-xs"
-                                                                    onClick={() => handleEditTask(task)}
-                                                                >
-                                                                    <i className="far fa-edit fa-lg"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )) || (
-                                                        <tr>
-                                                            <td colSpan={4} className="text-center py-4">No tasks added yet</td>
-                                                        </tr>
-                                                    )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === "tasks" && (
-                        <TasksTab tasks={tasks} />
-                    )}
-                    {activeTab === "crew" && (
-                        <CrewsTab projectId={project.id} crews={crews} />
-                    )}
-                    {activeTab === "budget" && (
+                    <div className="lg:col-span-1">
                         <div className="card bg-base-100 shadow-sm">
                             <div className="card-body">
-                                <div className="alert alert-info">
-                                    <h3 className="text-lg font-semibold">Budget Overview</h3>
-                                    <p className="">Budget details coming soon.</p>
+                                <h3 className="text-lg font-semibold mb-4">Project Progress</h3>
+                                <div className="mb-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span>Overall Progress</span>
+                                        <span className="font-semibold">{progress || 0}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        className="range range-primary w-full"
+                                        name="progress"
+                                        value={progress || 0}
+                                        onChange={(e) => setProgress(Number(e.target.value))}
+                                        onMouseUp={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                        onTouchEnd={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                    />
+                                </div>
+                                <div className="stats stats-vertical shadow">
+                                    <div className="stat">
+                                        <div className="stat-title">Elapsed Time</div>
+                                        <div className="stat-value text-lg">
+                                            {project.start_date ? formatDistanceToNow(new Date(project.start_date)) : "Not started"}
+                                        </div>
+
+                                        <div className="stat-desc">
+                                            {project.start_date && project.end_date
+                                                ? `of ${formatDistance(new Date(project.start_date), new Date(project.end_date))}`
+                                                : "Duration not set"
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div className="stat">
+                                        <div className="stat-title">Tasks Completed</div>
+                                        <div className="stat-value text-lg">
+                                            {tasks.filter((task) => task.status === "completed").length || 0}
+                                        </div>
+                                        <div className="stat-desc">of {tasks?.length || 0} total tasks</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    )}
-                    {activeTab === "issues" && (
-                        <IssuesTab issues={issues} setIssues={setIssues} modalHandler={setIssueModalOpen} />
-                    )}
-                    {activeTab === "documents" && (
-                        <MediaTab projectId={project.id} />
-                    )}
+
+                        <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card-body">
+                                <h3 className="text-lg font-semibold mb-4">Client Contacts</h3>
+                                {contacts?.map((contact, index) => (
+                                    <div key={contact.email || index} className={index > 0 ? "mt-4 pt-4 border-t" : ""}>
+                                        <p className="font-medium">{contact.name}</p>
+                                        <p className="text-sm">{contact.is_primary}</p>
+                                        <p>
+                                            {!contact.email || contact.email === "" ?
+                                                <>
+                                                    <i className="far fa-envelope mr-1"></i>Not provided
+                                                </>
+                                                :
+                                                <a href={`mailto:${contact.email}`} className="text-sm link link-primary">
+                                                    <i className="far fa-envelope mr-1"></i>{contact.email}
+                                                </a>
+                                            }
+                                        </p>
+                                        <p>
+                                            {!contact.phone || contact.phone === "" ?
+                                                <>
+                                                    <i className="far fa-phone mr-1"></i>Not provided
+                                                </>
+                                                :
+                                                <a href={`tel:${contact.phone}`} className="text-sm link link-primary">
+                                                    <i className="far fa-phone mr-1"></i>{contact.phone}
+                                                </a>
+                                            }
+                                        </p>
+                                    </div>
+                                )) || <p>No contacts available.</p>}
+                            </div>
+                        </div>
+
+                        <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card-body">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-semibold">Assigned Crews</h3>
+                                    <button className="btn btn-sm btn-primary">
+                                        <i className="far fa-plus mr-1"></i> Assign
+                                    </button>
+                                </div>
+                                {crews?.map((crew) => (
+                                    <div key={crew.id} className="mb-3">
+                                        <div className="font-medium">
+                                            <Link href={`/dashboard/crews/${crew.id}`} className="link link-hover">
+                                                {crew.name}
+                                            </Link>
+                                        </div>
+                                        <p className="text-xs text-base-content/70">
+                                            Led by {crew.leader_name} • {crew.member_count} members
+                                        </p>
+                                    </div>
+                                )) || <p>No crews assigned.</p>}
+                            </div>
+                        </div>                    <WeatherWidget location={project.location || "Project Location"} />
+                    </div>
                 </div>
+            </ErrorBoundary>
 
-                <div className="lg:col-span-1">
-                    <div className="card bg-base-100 shadow-sm">
-                        <div className="card-body">
-                            <h3 className="text-lg font-semibold mb-4">Project Progress</h3>
-                            <div className="mb-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span>Overall Progress</span>
-                                    <span className="font-semibold">{progress || 0}%</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    className="range range-primary w-full"
-                                    name="progress"
-                                    value={progress || 0}
-                                    onChange={(e) => setProgress(Number(e.target.value))}
-                                    onMouseUp={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
-                                    onTouchEnd={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
-                                />
-                            </div>
-                            <div className="stats stats-vertical shadow">
-                                <div className="stat">
-                                    <div className="stat-title">Elapsed Time</div>
-                                    <div className="stat-value text-lg">
-                                        {project.start_date ? formatDistanceToNow(new Date(project.start_date)) : "Not started"}
-                                    </div>
-
-                                    <div className="stat-desc">
-                                        {project.start_date && project.end_date
-                                            ? `of ${formatDistance(new Date(project.start_date), new Date(project.end_date))}`
-                                            : "Duration not set"
-                                        }
-                                    </div>
-                                </div>
-
-                                <div className="stat">
-                                    <div className="stat-title">Tasks Completed</div>
-                                    <div className="stat-value text-lg">
-                                        {tasks.filter((task) => task.status === "completed").length || 0}
-                                    </div>
-                                    <div className="stat-desc">of {tasks?.length || 0} total tasks</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card bg-base-100 shadow-sm mb-6">
-                        <div className="card-body">
-                            <h3 className="text-lg font-semibold mb-4">Client Contacts</h3>
-                            {contacts?.map((contact, index) => (
-                                <div key={contact.email || index} className={index > 0 ? "mt-4 pt-4 border-t" : ""}>
-                                    <p className="font-medium">{contact.name}</p>
-                                    <p className="text-sm">{contact.is_primary}</p>
-                                    <p>
-                                        {!contact.email || contact.email === "" ?
-                                            <>
-                                                <i className="far fa-envelope mr-1"></i>Not provided
-                                            </>
-                                            :
-                                            <a href={`mailto:${contact.email}`} className="text-sm link link-primary">
-                                                <i className="far fa-envelope mr-1"></i>{contact.email}
-                                            </a>
-                                        }
-                                    </p>
-                                    <p>
-                                        {!contact.phone || contact.phone === "" ?
-                                            <>
-                                                <i className="far fa-phone mr-1"></i>Not provided
-                                            </>
-                                            :
-                                            <a href={`tel:${contact.phone}`} className="text-sm link link-primary">
-                                                <i className="far fa-phone mr-1"></i>{contact.phone}
-                                            </a>
-                                        }
-                                    </p>
-                                </div>
-                            )) || <p>No contacts available.</p>}
-                        </div>
-                    </div>
-
-                    <div className="card bg-base-100 shadow-sm mb-6">
-                        <div className="card-body">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold">Assigned Crews</h3>
-                                <button className="btn btn-sm btn-primary">
-                                    <i className="far fa-plus mr-1"></i> Assign
-                                </button>
-                            </div>
-                            {crews?.map((crew) => (
-                                <div key={crew.id} className="mb-3">
-                                    <div className="font-medium">
-                                        <Link href={`/dashboard/crews/${crew.id}`} className="link link-hover">
-                                            {crew.name}
-                                        </Link>
-                                    </div>
-                                    <p className="text-xs text-base-content/70">
-                                        Led by {crew.leader_name} • {crew.member_count} members
-                                    </p>
-                                </div>
-                            )) || <p>No crews assigned.</p>}
-                        </div>
-                    </div>
-
-                    <WeatherWidget location={project.location || "Project Location"} />
-                </div>
-            </div>
             {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}

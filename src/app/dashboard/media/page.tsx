@@ -11,6 +11,7 @@ import { useBusiness } from "@/lib/business-context"
 import MediaLibraryLoading from "./loading"
 import { MediaCard } from "./components/card"
 import { formatDate } from "@/utils/formatters"
+import ErrorBoundary from "@/components/error-boundary"
 
 // Helper functions for table view
 const getFileIcon = (type: string) => {
@@ -186,25 +187,31 @@ export default function MediaLibrary() {
                     )}
                 </div>
             </div>
-
             {/* Filters and search */}
-            <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
-                <div className="flex flex-col md:flex-row gap-6">
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error mb-6">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load media filters</h3>
+                        <div className="text-xs">Search and filter options are temporarily unavailable.</div>
+                    </div>
+                </div>
+            )}>
+                <div className="bg-base-100 p-2 rounded-lg shadow-sm mb-6">
+                    <div className="flex flex-col md:flex-row gap-6">
 
-                    <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
-                        <i className="far fa-search"></i>
-                        <input
-                            type="text"
-                            placeholder="Search projects..."
-                            className="input input-bordered w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </label>
-
-                    <div className="flex gap-6">
+                        <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
+                            <i className="far fa-search"></i>
+                            <input
+                                type="text"
+                                placeholder="Search media..."
+                                className="input input-bordered w-full"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </label>
                         <select
-                            className="select select-bordered select-secondary w-full max-w-xs"
+                            className="select select-bordered select-secondary w-full"
                             value={selectedProject || ""}
                             onChange={(e) => setSelectedProject(e.target.value || null)}
                         >
@@ -217,7 +224,7 @@ export default function MediaLibrary() {
                         </select>
 
                         <select
-                            className="select select-bordered select-secondary w-full max-w-xs"
+                            className="select select-bordered select-secondary w-full"
                             value={selectedType || ""}
                             onChange={(e) => setSelectedType(e.target.value || null)}
                         >
@@ -236,94 +243,104 @@ export default function MediaLibrary() {
                         </div>
                     </div>
                 </div>
-            </div>            {/* Media content */}
-            {view === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredMedia.map((item) => (
-                        <MediaCard
-                            key={item.id}
-                            media={item}
-                            projects={projects}
-                            isSelected={selectedItems.includes(item.id)}
-                            onSelect={toggleSelection}
-                            onDelete={handleSingleDelete}
-                        />
-                    ))}
+            </ErrorBoundary>
+            {/* Media content */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load media content</h3>
+                        <div className="text-xs">Media files are temporarily unavailable. Please refresh the page.</div>
+                    </div>
                 </div>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="table table-zebra w-full">
-                        <thead>
-                            <tr>
-                                <th className="w-8">
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox checkbox-sm"
-                                        checked={selectedItems.length === filteredMedia.length && filteredMedia.length > 0}
-                                        onChange={() => {
-                                            if (selectedItems.length === filteredMedia.length) {
-                                                setSelectedItems([])
-                                            } else {
-                                                setSelectedItems(filteredMedia.map((item) => item.id))
-                                            }
-                                        }}
-                                    />
-                                </th>
-                                <th>Name</th>
-                                <th>Project</th>
-                                <th>Size</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredMedia.map((item) => (
-                                <tr key={item.id}>
-                                    <td>
+            )}>
+                {view === "grid" ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {filteredMedia.map((item) => (
+                            <MediaCard
+                                key={item.id}
+                                media={item}
+                                projects={projects}
+                                isSelected={selectedItems.includes(item.id)}
+                                onSelect={toggleSelection}
+                                onDelete={handleSingleDelete}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th className="w-8">
                                         <input
                                             type="checkbox"
                                             className="checkbox checkbox-sm"
-                                            checked={selectedItems.includes(item.id)}
-                                            onChange={() => toggleSelection(item.id)}
+                                            checked={selectedItems.length === filteredMedia.length && filteredMedia.length > 0}
+                                            onChange={() => {
+                                                if (selectedItems.length === filteredMedia.length) {
+                                                    setSelectedItems([])
+                                                } else {
+                                                    setSelectedItems(filteredMedia.map((item) => item.id))
+                                                }
+                                            }}
                                         />
-                                    </td>
-                                    <td>
-                                        <div className="flex items-center space-x-6">
-                                            <div className="flex-shrink-0">{getFileIcon(item.type ?? "")}</div>
-                                            <div>
-                                                <div className="font-medium">{item.name}</div>
-                                                <div className="text-xs opacity-50">{item.description}</div>
-                                            </div>
-                                        </div>
-                                    </td>                                    <td>{getProjectName(item.project_id, projects)}</td>
-                                    <td>{item.size || "Unknown"}</td>
-                                    <td>{formatDate(item.created_at || "")}</td>
-                                    <td>
-                                        <div className="dropdown dropdown-end">
-                                            <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
-                                                <i className="far fa-ellipsis-v"></i>
-                                            </div>
-                                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                                <li>
-                                                    <Link href={`/dashboard/media/${item.id}`}>Preview</Link>
-                                                </li>
-                                                <li>
-                                                    <a href={item.url} download target="_blank" rel="noopener noreferrer">Download</a>
-                                                </li>
-                                                <li>
-                                                    <button onClick={() => handleSingleDelete(item.id)} className="text-error">
-                                                        Delete
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
+                                    </th>
+                                    <th>Name</th>
+                                    <th>Project</th>
+                                    <th>Size</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </thead>
+                            <tbody>
+                                {filteredMedia.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-sm"
+                                                checked={selectedItems.includes(item.id)}
+                                                onChange={() => toggleSelection(item.id)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <div className="flex items-center space-x-6">
+                                                <div className="flex-shrink-0">{getFileIcon(item.type ?? "")}</div>
+                                                <div>
+                                                    <div className="font-medium">{item.name}</div>
+                                                    <div className="text-xs opacity-50">{item.description}</div>
+                                                </div>
+                                            </div>
+                                        </td>                                    <td>{getProjectName(item.project_id, projects)}</td>
+                                        <td>{item.size || "Unknown"}</td>
+                                        <td>{formatDate(item.created_at || "")}</td>
+                                        <td>
+                                            <div className="dropdown dropdown-end">
+                                                <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
+                                                    <i className="far fa-ellipsis-v"></i>
+                                                </div>
+                                                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                                    <li>
+                                                        <Link href={`/dashboard/media/${item.id}`}>Preview</Link>
+                                                    </li>
+                                                    <li>
+                                                        <a href={item.url} download target="_blank" rel="noopener noreferrer">Download</a>
+                                                    </li>
+                                                    <li>
+                                                        <button onClick={() => handleSingleDelete(item.id)} className="text-error">
+                                                            Delete
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>                </div>
+                )}
+            </ErrorBoundary>
 
             {filteredMedia.length === 0 && !loading && (
                 <div className="text-center py-12">

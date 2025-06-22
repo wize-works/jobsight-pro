@@ -10,6 +10,7 @@ import { ProjectCrewWithDetails } from "@/types/project-crews";
 import { EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { Equipment } from "@/types/equipment";
 import { Project } from "@/types/projects";
+import ErrorBoundary from "@/components/error-boundary";
 
 export default function CrewPage({ params }: { params: Promise<{ id: string }> }) {
     const [loading, setLoading] = useState(true);
@@ -77,17 +78,27 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
     }
 
     return (
-        <div className="">
-            <CrewDetailComponent
-                crew={crew}
-                members={members}
-                allMembers={allMembers}
-                schedule={schedule}
-                history={history}
-                equipment={equipment}
-                projects={projects}
-                allEquipment={allEquipment}
-            />
-        </div>
+        <ErrorBoundary fallback={() => (
+            <div className="alert alert-error">
+                <i className="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h3 className="font-bold">Crew Details Error</h3>
+                    <div className="text-xs">Failed to load crew details. Please refresh the page.</div>
+                </div>
+            </div>
+        )}>
+            <div className="">
+                <CrewDetailComponent
+                    crew={crew}
+                    members={members}
+                    allMembers={allMembers}
+                    schedule={schedule}
+                    history={history}
+                    equipment={equipment}
+                    projects={projects}
+                    allEquipment={allEquipment}
+                />
+            </div>
+        </ErrorBoundary>
     );
 }
