@@ -1,3 +1,10 @@
+# [1.69.0](https://github.com/wize-works/jobsight-pro/compare/v1.68.0...v1.69.0) (2025-06-22)
+
+
+### Features
+
+* Enhance AI Assistant functionality and error handling ([d78cffa](https://github.com/wize-works/jobsight-pro/commit/d78cffa08c5f5bfd70c812c7f9c63255340ae9e6))
+
 # [1.68.0](https://github.com/wize-works/jobsight-pro/compare/v1.67.1...v1.68.0) (2025-06-22)
 
 
