@@ -135,9 +135,8 @@ export const getEquipmentById = async (businessId: string, id: string): Promise<
 export const getEquipmentDetail = async (businessId: string, id: string) => {
     try {
         const { data, error } = await fetchByBusinessWithQuery(businessId, {
-            from: "equipment",
-            select: ["id", "name", "type", "model", "serial_number", "status", "location", "description",
-                "purchase_date", "warranty_date", "purchase_price", "current_value", "manufacturer"],
+            from: "equipment", select: ["id", "name", "type", "model", "serial_number", "status", "location", "description",
+                "purchase_date", "purchase_price", "current_value"],
             joins: [
                 {
                     table: "equipment_assignments",
@@ -461,23 +460,19 @@ export const setEquipmentLocation = async (businessId: string, equipment: Equipm
 export const getEquipmentDetailsByID = async (businessId: string, id: string) => {
     try {
         const { data, error } = await fetchByBusinessWithQuery(businessId, {
-            from: "equipment",
-            select: ["id", "name", "type", "model", "serial_number", "status", "location", "description", "purchase_date", "warranty_date", "purchase_price", "current_value"],
+            from: "equipment", select: ["id", "name", "type", "model", "serial_number", "status", "location", "description", "purchase_date", "purchase_price", "current_value"],
             joins: [
                 {
                     table: "equipment_assignments",
                     select: ["id", "project_id", "crew_id", "start_date", "end_date", "status"],
-                    alias: "assignments"
                 },
                 {
                     table: "equipment_maintenance",
-                    select: ["id", "type", "date", "description", "cost", "next_maintenance"],
-                    alias: "maintenance"
+                    select: ["id", "maintenance_type", "maintenance_date", "description", "cost"],
                 },
                 {
                     table: "equipment_usage",
-                    select: ["id", "date", "hours_used", "location", "operator", "fuel_consumed"],
-                    alias: "usage"
+                    select: ["id", "start_date", "end_date", "hours_used", "fuel_consumed", "project_id", "crew_id"],
                 }
             ], aggregates: [
                 { function: "count", table: "equipment_assignments", alias: "total_assignments" },
@@ -571,4 +566,150 @@ export const getEquipmentUtilizationAnalytics = async (businessId: string, equip
         console.error("Error in getEquipmentUtilizationAnalytics:", error);
         return [];
     }
-};
+}
+
+// Optimized function for equipment printable page - gets all data in single query
+export const getEquipmentPrintableDetail = async (businessId: string, id: string) => {
+    try {
+        const { data, error } = await fetchByBusinessWithQuery(businessId, {
+            from: "equipment", select: ["id", "name", "type", "model", "make", "year", "serial_number", "status", "location", "description",
+                "purchase_date", "purchase_price", "current_value", "image_url", "next_maintenance"], joins: [
+                    {
+                        table: "equipment_assignments",
+                        select: ["id", "project_id", "crew_id", "start_date", "end_date", "status", "notes"]
+                    },
+                    {
+                        table: "equipment_maintenance",
+                        select: ["id", "maintenance_type", "maintenance_date", "description", "cost", "technician", "notes"]
+                    },
+                    {
+                        table: "equipment_usage",
+                        select: ["id", "start_date", "end_date", "hours_used", "fuel_consumed", "project_id", "crew_id"]
+                    },
+                    {
+                        table: "equipment_specifications",
+                        select: ["id", "name", "value"]
+                    }
+                ],
+            aggregates: [
+                { function: "count", table: "equipment_assignments", alias: "total_assignments" },
+                { function: "count", table: "equipment_maintenance", alias: "maintenance_count" },
+                { function: "count", table: "equipment_usage", alias: "usage_count" },
+                { function: "count", table: "equipment_specifications", alias: "specifications_count" },
+                { function: "sum", table: "equipment_usage", alias: "total_hours", column: "hours_used" },
+                { function: "sum", table: "equipment_maintenance", alias: "total_maintenance_cost", column: "cost" }
+            ],
+            where: { id },
+            orderBy: { column: "updated_at", ascending: false }
+        }); if (error) {
+            console.error("Error fetching equipment printable detail:", error);
+            return null;
+        }
+
+        const equipment: any = data?.[0];
+        if (!equipment) return null;        // Log to debug what we're getting
+        console.log("Fetched equipment data:", {
+            id: equipment.id,
+            name: equipment.name,
+            hasAssignments: !!equipment.equipment_assignments,
+            assignmentsCount: equipment.equipment_assignments?.length || 0,
+            hasMaintenance: !!equipment.equipment_maintenance,
+            maintenanceCount: equipment.equipment_maintenance?.length || 0,
+            hasUsage: !!equipment.equipment_usage,
+            usageCount: equipment.equipment_usage?.length || 0,
+            hasSpecifications: !!equipment.equipment_specifications,
+            specificationsCount: equipment.equipment_specifications?.length || 0
+        });// Fetch documents via media_links (separate query due to polymorphic relationship)
+        let documents: any[] = [];
+        const { data: mediaLinks } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: { linked_type: "equipment", linked_id: id }
+        });
+
+        if (mediaLinks && mediaLinks.length > 0) {
+            const mediaIds = mediaLinks.map((link: any) => link.media_id);
+            const { data: mediaData } = await fetchByBusiness("media", businessId, "*", {
+                filter: { id: { in: mediaIds }, type: "documents" }
+            });
+            documents = mediaData || [];
+        }
+
+        // Enhance assignments with project and crew names for printable view
+        if (equipment.assignments && equipment.assignments.length > 0) {
+            const projectIds = equipment.assignments
+                .map((a: any) => a.project_id)
+                .filter((id: any) => id);
+
+            const crewIds = equipment.assignments
+                .map((a: any) => a.crew_id)
+                .filter((id: any) => id);
+
+            // Get project names
+            if (projectIds.length > 0) {
+                const { data: projects } = await fetchByBusiness("projects", businessId,
+                    ["id", "name"], {
+                    filter: { id: { in: projectIds } }
+                });
+
+                if (projects && projects.length > 0) {
+                    equipment.assignments = equipment.assignments.map((assignment: any) => {
+                        const project = projects.find((p: any) => p.id === assignment.project_id);
+                        return {
+                            ...assignment,
+                            project_name: project?.name || assignment.project_id
+                        };
+                    });
+                }
+            }
+
+            // Get crew names
+            if (crewIds.length > 0) {
+                const { data: crews } = await fetchByBusiness("crews", businessId,
+                    ["id", "name"], {
+                    filter: { id: { in: crewIds } }
+                });
+
+                if (crews && crews.length > 0) {
+                    equipment.assignments = equipment.assignments.map((assignment: any) => {
+                        const crew = crews.find((c: any) => c.id === assignment.crew_id);
+                        return {
+                            ...assignment,
+                            crew_name: crew?.name || assignment.crew_id
+                        };
+                    });
+                }
+            }
+        }
+
+        // Enhance usage records with project and crew names
+        if (equipment.usage && equipment.usage.length > 0) {
+            const usageProjectIds = equipment.usage
+                .map((u: any) => u.project_id)
+                .filter((id: any) => id);
+
+            if (usageProjectIds.length > 0) {
+                const { data: projects } = await fetchByBusiness("projects", businessId,
+                    ["id", "name"], {
+                    filter: { id: { in: usageProjectIds } }
+                });
+
+                if (projects && projects.length > 0) {
+                    equipment.usage = equipment.usage.map((usage: any) => {
+                        const project = projects.find((p: any) => p.id === usage.project_id);
+                        return {
+                            ...usage,
+                            project_name: project?.name || usage.project_id
+                        };
+                    });
+                }
+            }
+        }
+
+        return {
+            ...equipment,
+            documents
+        };
+    } catch (error) {
+        console.error("Error in getEquipmentPrintableDetail:", error);
+        return null;
+    }
+}
