@@ -1,3 +1,10 @@
+# [1.71.0](https://github.com/wize-works/jobsight-pro/compare/v1.70.0...v1.71.0) (2025-06-22)
+
+
+### Features
+
+* Implement Universal Media Components ([c83e917](https://github.com/wize-works/jobsight-pro/commit/c83e9173b5451f495510819622a20368342e858f))
+
 # [1.70.0](https://github.com/wize-works/jobsight-pro/compare/v1.69.0...v1.70.0) (2025-06-22)
 
 
