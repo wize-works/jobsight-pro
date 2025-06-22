@@ -1,3 +1,10 @@
+# [1.76.0](https://github.com/wize-works/jobsight-pro/compare/v1.75.0...v1.76.0) (2025-06-22)
+
+
+### Features
+
+* Refactor TasksPage to use client-side rendering with hooks; implement task filtering, sorting, and CRUD operations. Enhance EquipmentPrintPage for better data fetching and display. Update ModalLoading component for improved styling. ([293d6b9](https://github.com/wize-works/jobsight-pro/commit/293d6b98684590204d8adb1e270e75f9d8c9aa40))
+
 # [1.75.0](https://github.com/wize-works/jobsight-pro/compare/v1.74.0...v1.75.0) (2025-06-22)
 
 
