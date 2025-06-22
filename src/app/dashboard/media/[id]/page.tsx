@@ -9,6 +9,7 @@ import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
 import { useBusiness } from "@/lib/business-context"
+import MediaDetailLoading from "./loading"
 
 export default function MediaDetail() {
     const params = useParams()
@@ -26,9 +27,13 @@ export default function MediaDetail() {
 
     useEffect(() => {
         loadData()
-    }, [mediaId])
+    }, [mediaId, businessId])
 
     const loadData = async () => {
+        if (!businessId) {
+            return;
+        }
+
         try {
             setLoading(true)
             const [media, projectsData] = await Promise.all([
@@ -141,11 +146,7 @@ export default function MediaDetail() {
     }
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="loading loading-spinner loading-lg"></div>
-            </div>
-        )
+        return <MediaDetailLoading />
     }
 
     if (!mediaItem) {

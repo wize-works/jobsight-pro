@@ -8,7 +8,7 @@ import { getNotificationsByUserId, markNotificationAsRead, markAllNotificationsA
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
-import Loading from "@/app/loading";
+import NotificationsLoading from "./loading";
 
 export default function NotificationsPage() {
     const { user } = useKindeAuth();
@@ -90,10 +90,12 @@ export default function NotificationsPage() {
 
     const filteredNotifications = notifications.filter(n =>
         filter === 'all' || (filter === 'unread' && !n.read)
-    );
+    ); if (!user?.id || !businessId) {
+        return <NotificationsLoading />;
+    }
 
-    if (!user?.id || !businessId) {
-        return <Loading />;
+    if (loading) {
+        return <NotificationsLoading />;
     }
 
     return (
@@ -126,13 +128,7 @@ export default function NotificationsPage() {
                             </button>
                         )}
                     </div>
-                </div>
-
-                {loading ? (
-                    <div className="flex justify-center py-12">
-                        <div className="loading loading-spinner loading-lg"></div>
-                    </div>
-                ) : filteredNotifications.length === 0 ? (
+                </div>                {filteredNotifications.length === 0 ? (
                     <div className="text-center py-12">
                         <i className="fas fa-bell-slash fa-4x text-base-content/30 mb-4"></i>
                         <h3 className="text-xl font-semibold mb-2">No notifications</h3>

@@ -7,6 +7,7 @@ import { getProjects } from "@/app/actions/projects";
 import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
+import DailyLogDetailLoading from "./loading";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
@@ -62,11 +63,9 @@ export default function DailyLogPage({ params }: { params: Promise<{ id: string 
         };
 
         fetchData();
-    }, [businessId, params]);
-
-    if (loading) {
+    }, [businessId, params]); if (loading) {
         return (
-            <Loading />
+            <DailyLogDetailLoading />
         );
     }
     return (

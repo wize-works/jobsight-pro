@@ -2,7 +2,7 @@
 
 import EquipmentList from "./components/list";
 import { getEquipments } from "@/app/actions/equipments";
-import Loading from "@/app/loading";
+import EquipmentListLoading from "./loading";
 import { useBusiness } from "@/lib/business-context";
 import { Equipment } from "@/types/equipment";
 import { useEffect, useState } from "react";
@@ -31,10 +31,8 @@ export default function EquipmentPage() {
         }
         fetchData();
     }, [businessId]);
-
-
     if (loading || isLoading) {
-        return <Loading />;
+        return <EquipmentListLoading />;
     }
 
 

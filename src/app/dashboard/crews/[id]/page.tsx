@@ -3,7 +3,7 @@ import { getCrewDetailsByID } from "@/app/actions/crews";
 import CrewDetailComponent from "../components/detail";
 import { useBusiness } from "@/lib/business-context";
 import { useEffect, useState } from "react";
-import Loading from "@/app/loading";
+import CrewDetailLoading from "./loading";
 import { CrewWithDetails } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
 import { ProjectCrewWithDetails } from "@/types/project-crews";
@@ -63,10 +63,8 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
         };
 
         fetchData();
-    }, [businessId, params]);
-
-    if (loading) {
-        return <Loading />;
+    }, [businessId, params]); if (loading) {
+        return <CrewDetailLoading />;
     }
 
     if (!crew) {

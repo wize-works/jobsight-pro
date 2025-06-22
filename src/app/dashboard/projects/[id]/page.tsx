@@ -24,6 +24,7 @@ import { ProjectIssue, ProjectIssueWithDetails } from "@/types/projects-issues";
 import { Media } from "@/types/media";
 import { CrewWithMemberInfo } from "@/types/crews";
 import Loading from "@/app/loading";
+import ProjectDetailLoading from "./loading";
 import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/date";
@@ -206,10 +207,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const handleTaskModalClose = () => {
         setTaskModalOpen(false);
         setSelectedTask(null);
-    };
-
-    if (loading || !projectId) {
-        return <Loading />;
+    }; if (loading || !projectId) {
+        return <ProjectDetailLoading />;
     }
 
     if (!project || !project.id) {

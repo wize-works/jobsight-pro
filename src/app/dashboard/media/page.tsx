@@ -8,6 +8,31 @@ import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useBusiness } from "@/lib/business-context"
+import MediaLibraryLoading from "./loading"
+import { MediaCard } from "./components/card"
+import { formatDate } from "@/utils/formatters"
+
+// Helper functions for table view
+const getFileIcon = (type: string) => {
+    switch (type) {
+        case "image":
+            return <i className="far fa-image text-accent"></i>
+        case "video":
+            return <i className="far fa-video text-primary"></i>
+        case "document":
+            return <i className="far fa-file-alt text-secondary"></i>
+        case "audio":
+            return <i className="far fa-volume-up text-info"></i>
+        default:
+            return <i className="far fa-file text-base-content"></i>
+    }
+}
+
+const getProjectName = (projectId: string | null, projects: Project[]) => {
+    if (!projectId) return "No Project"
+    const project = projects.find(p => p.id === projectId)
+    return project?.name || "Unknown Project"
+}
 
 // Media types for filtering
 const mediaTypes = [
@@ -35,6 +60,9 @@ export default function MediaLibrary() {
     }, [])
 
     const loadData = async () => {
+        if (!businessId) {
+            return;
+        }
         try {
             setLoading(true)
             const [mediaData, projectsData] = await Promise.all([
@@ -71,16 +99,14 @@ export default function MediaLibrary() {
 
         const debounceTimer = setTimeout(handleSearch, 300)
         return () => clearTimeout(debounceTimer)
-    }, [searchQuery])
+    }, [searchQuery, businessId])
 
     // Filter media items based on project and type
     const filteredMedia = mediaItems.filter((item) => {
         const matchesProject = selectedProject === null || item.project_id === selectedProject
         const matchesType = selectedType === null || item.type === selectedType
         return matchesProject && matchesType
-    })
-
-    // Toggle selection of an item
+    })    // Toggle selection of an item
     const toggleSelection = (id: string) => {
         if (selectedItems.includes(id)) {
             setSelectedItems(selectedItems.filter((itemId) => itemId !== id))
@@ -110,9 +136,7 @@ export default function MediaLibrary() {
                 })
             }
         }
-    }
-
-    // Handle single item delete
+    }    // Handle single item delete
     const handleSingleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this item?")) {
             try {
@@ -132,45 +156,9 @@ export default function MediaLibrary() {
         }
     }
 
-    // Format date for display
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return "Unknown"
-        const date = new Date(dateString)
-        return date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        })
-    }
-
-    // Get icon for file type
-    const getFileIcon = (type: string) => {
-        switch (type) {
-            case "image":
-                return <i className="far fa-image text-accent"></i>
-            case "video":
-                return <i className="far fa-video text-primary"></i>
-            case "document":
-                return <i className="far fa-file-alt text-secondary"></i>
-            case "audio":
-                return <i className="far fa-volume-up text-info"></i>
-            default:
-                return <i className="far fa-file text-base-content"></i>
-        }
-    }
-
-    // Get project name by ID
-    const getProjectName = (projectId: string | null) => {
-        if (!projectId) return "No Project"
-        const project = projects.find(p => p.id === projectId)
-        return project?.name || "Unknown Project"
-    }
-
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="loading loading-spinner loading-lg"></div>
-            </div>
+            <MediaLibraryLoading />
         )
     }
 
@@ -248,68 +236,18 @@ export default function MediaLibrary() {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Media content */}
+            </div>            {/* Media content */}
             {view === "grid" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredMedia.map((item) => (
-                        <div
+                        <MediaCard
                             key={item.id}
-                            className={`card bg-base-100 shadow-sm hover:shadow-md transition-shadow ${selectedItems.includes(item.id) ? "ring-2 ring-primary" : ""
-                                }`}
-                        >
-                            <figure className="relative h-40 bg-base-200">
-                                {item.type === "image" ? (
-                                    <img src={item.url || "/placeholder.svg"} alt={item.name ?? ""} className="object-cover w-full h-full" />
-                                ) : (
-                                    <div className="flex items-center justify-center w-full h-full">
-                                        {item.type === "video" && <i className="far fa-play-circle text-5xl text-primary"></i>}
-                                        {item.type === "document" && <i className="far fa-file-alt text-5xl text-secondary"></i>}
-                                        {item.type === "audio" && <i className="far fa-volume-up text-5xl text-info"></i>}
-                                    </div>
-                                )}
-                                <div className="absolute top-2 right-2">
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox checkbox-primary"
-                                        checked={selectedItems.includes(item.id)}
-                                        onChange={() => toggleSelection(item.id)}
-                                    />
-                                </div>
-                            </figure>
-                            <div className="card-body p-4">
-                                <h3 className="card-title text-sm font-medium flex items-center">
-                                    {getFileIcon(item.type || "")}
-                                    <span className="ml-2 truncate">{item.name}</span>
-                                </h3>
-                                <div className="text-xs text-base-content/70">
-                                    <p>{getProjectName(item.project_id)}</p>
-                                    <p>Uploaded {formatDate(item.created_at)}</p>
-                                    <p>{item.size || "Unknown size"}</p>
-                                </div>
-                                <div className="card-actions justify-end mt-2">
-                                    <div className="dropdown dropdown-end">
-                                        <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
-                                            <i className="far fa-ellipsis-v"></i>
-                                        </div>
-                                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                            <li>
-                                                <Link href={`/dashboard/media/${item.id}`}>Preview</Link>
-                                            </li>
-                                            <li>
-                                                <a href={item.url} download target="_blank" rel="noopener noreferrer">Download</a>
-                                            </li>
-                                            <li>
-                                                <button onClick={() => handleSingleDelete(item.id)} className="text-error">
-                                                    Delete
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            media={item}
+                            projects={projects}
+                            isSelected={selectedItems.includes(item.id)}
+                            onSelect={toggleSelection}
+                            onDelete={handleSingleDelete}
+                        />
                     ))}
                 </div>
             ) : (
@@ -357,10 +295,9 @@ export default function MediaLibrary() {
                                                 <div className="text-xs opacity-50">{item.description}</div>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td>{getProjectName(item.project_id)}</td>
+                                    </td>                                    <td>{getProjectName(item.project_id, projects)}</td>
                                     <td>{item.size || "Unknown"}</td>
-                                    <td>{formatDate(item.created_at)}</td>
+                                    <td>{formatDate(item.created_at || "")}</td>
                                     <td>
                                         <div className="dropdown dropdown-end">
                                             <div tabIndex={0} role="button" className="btn btn-sm btn-ghost btn-circle">
