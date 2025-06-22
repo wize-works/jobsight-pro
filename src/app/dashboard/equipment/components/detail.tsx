@@ -326,13 +326,17 @@ export default function EquipmentDetail({
                             <i className="far fa-arrow-left"></i>Back to Equipment
                         </Link>
                     </div>
-                </div>                <div className="flex gap-2">
+                </div>
+                <div className="flex gap-2">
                     <button
                         onClick={() => setShowEditModal(true)}
                         className="btn btn-primary"
                     >
                         <i className="far fa-edit"></i> Edit
                     </button>
+                    <Link href={`/printables/equipment/${equipment.id}`} target="_blank" className="btn btn-outline btn-secondary">
+                        <i className="far fa-print"></i> Print Details
+                    </Link>
                     <button className="btn btn-error hidden" onClick={() => {
                         // Handle delete action here
                         if (confirm("Are you sure you want to delete this equipment?")) {
@@ -522,7 +526,7 @@ export default function EquipmentDetail({
                                     <div className="flex flex-col justify-center items-start">
                                         <span>Scan the QR code to view equipment details on your mobile device.</span>
                                         <span className="text-sm text-gray-500 mt-1">You can print the equipment details for your records.</span>
-                                        <Link href={`/printables/equipment/${equipment.id}`} className="btn btn-outline btn-primary mt-2">
+                                        <Link href={`/printables/equipment/${equipment.id}`} target="_blank" className="btn btn-outline btn-primary mt-2">
                                             <i className="far fa-print"></i> Print Details
                                         </Link>
                                         <span className="divider my-2">Or</span>
