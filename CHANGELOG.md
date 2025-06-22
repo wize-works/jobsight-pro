@@ -1,3 +1,14 @@
+# [1.68.0](https://github.com/wize-works/jobsight-pro/compare/v1.67.1...v1.68.0) (2025-06-22)
+
+
+### Features
+
+* add comprehensive development roadmap outlining phases, priorities, and success metrics for JobSight Pro ([397d42b](https://github.com/wize-works/jobsight-pro/commit/397d42b8df03646e458019217e849b6aa178d091))
+* Add loading skeletons for project and task detail pages ([3a8eaeb](https://github.com/wize-works/jobsight-pro/commit/3a8eaeba12cfafbd3a8f60c4fb555bac756ea537))
+* enhance AI query processing with detailed debugging information and improved summary handling for daily logs ([f2115d5](https://github.com/wize-works/jobsight-pro/commit/f2115d5ed0c04937a711c33fc01e21428b2900ea))
+* enhance AI query processing with improved context filtering and analysis capabilities ([0882323](https://github.com/wize-works/jobsight-pro/commit/0882323294591a82bbaa72cc19f6feb6b54fec58))
+* update development roadmap to include additional UI components and testing infrastructure ([13789de](https://github.com/wize-works/jobsight-pro/commit/13789de72aa582c29f8921032efc440d3b86b999))
+
 ## [1.67.1](https://github.com/wize-works/jobsight-pro/compare/v1.67.0...v1.67.1) (2025-06-21)
 
 
