@@ -1,3 +1,10 @@
+# [1.74.0](https://github.com/wize-works/jobsight-pro/compare/v1.73.0...v1.74.0) (2025-06-22)
+
+
+### Features
+
+* Refactor InvoiceDetailPage to use hooks for data fetching and enhance loading/error handling ([40001fe](https://github.com/wize-works/jobsight-pro/commit/40001fe9849886c219b3d8b64a6c4c3c5fec8143))
+
 # [1.73.0](https://github.com/wize-works/jobsight-pro/compare/v1.72.0...v1.73.0) (2025-06-22)
 
 
