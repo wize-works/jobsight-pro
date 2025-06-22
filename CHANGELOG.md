@@ -1,3 +1,10 @@
+# [1.75.0](https://github.com/wize-works/jobsight-pro/compare/v1.74.0...v1.75.0) (2025-06-22)
+
+
+### Features
+
+* Update middleware config to include printables path in matcher ([10f632a](https://github.com/wize-works/jobsight-pro/commit/10f632a964f3c8688276dce8da7b0d98453a8a95))
+
 # [1.74.0](https://github.com/wize-works/jobsight-pro/compare/v1.73.0...v1.74.0) (2025-06-22)
 
 
