@@ -9,10 +9,8 @@ import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { setEquipmentLocation } from "@/app/actions/equipments";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Media } from "@/types/media";
-import { MaintenanceModal } from "./modal-maintenance";
-import { AssignmentModal } from "./modal-assignment";
-import { UsageModal } from "./modal-usage";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
 import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
@@ -20,9 +18,26 @@ import MediaSelector from "@/components/media-selector";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
-import EquipmentEditModal from "./modal-edit";
 import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
+import ModalLoading from "@/components/modal-loading";
+
+// Dynamic imports for modal components
+const MaintenanceModal = dynamic(() => import("./modal-maintenance").then(mod => ({ default: mod.MaintenanceModal })), {
+    loading: () => <ModalLoading message="Loading maintenance form..." />,
+});
+
+const AssignmentModal = dynamic(() => import("./modal-assignment").then(mod => ({ default: mod.AssignmentModal })), {
+    loading: () => <ModalLoading message="Loading assignment form..." />,
+});
+
+const UsageModal = dynamic(() => import("./modal-usage").then(mod => ({ default: mod.UsageModal })), {
+    loading: () => <ModalLoading message="Loading usage form..." />,
+});
+
+const EquipmentEditModal = dynamic(() => import("./modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+});
 
 interface EquipmentDetailProps {
     equipment: Equipment;

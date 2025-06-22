@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { updateProject } from "@/app/actions/projects";
 import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
@@ -14,24 +15,54 @@ import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
-import TasksTab from "../components/tab-tasks";
 import { Client } from "@/types/clients";
-import CrewsTab from "../components/tab-crews";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { ClientContact } from "@/types/client-contacts";
 import { CrewWithMemberInfo } from "@/types/crews";
-import IssuesTab from "../components/tab-issues";
-import IssueModal from "../components/modal-issues";
 import { ProjectIssueWithDetails } from "@/types/projects-issues";
 import { Media } from "@/types/media";
-import MediaTab from "../components/tab-media";
 import { getCrewMemberById } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
-import MilestoneModal from "../components/modal-milestone";
-import ProjectEditModal from "../components/modal-edit";
-import TaskModal from "../components/modal-task";
-import MediaModal from "../components/modal-media";
 import { useBusiness } from "@/lib/business-context";
+import ModalLoading from "@/components/modal-loading";
+
+// Dynamic imports for tab components
+const TasksTab = dynamic(() => import("../components/tab-tasks"), {
+    loading: () => <ModalLoading message="Loading tasks..." />,
+});
+
+const CrewsTab = dynamic(() => import("../components/tab-crews"), {
+    loading: () => <ModalLoading message="Loading crews..." />,
+});
+
+const IssuesTab = dynamic(() => import("../components/tab-issues"), {
+    loading: () => <ModalLoading message="Loading issues..." />,
+});
+
+const MediaTab = dynamic(() => import("../components/tab-media"), {
+    loading: () => <ModalLoading message="Loading media..." />,
+});
+
+// Dynamic imports for modal components
+const IssueModal = dynamic(() => import("../components/modal-issues"), {
+    loading: () => <ModalLoading message="Loading issue form..." />,
+});
+
+const MilestoneModal = dynamic(() => import("../components/modal-milestone"), {
+    loading: () => <ModalLoading message="Loading milestone form..." />,
+});
+
+const ProjectEditModal = dynamic(() => import("../components/modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+});
+
+const TaskModal = dynamic(() => import("../components/modal-task"), {
+    loading: () => <ModalLoading message="Loading task form..." />,
+});
+
+const MediaModal = dynamic(() => import("../components/modal-media"), {
+    loading: () => <ModalLoading message="Loading media viewer..." />,
+});
 
 type ProjectDetailParams = {
     project: Project;

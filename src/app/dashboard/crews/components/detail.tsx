@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import ErrorBoundary from "@/components/error-boundary";
 import type { Crew, CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
@@ -18,11 +19,28 @@ import { ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { Equipment } from "@/types/equipment";
 import { create } from "domain";
 import { useBusiness } from "@/lib/business-context";
-import ModalEdit from "./modal-edit";
-import ModalMember from "./modal-member";
-import ModalLink from "./modal-link";
-import ModalAssignment from "./modal-assignment";
-import ModalEquipment from "./modal-equipment";
+import ModalLoading from "@/components/modal-loading";
+
+// Dynamic imports for modal components
+const ModalEdit = dynamic(() => import("./modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+});
+
+const ModalMember = dynamic(() => import("./modal-member"), {
+    loading: () => <ModalLoading message="Loading member form..." />,
+});
+
+const ModalLink = dynamic(() => import("./modal-link"), {
+    loading: () => <ModalLoading message="Loading link form..." />,
+});
+
+const ModalAssignment = dynamic(() => import("./modal-assignment"), {
+    loading: () => <ModalLoading message="Loading assignment form..." />,
+});
+
+const ModalEquipment = dynamic(() => import("./modal-equipment"), {
+    loading: () => <ModalLoading message="Loading equipment form..." />,
+});
 
 // Status options with colors and labels
 const statusOptions = {

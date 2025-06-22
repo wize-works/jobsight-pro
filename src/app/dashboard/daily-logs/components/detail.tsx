@@ -6,12 +6,22 @@ import { Project } from "@/types/projects";
 import { useState } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
-import EditModal from "./modal-edit";
+import dynamic from "next/dynamic";
 import { CrewMember } from "@/types/crew-members";
 import TabSafety from "./tab-safety";
-import TabMaterials from "./tab-materials";
 import { DailyLogMaterial } from "@/types/daily-log-materials";
 import { DailyLogEquipment } from "@/types/daily-log-equipment";
+import ModalLoading from "@/components/modal-loading";
+
+// Dynamic import for the edit modal
+const EditModal = dynamic(() => import("./modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+});
+
+// Dynamic import for the materials tab (large component)
+const TabMaterials = dynamic(() => import("./tab-materials"), {
+    loading: () => <ModalLoading message="Loading materials..." />,
+});
 
 // Helper function to extract number from a string
 const extractNumber = (str: any) => {
