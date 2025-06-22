@@ -21,27 +21,26 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Implement skeleton loading components for project list page
 - [ ] Implement skeleton loading components for project detail pages
 - [ ] Implement skeleton loading components for daily logs pages
+- [ ] Implement skeleton loading components for clients pages
+- [ ] Implement skeleton loading components for crews pages
+- [ ] Implement skeleton loading components for equipment pages
+- [ ] Implement skeleton loading components for invoices pages
+- [ ] Implement skeleton loading components for tasks pages
 - [ ] Add error boundaries around main dashboard components
 - [ ] Add error boundaries around project management components
+- [ ] Add error boundaries around daily logs management components
+- [ ] Add error boundaries around clients management components
+- [ ] Add error boundaries around crews management components
+- [ ] Add error boundaries around equipment management components
+- [ ] Add error boundaries around invoices management components
+- [ ] Add error boundaries around tasks management components
 - [ ] Add error boundaries around AI assistant components
-- [ ] Create consistent component patterns across the app
+- [ ] Create consistent modal patterns across the app 
 - [ ] Implement keyboard navigation for all forms
 - [ ] Add screen reader support (ARIA labels and descriptions)
 - [ ] Improve focus management for modal dialogs
 - [ ] Add loading states for all async operations
 - [ ] Implement graceful error handling with user-friendly messages
-
-### **Testing Infrastructure**
-- [ ] Set up testing framework (Jest + Testing Library)
-- [ ] Write unit tests for AI query processing functions
-- [ ] Write unit tests for daily log creation functions
-- [ ] Write unit tests for project management utilities
-- [ ] Write integration tests for AI assistant workflows
-- [ ] Write integration tests for daily log creation workflows
-- [ ] Implement E2E tests for critical user journeys
-- [ ] Set up test coverage reporting
-- [ ] Create testing documentation and best practices
-- [ ] Implement CI/CD test automation
 
 ### **Performance Optimization**
 - [ ] Implement image optimization for project photos
@@ -165,6 +164,20 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Create equipment utilization calculation
 - [ ] Implement crew productivity metrics
 - [ ] Add budget variance alerts
+
+## 🏗️ **Phase 5: Future Enhancements**
+
+### **Testing Infrastructure**
+- [ ] Set up testing framework (Jest + Testing Library)
+- [ ] Write unit tests for AI query processing functions
+- [ ] Write unit tests for daily log creation functions
+- [ ] Write unit tests for project management utilities
+- [ ] Write integration tests for AI assistant workflows
+- [ ] Write integration tests for daily log creation workflows
+- [ ] Implement E2E tests for critical user journeys
+- [ ] Set up test coverage reporting
+- [ ] Create testing documentation and best practices
+- [ ] Implement CI/CD test automation
 
 ---
 
