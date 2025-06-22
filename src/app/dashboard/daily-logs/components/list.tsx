@@ -302,7 +302,7 @@ export default function DailyLogsList({
                     </div>
                 </div>
             )}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {filteredLogs.length === 0 ? (
                         <div className="col-span-2 alert alert-info">
                             <i className="far fa-info-circle mr-2"></i>
