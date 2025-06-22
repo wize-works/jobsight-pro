@@ -9,7 +9,7 @@ import { getClientContactsByClientId, createClientContact, updateClientContact }
 import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
 import { getProjectsByClientId, createProject } from "@/app/actions/projects";
 import { createInvoice } from "@/app/actions/invoices";
-import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, uploadClientLogo } from "@/app/actions/media";
+import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, unlinkMediaFromClient, uploadClientLogo } from "@/app/actions/media";
 import { toast } from "@/hooks/use-toast";
 import { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
@@ -28,18 +28,19 @@ import ModalAttachMedia from "../components/modal-media-attach";
 import ModalInvoice from "../components/modal-invoice";
 import ClientDetailLoading from "./loading";
 import ErrorBoundary from "@/components/error-boundary";
+import UniversalMediaManager from "@/components/universal-media-manager";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
     const { user } = useKindeAuth();
-    const router = useRouter();
-
-    // Data loading states
+    const router = useRouter();    // Data loading states
     const [loading, setLoading] = useState(true);
     const [client, setClient] = useState<Client>({} as Client);
     const [projects, setProjects] = useState<Project[]>([]);
     const [contacts, setContacts] = useState<ClientContact[]>([]);
     const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
+    const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
+    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
 
     // UI states
     const [activeTab, setActiveTab] = useState("overview");
@@ -55,12 +56,8 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [editInteraction, setEditInteraction] = useState<ClientInteraction | null>(null);
     const [clientNotes, setClientNotes] = useState("");
     const [showAddProjectModal, setShowAddProjectModal] = useState(false);
-    const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
-    const [mediaUploadLoading, setMediaUploadLoading] = useState(false);
-    const [showAttachMediaModal, setShowAttachMediaModal] = useState(false);
-    const [attachMediaLoading, setAttachMediaLoading] = useState(false);
-    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
-    const [logoUploadLoading, setLogoUploadLoading] = useState(false); const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [mediaLoading, setMediaLoading] = useState(false); const [logoUploadLoading, setLogoUploadLoading] = useState(false);
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceLoading, setInvoiceLoading] = useState(false);
     const [archiveLoading, setArchiveLoading] = useState(false);
     const [archiveInfo, setArchiveInfo] = useState<{
@@ -289,95 +286,104 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         router.refresh();
     };
 
-    const handleMediaUpload = async (formData: any): Promise<{ success: boolean }> => {
-        setMediaUploadLoading(true);
+    // Load media data for UniversalMediaManager
+    const loadMediaData = async () => {
+        if (!client.id) return;
 
+        try {
+            setMediaLoading(true);
+            const [linked, available] = await Promise.all([
+                getMediaByClientId(businessId, client.id),
+                getAvailableMediaForClient(businessId, client.id)
+            ]);
+            setLinkedMedia(linked);
+            setAvailableMedia(available);
+        } catch (error) {
+            console.error("Error loading client media:", error);
+            toast.error("Failed to load media data");
+        } finally {
+            setMediaLoading(false);
+        }
+    };
+
+    // UniversalMediaManager handlers
+    const handleMediaUpload = async (
+        file: File,
+        metadata: { name: string; description: string; type: MediaType }
+    ): Promise<boolean> => {
         try {
             const success = await uploadClientMedia(
                 businessId,
                 client.id,
-                formData.file,
-                formData.type as MediaType,
-                formData.description,
-                formData.tags
+                file,
+                metadata.type,
+                metadata.description
             );
 
             if (success) {
-                toast.success({
-                    title: "Media uploaded",
-                    description: "Your file has been uploaded successfully.",
-                    autoClose: true,
-                });
-                router.refresh();
-                return { success: true };
+                await loadMediaData(); // Refresh data
+                toast.success("Media uploaded successfully");
+                return true;
             } else {
-                toast.error({
-                    title: "Upload failed",
-                    description: "There was an error uploading the file.",
-                });
-                return { success: false };
+                throw new Error("Upload failed");
             }
         } catch (error) {
             console.error("Error uploading media:", error);
-            toast.error({
-                title: "Upload failed",
-                description: "There was an error uploading the file.",
-            });
-            return { success: false };
-        } finally {
-            setMediaUploadLoading(false);
+            toast.error("Failed to upload media");
+            return false;
         }
     };
 
-    const handleAttachMediaOpen = async () => {
-        setAttachMediaLoading(true);
-        try {
-            const media = await getAvailableMediaForClient(businessId, client.id);
-            setAvailableMedia(media);
-            setShowAttachMediaModal(true);
-        } catch (error) {
-            console.error("Error loading available media:", error);
-            toast.error({
-                title: "Error loading media",
-                description: "There was an error loading available media.",
-            });
-        } finally {
-            setAttachMediaLoading(false);
-        }
-    };
-
-    const handleAttachMedia = async (mediaIds: string[]): Promise<{ success: boolean }> => {
-        setAttachMediaLoading(true);
-
+    const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
             const success = await linkExistingMediaToClient(businessId, mediaIds, client.id);
 
             if (success) {
-                toast.success({
-                    title: "Media attached",
-                    description: `Successfully attached ${mediaIds.length} file${mediaIds.length !== 1 ? 's' : ''} to ${client.name}.`,
-                    autoClose: true,
-                });
-                router.refresh();
+                await loadMediaData(); // Refresh data
+                toast.success(`Linked ${mediaIds.length} media item(s)`);
                 return { success: true };
             } else {
-                toast.error({
-                    title: "Attach failed",
-                    description: "There was an error attaching the media files.",
-                });
-                return { success: false };
+                throw new Error("Link failed");
             }
         } catch (error) {
-            console.error("Error attaching media:", error);
-            toast.error({
-                title: "Attach failed",
-                description: "There was an error attaching the media files.",
-            });
-            return { success: false };
-        } finally {
-            setAttachMediaLoading(false);
+            console.error("Error linking media:", error);
+            const errorMessage = "Failed to link media";
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
         }
     };
+
+    const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
+        try {
+            // For client media, we need to unlink each media item individually
+            let success = true;
+            for (const mediaId of mediaIds) {
+                const result = await unlinkMediaFromClient(businessId, mediaId, client.id);
+                if (!result) {
+                    success = false;
+                    break;
+                }
+            }
+
+            if (success) {
+                await loadMediaData(); // Refresh data
+                toast.success(`Unlinked ${mediaIds.length} media item(s)`);
+                return { success: true };
+            } else {
+                throw new Error("Unlink failed");
+            }
+        } catch (error) {
+            console.error("Error unlinking media:", error);
+            const errorMessage = "Failed to unlink media";
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
+        }
+    };
+
+    // Load media data when client changes
+    useEffect(() => {
+        loadMediaData();
+    }, [client.id]);
 
     const handleUpdateClientNotes = async (notes: string) => {
         try {
@@ -1200,58 +1206,21 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                 </div>
                             )}
                         </div>
-                    </div>
-                )}
+                    </div>)}
                 {activeTab === "documents" && (
                     <div className="card bg-base-100 shadow-sm">
                         <div className="card-body">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold">Media</h3>
-                                <div className="flex gap-2">
-                                    <button
-                                        className="btn btn-outline btn-sm"
-                                        onClick={handleAttachMediaOpen}
-                                        disabled={attachMediaLoading}
-                                    >
-                                        {attachMediaLoading ? (
-                                            <span className="loading loading-spinner loading-sm mr-2"></span>
-                                        ) : (
-                                            <i className="far fa-link mr-2"></i>
-                                        )}
-                                        Attach Existing
-                                    </button>
-                                    <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={() => setShowMediaUploadModal(true)}
-                                    >
-                                        <i className="far fa-upload mr-2"></i> Upload New
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="text-center py-8">
-                                <h3 className="text-xl font-semibold mb-2">No media or document yet</h3>
-                                <p className="text-base-content/70 mb-4">Upload new media or attach existing ones to this client</p>
-                                <div className="flex gap-3 justify-center">
-                                    <button
-                                        className="btn btn-outline"
-                                        onClick={handleAttachMediaOpen}
-                                        disabled={attachMediaLoading}
-                                    >
-                                        {attachMediaLoading ? (
-                                            <span className="loading loading-spinner loading-sm mr-2"></span>
-                                        ) : (
-                                            <i className="far fa-link mr-2"></i>
-                                        )}
-                                        Attach Existing
-                                    </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={() => setShowMediaUploadModal(true)}
-                                    >
-                                        <i className="far fa-upload mr-2"></i> Upload New
-                                    </button>
-                                </div>
-                            </div>
+                            <UniversalMediaManager
+                                mode="both"
+                                entityType="client"
+                                onUpload={handleMediaUpload}
+                                availableMedia={availableMedia}
+                                linkedMedia={linkedMedia}
+                                onLink={handleMediaLink}
+                                onUnlink={handleMediaUnlink}
+                                title="Client Documents & Media"
+                                description="Upload and manage documents, images, and other files related to this client."
+                            />
                         </div>
                     </div>
                 )}
@@ -1352,32 +1321,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     onSubmit={handleAddProject}
                     clientName={client.name}
                 />
-            )}
-
-            {/* Media Upload Modal */}
-            {showMediaUploadModal && (
-                <ModalMediaUpload
-                    title="Upload Media"
-                    loading={mediaUploadLoading}
-                    onClose={() => setShowMediaUploadModal(false)}
-                    onSubmit={handleMediaUpload}
-                    clientName={client.name}
-                />
-            )}
-
-            {/* Attach Media Modal */}
-            {showAttachMediaModal && (
-                <ModalAttachMedia
-                    title="Attach Existing Media"
-                    loading={attachMediaLoading}
-                    onClose={() => setShowAttachMediaModal(false)}
-                    onSubmit={handleAttachMedia}
-                    availableMedia={availableMedia}
-                    clientName={client.name}
-                />
-            )}
-
-            {/* Invoice Modal */}
+            )}            {/* Invoice Modal */}
             {showInvoiceModal && (
                 <ModalInvoice
                     title="Create Invoice"

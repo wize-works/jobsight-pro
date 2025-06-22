@@ -439,14 +439,14 @@ export const linkMediaToProject = async (businessId: string, mediaId: string, pr
     }
 };
 
-export const unlinkMediaFromProject = async (businessId: string, mediaId: string, projectId: string): Promise<boolean> => {
+export const unlinkMediaFromProject = async (businessId: string, mediaIds: string[], projectId: string): Promise<boolean> => {
     try {
 
 
         // Find the link to delete
         const { data: existingLinks } = await fetchByBusiness("media_links", businessId, "*", {
             filter: {
-                media_id: mediaId,
+                media_id: { in: mediaIds },
                 linked_id: projectId,
                 linked_type: "project"
             }
@@ -831,5 +831,347 @@ export const uploadClientLogo = async (businessId: string, clientId: string, fil
     } catch (error) {
         console.error("Error uploading client logo:", error);
         return { success: false };
+    }
+};
+
+// Daily Log Media Functions
+export const getMediaByDailyLogId = async (businessId: string, dailyLogId: string, searchTerm: string = ""): Promise<Media[]> => {
+    try {
+        const { data, error } = await fetchByBusiness(
+            "media",
+            businessId,
+            "*",
+            {}
+        );
+
+        if (error) {
+            console.error("Error fetching media:", error);
+            return [];
+        }
+
+        if (!data || data.length === 0) {
+            return [];
+        }
+
+        // Get media links for this daily log
+        const { data: links } = await fetchByBusiness(
+            "media_links",
+            businessId,
+            "*",
+            {
+                filter: {
+                    linked_id: dailyLogId,
+                    linked_type: "daily_log"
+                }
+            }
+        );
+
+        if (!links || links.length === 0) {
+            return [];
+        }
+
+        const linkedMediaIds = links.map(link => link.media_id);
+        let media = (data as unknown as Media[]).filter(m => linkedMediaIds.includes(m.id));
+
+        // Apply search filter if provided
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase();
+            media = media.filter(m =>
+                (m.name || "").toLowerCase().includes(term) ||
+                (m.description || "").toLowerCase().includes(term)
+            );
+        }
+
+        return media;
+    } catch (error) {
+        console.error("Error fetching daily log media:", error);
+        return [];
+    }
+};
+
+export const linkMediaToDailyLog = async (businessId: string, mediaId: string, dailyLogId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Check if link already exists
+        const { data: existingLinks } = await fetchByBusiness(
+            "media_links",
+            businessId,
+            "*",
+            {
+                filter: {
+                    media_id: mediaId,
+                    linked_id: dailyLogId,
+                    linked_type: "daily_log"
+                }
+            }
+        );
+
+        if (existingLinks && existingLinks.length > 0) {
+            return true; // Already linked
+        }
+
+        // Create new link
+        let linkData: MediaLinkInsert = {
+            id: "",
+            media_id: mediaId,
+            linked_id: dailyLogId,
+            linked_type: "daily_log",
+            business_id: businessId,
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId,
+        };
+
+        linkData = await applyCreated<MediaLinkInsert>(linkData);
+
+        const { error } = await insertWithBusiness("media_links", linkData, businessId);
+
+        if (error) {
+            console.error("Error linking media to daily log:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking media to daily log:", error);
+        return false;
+    }
+};
+
+export const unlinkMediaFromDailyLog = async (businessId: string, mediaId: string, dailyLogId: string): Promise<boolean> => {
+    try {
+        // Find existing links
+        const { data: existingLinks } = await fetchByBusiness(
+            "media_links",
+            businessId,
+            "*",
+            {
+                filter: {
+                    media_id: mediaId,
+                    linked_id: dailyLogId,
+                    linked_type: "daily_log"
+                }
+            }
+        );
+
+        if (!existingLinks || existingLinks.length === 0) {
+            return true; // Nothing to unlink
+        }
+
+        // Delete the link
+        const { error } = await deleteWithBusinessCheck("media_links", existingLinks[0].id, businessId);
+
+        if (error) {
+            console.error("Error unlinking media from daily log:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error unlinking media from daily log:", error);
+        return false;
+    }
+};
+
+export const uploadDailyLogMedia = async (businessId: string, dailyLogId: string, file: File, type: MediaType, description?: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl(type, file.name);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: description || `Media file for daily log`,
+            type: type,
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        // Link media to daily log
+        await linkMediaToDailyLog(businessId, media.id, dailyLogId);
+
+        return true;
+    } catch (error) {
+        console.error("Error uploading daily log media:", error);
+        return false;
+    }
+};
+
+export const linkExistingMediaToDailyLog = async (businessId: string, mediaIds: string[], dailyLogId: string): Promise<boolean> => {
+    try {
+        for (const mediaId of mediaIds) {
+            const success = await linkMediaToDailyLog(businessId, mediaId, dailyLogId);
+            if (!success) {
+                console.error(`Failed to link media ${mediaId} to daily log ${dailyLogId}`);
+                return false;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking existing media to daily log:", error);
+        return false;
+    }
+};
+
+export const linkExistingMediaToProject = async (businessId: string, mediaIds: string[], projectId: string): Promise<boolean> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        for (const mediaId of mediaIds) {
+            const success = await linkMediaToProject(businessId, mediaId, projectId);
+            if (!success) {
+                throw new Error(`Failed to link media ${mediaId} to project`);
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking existing media to project:", error);
+        return false;
+    }
+};
+
+export const getAvailableMediaForProject = async (businessId: string, projectId: string): Promise<Media[]> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Get all media for the business
+        const { data: allMedia, error: mediaError } = await fetchByBusiness("media", businessId, "*");
+        if (mediaError || !allMedia) {
+            console.error("Error fetching media:", mediaError);
+            return [];
+        }
+
+        // Get all media links for this project
+        const { data: projectMediaLinks, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: { linked_type: "project", linked_id: projectId }
+        });
+        if (linkError) {
+            console.error("Error fetching project media links:", linkError);
+            return allMedia as Media[]; // Return all media if we can't get links
+        }
+
+        const linkedProjectMediaIds = (projectMediaLinks || []).map((link: any) => link.media_id);
+
+        // Filter out media that is already linked to this project
+        const availableMedia = (allMedia as Media[]).filter(media => !linkedProjectMediaIds.includes(media.id));
+
+        return availableMedia;
+    } catch (error) {
+        console.error("Error getting available media for project:", error);
+        return [];
+    }
+};
+
+export const getAvailableMediaForEquipment = async (businessId: string, equipmentId: string): Promise<Media[]> => {
+    try {
+        // Get all media for the business
+        const { data: allMedia, error: mediaError } = await fetchByBusiness("media", businessId, "*", {
+            orderBy: { column: "created_at", ascending: false }
+        });
+
+        if (mediaError) {
+            console.error("Error fetching all media:", mediaError);
+            return [];
+        }
+
+        if (!allMedia || allMedia.length === 0) {
+            return [];
+        }
+
+        // Get media already linked to this equipment
+        const { data: linkedMedia, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: { linked_id: equipmentId, linked_type: "equipment" }
+        });
+
+        if (linkError) {
+            console.error("Error fetching linked media:", linkError);
+            return allMedia as unknown as Media[];
+        }
+
+        // Get IDs of already linked media
+        const linkedMediaIds = linkedMedia
+            ? (linkedMedia as unknown as MediaLink[]).map(link => link.media_id)
+            : [];
+
+        // Filter out already linked media
+        const availableMedia = (allMedia as unknown as Media[]).filter(
+            media => !linkedMediaIds.includes(media.id)
+        );
+
+        return availableMedia;
+    } catch (error) {
+        console.error("Error getting available media for equipment:", error);
+        return [];
+    }
+};
+
+export const linkExistingMediaToEquipment = async (businessId: string, mediaIds: string[], equipmentId: string): Promise<boolean> => {
+    try {
+        for (const mediaId of mediaIds) {
+            const success = await linkMediaToEquipment(businessId, mediaId, equipmentId);
+            if (!success) {
+                console.error(`Failed to link media ${mediaId} to equipment ${equipmentId}`);
+                return false;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error linking existing media to equipment:", error);
+        return false;
+    }
+};
+
+export const getAllMediaByEquipmentId = async (businessId: string, equipmentId: string): Promise<Media[]> => {
+    try {
+        // Get all media types for this equipment
+        const [images, videos, documents, audios] = await Promise.all([
+            getMediaByEquipmentId(businessId, equipmentId, "images"),
+            getMediaByEquipmentId(businessId, equipmentId, "videos"),
+            getMediaByEquipmentId(businessId, equipmentId, "documents"),
+            getMediaByEquipmentId(businessId, equipmentId, "audios")
+        ]);
+
+        return [...images, ...videos, ...documents, ...audios];
+    } catch (error) {
+        console.error("Error getting all media for equipment:", error);
+        return [];
     }
 };
