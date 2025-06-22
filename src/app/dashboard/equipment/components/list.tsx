@@ -154,14 +154,15 @@ export default function EquipmentList({ initialEquipments }: { initialEquipments
                 </div>
             </div>
 
-            {viewType === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredEquipments.map((item) => (
-                        <div key={item.id}>
-                            <EquipmentCard {...item} onEdit={handleEditEquipment} />
-                        </div>
-                    ))}
-                </div>
+            {viewType === "grid" ? (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEquipments.map((item) => (
+                    <EquipmentCard
+                        key={item.id}
+                        equipment={item}
+                        onEdit={handleEditEquipment}
+                    />
+                ))}
+            </div>
             ) : (
                 <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
                     <table className="table table-zebra w-full">

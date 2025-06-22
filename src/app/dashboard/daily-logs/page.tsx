@@ -11,6 +11,7 @@ import { DailyLog, DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import Loading from "@/app/loading";
+import DailyLogsListLoading from "./loading";
 
 
 export default function DailyLogs() {
@@ -41,11 +42,9 @@ export default function DailyLogs() {
         fetchData().catch((error) => {
             console.error("Error fetching daily logs:", error);
         });
-    }, [businessId]);
-
-    if (loading) {
+    }, [businessId]); if (loading) {
         return (
-            <Loading />
+            <DailyLogsListLoading />
         );
     }
 

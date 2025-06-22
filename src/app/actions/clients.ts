@@ -2,7 +2,7 @@
 
 import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-import type { ClientInsert, ClientUpdate, Client } from "@/types/clients";
+import type { ClientInsert, ClientUpdate, Client, ClientWithStats } from "@/types/clients";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { Project } from "@/types/projects";
 import { applyCreated } from "@/utils/apply-created";
@@ -53,39 +53,73 @@ export const getClients = async (businessId: string): Promise<Client[]> => {
     }
 }
 
-export const getClientsWithStats = async (businessId: string,): Promise<Client[]> => {
+export const getClientsWithStats = async (businessId: string): Promise<ClientWithStats[]> => {
     try {
-        // Use the new query builder to get clients with project statistics in a single query
-        const { data, error } = await fetchByBusinessWithQuery(businessId, {
-            from: "clients",
-            select: ["*"],
-            aggregates: [
-                { function: "count", table: "projects", alias: "total_projects" },
-                { function: "count", table: "projects", alias: "active_projects", where: { status: "active" } },
-                { function: "sum", table: "projects", column: "budget", alias: "total_budget" }
-            ],
-            orderBy: { column: "name", ascending: true }
-        });
+        // Get all clients first
+        const clients = await getClients(businessId);
+
+        if (!clients || clients.length === 0) {
+            return [];
+        }
+
+        // Get individual project data to group by client
+        const { data: projects, error } = await fetchByBusiness("projects", businessId, ["client_id", "status", "budget"]);
 
         if (error) {
-            console.error("Error fetching clients with stats:", error);
-            return [];
+            console.error("Error fetching projects for stats:", error);
+            // Return clients with zero stats
+            return clients.map(client => ({
+                ...client,
+                total_projects: 0,
+                active_projects: 0,
+                total_budget: 0,
+            })) as ClientWithStats[];
         }
 
-        if (!data || data.length === 0) {
-            return [];
+        // Create a map of client stats
+        const statsMap = new Map();
+
+        // Group projects by client_id and calculate stats
+        if (projects && projects.length > 0) {
+            projects.forEach(project => {
+                if (!project.client_id) return;
+
+                const existing = statsMap.get(project.client_id) || {
+                    total_projects: 0,
+                    active_projects: 0,
+                    total_budget: 0
+                };
+
+                existing.total_projects += 1;
+                if (project.status === "active") {
+                    existing.active_projects += 1;
+                }
+                if (project.budget) {
+                    existing.total_budget += project.budget;
+                }
+
+                statsMap.set(project.client_id, existing);
+            });
         }
 
-        // Map the results to ensure proper typing and handle potential null values
-        return data.map((client: any) => ({
+        // Combine clients with their stats
+        return clients.map(client => ({
             ...client,
-            total_projects: client.total_projects || 0,
-            active_projects: client.active_projects || 0,
-            total_budget: client.total_budget || 0,
-        }));
+            total_projects: statsMap.get(client.id)?.total_projects || 0,
+            active_projects: statsMap.get(client.id)?.active_projects || 0,
+            total_budget: statsMap.get(client.id)?.total_budget || 0,
+        })) as ClientWithStats[];
+
     } catch (err) {
         console.error("Error in getClientsWithStats:", err);
-        return [];
+        // Fallback to simple client fetch
+        const simpleClients = await getClients(businessId);
+        return simpleClients.map(client => ({
+            ...client,
+            total_projects: 0,
+            active_projects: 0,
+            total_budget: 0,
+        })) as ClientWithStats[];
     }
 }
 

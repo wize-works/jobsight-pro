@@ -26,7 +26,7 @@ import ModalContact from "../components/modal-contact";
 import ModalMediaUpload from "../components/modal-media-upload";
 import ModalAttachMedia from "../components/modal-media-attach";
 import ModalInvoice from "../components/modal-invoice";
-import Loading from "@/app/loading";
+import ClientDetailLoading from "./loading";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
@@ -639,10 +639,8 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         } finally {
             setArchiveLoading(false);
         }
-    };
-
-    if (loading) {
-        return <Loading />
+    }; if (loading) {
+        return <ClientDetailLoading />
     }
 
     if (!client || !client.id) {

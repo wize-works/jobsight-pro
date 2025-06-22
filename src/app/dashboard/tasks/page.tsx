@@ -4,7 +4,7 @@ import { getTasks, getTasksWithDetails } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { withBusinessServer } from '@/lib/auth/with-business-server';
-import Loading from "@/app/loading";
+import TasksListLoading from "./loading";
 
 export default async function TasksPage() {
     const { business } = await withBusinessServer();
@@ -17,18 +17,17 @@ export default async function TasksPage() {
         getCrews(businessId),
     ]);
 
-    return (
-        <Suspense
-            fallback={
-                <Loading />
-            }
-        >
-            <TasksComponent
-                tasks={tasks}
-                projects={projects}
-                crews={crews}
-            />
-        </Suspense>
+    return (<Suspense
+        fallback={
+            <TasksListLoading />
+        }
+    >
+        <TasksComponent
+            tasks={tasks}
+            projects={projects}
+            crews={crews}
+        />
+    </Suspense>
     );
 }
 

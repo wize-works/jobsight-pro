@@ -6,10 +6,11 @@ import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeO
 import { progressBar } from "@/utils/progress";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
-import Loading from "@/app/loading";
 import ProjectModal from "./components/modal-project";
 import ProjectEditModal from "./components/modal-edit";
+import { ProjectCard } from "./components/card";
 import { useBusiness } from "@/lib/business-context";
+import ProjectsLoading from "./loading";
 
 
 export default function ProjectsPage() {
@@ -119,7 +120,7 @@ export default function ProjectsPage() {
         setSelectedProject(null);
     }; if (loading) {
         return (
-            <Loading />
+            <ProjectsLoading viewType={viewType} />
         );
     }
 
@@ -227,41 +228,7 @@ export default function ProjectsPage() {
             {viewType === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedAndFilteredProjects.map((project) => (
-                        <Link
-                            href={`/dashboard/projects/${project.id}`}
-                            key={project.id}
-                            className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            <div className="card-body p-4">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="card-title text-lg">{project.name}</h3>
-                                    {projectStatusOptions.badge(project.status as ProjectStatus)}
-                                </div>
-                                <p className="text-sm text-base-content/70">{project.client_name}</p>
-                                <div className="flex items-center text-sm mt-2">
-                                    <i className="far fa-map-marker-alt mr-2 text-base-content/70"></i>
-                                    <span className="truncate">{project.location}</span>
-                                </div>
-                                <div className="flex items-center text-sm mt-1">
-                                    <i className="far fa-calendar-alt mr-2 text-base-content/70"></i>
-                                    <span>
-                                        {formatDate(project?.start_date)} - {formatDate(project.end_date)}
-                                    </span>
-                                </div>
-                                <div className="flex items-center text-sm mt-1">
-                                    <i className="far fa-dollar-sign mr-2 text-base-content/70"></i>
-                                    <span>{formatCurrency(project.budget)}</span>
-                                </div>
-
-                                <div className="mt-3">
-                                    <div className="flex justify-between">
-                                        <span className="text-xs font-medium">Progress</span>
-                                        <span className="text-xs font-medium">{project.progress}%</span>
-                                    </div>
-                                    {progressBar(project.progress, 100)}
-                                </div>
-                            </div>
-                        </Link>
+                        <ProjectCard key={project.id} project={project} />
                     ))}
                 </div>
             ) : (

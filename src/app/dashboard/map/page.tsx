@@ -3,13 +3,14 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
+import MapLoading from "./loading";
 
 // Dynamically import the map component with no SSR
 const MapComponent = dynamic(
     () => import("./components/map").then((mod) => mod.default),
     {
         ssr: false,
-        loading: () => <div>Loading map...</div>,
+        loading: () => <MapLoading />,
     },
 );
 
@@ -43,19 +44,8 @@ export default function MapPage() {
             }
             setIsLoaded(true);
         }
-    }, [position, geoError, geoLoading]);
-
-    if (!isLoaded) {
-        return (
-            <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center bg-base-200">
-                <div className="text-center">
-                    <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
-                    <p className="text-base-content/70">
-                        Loading map and getting your location...
-                    </p>
-                </div>
-            </div>
-        );
+    }, [position, geoError, geoLoading]); if (!isLoaded) {
+        return <MapLoading />;
     }
 
     return (

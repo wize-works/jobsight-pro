@@ -6,6 +6,7 @@ import { Project } from "@/types/projects";
 import { useState, useEffect } from "react";
 import DailyLogModal from "./modal-log";
 import { formatDateForInput, formatDate } from "@/utils/date";
+import { DailyLogCard } from "./card";
 
 interface DailyLogsListProps {
     logs: DailyLogWithDetails[];
@@ -267,9 +268,7 @@ export default function DailyLogsList({
                         Clear Filters
                     </button>
                 </div>
-            </div>
-
-            {/* Logs List */}
+            </div>            {/* Logs List */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredLogs.length === 0 ? (
                     <div className="col-span-2 alert alert-info">
@@ -278,63 +277,13 @@ export default function DailyLogsList({
                     </div>
                 ) : (
                     filteredLogs.map((log) => (
-                        <div
+                        <DailyLogCard
                             key={log.id}
-                            className={`card bg-base-100 shadow ${selectedLog?.id === log.id ? "border border-primary" : ""}`}
-                            onClick={() => setSelectedLog(log)}
-                        >
-                            <div className="card-body">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="card-title">{log.project?.name}</h2>
-                                    <a className="btn btn-sm btn-outline" href={`/dashboard/daily-logs/${log.id}`}>
-                                        View Details
-                                    </a>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-base-content/50">Crew: {log.crew?.name}</span>
-                                </div>                                <div className="mt-2">
-                                    <span className="badge badge-secondary">{formatDate(log.date)}</span>
-                                    <span className="badge badge-info ml-2">Hours: {log.hours_worked || 0}</span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h3 className="font-semibold">Work Completed</h3>
-                                        {log.work_completed}
-
-                                        <h3 className="font-semibold mt-2">Safety Concerns</h3>
-                                        {log.safety || "None reported"}
-
-                                        <h3 className="font-semibold mt-2">Quality Summary</h3>
-                                        {log.quality || "No quality status reported"}
-
-                                        <h3 className="font-semibold mt-2">Work Delays</h3>
-                                        {log.delays || "No delays reported"}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold">Materials Used:</h3>
-                                        <ul className="list-disc pl-5">
-                                            {log.materials.map(material => (
-                                                <li key={material.id}>
-                                                    {material.name} - {material.quantity} @ ${material.cost?.toFixed(2) || "0.00"} each
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <h3 className="font-semibold mt-2">Equipment Used:</h3>
-                                        <ul className="list-disc pl-5">
-                                            {log.equipment.map(equip => (
-                                                <li key={equip.id}>
-                                                    {equip.name} - {equip.hours} hours
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold mt-2">Notes:</h3>
-                                    {log.notes}
-                                </div>
-                            </div>
-                        </div>))
+                            log={log}
+                            isSelected={selectedLog?.id === log.id}
+                            onSelect={setSelectedLog}
+                        />
+                    ))
                 )}
             </div>
 

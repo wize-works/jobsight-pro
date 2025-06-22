@@ -9,7 +9,7 @@ import { ClientCard } from "./components/card"
 import ClientModal from "./components/modal-client"
 import { v4 as uuidv4 } from "uuid"
 import { getClientsWithStats } from "@/app/actions/clients"
-import Loading from "@/app/loading"
+import ClientsListLoading from "./loading"
 import { useBusiness } from "@/lib/business-context"
 
 export default function ClientsPage() {
@@ -80,7 +80,7 @@ export default function ClientsPage() {
 
     if (loading) {
         return (
-            <Loading />
+            <ClientsListLoading viewType={viewType} />
         );
     }
 

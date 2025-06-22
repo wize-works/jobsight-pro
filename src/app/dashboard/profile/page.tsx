@@ -9,6 +9,7 @@ import { uploadUserAvatar } from "@/app/actions/user-avatar";
 import { getUserByAuthId, getUserById } from "@/app/actions/users";
 import { useBusiness } from "@/lib/business-context";
 import { NotificationTypeOptions, NotificationChannelOptions } from "@/types/notifications";
+import ProfileLoading from "./loading";
 
 type NotificationType = NotificationTypeOptions;
 type NotificationChannel = NotificationChannelOptions;
@@ -232,11 +233,7 @@ export default function ProfilePage() {
             toast.error("Failed to update notification preferences");
         }
     }; if (isLoading || !user) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-        );
+        return <ProfileLoading />;
     }
 
     return (

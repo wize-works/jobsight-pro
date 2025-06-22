@@ -4,7 +4,7 @@ import { getTaskById } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
 import { withBusinessServer } from '@/lib/auth/with-business-server';
-import Loading from "@/app/loading";
+import TaskDetailLoading from "./loading";
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -24,7 +24,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         }
 
         return (
-            <Suspense fallback={<Loading />}>
+            <Suspense fallback={<TaskDetailLoading />}>
                 <TaskDetailComponent task={task} projects={projects} crews={crews} />
             </Suspense>
         );

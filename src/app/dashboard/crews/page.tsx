@@ -7,7 +7,7 @@ import { createCrew, getCrewsWithDetails } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";
-import Loading from "@/app/loading";
+import CrewsListLoading from "./loading";
 import { useBusiness } from "@/lib/business-context";
 import ModalEdit from "./components/modal-edit";
 
@@ -91,11 +91,9 @@ export default function CrewsList() {
         if (typeof window !== "undefined") {
             localStorage.setItem("crewsViewType", type);
         }
-    };
-
-    if (loading) {
+    }; if (loading) {
         return (
-            <Loading />
+            <CrewsListLoading viewType={viewType} />
         );
     }
 

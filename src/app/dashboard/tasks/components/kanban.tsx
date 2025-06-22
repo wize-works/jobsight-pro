@@ -17,7 +17,7 @@ interface KanbanPageProps {
 
 interface KanbanColumnProps {
     title: string;
-    status: TaskStatus;
+    status: TaskStatus | "inactive";
     tasks: TaskWithDetails[];
     onTaskUpdate: (taskId: string, updates: Partial<TaskWithDetails>) => Promise<void>;
     projects?: { id: string; name: string }[];
@@ -111,7 +111,7 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
                         <span className="text-xs font-medium">{task.progress || 0}%</span>
                     </div>
                     <progress
-                        className="progress progress-primary w-full h-2"
+                        className="progress progress-secondary w-full h-2"
                         value={task.progress || 0}
                         max="100"
                     ></progress>
@@ -120,7 +120,7 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
                 <div className="flex justify-between items-center mt-3">
                     <Link
                         href={`/dashboard/tasks/${task.id}`}
-                        className="btn btn-outline btn-xs"
+                        className="btn btn-primary btn-xs"
                         title="View Details"
                     >
                         <i className="far fa-eye"></i> Details
@@ -147,9 +147,7 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
         if (!e.currentTarget.contains(e.relatedTarget as Node)) {
             setIsDragOver(false);
         }
-    };
-
-    const handleDrop = async (e: React.DragEvent) => {
+    }; const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
 
@@ -158,20 +156,26 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
             const { taskId, currentStatus } = data;
 
             if (currentStatus !== status && status !== "all") {
+                // Handle the "inactive" column which represents both not_started and on_hold
+                let targetStatus = status;
+                if (status === "inactive") {
+                    // Default to not_started when dropping into inactive column
+                    targetStatus = "not_started";
+                }
+
                 await onTaskUpdate(taskId, {
-                    status: status,
+                    status: targetStatus,
                     // Auto-update progress based on status
-                    ...(status === "completed" && { progress: 100 }),
-                    ...(status === "not_started" && { progress: 0 }),
+                    ...(targetStatus === "completed" && { progress: 100 }),
+                    ...(targetStatus === "not_started" && { progress: 0 }),
                 });
             }
         } catch (error) {
             console.error("Error handling drop:", error);
         }
-    };
-
-    const getColumnColor = (status: TaskStatus) => {
+    }; const getColumnColor = (status: TaskStatus | "inactive") => {
         switch (status) {
+            case "inactive":
             case "not_started": return "border-l-secondary";
             case "in_progress": return "border-l-warning";
             case "completed": return "border-l-success";
@@ -181,8 +185,9 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
         }
     };
 
-    const getColumnBgColor = (status: TaskStatus) => {
+    const getColumnBgColor = (status: TaskStatus | "inactive") => {
         switch (status) {
+            case "inactive":
             case "not_started": return "bg-secondary/5";
             case "in_progress": return "bg-warning/5";
             case "completed": return "bg-success/5";
@@ -194,7 +199,7 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
 
     return (
         <div
-            className={`flex-1 min-w-72 max-w-80`}
+            className={`flex-1 min-w-72`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -252,22 +257,21 @@ export default function KanbanPage({ tasks = [], projects = [], crews = [] }: Ka
             console.error("Error updating task:", error);
             toast.error("Failed to update task");
         }
-    };
-
-    // Define the columns we want to show
+    };    // Define the columns we want to show (4 columns instead of 5)
     const columns = [
-        { title: "Not Started", status: "not_started" as TaskStatus },
+        { title: "Inactive", status: "inactive" as const },
         { title: "In Progress", status: "in_progress" as TaskStatus },
-        { title: "On Hold", status: "on_hold" as TaskStatus },
         { title: "Completed", status: "completed" as TaskStatus },
         { title: "Cancelled", status: "cancelled" as TaskStatus },
     ];
 
-    // Group tasks by status
-    const tasksByStatus = columns.reduce((acc, column) => {
-        acc[column.status] = taskList.filter(task => task.status === column.status);
-        return acc;
-    }, {} as Record<TaskStatus, TaskWithDetails[]>);
+    // Group tasks by status, combining not_started and on_hold into inactive
+    const tasksByStatus = {
+        inactive: taskList.filter(task => task.status === "not_started" || task.status === "on_hold"),
+        in_progress: taskList.filter(task => task.status === "in_progress"),
+        completed: taskList.filter(task => task.status === "completed"),
+        cancelled: taskList.filter(task => task.status === "cancelled"),
+    };
 
     return (
         <div className="space-y-6">
@@ -280,14 +284,13 @@ export default function KanbanPage({ tasks = [], projects = [], crews = [] }: Ka
                             Drag tasks between columns to update their status
                         </div>
                     </div>
-
                     <div className="flex gap-6 overflow-x-auto pb-4">
                         {columns.map((column) => (
                             <KanbanColumn
                                 key={column.status}
                                 title={column.title}
                                 status={column.status}
-                                tasks={tasksByStatus[column.status] || []}
+                                tasks={tasksByStatus[column.status as keyof typeof tasksByStatus] || []}
                                 onTaskUpdate={handleTaskUpdate}
                                 projects={projects}
                                 crews={crews}

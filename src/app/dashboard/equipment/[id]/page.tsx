@@ -14,7 +14,7 @@ import { Media } from "@/types/media";
 import { useBusiness } from "@/lib/business-context";
 import { useEffect, useState } from "react";
 import { Equipment } from "@/types/equipment";
-import Loading from "@/app/loading";
+import EquipmentDetailLoading from "./loading";
 
 export default function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
@@ -61,7 +61,7 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
     }, [businessId, params]);
 
     if (loading) {
-        return <Loading />;
+        return <EquipmentDetailLoading />;
     }
 
     if (!equipment) {
