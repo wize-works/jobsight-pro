@@ -2,6 +2,7 @@ import Footer from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import Link from "next/link";
 
 export default async function PublicLayout({
     children,
@@ -15,10 +16,15 @@ export default async function PublicLayout({
         <div className="flex min-h-screen flex-col relative">
             <header className="navbar absolute top-0 left-0 right-0 z-50">
                 <div className="flex-1"></div>
-                <div className="flex-none">
+                <div className="flex-none space-x-4">
                     {user?.email}
                     {user ? (
-                        <LogoutLink className="btn btn-primary mr-6">Logout</LogoutLink>
+                        <>
+                            <Link href="/dashboard" className="btn btn-primary">
+                                Dashboard
+                            </Link>
+                            <LogoutLink className="btn btn-outline btn-secondary">Logout</LogoutLink>
+                        </>
                     ) : (
                         <LoginLink className="btn btn-primary mr-6">Login</LoginLink>
                     )}

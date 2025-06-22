@@ -2,9 +2,6 @@
 
 import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
-import { getProjects } from "./projects";
-import { getClients } from "./clients";
-import { getCrews } from "./crews";
 import { DailyLogInsert } from "@/types/daily-logs";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 
@@ -205,8 +202,13 @@ export async function processAIQuery(
     try {
         // Get comprehensive context data using the new relational query
         const contextData = await getAIContextData(businessId);
-        // Build rich context summary for AI with comprehensive analytics
-        const projectSummary = contextData.projects.map(p => {
+
+        // Analyze the query to understand what the user is asking for
+        const queryContext = analyzeQuery(message, contextData);
+
+        // Filter context data based on the query
+        const filteredData = filterContextData(contextData, queryContext);        // Build rich context summary for AI with comprehensive analytics
+        const projectSummary = filteredData.projects.map((p: any) => {
             const client = p.client?.name || 'Unknown Client';
             const progress = p.progress || 0;
             const activeTasks = p.active_tasks || 0;
@@ -223,7 +225,7 @@ export async function processAIQuery(
   - Status: ${p.status}, Location: ${p.location || 'Not specified'}`;
         }).join('\n\n');
 
-        const clientSummary = contextData.clients.map(c => {
+        const clientSummary = filteredData.clients.map((c: any) => {
             const projects = c.total_projects || 0;
             const activeProjects = c.active_projects || 0;
             const totalBudget = c.total_budget || 0;
@@ -236,7 +238,7 @@ export async function processAIQuery(
   - Invoiced: $${totalInvoiced.toLocaleString()} (${projects > 0 ? Math.round((totalInvoiced / totalBudget) * 100) : 0}% of budget)`;
         }).join('\n\n');
 
-        const crewSummary = contextData.crews.map(c => {
+        const crewSummary = filteredData.crews.map((c: any) => {
             const members = c.member_count || 0;
             const assignments = c.active_assignments || 0;
             const totalHours = c.total_hours_worked || 0;
@@ -249,7 +251,7 @@ export async function processAIQuery(
   - Status: ${c.status || 'Active'}, Location: ${c.location || 'Various'}`;
         }).join('\n\n');
 
-        const recentActivity = contextData.dailyLogs.slice(0, 8).map(log => {
+        const recentActivity = filteredData.dailyLogs.slice(0, 8).map((log: any) => {
             const project = log.project?.name || 'Unknown Project';
             const crew = log.crew?.name || 'Unknown Crew';
             const hours = log.hours_worked || 0;
@@ -265,7 +267,7 @@ export async function processAIQuery(
   ${log.safety ? `- Safety: ${log.safety}` : ''}`;
         }).join('\n\n');
 
-        const taskSummary = contextData.tasks.slice(0, 10).map(t => {
+        const taskSummary = filteredData.tasks.slice(0, 10).map((t: any) => {
             const project = t.project?.name || 'Unknown Project';
             const assignee = t.assignee?.name || 'Unassigned';
             const estimated = t.estimated_hours || 0;
@@ -280,7 +282,7 @@ export async function processAIQuery(
   - Activity: ${comments} comments`;
         }).join('\n\n');
 
-        const equipmentStatus = contextData.equipment.map(e => {
+        const equipmentStatus = filteredData.equipment.map((e: any) => {
             const assignments = e.active_assignments || 0;
             const totalHours = e.total_hours || 0;
             const maintenanceCost = e.maintenance_cost || 0;
@@ -291,26 +293,28 @@ export async function processAIQuery(
   - Status: ${e.status}, Location: ${e.location || 'Unknown'}
   - Usage: ${totalHours}h total, ${Math.round(utilization)}h avg/use, ${assignments} active assignments
   - Maintenance: $${maintenanceCost.toLocaleString()}, Last used: ${lastUsed}`;
-        }).join('\n\n');
+        }).join('\n\n');        // Calculate business-wide analytics
+        const totalProjects = filteredData.projects.length;
+        const activeProjects = filteredData.projects.filter((p: any) => p.status === 'active').length;
+        const totalTasks = filteredData.tasks.length;
+        const urgentTasks = filteredData.tasks.filter((t: any) => t.priority === 'high' || t.priority === 'urgent').length;
+        const recentLogs = filteredData.dailyLogs.length;
+        const totalEquipment = filteredData.equipment.length;
+        const activeEquipment = filteredData.equipment.filter((e: any) => e.status === 'active').length;        // Build comprehensive system prompt with rich context
+        const querySpecificContext = queryContext.projectNames.length > 0
+            ? `\n\nQUERY CONTEXT: User is asking specifically about: ${queryContext.projectNames.join(', ')}${queryContext.requestedData.length > 0 ? ` (focusing on: ${queryContext.requestedData.join(', ')})` : ''}${queryContext.limit ? ` (limited to ${queryContext.limit} items)` : ''}`
+            : '';
 
-        // Calculate business-wide analytics
-        const totalProjects = contextData.projects.length;
-        const activeProjects = contextData.projects.filter(p => p.status === 'active').length;
-        const totalTasks = contextData.tasks.length;
-        const urgentTasks = contextData.tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').length;
-        const recentLogs = contextData.dailyLogs.length;
-        const totalEquipment = contextData.equipment.length;
-        const activeEquipment = contextData.equipment.filter(e => e.status === 'active').length;
+        const systemPrompt = `You are an advanced construction project management AI assistant with DIRECT ACCESS to real-time business data and analytics.
 
-        // Build comprehensive system prompt with rich context
-        const systemPrompt = `You are an advanced construction project management AI assistant with access to comprehensive, real-time business data and analytics.
+IMPORTANT: You DO have access to all the project data listed below. This is real, current data from the user's business database. You should analyze and reference this data directly in your responses.
 
 BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
-- Projects: ${activeProjects}/${totalProjects} active
+- Projects: ${activeProjects}/${totalProjects} active${queryContext.projectNames.length > 0 ? ` (filtered for: ${queryContext.projectNames.join(', ')})` : ''}
 - Tasks: ${totalTasks} total (${urgentTasks} urgent/high priority)
-- Recent Activity: ${recentLogs} daily logs (last 30 days)
+- Recent Activity: ${recentLogs} daily logs${queryContext.timeframe ? ` (${queryContext.timeframe})` : ' (last 30 days)'}
 - Equipment: ${activeEquipment}/${totalEquipment} active units
-- Data Coverage: ${contextData.metadata?.dataRange}
+- Data Coverage: ${contextData.metadata?.dataRange}${querySpecificContext}
 
 DETAILED CONTEXT:
 
@@ -333,14 +337,14 @@ EQUIPMENT STATUS:
 ${equipmentStatus}
 
 ADVANCED CAPABILITIES:
-1. **Project Intelligence**: Analyze progress, budget performance, resource allocation, and timeline risks
-2. **Productivity Analytics**: Track crew performance, equipment utilization, and efficiency trends
-3. **Financial Insights**: Monitor budget vs. actual costs, invoice status, and profitability
-4. **Operational Planning**: Suggest resource reallocation, identify bottlenecks, predict delays
-5. **Quality & Safety Monitoring**: Track safety incidents, quality issues, and compliance
-6. **Predictive Analysis**: Forecast project completion, resource needs, and potential risks
+1. **Project Intelligence**: Analyze progress, budget performance, resource allocation, and timeline risks from REAL project data
+2. **Productivity Analytics**: Track crew performance, equipment utilization, and efficiency trends from ACTUAL data
+3. **Financial Insights**: Monitor budget vs. actual costs, invoice status, and profitability from CURRENT records
+4. **Operational Planning**: Suggest resource reallocation, identify bottlenecks, predict delays using LIVE data
+5. **Quality & Safety Monitoring**: Track safety incidents, quality issues, and compliance from REAL entries
+6. **Predictive Analysis**: Forecast project completion, resource needs, and potential risks using HISTORICAL patterns
 7. **Daily Log Creation**: Convert work descriptions into structured, comprehensive daily logs
-8. **Equipment Management**: Monitor utilization, maintenance schedules, and assignment optimization
+8. **Equipment Management**: Monitor utilization, maintenance schedules, and assignment optimization from CURRENT status
 
 CONTEXT INTELLIGENCE:
 - Real-time access to project progress, task completion rates, and issue tracking
@@ -349,6 +353,14 @@ CONTEXT INTELLIGENCE:
 - Equipment utilization rates, maintenance costs, and operational efficiency
 - Historical work patterns, productivity trends, and seasonal variations
 - Financial performance, budget adherence, and profitability analysis
+
+CRITICAL INSTRUCTIONS:
+- You HAVE DIRECT ACCESS to all the project data shown above - this is REAL, CURRENT business data
+- When asked about specific projects, analyze the provided project data and respond with actual details
+- For daily log summaries, use the ACTUAL daily log entries provided in the RECENT WORK ACTIVITY section
+- Always reference specific data points, dates, hours, and metrics from the provided context
+- If asked about projects not in the filtered data, state that you don't see that project in the current data set
+- Provide concrete, data-driven insights using the actual numbers and details provided
 
 When creating daily logs, leverage project and crew context for enhanced accuracy and completeness.
 When answering questions, provide data-driven insights with specific metrics and actionable recommendations.
@@ -359,13 +371,11 @@ Always consider the interconnections between projects, resources, schedules, and
             { role: "system", content: systemPrompt },
             ...conversationHistory.slice(-5), // Last 5 messages for context
             { role: "user", content: message }
-        ];
-
-        const completion = await openai.chat.completions.create({
+        ]; const completion = await openai.chat.completions.create({
             model: AI_MODELS.CHAT_GPT_3_5,
             messages: messages as any,
             temperature: 0.3,
-            max_tokens: 1000,
+            max_tokens: 1200, // Increased for more detailed responses
         });
 
         const aiResponse = completion.choices[0]?.message?.content;
@@ -381,7 +391,7 @@ Always consider the interconnections between projects, resources, schedules, and
             message.toLowerCase().includes('completed today')) {
 
             // Try to extract project and work details
-            const projectMatch = contextData.projects.find(p =>
+            const projectMatch = filteredData.projects.find((p: any) =>
                 message.toLowerCase().includes(p.name.toLowerCase()) ||
                 message.toLowerCase().includes(p.name.toLowerCase().replace(/\s+/g, ''))
             );
@@ -399,8 +409,79 @@ Always consider the interconnections between projects, resources, schedules, and
                 };
             } else {
                 return {
-                    response: `I'd like to help you create a daily log, but I couldn't identify which project you're referring to. Available projects: ${contextData.projects.map(p => p.name).join(', ')}. Could you specify the project name?`,
+                    response: `I'd like to help you create a daily log, but I couldn't identify which project you're referring to. Available projects: ${filteredData.projects.map((p: any) => p.name).join(', ')}. Could you specify the project name?`,
                     action: "clarify_project"
+                };
+            }
+        }
+
+        // Handle specific summary requests with enhanced formatting
+        if (queryContext.intent === 'summary' && queryContext.projectNames.length > 0) {
+            const targetProject = filteredData.projects[0]; // First matching project
+            if (targetProject && queryContext.requestedData.includes('dailyLogs')) {
+                const projectLogs = filteredData.dailyLogs;
+                const limit = queryContext.limit || 3;
+                const recentLogs = projectLogs.slice(0, limit);
+
+                if (recentLogs.length === 0) {
+                    return {
+                        response: `I don't see any daily logs for the ${targetProject.name} project in the available data.`,
+                        action: "no_data"
+                    };
+                }
+
+                // Create a focused summary for the AI
+                const logSummary = recentLogs.map((log: any, index: number) => {
+                    const crew = log.crew?.name || 'Unknown Crew';
+                    const hours = log.hours_worked || 0;
+                    const overtime = log.overtime || 0;
+                    const materialCost = log.material_cost || 0;
+                    const equipmentHours = log.equipment_hours || 0;
+
+                    return `Log #${index + 1} - ${log.date}:
+  Crew: ${crew}
+  Work Completed: ${log.work_completed || 'No details provided'}
+  Hours: ${hours}${overtime > 0 ? ` (+ ${overtime} OT)` : ''} | Equipment: ${equipmentHours}h
+  Weather: ${log.weather || 'Not recorded'} | Materials: $${materialCost.toLocaleString()}
+  ${log.work_planned ? `Planned Next: ${log.work_planned}` : ''}
+  ${log.delays ? `Delays: ${log.delays}` : ''}
+  ${log.safety ? `Safety Notes: ${log.safety}` : ''}`;
+                }).join('\n\n');
+
+                // Send targeted prompt to AI for summary
+                const summaryPrompt = `Summarize the following ${limit} most recent daily logs for the ${targetProject.name} project:
+
+${logSummary}
+
+Provide a clear, concise summary highlighting:
+- Key work accomplished
+- Total hours and productivity
+- Any issues or delays
+- Progress trends
+- Notable safety or quality observations
+
+Format as a professional project summary.`;
+
+                const summaryCompletion = await openai.chat.completions.create({
+                    model: AI_MODELS.CHAT_GPT_3_5,
+                    messages: [
+                        { role: "system", content: "You are a construction project analyst. Provide clear, professional summaries of daily log data." },
+                        { role: "user", content: summaryPrompt }
+                    ],
+                    temperature: 0.2,
+                    max_tokens: 800,
+                });
+
+                const summaryResponse = summaryCompletion.choices[0]?.message?.content;
+
+                return {
+                    response: summaryResponse || `Here's a summary of the ${limit} most recent daily logs for ${targetProject.name}:\n\n${logSummary}`,
+                    action: "summary_provided",
+                    data: {
+                        projectName: targetProject.name,
+                        logCount: recentLogs.length,
+                        dateRange: recentLogs.length > 0 ? `${recentLogs[recentLogs.length - 1].date} to ${recentLogs[0].date}` : null
+                    }
                 };
             }
         }
@@ -632,4 +713,134 @@ Only include information that is actually present in the input. Be precise and f
             error: "Failed to create daily log"
         };
     }
+}
+
+// Enhanced query preprocessing and data filtering
+interface QueryContext {
+    projectNames: string[];
+    requestedData: string[];
+    timeframe: string | null;
+    limit: number | null;
+    intent: 'summary' | 'analysis' | 'create' | 'general';
+}
+
+function analyzeQuery(query: string, contextData: any): QueryContext {
+    const lowercaseQuery = query.toLowerCase();
+
+    // Extract project names mentioned in the query
+    const projectNames: string[] = [];
+    contextData.projects.forEach((project: any) => {
+        const projectNameLower = project.name.toLowerCase();
+        const projectNameNoSpaces = projectNameLower.replace(/\s+/g, '');
+
+        if (lowercaseQuery.includes(projectNameLower) ||
+            lowercaseQuery.includes(projectNameNoSpaces) ||
+            lowercaseQuery.includes(project.name.toLowerCase().split(' ')[0])) {
+            projectNames.push(project.name);
+        }
+    });
+
+    // Identify requested data types
+    const requestedData: string[] = [];
+    if (lowercaseQuery.includes('daily log') || lowercaseQuery.includes('work log')) {
+        requestedData.push('dailyLogs');
+    }
+    if (lowercaseQuery.includes('task') || lowercaseQuery.includes('todo')) {
+        requestedData.push('tasks');
+    }
+    if (lowercaseQuery.includes('progress') || lowercaseQuery.includes('status')) {
+        requestedData.push('progress');
+    }
+    if (lowercaseQuery.includes('crew') || lowercaseQuery.includes('team')) {
+        requestedData.push('crews');
+    }
+    if (lowercaseQuery.includes('equipment') || lowercaseQuery.includes('machinery')) {
+        requestedData.push('equipment');
+    }
+    if (lowercaseQuery.includes('budget') || lowercaseQuery.includes('cost') || lowercaseQuery.includes('financial')) {
+        requestedData.push('financial');
+    }
+
+    // Extract timeframe
+    let timeframe: string | null = null;
+    if (lowercaseQuery.includes('recent') || lowercaseQuery.includes('latest')) {
+        timeframe = 'recent';
+    } else if (lowercaseQuery.includes('today')) {
+        timeframe = 'today';
+    } else if (lowercaseQuery.includes('this week')) {
+        timeframe = 'week';
+    } else if (lowercaseQuery.includes('this month')) {
+        timeframe = 'month';
+    }
+
+    // Extract limits (numbers)
+    const numberMatch = lowercaseQuery.match(/(\d+)\s*(most|recent|latest|first|last)/);
+    const limit = numberMatch ? parseInt(numberMatch[1]) : null;
+
+    // Determine intent
+    let intent: QueryContext['intent'] = 'general';
+    if (lowercaseQuery.includes('summarize') || lowercaseQuery.includes('summary')) {
+        intent = 'summary';
+    } else if (lowercaseQuery.includes('analyze') || lowercaseQuery.includes('analysis') || lowercaseQuery.includes('trends')) {
+        intent = 'analysis';
+    } else if (lowercaseQuery.includes('create') || lowercaseQuery.includes('daily log')) {
+        intent = 'create';
+    }
+
+    return {
+        projectNames,
+        requestedData,
+        timeframe,
+        limit,
+        intent
+    };
+}
+
+function filterContextData(contextData: any, queryContext: QueryContext) {
+    const filtered = { ...contextData };
+
+    // Filter by project if specific projects mentioned
+    if (queryContext.projectNames.length > 0) {
+        // Filter projects
+        filtered.projects = contextData.projects.filter((p: any) =>
+            queryContext.projectNames.some(name =>
+                p.name.toLowerCase().includes(name.toLowerCase())
+            )
+        );
+
+        const projectIds = filtered.projects.map((p: any) => p.id);
+
+        // Filter daily logs for these projects
+        filtered.dailyLogs = contextData.dailyLogs.filter((log: any) =>
+            projectIds.includes(log.project_id)
+        );
+
+        // Filter tasks for these projects
+        filtered.tasks = contextData.tasks.filter((task: any) =>
+            projectIds.includes(task.project_id)
+        );
+    }
+
+    // Apply limits if specified
+    if (queryContext.limit) {
+        if (queryContext.requestedData.includes('dailyLogs')) {
+            filtered.dailyLogs = filtered.dailyLogs.slice(0, queryContext.limit);
+        }
+        if (queryContext.requestedData.includes('tasks')) {
+            filtered.tasks = filtered.tasks.slice(0, queryContext.limit);
+        }
+    }
+
+    // Apply timeframe filtering
+    if (queryContext.timeframe === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        filtered.dailyLogs = filtered.dailyLogs.filter((log: any) => log.date === today);
+    } else if (queryContext.timeframe === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekAgoStr = weekAgo.toISOString().split('T')[0];
+        filtered.dailyLogs = filtered.dailyLogs.filter((log: any) => log.date >= weekAgoStr);
+    }
+
+    return filtered;
 }
