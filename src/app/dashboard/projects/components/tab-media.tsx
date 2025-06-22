@@ -1,11 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getMediaByProjectId } from "@/app/actions/media"
-import { Media } from "@/types/media"
-import Link from "next/link"
+import { Media, MediaType } from "@/types/media"
 import { useBusiness } from "@/lib/business-context"
 import ErrorBoundary from "@/components/error-boundary"
+import UniversalMediaManager from "@/components/universal-media-manager"
+import {
+    getMediaByProjectId,
+    uploadProjectMedia,
+    linkExistingMediaToProject,
+    unlinkMediaFromProject,
+    getAvailableMediaForProject
+} from "@/app/actions/media"
+import { toast } from "@/hooks/use-toast"
 
 interface MediaTabProps {
     projectId: string
@@ -13,63 +20,96 @@ interface MediaTabProps {
 
 export default function MediaTab({ projectId }: MediaTabProps) {
     const { businessId } = useBusiness();
-    const [mediaItems, setMediaItems] = useState<Media[]>([])
-    const [loading, setLoading] = useState(true)
-    const [selectedType, setSelectedType] = useState<string>("all")
-
-    useEffect(() => {
-        loadMediaItems()
+    const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
+    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
+    const [loading, setLoading] = useState(true); useEffect(() => {
+        loadMediaData()
     }, [projectId])
 
-    const loadMediaItems = async () => {
+    const loadMediaData = async () => {
         try {
             setLoading(true)
             // Get all media types for this project
-            const [images, videos, documents, audio] = await Promise.all([
+            const [images, videos, documents, audios, available] = await Promise.all([
                 getMediaByProjectId(businessId, projectId, "images"),
                 getMediaByProjectId(businessId, projectId, "videos"),
                 getMediaByProjectId(businessId, projectId, "documents"),
-                getMediaByProjectId(businessId, projectId, "audios")
+                getMediaByProjectId(businessId, projectId, "audios"),
+                getAvailableMediaForProject(businessId, projectId)
             ])
 
-            const allMedia = [...images, ...videos, ...documents, ...audio]
-            setMediaItems(allMedia)
+            const allLinked = [...images, ...videos, ...documents, ...audios]
+            setLinkedMedia(allLinked)
+            setAvailableMedia(available)
         } catch (error) {
             console.error("Error loading project media:", error)
+            toast.error("Failed to load media data")
         } finally {
             setLoading(false)
         }
     }
 
-    // Filter media by type
-    const filteredMedia = selectedType === "all"
-        ? mediaItems
-        : mediaItems.filter(item => item.type === selectedType)
+    const handleMediaUpload = async (
+        file: File,
+        metadata: { name: string; description: string; type: MediaType }
+    ): Promise<boolean> => {
+        try {
+            const success = await uploadProjectMedia(
+                businessId,
+                projectId,
+                file,
+                metadata.type,
+                metadata.description
+            )
 
-    // Get icon for file type
-    const getFileIcon = (type: string) => {
-        switch (type) {
-            case "image":
-                return <i className="far fa-image text-accent"></i>
-            case "video":
-                return <i className="far fa-video text-primary"></i>
-            case "document":
-                return <i className="far fa-file-alt text-secondary"></i>
-            case "audio":
-                return <i className="far fa-volume-up text-info"></i>
-            default:
-                return <i className="far fa-file text-base-content"></i>
+            if (success) {
+                await loadMediaData() // Refresh data
+                toast.success("Media uploaded successfully")
+                return true
+            } else {
+                throw new Error("Upload failed")
+            }
+        } catch (error) {
+            console.error("Error uploading media:", error)
+            toast.error("Failed to upload media")
+            return false
         }
     }
 
-    // Format date
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return "Unknown"
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        })
+    const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const success = await linkExistingMediaToProject(businessId, mediaIds, projectId)
+
+            if (success) {
+                await loadMediaData() // Refresh data
+                toast.success(`Linked ${mediaIds.length} media item(s)`)
+                return { success: true }
+            } else {
+                throw new Error("Link failed")
+            }
+        } catch (error) {
+            console.error("Error linking media:", error)
+            const errorMessage = "Failed to link media"
+            toast.error(errorMessage)
+            return { success: false, error: errorMessage }
+        }
+    }
+
+    const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const success = await unlinkMediaFromProject(businessId, mediaIds, projectId); if (success) {
+                await loadMediaData() // Refresh data
+                toast.success(`Unlinked ${mediaIds.length} media item(s)`)
+                return { success: true }
+            } else {
+                throw new Error("Unlink failed")
+            }
+        } catch (error) {
+            console.error("Error unlinking media:", error)
+            const errorMessage = "Failed to unlink media"
+            toast.error(errorMessage)
+            return { success: false, error: errorMessage }
+        }
     }
 
     if (loading) {
@@ -98,116 +138,23 @@ export default function MediaTab({ projectId }: MediaTabProps) {
                     <div className="flex flex-col gap-6">
                         <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Project Media</h2>
-                            <Link
-                                href={`/dashboard/media/upload?project=${projectId}`}
-                                className="btn btn-primary btn-sm"
-                            >
-                                <i className="far fa-upload mr-2"></i>
-                                Upload Media
-                            </Link>
                         </div>
 
                         <p className="text-base-content/70">
-                            Media files associated with this project ({mediaItems.length} items)
+                            Media files associated with this project
                         </p>
 
-                        {/* Filter tabs */}
-                        <div className="tabs tabs-boxed">
-                            <button
-                                className={`tab ${selectedType === "all" ? "tab-active" : ""}`}
-                                onClick={() => setSelectedType("all")}
-                            >
-                                All ({mediaItems.length})
-                            </button>
-                            <button
-                                className={`tab ${selectedType === "images" ? "tab-active" : ""}`}
-                                onClick={() => setSelectedType("images")}
-                            >
-                                Images ({mediaItems.filter(m => m.type === "images").length})
-                            </button>
-                            <button
-                                className={`tab ${selectedType === "videos" ? "tab-active" : ""}`}
-                                onClick={() => setSelectedType("videos")}
-                            >
-                                Videos ({mediaItems.filter(m => m.type === "videos").length})
-                            </button>
-                            <button
-                                className={`tab ${selectedType === "documents" ? "tab-active" : ""}`}
-                                onClick={() => setSelectedType("documents")}
-                            >
-                                Documents ({mediaItems.filter(m => m.type === "documents").length})
-                            </button>
-                            <button
-                                className={`tab ${selectedType === "audios" ? "tab-active" : ""}`}
-                                onClick={() => setSelectedType("audios")}
-                            >
-                                Audio ({mediaItems.filter(m => m.type === "audios").length})
-                            </button>
-                        </div>
-
-                        {filteredMedia.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {filteredMedia.map((item) => (
-                                    <div key={item.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow duration-200">
-                                        <figure className="relative h-32 bg-base-200">
-                                            {item.type === "images" ? (
-                                                <img
-                                                    src={item.url || "/placeholder.svg"}
-                                                    alt={item.name ?? ""}
-                                                    className="object-cover w-full h-full"
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-center w-full h-full">
-                                                    {getFileIcon(item.type || "")}
-                                                </div>
-                                            )}
-                                        </figure>
-                                        <div className="card-body p-4">
-                                            <h3 className="card-title text-sm flex items-center">
-                                                {getFileIcon(item.type ?? "")}
-                                                <span className="ml-2 truncate">{item.name}</span>
-                                            </h3>
-                                            {item.description && (
-                                                <p className="text-xs text-base-content/70 truncate">{item.description}</p>
-                                            )}
-                                            <div className="text-xs text-base-content/50">
-                                                <p>Uploaded {formatDate(item.created_at)}</p>
-                                                <p>{item.size || "Unknown size"}</p>
-                                            </div>
-                                            <div className="card-actions justify-end mt-2">
-                                                <Link
-                                                    href={`/dashboard/media/${item.id}`}
-                                                    className="btn btn-primary btn-xs"
-                                                >
-                                                    View
-                                                </Link>
-                                                <a
-                                                    href={item.url}
-                                                    download
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn btn-ghost btn-xs"
-                                                >
-                                                    Download
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <i className="far fa-file text-4xl text-base-content/30 mb-4"></i>
-                                <p className="text-base-content/70 mb-4">
-                                    No {selectedType === "all" ? "media files" : selectedType + " files"} found for this project
-                                </p>
-                                <Link
-                                    href={`/dashboard/media/upload?project=${projectId}`}
-                                    className="btn btn-primary"
-                                >
-                                    Upload First File
-                                </Link>
-                            </div>)}
+                        <UniversalMediaManager
+                            mode="both"
+                            entityType="project"
+                            onUpload={handleMediaUpload}
+                            availableMedia={availableMedia}
+                            linkedMedia={linkedMedia}
+                            onLink={handleMediaLink}
+                            onUnlink={handleMediaUnlink}
+                            title="Project Media"
+                            description="Upload images, videos, documents, and other files related to this project."
+                        />
                     </div>
                 </div>
             </div>

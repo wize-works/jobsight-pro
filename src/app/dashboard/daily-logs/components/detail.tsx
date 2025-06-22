@@ -3,7 +3,8 @@
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
-import { useState } from "react";
+import { Media } from "@/types/media";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -12,6 +13,16 @@ import TabSafety from "./tab-safety";
 import { DailyLogMaterial } from "@/types/daily-log-materials";
 import { DailyLogEquipment } from "@/types/daily-log-equipment";
 import ModalLoading from "@/components/modal-loading";
+import UniversalMediaManager from "@/components/universal-media-manager";
+import {
+    getMediaByDailyLogId,
+    uploadDailyLogMedia,
+    linkExistingMediaToDailyLog,
+    unlinkMediaFromDailyLog,
+    getMedias
+} from "@/app/actions/media";
+import { useBusiness } from "@/lib/business-context";
+import { toast } from "@/hooks/use-toast";
 
 // Dynamic import for the edit modal
 const EditModal = dynamic(() => import("./modal-edit"), {
@@ -38,11 +49,43 @@ type DailyLogDetailProps = {
 };
 
 export default function DailyLogDetail({ log, crews, projects, crewMembers }: DailyLogDetailProps) {
+    const { businessId } = useBusiness();
     const [activeTab, setActiveTab] = useState<"overview" | "labor-hours" | "materials-equipment" | "safety-quality" | "photos-documents">("overview");
     const [currentLog, setCurrentLog] = useState<DailyLogWithDetails>(log);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Calculate totals for summary
+    // Media state
+    const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
+    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
+    const [mediaLoading, setMediaLoading] = useState(false);
+
+    // Load media data when component mounts or log changes
+    useEffect(() => {
+        loadMediaData();
+    }, [currentLog.id, businessId]);
+
+    const loadMediaData = async () => {
+        if (!businessId) return;
+
+        setMediaLoading(true);
+        try {
+            const [linked, available] = await Promise.all([
+                getMediaByDailyLogId(businessId, currentLog.id),
+                getMedias(businessId)
+            ]);
+
+            setLinkedMedia(linked);
+            setAvailableMedia(available);
+        } catch (error) {
+            console.error("Error loading media data:", error);
+            toast.error({
+                title: "Error",
+                description: "Failed to load media data",
+            });
+        } finally {
+            setMediaLoading(false);
+        }
+    };    // Calculate totals for summary
     const totalMaterialCost = currentLog.materials.reduce((total, material) =>
         total + (extractNumber(material.quantity) * (material.cost || 0)), 0);
 
@@ -51,6 +94,50 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
 
     const handleLogUpdate = (updatedLog: DailyLogWithDetails) => {
         setCurrentLog(updatedLog);
+    };
+
+    // Media upload handler
+    const handleMediaUpload = async (file: File, metadata: { name: string; description: string; type: any }) => {
+        try {
+            const success = await uploadDailyLogMedia(businessId, currentLog.id, file, metadata.type, metadata.description);
+            if (success) {
+                await loadMediaData(); // Refresh media list
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Error uploading media:", error);
+            return false;
+        }
+    };
+
+    // Media link handler
+    const handleMediaLink = async (mediaIds: string[]) => {
+        try {
+            const success = await linkExistingMediaToDailyLog(businessId, mediaIds, currentLog.id);
+            if (success) {
+                await loadMediaData(); // Refresh media list
+                return { success: true };
+            }
+            return { success: false, error: "Failed to link media" };
+        } catch (error) {
+            console.error("Error linking media:", error);
+            return { success: false, error: "Failed to link media" };
+        }
+    };
+
+    // Media unlink handler
+    const handleMediaUnlink = async (mediaIds: string[]) => {
+        try {
+            for (const mediaId of mediaIds) {
+                await unlinkMediaFromDailyLog(businessId, mediaId, currentLog.id);
+            }
+            await loadMediaData(); // Refresh media list
+            return { success: true };
+        } catch (error) {
+            console.error("Error unlinking media:", error);
+            return { success: false, error: "Failed to unlink media" };
+        }
     };
 
     return (
@@ -303,106 +390,30 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                 {/* Safety & Quality Tab */}
                 {activeTab === "safety-quality" && (
                     <TabSafety safety={log.safety} quality={log.quality} delays={log.delays} />
-                )}
-
-                {/* Photos & Documents Tab */}
+                )}                {/* Photos & Documents Tab */}
                 {activeTab === "photos-documents" && (
                     <div className="space-y-6">
-                        {/* Photos */}
-                        <div className="card bg-base-100 shadow">
-                            <div className="card-body">
-                                <h3 className="card-title">Photos</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="relative group">
-                                        <img src="/concrete-pouring.png" alt="East wing foundation pour" className="w-full h-48 object-cover rounded" />
-                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-end">
-                                            <div className="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                <p className="font-medium">East wing foundation pour</p>
-                                                <button className="btn btn-sm btn-primary mt-2">
-                                                    <i className="far fa-download mr-2"></i>
-                                                    Download
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="relative group">
-                                        <img src="/concrete-pouring.png" alt="Drainage installation" className="w-full h-48 object-cover rounded" />
-                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-end">
-                                            <div className="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                <p className="font-medium">Drainage installation</p>
-                                                <button className="btn btn-sm btn-primary mt-2">
-                                                    <i className="far fa-download mr-2"></i>
-                                                    Download
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="relative group">
-                                        <img src="/concrete-pouring.png" alt="Formwork for west wing" className="w-full h-48 object-cover rounded" />
-                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded flex items-end">
-                                            <div className="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                <p className="font-medium">Formwork for west wing</p>
-                                                <button className="btn btn-sm btn-primary mt-2">
-                                                    <i className="far fa-download mr-2"></i>
-                                                    Download
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        {mediaLoading ? (
+                            <div className="flex justify-center py-12">
+                                <div className="loading loading-spinner loading-lg"></div>
+                                <span className="ml-2">Loading media...</span>
                             </div>
-                        </div>
-
-                        {/* Documents */}
-                        <div className="card bg-base-100 shadow">
-                            <div className="card-body">
-                                <h3 className="card-title">Documents</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="table w-full">
-                                        <thead>
-                                            <tr>
-                                                <th>Document Name</th>
-                                                <th>Type</th>
-                                                <th>Size</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Concrete Delivery Receipt</td>
-                                                <td>PDF</td>
-                                                <td>1.2 MB</td>
-                                                <td>
-                                                    <div className="flex gap-2">
-                                                        <button className="btn btn-ghost btn-sm">
-                                                            <i className="far fa-eye"></i>
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm">
-                                                            <i className="far fa-download"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Foundation Inspection Report</td>
-                                                <td>PDF</td>
-                                                <td>1.2 MB</td>
-                                                <td>
-                                                    <div className="flex gap-2">
-                                                        <button className="btn btn-ghost btn-sm">
-                                                            <i className="far fa-eye"></i>
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm">
-                                                            <i className="far fa-download"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        ) : (
+                            <UniversalMediaManager
+                                mode="both"
+                                entityType="dailyLog"
+                                onUpload={handleMediaUpload}
+                                availableMedia={availableMedia}
+                                linkedMedia={linkedMedia}
+                                onLink={handleMediaLink}
+                                onUnlink={handleMediaUnlink}
+                                title="Daily Log Media"
+                                description="Manage photos and documents for this daily log"
+                                onComplete={() => {
+                                    // Optional: Handle completion events
+                                }}
+                            />
+                        )}
                     </div>
                 )}
             </div>

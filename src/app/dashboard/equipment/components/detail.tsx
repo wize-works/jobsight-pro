@@ -10,11 +10,11 @@ import { setEquipmentLocation } from "@/app/actions/equipments";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Media } from "@/types/media";
+import { Media, MediaType } from "@/types/media";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
-import MediaSelector from "@/components/media-selector";
+import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, getAllMediaByEquipmentId, getAvailableMediaForEquipment, linkExistingMediaToEquipment, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
+import UniversalMediaManager from "@/components/universal-media-manager";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
@@ -71,19 +71,12 @@ export default function EquipmentDetail({
 
         // Watch for position updates
         if (position) {
-            const { latitude, longitude } = position.coords;
-            const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
+            const { latitude, longitude } = position.coords; const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
             setLocation(newLocation);
             setEquipmentLocation(businessId, { id: equipment.id, location: newLocation } as EquipmentUpdate);
-            toast.success({
-                title: "Location Updated",
-                description: "Equipment location has been updated"
-            });
+            toast.success("Equipment location has been updated");
         } else if (geoError) {
-            toast.error({
-                title: "Location Error",
-                description: "Unable to get current location"
-            });
+            toast.error("Unable to get current location");
         }
     };
     useEffect(() => {
@@ -102,90 +95,115 @@ export default function EquipmentDetail({
     const [selectedMaintenance, setSelectedMaintenance] = useState<EquipmentMaintenance | undefined>();
     const [selectedUsage, setSelectedUsage] = useState<EquipmentUsage | undefined>();
     const [selectedAssignment, setSelectedAssignment] = useState<EquipmentAssignment | undefined>();
-    const [location, setLocation] = useState<string>(equipment.location || "");
-    const [equipmentMedia, setEquipmentMedia] = useState<Media[]>(documents);
-    const [showMediaSelector, setShowMediaSelector] = useState(false);
+    const [location, setLocation] = useState<string>(equipment.location || ""); const [equipmentMedia, setEquipmentMedia] = useState<Media[]>(documents);
+    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
     const [isLoadingMedia, setIsLoadingMedia] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [equipmentSpecifications, setEquipmentSpecifications] = useState<EquipmentSpecification[]>(specifications);
 
-    // Handle media linking
-    const handleMediaSelect = async (selectedMedia: Media | Media[]) => {
-        setIsLoadingMedia(true);
+    // Load media data for UniversalMediaManager
+    const loadMediaData = async () => {
         try {
-            const mediaArray = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
-
-            for (const media of mediaArray) {
-                await linkMediaToEquipment(businessId, media.id, equipment.id);
-            }
-
-            // Refresh media list
-            const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
-            setEquipmentMedia(updatedMedia);
-
-            toast.success({
-                title: "Success",
-                description: `${mediaArray.length} media item(s) linked to equipment`
-            });
+            setIsLoadingMedia(true)
+            const [linked, available] = await Promise.all([
+                getAllMediaByEquipmentId(businessId, equipment.id),
+                getAvailableMediaForEquipment(businessId, equipment.id)
+            ])
+            setEquipmentMedia(linked)
+            setAvailableMedia(available)
         } catch (error) {
-            console.error("Error linking media:", error);
-            toast.error({
-                title: "Error",
-                description: "Failed to link media to equipment",
-            });
+            console.error("Error loading equipment media:", error)
+            toast.error("Failed to load media data")
         } finally {
-            setIsLoadingMedia(false);
+            setIsLoadingMedia(false)
         }
-    };
+    }
 
-    // Handle media unlinking
-    const handleMediaUnlink = async (mediaId: string) => {
-        if (confirm("Are you sure you want to remove this media from the equipment?")) {
-            setIsLoadingMedia(true);
-            try {
-                await unlinkMediaFromEquipment(businessId, mediaId, equipment.id);
+    // Universal Media Manager handlers
+    const handleMediaUpload = async (
+        file: File,
+        metadata: { name: string; description: string; type: MediaType }
+    ): Promise<boolean> => {
+        try {
+            const success = await uploadEquipmentImage(businessId, equipment.id, file)
 
-                // Refresh media list
-                const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
-                setEquipmentMedia(updatedMedia);
-
-                toast.success({
-                    title: "Success",
-                    description: "Media removed from equipment"
-                });
-            } catch (error) {
-                console.error("Error unlinking media:", error);
-                toast.error({
-                    title: "Error",
-                    description: "Failed to remove media from equipment",
-                });
-            } finally {
-                setIsLoadingMedia(false);
+            if (success) {
+                await loadMediaData() // Refresh data
+                toast.success("Media uploaded successfully")
+                return true
+            } else {
+                throw new Error("Upload failed")
             }
+        } catch (error) {
+            console.error("Error uploading media:", error)
+            toast.error("Failed to upload media")
+            return false
         }
-    };
+    }
+
+    const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const success = await linkExistingMediaToEquipment(businessId, mediaIds, equipment.id)
+
+            if (success) {
+                await loadMediaData() // Refresh data
+                toast.success(`Linked ${mediaIds.length} media item(s)`)
+                return { success: true }
+            } else {
+                throw new Error("Link failed")
+            }
+        } catch (error) {
+            console.error("Error linking media:", error)
+            const errorMessage = "Failed to link media"
+            toast.error(errorMessage)
+            return { success: false, error: errorMessage }
+        }
+    }
+
+    const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
+        try {
+            let success = true
+            for (const mediaId of mediaIds) {
+                const result = await unlinkMediaFromEquipment(businessId, mediaId, equipment.id)
+                if (!result) {
+                    success = false
+                    break
+                }
+            }
+
+            if (success) {
+                await loadMediaData() // Refresh data
+                toast.success(`Unlinked ${mediaIds.length} media item(s)`)
+                return { success: true }
+            } else {
+                throw new Error("Unlink failed")
+            }
+        } catch (error) {
+            console.error("Error unlinking media:", error)
+            const errorMessage = "Failed to unlink media"
+            toast.error(errorMessage)
+            return { success: false, error: errorMessage }
+        }
+    }
+
+    // Load media data on component mount
+    useEffect(() => {
+        loadMediaData()
+    }, [equipment.id])
 
     // Handle setting primary image
     const handleSetPrimaryImage = async (mediaId: string) => {
         setIsLoadingMedia(true);
         try {
-            await setEquipmentPrimaryImage(businessId, equipment.id, mediaId);
-
-            toast.success({
-                title: "Success",
-                description: "Primary image updated"
-            });
+            await setEquipmentPrimaryImage(businessId, equipment.id, mediaId); toast.success("Primary image updated");
 
             // Refresh the page to show updated image
             window.location.reload();
         } catch (error) {
             console.error("Error setting primary image:", error);
-            toast.error({
-                title: "Error",
-                description: "Failed to set primary image",
-            });
+            toast.error("Failed to set primary image");
         } finally {
             setIsLoadingMedia(false);
         }
@@ -194,14 +212,9 @@ export default function EquipmentDetail({
     // Handle image upload
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file) return;
-
-        // Validate file type
+        if (!file) return;        // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast.error({
-                title: "Error",
-                description: "Please select an image file",
-            });
+            toast.error("Please select an image file");
             return;
         }
 
@@ -209,10 +222,7 @@ export default function EquipmentDetail({
         try {
             await uploadEquipmentImage(businessId, equipment.id, file);
 
-            toast.success({
-                title: "Success",
-                description: "Equipment image uploaded successfully"
-            });
+            toast.success("Equipment image uploaded successfully");
 
             // Refresh media list and page
             const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
@@ -220,10 +230,7 @@ export default function EquipmentDetail({
             window.location.reload();
         } catch (error) {
             console.error("Error uploading image:", error);
-            toast.error({
-                title: "Error",
-                description: "Failed to upload image",
-            });
+            toast.error("Failed to upload image");
         } finally {
             setIsUploadingImage(false);
             setShowImageUpload(false);
@@ -359,13 +366,7 @@ export default function EquipmentDetail({
                                                 disabled={isUploadingImage}
                                             >
                                                 <i className="far fa-upload mr-2"></i> Upload New Image
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button onClick={() => setShowMediaSelector(true)}>
-                                                <i className="far fa-images mr-2"></i> Choose from Media
-                                            </button>
-                                        </li>
+                                            </button>                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -776,122 +777,21 @@ export default function EquipmentDetail({
                                     </ul> */}
                                 </div>
                             </div>
-                        )}
-
-                        {/* Media Tab */}
+                        )}                        {/* Media Tab */}
                         {activeTab === "media" && (
                             <div className="card bg-base-100 shadow-sm">
                                 <div className="card-body">
-                                    <div className="flex flex-col md:flex-row space-x-6 space-y-4 justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Equipment Media</h3>
-                                        <div className="flex gap-2">
-                                            <button
-                                                className="btn btn-sm btn-outline"
-                                                onClick={() => setShowMediaSelector(true)}
-                                                disabled={isLoadingMedia}
-                                            >
-                                                <i className="far fa-link mr-2"></i> Link Existing
-                                            </button>
-                                            <Link href="/dashboard/media/upload" className="btn btn-sm btn-primary">
-                                                <i className="far fa-upload mr-2"></i> Upload New
-                                            </Link>
-                                        </div>
-                                    </div>
-
-                                    {isLoadingMedia && (
-                                        <div className="flex justify-center py-4">
-                                            <div className="loading loading-spinner loading-md"></div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                        {equipmentMedia.map((media) => (
-                                            <div key={media.id} className="card bg-base-200 shadow-sm">
-                                                <figure className="relative h-32 bg-base-300">
-                                                    {media.type === "image" ? (
-                                                        <img
-                                                            src={media.url || "/placeholder.svg"}
-                                                            alt={media.name ?? ""}
-                                                            className="object-cover w-full h-full"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex items-center justify-center w-full h-full">
-                                                            {media.type === "video" && <i className="far fa-play-circle text-3xl text-primary"></i>}
-                                                            {media.type === "document" && <i className="far fa-file-alt text-3xl text-secondary"></i>}
-                                                            {media.type === "audio" && <i className="far fa-volume-up text-3xl text-info"></i>}
-                                                        </div>
-                                                    )}
-                                                    <div className="absolute top-2 right-2">
-                                                        <div className="dropdown dropdown-end">
-                                                            <div tabIndex={0} role="button" className="btn btn-ghost btn-xs btn-circle">
-                                                                <i className="far fa-ellipsis-v"></i>
-                                                            </div>
-                                                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                                                <li>
-                                                                    <Link href={`/dashboard/media/${media.id}`}>
-                                                                        <i className="far fa-eye mr-2"></i> View
-                                                                    </Link>
-                                                                </li>
-                                                                {media.type === "image" && (
-                                                                    <li>
-                                                                        <button
-                                                                            onClick={() => handleSetPrimaryImage(media.id)}
-                                                                            disabled={isLoadingMedia}
-                                                                        >
-                                                                            <i className="far fa-star mr-2"></i> Set as Primary
-                                                                        </button>
-                                                                    </li>
-                                                                )}
-                                                                <li>
-                                                                    {media.url && (
-
-                                                                        <a href={media.url || "/placeholder.svg"} download target="_blank" rel="noopener noreferrer">
-                                                                            <i className="far fa-download mr-2"></i> Download
-                                                                        </a>
-                                                                    )}
-                                                                </li>
-                                                                <li>
-                                                                    <button
-                                                                        onClick={() => handleMediaUnlink(media.id)}
-                                                                        className="text-error"
-                                                                        disabled={isLoadingMedia}
-                                                                    >
-                                                                        <i className="far fa-unlink mr-2"></i> Remove
-                                                                    </button>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </figure>
-                                                <div className="card-body p-3">
-                                                    <h4 className="card-title text-sm truncate">{media.name}</h4>
-                                                    <div className="text-xs text-base-content/70">
-                                                        <p>Type: {media.type}</p>
-                                                        <p>Size: {media.size || "Unknown"}</p>
-                                                        <p>Added: {new Date(media.created_at || "").toLocaleDateString()}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {equipmentMedia.length === 0 && !isLoadingMedia && (
-                                        <div className="text-center py-8">
-                                            <i className="far fa-images text-3xl text-base-content/30 mb-2"></i>
-                                            <p className="text-base-content/70">No media files linked to this equipment</p>
-                                            <div className="flex justify-center gap-2 mt-4">
-                                                <button
-                                                    className="btn btn-sm btn-outline"
-                                                    onClick={() => setShowMediaSelector(true)}
-                                                >
-                                                    Link Existing Media
-                                                </button>
-                                                <Link href="/dashboard/media/upload" className="btn btn-sm btn-primary">
-                                                    Upload New Media
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <UniversalMediaManager
+                                        mode="both"
+                                        entityType="equipment"
+                                        onUpload={handleMediaUpload}
+                                        availableMedia={availableMedia}
+                                        linkedMedia={equipmentMedia}
+                                        onLink={handleMediaLink}
+                                        onUnlink={handleMediaUnlink}
+                                        title="Equipment Media"
+                                        description="Upload images, videos, documents, and other files related to this equipment."
+                                    />
                                 </div>
                             </div>
                         )}
@@ -918,23 +818,7 @@ export default function EquipmentDetail({
                         setSelectedUsage(undefined);
                     }}
                 />
-            )}
-
-            {/* Media Selector Modal */}
-            {showMediaSelector && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-4xl">
-                        <MediaSelector
-                            multiple={true}
-                            onSelect={handleMediaSelect}
-                            onClose={() => setShowMediaSelector(false)}
-                            initialSelected={[]}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Image Upload Modal */}
+            )}            {/* Image Upload Modal */}
             {showImageUpload && (
                 <div className="modal modal-open">
                     <div className="modal-box">
