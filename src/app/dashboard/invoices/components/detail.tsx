@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
-import ModalSend from "./modal-send";
-import ModalPayment from "./modal-payment";
 import ErrorBoundary from "@/components/error-boundary";
+import ModalLoading from "@/components/modal-loading";
+
+// Dynamic imports for modal components
+const ModalSend = dynamic(() => import("./modal-send"), {
+    loading: () => <ModalLoading message="Loading send form..." />,
+});
+
+const ModalPayment = dynamic(() => import("./modal-payment"), {
+    loading: () => <ModalLoading message="Loading payment form..." />,
+});
 
 async function downloadPdfFromUrl(url: string, filename: string) {
     try {

@@ -51,11 +51,17 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Implement graceful error handling with user-friendly messages
 
 ### **Performance Optimization**
+- [ ] Standardize media upload and linking processes and user experience
 - [ ] Implement image optimization for project photos
-- [ ] Add code splitting for large components
+- [x] Add code splitting for large components (modals and detail pages)
+- [x] Implement code splitting for projects detail page and tab components
+- [x] Implement code splitting for daily logs detail page and modal components  
+- [x] Implement code splitting for crews detail page and modal components
+- [x] Implement code splitting for equipment detail page and modal components
+- [x] Implement code splitting for invoices detail page and modal components
+- [x] Implement code splitting for AI assistant panel
 - [ ] Implement tree shaking for unused code
-- [ ] Implement lazy loading for project detail components
-- [ ] Add lazy loading for daily log components
+- [ ] Implement lazy loading for remaining large components (media, map, analytics)
 - [ ] Set up performance monitoring with Core Web Vitals
 - [ ] Optimize bundle size analysis
 - [ ] Implement caching strategies for AI context data

@@ -1,17 +1,22 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
-import DailyLogComponent from "../components/detail";
+import dynamic from "next/dynamic";
 import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
 import { getCrews } from "@/app/actions/crews";
 import { getProjects } from "@/app/actions/projects";
 import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
 import { useBusiness } from "@/lib/business-context";
-import Loading from "@/app/loading";
 import DailyLogDetailLoading from "./loading";
+import ModalLoading from "@/components/modal-loading";
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { CrewMember } from "@/types/crew-members";
+
+// Dynamic import for the detail component
+const DailyLogComponent = dynamic(() => import("../components/detail"), {
+    loading: () => <ModalLoading message="Loading daily log details..." />,
+});
 
 export default function DailyLogPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
