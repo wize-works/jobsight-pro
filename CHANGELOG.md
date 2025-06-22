@@ -1,3 +1,10 @@
+# [1.72.0](https://github.com/wize-works/jobsight-pro/compare/v1.71.0...v1.72.0) (2025-06-22)
+
+
+### Features
+
+* Refactor InvoiceDetailPage to integrate dynamic imports and enhance loading experience ([51a2e16](https://github.com/wize-works/jobsight-pro/commit/51a2e16f2bfbbfd0bc8f42629721738a91acfa80))
+
 # [1.71.0](https://github.com/wize-works/jobsight-pro/compare/v1.70.0...v1.71.0) (2025-06-22)
 
 
