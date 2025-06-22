@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, SetStateAction } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSafeRouter } from "@/hooks/use-safe-router";
 import { createTask, updateTask, deleteTask } from "@/app/actions/tasks";
@@ -11,8 +12,15 @@ import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
 import toast from "react-hot-toast";
 import KanbanPage from "./kanban";
-import TaskModal from "./modal-task"; // Add this import
 import { useBusiness } from "@/lib/business-context";
+import ErrorBoundary from "@/components/error-boundary";
+import ModalLoading from "@/components/modal-loading";
+
+// Lazy load modal component for better performance
+const TaskModal = dynamic(() => import("./modal-task"), {
+    loading: () => <ModalLoading message="Loading task form..." />,
+    ssr: false
+});
 
 interface TasksComponentProps {
     tasks: TaskWithDetails[];
@@ -164,266 +172,306 @@ export default function TasksComponent({ tasks: initialTasks, projects, crews }:
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
+        <ErrorBoundary fallback={() => (
+            <div className="alert alert-error">
+                <i className="fas fa-exclamation-triangle"></i>
                 <div>
-                    <h1 className="text-2xl font-bold">Tasks</h1>
-                    <p className="text-base-content/70">Manage and track task progress</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowAddTaskModal(true)}>
-                    <i className="far fa-plus mr-2"></i> Add New Task
-                </button>
-            </div>
-
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="stat bg-base-100 shadow-sm">
-                    <div className="stat-figure text-primary">
-                        <div className="bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-tasks fa-lg"></i>
-                        </div>
-                    </div>
-                    <div className="stat-title">Total Tasks</div>
-                    <div className="stat-value text-primary">{totalTasks}</div>
-                    <div className="stat-desc">Total number of tasks across all projects</div>
-                </div>
-                <div className="stat bg-base-100 shadow-sm">
-                    <div className="stat-figure text-success">
-                        <div className="bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-check-circle fa-lg"></i>
-                        </div>
-                    </div>
-                    <div className="stat-title">Completed</div>
-                    <div className="stat-value text-success">{completedTasks}</div>
-                    <div className="stat-desc">{totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% completion rate</div>
-                </div>
-                <div className="stat bg-base-100 shadow-sm">
-                    <div className="stat-figure text-info">
-                        <div className="bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-play-circle fa-lg"></i>
-                        </div>
-                    </div>
-                    <div className="stat-title">In Progress</div>
-                    <div className="stat-value text-info">{inProgressTasks}</div>
-                    <div className="stat-desc">Currently active tasks</div>
-                </div>
-                <div className="stat bg-base-100 shadow-sm">
-                    <div className="stat-figure text-error">
-                        <div className="bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-exclamation-triangle fa-lg"></i>
-                        </div>
-                    </div>
-                    <div className="stat-title">Overdue</div>
-                    <div className="stat-value text-error">{overdueTasks}</div>
-                    <div className="stat-desc">Tasks past due date</div>
+                    <h3 className="font-bold">Task Management Error</h3>
+                    <div className="text-xs">Failed to load task management. Please refresh the page.</div>
                 </div>
             </div>
+        )}>
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold">Tasks</h1>
+                        <p className="text-base-content/70">Manage and track task progress</p>
+                    </div>
+                    <button className="btn btn-primary" onClick={() => setShowAddTaskModal(true)}>
+                        <i className="far fa-plus mr-2"></i> Add New Task
+                    </button>
+                </div>
 
-            {/* Filters and Search */}
-            <div className="card bg-base-100 shadow-sm">
-                <div className="card-body p-2">
-                    <div className="flex flex-col lg:flex-row gap-4">
-                        {/* Search */}
-                        <label className="input input-secondary">
-                            <i className="far fa-search"></i>
-                            <input
-                                type="text"
-                                placeholder="Search tasks..."
-                                className="grow"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </label>
-                        {taskStatusOptions.select(
-                            statusFilter,
-                            (value) => setStatusFilter(value as TaskStatus),
-                            "select select-bordered select-secondary"
-                        )}
-                        <select
-                            className="select select-bordered select-secondary"
-                            value={projectFilter}
-                            onChange={(e) => setProjectFilter(e.target.value)}
-                        >
-                            <option value="all">All Projects</option>
-                            {projects.map(project => (
-                                <option key={project.id} value={project.id}>{project.name}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="select select-bordered select-secondary"
-                            value={assigneeFilter}
-                            onChange={(e) => setAssigneeFilter(e.target.value)}
-                        >
-                            <option value="all">All Assignees</option>
-                            {crews.map(crew => (
-                                <option key={crew.id} value={crew.id}>{crew.name}</option>
-                            ))}
-                        </select>
-
-                        {taskPriorityOptions.select(
-                            priorityFilter,
-                            (value) => setPriorityFilter(value as TaskPriority),
-                            "select select-bordered select-secondary"
-                        )}
-
-                        {/* View Toggle */}
-                        <div className="tabs tabs-box tabs-sm flex-nowrap">
-                            <button role="tab" className={`tab tab-secondary ${viewType === "kanban" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("kanban")}> <i className="far fa-chart-kanban"></i> </button>
-                            <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
+                {/* Statistics Cards */}
+                <ErrorBoundary fallback={() => (
+                    <div className="alert alert-warning mb-6">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Statistics temporarily unavailable</h3>
+                            <div className="text-xs">Task statistics couldn't be loaded.</div>
                         </div>
                     </div>
-                </div>
-            </div>
+                )}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat-figure text-primary">
+                                <div className="bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <i className="far fa-tasks fa-lg"></i>
+                                </div>
+                            </div>
+                            <div className="stat-title">Total Tasks</div>
+                            <div className="stat-value text-primary">{totalTasks}</div>
+                            <div className="stat-desc">Total number of tasks across all projects</div>
+                        </div>
+                        <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat-figure text-success">
+                                <div className="bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <i className="far fa-check-circle fa-lg"></i>
+                                </div>
+                            </div>
+                            <div className="stat-title">Completed</div>
+                            <div className="stat-value text-success">{completedTasks}</div>
+                            <div className="stat-desc">{totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% completion rate</div>
+                        </div>
+                        <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat-figure text-info">
+                                <div className="bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <i className="far fa-play-circle fa-lg"></i>
+                                </div>
+                            </div>
+                            <div className="stat-title">In Progress</div>
+                            <div className="stat-value text-info">{inProgressTasks}</div>
+                            <div className="stat-desc">Currently active tasks</div>
+                        </div>
+                        <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat-figure text-error">
+                                <div className="bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <i className="far fa-exclamation-triangle fa-lg"></i>
+                                </div>
+                            </div>
+                            <div className="stat-title">Overdue</div>
+                            <div className="stat-value text-error">{overdueTasks}</div>
+                            <div className="stat-desc">Tasks past due date</div>
+                        </div>
+                    </div>
+                </ErrorBoundary>
 
-            {/* Task Content */}
-            {viewType === "kanban" ? (
-                <KanbanPage
-                    tasks={filteredTasks}
-                    projects={projects.map(p => ({ id: p.id, name: p.name }))}
-                    crews={crews.map(c => ({ id: c.id, name: c.name }))}
-                />
-            ) : (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="overflow-x-auto">
-                            <table className="table table-zebra">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            className="cursor-pointer hover:bg-base-200"
-                                            onClick={() => handleSortChange("name")}
-                                        >
-                                            Task Name
-                                            {sortBy === "name" && (
-                                                <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
-                                            )}
-                                        </th>
-                                        <th>Project</th>
-                                        <th>Assigned To</th>
-                                        <th>Priority</th>
-                                        <th>Status</th>
-                                        <th
-                                            className="cursor-pointer hover:bg-base-200"
-                                            onClick={() => handleSortChange("end_date")}
-                                        >
-                                            Due Date
-                                            {sortBy === "end_date" && (
-                                                <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
-                                            )}
-                                        </th>
-                                        <th>Progress</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredTasks.length > 0 ? (
-                                        filteredTasks.map((task) => (
-                                            <tr key={task.id} className="hover">
-                                                <td>
-                                                    <div className="font-medium">
-                                                        <Link href={`/dashboard/tasks/${task.id}`} className="link link-hover">
-                                                            {task.name}
-                                                        </Link>
-                                                    </div>
-                                                    {task.description && (
-                                                        <div className="text-sm text-base-content/70 truncate max-w-md">
-                                                            {task.description}
-                                                        </div>
+                {/* Filters and Search */}
+                <ErrorBoundary fallback={() => (
+                    <div className="alert alert-warning mb-6">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Search and filters temporarily unavailable</h3>
+                            <div className="text-xs">Task search and filtering options couldn't be loaded.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-2">
+                            <div className="flex flex-col lg:flex-row gap-4">
+                                {/* Search */}
+                                <label className="input input-secondary">
+                                    <i className="far fa-search"></i>
+                                    <input
+                                        type="text"
+                                        placeholder="Search tasks..."
+                                        className="grow"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </label>
+                                {taskStatusOptions.select(
+                                    statusFilter,
+                                    (value) => setStatusFilter(value as TaskStatus),
+                                    "select select-bordered select-secondary"
+                                )}
+                                <select
+                                    className="select select-bordered select-secondary"
+                                    value={projectFilter}
+                                    onChange={(e) => setProjectFilter(e.target.value)}
+                                >
+                                    <option value="all">All Projects</option>
+                                    {projects.map(project => (
+                                        <option key={project.id} value={project.id}>{project.name}</option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    className="select select-bordered select-secondary"
+                                    value={assigneeFilter}
+                                    onChange={(e) => setAssigneeFilter(e.target.value)}
+                                >
+                                    <option value="all">All Assignees</option>
+                                    {crews.map(crew => (
+                                        <option key={crew.id} value={crew.id}>{crew.name}</option>
+                                    ))}
+                                </select>
+
+                                {taskPriorityOptions.select(
+                                    priorityFilter,
+                                    (value) => setPriorityFilter(value as TaskPriority),
+                                    "select select-bordered select-secondary"
+                                )}
+
+                                {/* View Toggle */}
+                                <div className="tabs tabs-box tabs-sm flex-nowrap">
+                                    <button role="tab" className={`tab tab-secondary ${viewType === "kanban" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("kanban")}> <i className="far fa-chart-kanban"></i> </button>
+                                    <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ErrorBoundary>
+
+                {/* Task Content */}
+                <ErrorBoundary fallback={() => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load tasks</h3>
+                            <div className="text-xs">Task data couldn't be displayed. Please refresh the page.</div>
+                        </div>
+                    </div>
+                )}>
+                    {viewType === "kanban" ? (
+                        <KanbanPage
+                            tasks={filteredTasks}
+                            projects={projects.map(p => ({ id: p.id, name: p.name }))}
+                            crews={crews.map(c => ({ id: c.id, name: c.name }))}
+                        />
+                    ) : (
+                        <div className="card bg-base-100 shadow-sm">
+                            <div className="card-body">
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra">
+                                        <thead>
+                                            <tr>
+                                                <th
+                                                    className="cursor-pointer hover:bg-base-200"
+                                                    onClick={() => handleSortChange("name")}
+                                                >
+                                                    Task Name
+                                                    {sortBy === "name" && (
+                                                        <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
                                                     )}
-                                                </td>
-                                                <td>
-                                                    <Link href={`/dashboard/projects/${task.project_id}`} className="link link-hover text-sm">
-                                                        {task.project_name || "Unknown Project"}
-                                                    </Link>
-                                                </td>
-                                                <td className="text-sm">{task.crew_name || "Unassigned"}</td>
-                                                <td>{taskPriorityOptions.badge(task.priority as TaskPriority, "badge-sm")}</td>
-                                                <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
-                                                <td className="text-sm">
-                                                    {task.end_date ? (
-                                                        <div className={
-                                                            new Date(task.end_date) < new Date() && task.status !== "completed"
-                                                                ? "text-error font-medium"
-                                                                : ""
-                                                        }>
-                                                            {formatDate(task.end_date)}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-base-content/50">No due date</span>
+                                                </th>
+                                                <th>Project</th>
+                                                <th>Assigned To</th>
+                                                <th>Priority</th>
+                                                <th>Status</th>
+                                                <th
+                                                    className="cursor-pointer hover:bg-base-200"
+                                                    onClick={() => handleSortChange("end_date")}
+                                                >
+                                                    Due Date
+                                                    {sortBy === "end_date" && (
+                                                        <i className={`far fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-1`}></i>
                                                     )}
-                                                </td>
-                                                <td>
-                                                    <div className="flex items-center gap-2">
-                                                        <progress
-                                                            className="progress progress-primary w-16"
-                                                            value={task.progress || 0}
-                                                            max="100"
-                                                        ></progress>
-                                                        <span className="text-xs">{task.progress || 0}%</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div className="flex gap-1">
-                                                        <button
-                                                            className="btn btn-ghost btn-xs"
-                                                            onClick={() => handleEditTask(task)}
-                                                            title="Edit Task"
-                                                        >
-                                                            <i className="far fa-edit"></i>
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-ghost btn-xs text-error"
-                                                            onClick={() => handleDeleteTask(task.id)}
-                                                            title="Delete Task"
-                                                        >
-                                                            <i className="far fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
+                                                </th>
+                                                <th>Progress</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={8} className="text-center py-4">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <i className="far fa-tasks text-4xl text-base-content/30"></i>
-                                                    <p className="text-base-content/70">No tasks found</p>
-                                                    <p className="text-sm text-base-content/50">Try adjusting your filters or create a new task</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody>
+                                            {filteredTasks.length > 0 ? (
+                                                filteredTasks.map((task) => (
+                                                    <tr key={task.id} className="hover">
+                                                        <td>
+                                                            <div className="font-medium">
+                                                                <Link href={`/dashboard/tasks/${task.id}`} className="link link-hover">
+                                                                    {task.name}
+                                                                </Link>
+                                                            </div>
+                                                            {task.description && (
+                                                                <div className="text-sm text-base-content/70 truncate max-w-md">
+                                                                    {task.description}
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <Link href={`/dashboard/projects/${task.project_id}`} className="link link-hover text-sm">
+                                                                {task.project_name || "Unknown Project"}
+                                                            </Link>
+                                                        </td>
+                                                        <td className="text-sm">{task.crew_name || "Unassigned"}</td>
+                                                        <td>{taskPriorityOptions.badge(task.priority as TaskPriority, "badge-sm")}</td>
+                                                        <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
+                                                        <td className="text-sm">
+                                                            {task.end_date ? (
+                                                                <div className={
+                                                                    new Date(task.end_date) < new Date() && task.status !== "completed"
+                                                                        ? "text-error font-medium"
+                                                                        : ""
+                                                                }>
+                                                                    {formatDate(task.end_date)}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-base-content/50">No due date</span>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <div className="flex items-center gap-2">
+                                                                <progress
+                                                                    className="progress progress-primary w-16"
+                                                                    value={task.progress || 0}
+                                                                    max="100"
+                                                                ></progress>
+                                                                <span className="text-xs">{task.progress || 0}%</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs"
+                                                                    onClick={() => handleEditTask(task)}
+                                                                    title="Edit Task"
+                                                                >
+                                                                    <i className="far fa-edit"></i>
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-ghost btn-xs text-error"
+                                                                    onClick={() => handleDeleteTask(task.id)}
+                                                                    title="Delete Task"
+                                                                >
+                                                                    <i className="far fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={8} className="text-center py-4">
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <i className="far fa-tasks text-4xl text-base-content/30"></i>
+                                                            <p className="text-base-content/70">No tasks found</p>
+                                                            <p className="text-sm text-base-content/50">Try adjusting your filters or create a new task</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            )}
+                    )}
+                </ErrorBoundary>
 
-            {/* Add Task Modal */}
-            {showAddTaskModal && (
-                <TaskModal
-                    isOpen={showAddTaskModal}
-                    onClose={() => setShowAddTaskModal(false)}
-                    onSave={handleCreateTask}
-                />
-            )}
+                {/* Add Task Modal */}
+                {showAddTaskModal && (
+                    <TaskModal
+                        isOpen={showAddTaskModal}
+                        onClose={() => setShowAddTaskModal(false)}
+                        onSave={handleCreateTask}
+                    />
+                )}
 
-            {/* Edit Task Modal */}
-            {showEditTaskModal && selectedTask && (
-                <TaskModal
-                    isOpen={showEditTaskModal}
-                    onClose={() => {
-                        setShowEditTaskModal(false);
-                        setSelectedTask(null);
-                    }}
-                    task={selectedTask}
-                    onSave={handleUpdateTask}
-                />
-            )}
-        </div>
+                {/* Edit Task Modal */}
+                {showEditTaskModal && selectedTask && (
+                    <TaskModal
+                        isOpen={showEditTaskModal}
+                        onClose={() => {
+                            setShowEditTaskModal(false);
+                            setSelectedTask(null);
+                        }}
+                        task={selectedTask}
+                        onSave={handleUpdateTask}
+                    />
+                )}
+            </div>
+        </ErrorBoundary>
     );
 }
 

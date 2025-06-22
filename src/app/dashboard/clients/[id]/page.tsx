@@ -27,6 +27,7 @@ import ModalMediaUpload from "../components/modal-media-upload";
 import ModalAttachMedia from "../components/modal-media-attach";
 import ModalInvoice from "../components/modal-invoice";
 import ClientDetailLoading from "./loading";
+import ErrorBoundary from "@/components/error-boundary";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();
@@ -650,617 +651,637 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 <p>The requested client does not exist or you don't have permission to view it.</p>
             </div>
         )
-    }
-
-    return (
+    } return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-                <div className="flex items-center gap-2">
-                    <Link href={`/dashboard/clients`} className="btn btn-outline mr-2">
-                        <i className="far fa-arrow-left"></i>Back to Clients
-                    </Link>
-                </div>                <div className="flex gap-2">
-                    <button onClick={() => setShowEditClientModal(true)} className="btn btn-outline" >
-                        <i className="far fa-edit mr-2"></i> Edit
-                    </button>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setShowInvoiceModal(true)}
-                    >
-                        <i className="far fa-file-invoice mr-2"></i> Create Invoice
-                    </button>
-                    <div className="dropdown dropdown-end">
-                        <div tabIndex={0} role="button" className="btn btn-ghost">
-                            <i className="far fa-ellipsis-v"></i>
-                        </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                            <li>
-                                <button onClick={() => setShowAddProjectModal(true)}>
-                                    <i className="far fa-plus mr-2"></i>
-                                    New Project
-                                </button>
-                            </li>                            <li><a><i className="far fa-file-pdf mr-2"></i> Export as PDF</a></li>
-                            {client.status === 'archived' ? (
-                                <li>
-                                    <button
-                                        onClick={handleUnarchiveClient}
-                                        disabled={archiveLoading}
-                                        className="text-success"
-                                        title="Restore this client to active status"
-                                    >
-                                        {archiveLoading ? (
-                                            <>
-                                                <span className="loading loading-spinner loading-sm mr-2"></span>
-                                                Unarchiving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="far fa-undo mr-2"></i>
-                                                Unarchive Client
-                                            </>
-                                        )}
-                                    </button>
-                                </li>
-                            ) : (
-                                <li>
-                                    <button
-                                        onClick={handleArchiveClient}
-                                        disabled={archiveLoading}
-                                        className="text-warning"
-                                        title="Archive this client - all data will be preserved for compliance"
-                                    >
-                                        {archiveLoading ? (
-                                            <>
-                                                <span className="loading loading-spinner loading-sm mr-2"></span>
-                                                Archiving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="far fa-archive mr-2"></i>
-                                                Archive Client
-                                            </>
-                                        )}
-                                    </button>
-                                </li>
-                            )}
-                        </ul>
+            {/* Client Header */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error mb-6">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load client header</h3>
+                        <div className="text-xs">Client navigation is temporarily unavailable.</div>
                     </div>
                 </div>
-            </div>
-
-            <div role="tablist" className="tabs tabs-box mb-6">
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("overview")}
-                >
-                    Overview
-                </a>
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "projects" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("projects")}
-                >
-                    Projects ({projects.length})
-                </a>
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "contacts" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("contacts")}
-                >
-                    Contacts ({contacts.length})
-                </a>
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "interactions" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("interactions")}
-                >
-                    Interactions ({interactions.length})
-                </a>
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "documents" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("documents")}
-                >
-                    Documents
-                </a>
-                <a
-                    role="tab"
-                    className={`tab ${activeTab === "invoices" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("invoices")}
-                >
-                    Invoices
-                </a>
-            </div>
-            {activeTab === "overview" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2">
-                        <div className="card bg-base-100 shadow-sm mb-6">
-                            <div className="card-body">
-                                <h1 className="text-2xl font-bold">{client.name}</h1>
-                                {clientStatusOptions.badge(client.status as ClientStatus)}
-                                <h3 className="text-lg font-semibold mb-4">Client Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Type</h4>
-                                        <p>{client.type}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Industry</h4>
-                                        <p>{client.industry}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Email</h4>
-                                        <p>{client.contact_email || "No email provided"}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Phone</h4>
-                                        <p>{client.contact_phone || "No phone provided"}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Address</h4>
-                                        <p>{client.address || "No address provided"}</p>
-                                        <p>{client.city}, {client.state} {client.zip}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70">Website</h4>
-                                        <p>{client.website ? (
-                                            <a href={client.website} target="_blank" rel="noopener noreferrer" className="link link-primary">
-                                                {client.website.replace(/^https?:\/\//, '')}
-                                            </a>
-                                        ) : "No website provided"}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-base-content/70 mb-2">Logo</h4>
-                                        <div className="flex items-center gap-4">
-                                            <div className="avatar">
-                                                <div className="w-16 h-16 rounded-lg bg-base-200 flex items-center justify-center">
-                                                    {client.logo_url ? (
-                                                        <img
-                                                            src={getProxiedMediaUrl(client.logo_url) || ''}
-                                                            alt={`${client.name} logo`}
-                                                            className="w-full h-full object-cover rounded-lg"
-                                                        />
-                                                    ) : (
-                                                        <i className="far fa-building text-2xl text-base-content/30"></i>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="btn btn-outline btn-sm relative">
-                                                    {logoUploadLoading ? (
-                                                        <>
-                                                            <span className="loading loading-spinner loading-xs mr-2"></span>
-                                                            Uploading...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <i className="far fa-upload mr-2"></i>
-                                                            {client.logo_url ? 'Change Logo' : 'Upload Logo'}
-                                                        </>
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={handleLogoUpload}
-                                                        disabled={logoUploadLoading}
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                    />
-                                                </label>
-                                                <p className="text-xs text-base-content/60 mt-1">
-                                                    PNG, JPG up to 5MB
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            )}>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
+                    <div className="flex items-center gap-2">
+                        <Link href={`/dashboard/clients`} className="btn btn-outline mr-2">
+                            <i className="far fa-arrow-left"></i>Back to Clients
+                        </Link>
+                    </div>                <div className="flex gap-2">
+                        <button onClick={() => setShowEditClientModal(true)} className="btn btn-outline" >
+                            <i className="far fa-edit mr-2"></i> Edit
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setShowInvoiceModal(true)}
+                        >
+                            <i className="far fa-file-invoice mr-2"></i> Create Invoice
+                        </button>
+                        <div className="dropdown dropdown-end">
+                            <div tabIndex={0} role="button" className="btn btn-ghost">
+                                <i className="far fa-ellipsis-v"></i>
                             </div>
-                        </div>
-
-                        <div className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold">Recent Projects</h3>
-                                    <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={() => setShowAddProjectModal(true)}
-                                    >
-                                        <i className="far fa-plus mr-2"></i> New Project
+                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li>
+                                    <button onClick={() => setShowAddProjectModal(true)}>
+                                        <i className="far fa-plus mr-2"></i>
+                                        New Project
                                     </button>
-                                </div>
-                                {projects.length > 0 ? (
-                                    <div className="overflow-x-auto">
-                                        <table className="table table-zebra w-full">
-                                            <thead>
-                                                <tr>
-                                                    <th>Name</th>
-                                                    <th>Status</th>
-                                                    <th>Budget</th>
-                                                    <th>Start Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {projects.slice(0, 3).map((project) => (
-                                                    <tr key={project.id}>
-                                                        <td>
-                                                            <Link href={`/dashboard/projects/${project.id}`} className="link link-hover font-medium">
-                                                                {project.name}
-                                                            </Link>
-                                                        </td>
-                                                        <td>
-                                                            {projectStatusOptions.badge(project.status as ProjectStatus)}
-                                                        </td>
-                                                        <td>${project.budget?.toLocaleString() || 0}</td>
-                                                        <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
-                                        <p className="text-base-content/70 mb-4">Create your first project with this client</p>
-                                        <button onClick={() => setShowAddProjectModal(true)} className="btn btn-primary">
-                                            <i className="far fa-plus mr-2"></i> Create Project
+                                </li>                            <li><a><i className="far fa-file-pdf mr-2"></i> Export as PDF</a></li>
+                                {client.status === 'archived' ? (
+                                    <li>
+                                        <button
+                                            onClick={handleUnarchiveClient}
+                                            disabled={archiveLoading}
+                                            className="text-success"
+                                            title="Restore this client to active status"
+                                        >
+                                            {archiveLoading ? (
+                                                <>
+                                                    <span className="loading loading-spinner loading-sm mr-2"></span>
+                                                    Unarchiving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="far fa-undo mr-2"></i>
+                                                    Unarchive Client
+                                                </>
+                                            )}
                                         </button>
-                                    </div>
+                                    </li>
+                                ) : (
+                                    <li>
+                                        <button
+                                            onClick={handleArchiveClient}
+                                            disabled={archiveLoading}
+                                            className="text-warning"
+                                            title="Archive this client - all data will be preserved for compliance"
+                                        >
+                                            {archiveLoading ? (
+                                                <>
+                                                    <span className="loading loading-spinner loading-sm mr-2"></span>
+                                                    Archiving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="far fa-archive mr-2"></i>
+                                                    Archive Client
+                                                </>
+                                            )}
+                                        </button>
+                                    </li>
                                 )}
-                            </div>
-                        </div>
+                            </ul>                    </div>
                     </div>
+                </div>
+            </ErrorBoundary>
 
+            {/* Client Tabs and Content */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error">
+                    <i className="fas fa-exclamation-triangle"></i>
                     <div>
-                        <div className="card bg-base-100 shadow-sm mb-6">
-                            <div className="card-body">
-                                <h3 className="text-lg font-semibold mb-4">Primary Contact</h3>
-                                {contacts.find(c => c.is_primary) ? (
-                                    <div>
-                                        <div className="font-medium text-lg">{contacts.find(c => c.is_primary)?.name}</div>
-                                        <div className="text-base-content/70">{contacts.find(c => c.is_primary)?.title}</div>
-                                        <div className="mt-2">
-                                            {contacts.find(c => c.is_primary)?.email && (
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <i className="far fa-envelope text-base-content/50"></i>
-                                                    <a href={`mailto:${contacts.find(c => c.is_primary)?.email}`} className="link link-hover">
-                                                        {contacts.find(c => c.is_primary)?.email}
-                                                    </a>
+                        <h3 className="font-bold">Failed to load client details</h3>
+                        <div className="text-xs">Client information is temporarily unavailable. Please refresh the page.</div>
+                    </div>
+                </div>
+            )}>
+                <div role="tablist" className="tabs tabs-box mb-6">
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("overview")}
+                    >
+                        Overview
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "projects" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("projects")}
+                    >
+                        Projects ({projects.length})
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "contacts" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("contacts")}
+                    >
+                        Contacts ({contacts.length})
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "interactions" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("interactions")}
+                    >
+                        Interactions ({interactions.length})
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "documents" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("documents")}
+                    >
+                        Documents
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${activeTab === "invoices" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("invoices")}
+                    >
+                        Invoices
+                    </a>
+                </div>
+                {activeTab === "overview" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-2">
+                            <div className="card bg-base-100 shadow-sm mb-6">
+                                <div className="card-body">
+                                    <h1 className="text-2xl font-bold">{client.name}</h1>
+                                    {clientStatusOptions.badge(client.status as ClientStatus)}
+                                    <h3 className="text-lg font-semibold mb-4">Client Information</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Type</h4>
+                                            <p>{client.type}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Industry</h4>
+                                            <p>{client.industry}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Email</h4>
+                                            <p>{client.contact_email || "No email provided"}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Phone</h4>
+                                            <p>{client.contact_phone || "No phone provided"}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Address</h4>
+                                            <p>{client.address || "No address provided"}</p>
+                                            <p>{client.city}, {client.state} {client.zip}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70">Website</h4>
+                                            <p>{client.website ? (
+                                                <a href={client.website} target="_blank" rel="noopener noreferrer" className="link link-primary">
+                                                    {client.website.replace(/^https?:\/\//, '')}
+                                                </a>
+                                            ) : "No website provided"}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-base-content/70 mb-2">Logo</h4>
+                                            <div className="flex items-center gap-4">
+                                                <div className="avatar">
+                                                    <div className="w-16 h-16 rounded-lg bg-base-200 flex items-center justify-center">
+                                                        {client.logo_url ? (
+                                                            <img
+                                                                src={getProxiedMediaUrl(client.logo_url) || ''}
+                                                                alt={`${client.name} logo`}
+                                                                className="w-full h-full object-cover rounded-lg"
+                                                            />
+                                                        ) : (
+                                                            <i className="far fa-building text-2xl text-base-content/30"></i>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            )}
-                                            {contacts.find(c => c.is_primary)?.phone && (
-                                                <div className="flex items-center gap-2">
-                                                    <i className="far fa-phone text-base-content/50"></i>
-                                                    <a href={`tel:${contacts.find(c => c.is_primary)?.phone}`} className="link link-hover">
-                                                        {contacts.find(c => c.is_primary)?.phone}
-                                                    </a>
+                                                <div>
+                                                    <label className="btn btn-outline btn-sm relative">
+                                                        {logoUploadLoading ? (
+                                                            <>
+                                                                <span className="loading loading-spinner loading-xs mr-2"></span>
+                                                                Uploading...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <i className="far fa-upload mr-2"></i>
+                                                                {client.logo_url ? 'Change Logo' : 'Upload Logo'}
+                                                            </>
+                                                        )}
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleLogoUpload}
+                                                            disabled={logoUploadLoading}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        />
+                                                    </label>
+                                                    <p className="text-xs text-base-content/60 mt-1">
+                                                        PNG, JPG up to 5MB
+                                                    </p>
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="text-center py-4">
-                                        <p className="text-base-content/70 mb-2">No primary contact set</p>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setShowAddContactModal(true)}>
-                                            <i className="far fa-plus mr-2"></i> Add Contact
+                                </div>
+                            </div>
+
+                            <div className="card bg-base-100 shadow-sm">
+                                <div className="card-body">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-semibold">Recent Projects</h3>
+                                        <button
+                                            className="btn btn-primary btn-sm"
+                                            onClick={() => setShowAddProjectModal(true)}
+                                        >
+                                            <i className="far fa-plus mr-2"></i> New Project
                                         </button>
                                     </div>
-                                )}
+                                    {projects.length > 0 ? (
+                                        <div className="overflow-x-auto">
+                                            <table className="table table-zebra w-full">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Status</th>
+                                                        <th>Budget</th>
+                                                        <th>Start Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {projects.slice(0, 3).map((project) => (
+                                                        <tr key={project.id}>
+                                                            <td>
+                                                                <Link href={`/dashboard/projects/${project.id}`} className="link link-hover font-medium">
+                                                                    {project.name}
+                                                                </Link>
+                                                            </td>
+                                                            <td>
+                                                                {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                                            </td>
+                                                            <td>${project.budget?.toLocaleString() || 0}</td>
+                                                            <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
+                                            <p className="text-base-content/70 mb-4">Create your first project with this client</p>
+                                            <button onClick={() => setShowAddProjectModal(true)} className="btn btn-primary">
+                                                <i className="far fa-plus mr-2"></i> Create Project
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="card bg-base-100 shadow-sm mb-6">
-                            <div className="card-body">
-                                <h3 className="text-lg font-semibold mb-4">Recent Interactions</h3>
-                                {interactions.length > 0 ? (
-                                    <div>
-                                        {interactions.slice(0, 3).map((interaction) => (
-                                            <div key={interaction.id} className="mb-4 pb-4 border-b border-base-200 last:mb-0 last:pb-0 last:border-0">
-                                                <div className="flex justify-between">
-                                                    <span className="font-medium">{interaction.type}</span>
-                                                    <span className="text-sm text-base-content/70">
-                                                        {interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}
-                                                    </span>
-                                                </div>
-                                                <p className="mt-1 text-sm">{interaction.summary}</p>
-                                                {interaction.follow_up_date && (
-                                                    <div className="mt-2 text-sm bg-base-200 p-2 rounded">
-                                                        <span className="font-medium">Follow-up:</span> {new Date(interaction.follow_up_date).toLocaleDateString()} - {interaction.follow_up_task}
+                        <div>
+                            <div className="card bg-base-100 shadow-sm mb-6">
+                                <div className="card-body">
+                                    <h3 className="text-lg font-semibold mb-4">Primary Contact</h3>
+                                    {contacts.find(c => c.is_primary) ? (
+                                        <div>
+                                            <div className="font-medium text-lg">{contacts.find(c => c.is_primary)?.name}</div>
+                                            <div className="text-base-content/70">{contacts.find(c => c.is_primary)?.title}</div>
+                                            <div className="mt-2">
+                                                {contacts.find(c => c.is_primary)?.email && (
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <i className="far fa-envelope text-base-content/50"></i>
+                                                        <a href={`mailto:${contacts.find(c => c.is_primary)?.email}`} className="link link-hover">
+                                                            {contacts.find(c => c.is_primary)?.email}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {contacts.find(c => c.is_primary)?.phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <i className="far fa-phone text-base-content/50"></i>
+                                                        <a href={`tel:${contacts.find(c => c.is_primary)?.phone}`} className="link link-hover">
+                                                            {contacts.find(c => c.is_primary)?.phone}
+                                                        </a>
                                                     </div>
                                                 )}
                                             </div>
-                                        ))}
-                                        <div className="mt-4 text-center">
-                                            <button className="btn btn-sm btn-ghost" onClick={() => setActiveTab("interactions")}>
-                                                View All
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <p className="text-base-content/70 mb-2">No primary contact set</p>
+                                            <button className="btn btn-sm btn-outline" onClick={() => setShowAddContactModal(true)}>
+                                                <i className="far fa-plus mr-2"></i> Add Contact
                                             </button>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-4">
-                                        <p className="text-base-content/70 mb-2">No interactions recorded</p>
-                                        <button className="btn btn-sm btn-outline" onClick={() => setShowInteractionModal(true)}>
-                                            <i className="far fa-plus mr-2"></i> Log Interaction
-                                        </button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="card bg-base-100 shadow-sm">
-                            <div className="card-body">
-                                <textarea
-                                    className="textarea textarea-bordered w-full h-32"
-                                    placeholder="Add notes about this client..."
-                                    value={clientNotes}
-                                    onChange={(e) => setClientNotes(e.target.value)}
-                                ></textarea>
-                                <div className="mt-4 text-right">
-                                    <button className="btn btn-sm btn-primary" onClick={() => handleUpdateClientNotes(clientNotes)}>Save Notes</button>
+                            <div className="card bg-base-100 shadow-sm mb-6">
+                                <div className="card-body">
+                                    <h3 className="text-lg font-semibold mb-4">Recent Interactions</h3>
+                                    {interactions.length > 0 ? (
+                                        <div>
+                                            {interactions.slice(0, 3).map((interaction) => (
+                                                <div key={interaction.id} className="mb-4 pb-4 border-b border-base-200 last:mb-0 last:pb-0 last:border-0">
+                                                    <div className="flex justify-between">
+                                                        <span className="font-medium">{interaction.type}</span>
+                                                        <span className="text-sm text-base-content/70">
+                                                            {interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}
+                                                        </span>
+                                                    </div>
+                                                    <p className="mt-1 text-sm">{interaction.summary}</p>
+                                                    {interaction.follow_up_date && (
+                                                        <div className="mt-2 text-sm bg-base-200 p-2 rounded">
+                                                            <span className="font-medium">Follow-up:</span> {new Date(interaction.follow_up_date).toLocaleDateString()} - {interaction.follow_up_task}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            <div className="mt-4 text-center">
+                                                <button className="btn btn-sm btn-ghost" onClick={() => setActiveTab("interactions")}>
+                                                    View All
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <p className="text-base-content/70 mb-2">No interactions recorded</p>
+                                            <button className="btn btn-sm btn-outline" onClick={() => setShowInteractionModal(true)}>
+                                                <i className="far fa-plus mr-2"></i> Log Interaction
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="card bg-base-100 shadow-sm">
+                                <div className="card-body">
+                                    <textarea
+                                        className="textarea textarea-bordered w-full h-32"
+                                        placeholder="Add notes about this client..."
+                                        value={clientNotes}
+                                        onChange={(e) => setClientNotes(e.target.value)}
+                                    ></textarea>
+                                    <div className="mt-4 text-right">
+                                        <button className="btn btn-sm btn-primary" onClick={() => handleUpdateClientNotes(clientNotes)}>Save Notes</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-            {activeTab === "projects" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Projects</h3>
-                            <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => setShowAddProjectModal(true)}
-                            >
-                                <i className="far fa-plus mr-2"></i> New Project
-                            </button>
-                        </div>
-                        {projects.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Status</th>
-                                            <th>Budget</th>
-                                            <th>Start Date</th>
-                                            <th>End Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {projects.map((project) => (
-                                            <tr key={project.id}>
-                                                <td>
-                                                    <Link href={`/dashboard/projects/${project.id}`} className="link link-hover font-medium">
-                                                        {project.name}
-                                                    </Link>
-                                                </td>
-                                                <td>
-                                                    {projectStatusOptions.badge(project.status as ProjectStatus)}
-                                                </td>
-                                                <td>${project.budget?.toLocaleString() || 0}</td>
-                                                <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>
-                                                <td>{project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}</td>
+                )}
+                {activeTab === "projects" && (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Projects</h3>
+                                <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => setShowAddProjectModal(true)}
+                                >
+                                    <i className="far fa-plus mr-2"></i> New Project
+                                </button>
+                            </div>
+                            {projects.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Status</th>
+                                                <th>Budget</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8">
-                                <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
-                                <p className="text-base-content/70 mb-4">Create your first project with this client</p>
-                                <Link href={`/dashboard/projects/create?client=${client.id}`} className="btn btn-primary">
-                                    <i className="far fa-plus mr-2"></i> Create Project
-                                </Link>
-                            </div>
-                        )}
+                                        </thead>
+                                        <tbody>
+                                            {projects.map((project) => (
+                                                <tr key={project.id}>
+                                                    <td>
+                                                        <Link href={`/dashboard/projects/${project.id}`} className="link link-hover font-medium">
+                                                            {project.name}
+                                                        </Link>
+                                                    </td>
+                                                    <td>
+                                                        {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                                    </td>
+                                                    <td>${project.budget?.toLocaleString() || 0}</td>
+                                                    <td>{project.start_date ? new Date(project.start_date).toLocaleDateString() : "Not set"}</td>
+                                                    <td>{project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
+                                    <p className="text-base-content/70 mb-4">Create your first project with this client</p>
+                                    <Link href={`/dashboard/projects/create?client=${client.id}`} className="btn btn-primary">
+                                        <i className="far fa-plus mr-2"></i> Create Project
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
-            {activeTab === "contacts" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Contacts</h3>
-                            <button className="btn btn-primary btn-sm" onClick={() => setShowAddContactModal(true)}>
-                                <i className="far fa-plus mr-2"></i> Add Contact
-                            </button>
-                        </div>
-                        {contacts.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Title</th>
-                                            <th>Email</th>
-                                            <th>Phone</th>
-                                            <th>Primary</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {contacts.map((contact) => (
-                                            <tr key={contact.id}>
-                                                <td>{contact.name}</td>
-                                                <td>{contact.title}</td>
-                                                <td>
-                                                    {contact.email && (
-                                                        <a href={`mailto:${contact.email}`} className="link link-hover">
-                                                            {contact.email}
-                                                        </a>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {contact.phone && (
-                                                        <a href={`tel:${contact.phone}`} className="link link-hover">
-                                                            {contact.phone}
-                                                        </a>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {contact.is_primary && (
-                                                        <div className="badge badge-primary">Primary</div>
-                                                    )}
-                                                </td>
-                                                <td className="text-right">
-                                                    <button className="btn btn-ghost btn-xs" onClick={() => handleEditContactOpen(contact)}>
-                                                        <i className="far fa-edit fa-lg"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8">
-                                <h3 className="text-xl font-semibold mb-2">No contacts found</h3>
-                                <p className="text-base-content/70 mb-4">Add contacts to manage relationships with this client</p>
-                                <button className="btn btn-primary" onClick={() => setShowAddContactModal(true)}>
+                )}
+                {activeTab === "contacts" && (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Contacts</h3>
+                                <button className="btn btn-primary btn-sm" onClick={() => setShowAddContactModal(true)}>
                                     <i className="far fa-plus mr-2"></i> Add Contact
                                 </button>
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            {activeTab === "interactions" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Interactions</h3>
-                            <button className="btn btn-primary btn-sm" onClick={() => setShowInteractionModal(true)}>
-                                <i className="far fa-plus mr-2"></i> Log Interaction
-                            </button>
-                        </div>
-                        {interactions.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Type</th>
-                                            <th>Summary</th>
-                                            <th>Staff</th>
-                                            <th>Follow-up</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {interactions.map((interaction) => (
-                                            <tr key={interaction.id}>
-                                                <td>{interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}</td>
-                                                <td>{interaction.type}</td>
-                                                <td>{interaction.summary}</td>
-                                                <td>{interaction.staff}</td>
-                                                <td>
-                                                    {interaction.follow_up_date && (
-                                                        <div>
-                                                            <div className="font-medium">{new Date(interaction.follow_up_date).toLocaleDateString()}</div>
-                                                            <div className="text-sm text-base-content/70">{interaction.follow_up_task}</div>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="text-right">
-                                                    <button className="btn btn-ghost btn-xs" onClick={() => handleEditInteractionOpen(interaction)}>
-                                                        <i className="far fa-edit"></i>
-                                                    </button>
-                                                </td>
+                            {contacts.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Title</th>
+                                                <th>Email</th>
+                                                <th>Phone</th>
+                                                <th>Primary</th>
+                                                <th></th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8">
-                                <h3 className="text-xl font-semibold mb-2">No interactions found</h3>
-                                <p className="text-base-content/70 mb-4">Log interactions to track your communication with this client</p>
-                                <button className="btn btn-primary" onClick={() => setShowInteractionModal(true)}>
+                                        </thead>
+                                        <tbody>
+                                            {contacts.map((contact) => (
+                                                <tr key={contact.id}>
+                                                    <td>{contact.name}</td>
+                                                    <td>{contact.title}</td>
+                                                    <td>
+                                                        {contact.email && (
+                                                            <a href={`mailto:${contact.email}`} className="link link-hover">
+                                                                {contact.email}
+                                                            </a>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {contact.phone && (
+                                                            <a href={`tel:${contact.phone}`} className="link link-hover">
+                                                                {contact.phone}
+                                                            </a>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {contact.is_primary && (
+                                                            <div className="badge badge-primary">Primary</div>
+                                                        )}
+                                                    </td>
+                                                    <td className="text-right">
+                                                        <button className="btn btn-ghost btn-xs" onClick={() => handleEditContactOpen(contact)}>
+                                                            <i className="far fa-edit fa-lg"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <h3 className="text-xl font-semibold mb-2">No contacts found</h3>
+                                    <p className="text-base-content/70 mb-4">Add contacts to manage relationships with this client</p>
+                                    <button className="btn btn-primary" onClick={() => setShowAddContactModal(true)}>
+                                        <i className="far fa-plus mr-2"></i> Add Contact
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {activeTab === "interactions" && (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Interactions</h3>
+                                <button className="btn btn-primary btn-sm" onClick={() => setShowInteractionModal(true)}>
                                     <i className="far fa-plus mr-2"></i> Log Interaction
                                 </button>
                             </div>
-                        )}
+                            {interactions.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Summary</th>
+                                                <th>Staff</th>
+                                                <th>Follow-up</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {interactions.map((interaction) => (
+                                                <tr key={interaction.id}>
+                                                    <td>{interaction.date ? new Date(interaction.date).toLocaleDateString() : "Not set"}</td>
+                                                    <td>{interaction.type}</td>
+                                                    <td>{interaction.summary}</td>
+                                                    <td>{interaction.staff}</td>
+                                                    <td>
+                                                        {interaction.follow_up_date && (
+                                                            <div>
+                                                                <div className="font-medium">{new Date(interaction.follow_up_date).toLocaleDateString()}</div>
+                                                                <div className="text-sm text-base-content/70">{interaction.follow_up_task}</div>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="text-right">
+                                                        <button className="btn btn-ghost btn-xs" onClick={() => handleEditInteractionOpen(interaction)}>
+                                                            <i className="far fa-edit"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <h3 className="text-xl font-semibold mb-2">No interactions found</h3>
+                                    <p className="text-base-content/70 mb-4">Log interactions to track your communication with this client</p>
+                                    <button className="btn btn-primary" onClick={() => setShowInteractionModal(true)}>
+                                        <i className="far fa-plus mr-2"></i> Log Interaction
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
-            {activeTab === "documents" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Media</h3>
-                            <div className="flex gap-2">
-                                <button
-                                    className="btn btn-outline btn-sm"
-                                    onClick={handleAttachMediaOpen}
-                                    disabled={attachMediaLoading}
-                                >
-                                    {attachMediaLoading ? (
-                                        <span className="loading loading-spinner loading-sm mr-2"></span>
-                                    ) : (
-                                        <i className="far fa-link mr-2"></i>
-                                    )}
-                                    Attach Existing
-                                </button>
+                )}
+                {activeTab === "documents" && (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Media</h3>
+                                <div className="flex gap-2">
+                                    <button
+                                        className="btn btn-outline btn-sm"
+                                        onClick={handleAttachMediaOpen}
+                                        disabled={attachMediaLoading}
+                                    >
+                                        {attachMediaLoading ? (
+                                            <span className="loading loading-spinner loading-sm mr-2"></span>
+                                        ) : (
+                                            <i className="far fa-link mr-2"></i>
+                                        )}
+                                        Attach Existing
+                                    </button>
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => setShowMediaUploadModal(true)}
+                                    >
+                                        <i className="far fa-upload mr-2"></i> Upload New
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="text-center py-8">
+                                <h3 className="text-xl font-semibold mb-2">No media or document yet</h3>
+                                <p className="text-base-content/70 mb-4">Upload new media or attach existing ones to this client</p>
+                                <div className="flex gap-3 justify-center">
+                                    <button
+                                        className="btn btn-outline"
+                                        onClick={handleAttachMediaOpen}
+                                        disabled={attachMediaLoading}
+                                    >
+                                        {attachMediaLoading ? (
+                                            <span className="loading loading-spinner loading-sm mr-2"></span>
+                                        ) : (
+                                            <i className="far fa-link mr-2"></i>
+                                        )}
+                                        Attach Existing
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => setShowMediaUploadModal(true)}
+                                    >
+                                        <i className="far fa-upload mr-2"></i> Upload New
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {activeTab === "invoices" && (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Invoices</h3>
                                 <button
                                     className="btn btn-primary btn-sm"
-                                    onClick={() => setShowMediaUploadModal(true)}
+                                    onClick={() => setShowInvoiceModal(true)}
                                 >
-                                    <i className="far fa-upload mr-2"></i> Upload New
+                                    <i className="far fa-file-invoice mr-2"></i> Create Invoice
                                 </button>
                             </div>
-                        </div>
-                        <div className="text-center py-8">
-                            <h3 className="text-xl font-semibold mb-2">No media or document yet</h3>
-                            <p className="text-base-content/70 mb-4">Upload new media or attach existing ones to this client</p>
-                            <div className="flex gap-3 justify-center">
-                                <button
-                                    className="btn btn-outline"
-                                    onClick={handleAttachMediaOpen}
-                                    disabled={attachMediaLoading}
-                                >
-                                    {attachMediaLoading ? (
-                                        <span className="loading loading-spinner loading-sm mr-2"></span>
-                                    ) : (
-                                        <i className="far fa-link mr-2"></i>
-                                    )}
-                                    Attach Existing
-                                </button>
+                            <div className="text-center py-8">
+                                <h3 className="text-xl font-semibold mb-2">No invoices found</h3>
+                                <p className="text-base-content/70 mb-4">Create your first invoice for this client</p>
                                 <button
                                     className="btn btn-primary"
-                                    onClick={() => setShowMediaUploadModal(true)}
+                                    onClick={() => setShowInvoiceModal(true)}
                                 >
-                                    <i className="far fa-upload mr-2"></i> Upload New
+                                    <i className="far fa-file-invoice mr-2"></i> Create Invoice
                                 </button>
-                            </div>
-                        </div>
+                            </div>                    </div>
                     </div>
-                </div>
-            )}
-            {activeTab === "invoices" && (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Invoices</h3>
-                            <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => setShowInvoiceModal(true)}
-                            >
-                                <i className="far fa-file-invoice mr-2"></i> Create Invoice
-                            </button>
-                        </div>
-                        <div className="text-center py-8">
-                            <h3 className="text-xl font-semibold mb-2">No invoices found</h3>
-                            <p className="text-base-content/70 mb-4">Create your first invoice for this client</p>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setShowInvoiceModal(true)}
-                            >
-                                <i className="far fa-file-invoice mr-2"></i> Create Invoice
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}            {/* Edit Client Modal */}
+                )}
+            </ErrorBoundary>
+
+            {/* Edit Client Modal */}
             <ClientModal
                 isOpen={showEditClientModal}
                 client={client}

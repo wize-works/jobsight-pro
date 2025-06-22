@@ -6,7 +6,7 @@ export default function MediaLibraryLoading() {
                 <div className="h-10 w-24 bg-base-300 animate-pulse rounded"></div>
             </div>
 
-            <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
+            <div className="bg-base-100 p-2 rounded-lg shadow-sm mb-6">
                 <div className="flex flex-col md:flex-row gap-6">
                     <div className="h-12 w-full bg-base-300 animate-pulse rounded"></div>
                     <div className="flex gap-2">

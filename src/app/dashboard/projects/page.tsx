@@ -1,17 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
 import { progressBar } from "@/utils/progress";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
-import ProjectModal from "./components/modal-project";
-import ProjectEditModal from "./components/modal-edit";
 import { ProjectCard } from "./components/card";
 import { useBusiness } from "@/lib/business-context";
 import ProjectsLoading from "./loading";
+import ErrorBoundary from "@/components/error-boundary";
+import ModalLoading from "@/components/modal-loading";
 
+// Lazy load modal components for better performance
+const ProjectModal = dynamic(() => import("./components/modal-project"), {
+    loading: () => <ModalLoading message="Loading project form..." />,
+    ssr: false
+});
+
+const ProjectEditModal = dynamic(() => import("./components/modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+    ssr: false
+});
 
 export default function ProjectsPage() {
     const { businessId } = useBusiness();
@@ -134,53 +145,60 @@ export default function ProjectsPage() {
                 <button className="btn btn-primary" onClick={() => setShowAddProjectModal(true)}>
                     <i className="far fa-plus mr-2"></i> Add Project
                 </button>
-            </div>
+            </div>            {/* Project Statistics */}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error mb-6">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load project statistics</h3>
+                        <div className="text-xs">Project stats are temporarily unavailable.</div>
+                    </div>
+                </div>
+            )}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div className="stat bg-base-100 shadow">
+                        <div className="stat-title">Total Projects</div>
+                        <div className="flex items-center justify-between">
+                            <div className="stat-value text-primary">{totalProjects}</div>
+                            <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                <i className="far fa-screwdriver-wrench text-primary text-2xl"></i>
+                            </div>
+                        </div>
+                        <div className="stat-desc">All projects across all statuses</div>
+                    </div>
 
-            {/* Project Statistics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="stat bg-base-100 shadow">
-                    <div className="stat-title">Total Projects</div>
-                    <div className="flex items-center justify-between">
-                        <div className="stat-value text-primary">{totalProjects}</div>
-                        <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-screwdriver-wrench text-primary text-2xl"></i>
+                    <div className="stat bg-base-100 shadow">
+                        <div className="stat-title">Active Projects</div>
+                        <div className="flex items-center justify-between">
+                            <div className="stat-value text-success">{activeProjects}</div>
+                            <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                <i className="far fa-hammer text-success text-2xl"></i>
+                            </div>
                         </div>
+                        <div className="stat-desc">Projects currently in progress</div>
                     </div>
-                    <div className="stat-desc">All projects across all statuses</div>
-                </div>
 
-                <div className="stat bg-base-100 shadow">
-                    <div className="stat-title">Active Projects</div>
-                    <div className="flex items-center justify-between">
-                        <div className="stat-value text-success">{activeProjects}</div>
-                        <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-hammer text-success text-2xl"></i>
+                    <div className="stat bg-base-100 shadow">
+                        <div className="stat-title">Upcoming Projects</div>
+                        <div className="flex items-center justify-between">
+                            <div className="stat-value text-info">{upcomingProjects}</div>
+                            <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                <i className="far fa-calendar-alt text-info text-2xl"></i>
+                            </div>
                         </div>
+                        <div className="stat-desc">Projects scheduled to start soon</div>
                     </div>
-                    <div className="stat-desc">Projects currently in progress</div>
-                </div>
-
-                <div className="stat bg-base-100 shadow">
-                    <div className="stat-title">Upcoming Projects</div>
-                    <div className="flex items-center justify-between">
-                        <div className="stat-value text-info">{upcomingProjects}</div>
-                        <div className="stat-icon text-info bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-calendar-alt text-info text-2xl"></i>
-                        </div>
+                    <div className="stat bg-base-100 shadow">
+                        <div className="stat-title">Completed Projects</div>
+                        <div className="flex items-center justify-between">
+                            <div className="stat-value text-secondary">{completedProjects}</div>
+                            <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                <i className="far fa-check-circle text-secondary text-2xl"></i>
+                            </div>
+                        </div>                    <div className="stat-desc">Projects successfully completed</div>
                     </div>
-                    <div className="stat-desc">Projects scheduled to start soon</div>
                 </div>
-                <div className="stat bg-base-100 shadow">
-                    <div className="stat-title">Completed Projects</div>
-                    <div className="flex items-center justify-between">
-                        <div className="stat-value text-secondary">{completedProjects}</div>
-                        <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
-                            <i className="far fa-check-circle text-secondary text-2xl"></i>
-                        </div>
-                    </div>
-                    <div className="stat-desc">Projects successfully completed</div>
-                </div>
-            </div>
+            </ErrorBoundary>
 
             {/* Filters and Search */}
             <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
@@ -225,109 +243,120 @@ export default function ProjectsPage() {
 
                 </div>
             </div>            {/* Projects Grid/List View */}
-            {viewType === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sortedAndFilteredProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
-                    ))}
+            <ErrorBoundary fallback={(error) => (
+                <div className="alert alert-error">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h3 className="font-bold">Failed to load projects</h3>
+                        <div className="text-xs">Project list is temporarily unavailable. Please refresh the page.</div>
+                    </div>
                 </div>
-            ) : (
-                <div className="card bg-base-100 shadow-sm">
-                    <div className="card-body p-0">
-                        <div className="overflow-x-auto">
-                            <table className="table table-zebra">
-                                <thead>
-                                    <tr>
-                                        <th>Project Name</th>
-                                        <th>Client</th>
-                                        <th>Status</th>
-                                        <th>Timeline</th>
-                                        <th>Budget</th>
-                                        <th>Progress</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sortedAndFilteredProjects.map((project) => (
-                                        <tr key={project.id}>
-                                            <td>
-                                                <Link href={`/dashboard/projects/${project.id}`} className="font-medium hover:text-primary">
-                                                    {project.name}
-                                                </Link>
-                                            </td>
-                                            <td>{project.client_name}</td>
-                                            <td>
-                                                {projectStatusOptions.badge(project.status as ProjectStatus)}
-                                            </td>
-                                            <td>
-                                                <div className="text-sm">
-                                                    {formatDate(project.start_date)} - {formatDate(project.end_date)}
-                                                </div>
-                                            </td>
-                                            <td>{formatCurrency(project.budget)}</td>
-                                            <td>
-                                                {progressBar(project.progress, 100)}
-                                            </td>
-                                            <td>
-                                                <div className="flex gap-2">
-                                                    <Link
-                                                        href={`/dashboard/projects/${project.id}`}
-                                                        className="btn btn-ghost btn-xs"
-                                                    >
-                                                        <i className="far fa-eye"></i>
-                                                    </Link>                                                    <button
-                                                        className="btn btn-ghost btn-xs"
-                                                        onClick={() => handleEditProject(project)}
-                                                    >
-                                                        <i className="far fa-edit"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
+            )}>
+                {viewType === "grid" ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {sortedAndFilteredProjects.map((project) => (
+                            <ProjectCard key={project.id} project={project} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="card bg-base-100 shadow-sm">
+                        <div className="card-body p-0">
+                            <div className="overflow-x-auto">
+                                <table className="table table-zebra">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Name</th>
+                                            <th>Client</th>
+                                            <th>Status</th>
+                                            <th>Timeline</th>
+                                            <th>Budget</th>
+                                            <th>Progress</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {sortedAndFilteredProjects.map((project) => (
+                                            <tr key={project.id}>
+                                                <td>
+                                                    <Link href={`/dashboard/projects/${project.id}`} className="font-medium hover:text-primary">
+                                                        {project.name}
+                                                    </Link>
+                                                </td>
+                                                <td>{project.client_name}</td>
+                                                <td>
+                                                    {projectStatusOptions.badge(project.status as ProjectStatus)}
+                                                </td>
+                                                <td>
+                                                    <div className="text-sm">
+                                                        {formatDate(project.start_date)} - {formatDate(project.end_date)}
+                                                    </div>
+                                                </td>
+                                                <td>{formatCurrency(project.budget)}</td>
+                                                <td>
+                                                    {progressBar(project.progress, 100)}
+                                                </td>
+                                                <td>
+                                                    <div className="flex gap-2">
+                                                        <Link
+                                                            href={`/dashboard/projects/${project.id}`}
+                                                            className="btn btn-ghost btn-xs"
+                                                        >
+                                                            <i className="far fa-eye"></i>
+                                                        </Link>                                                    <button
+                                                            className="btn btn-ghost btn-xs"
+                                                            onClick={() => handleEditProject(project)}
+                                                        >
+                                                            <i className="far fa-edit"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}            {projects.length === 0 && (
-                <div className="card bg-base-100 shadow-sm mb-6">
-                    <div className="card-body text-center">
-                        <i className="far fa-screwdriver-wrench text-3xl text-base-content/30 mb-2"></i>
-                        <h3 className="text-lg font-semibold">No projects found</h3>
-                        <p className="text-base-content/70">Get started by creating your first project</p>
-                        <div className="flex m-auto justify-center mt-4">
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setShowAddProjectModal(true)}
-                            >
-                                <i className="far fa-plus mr-2"></i> Add Your First Project
-                            </button>
+                )}            {projects.length === 0 && (
+                    <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card-body text-center">
+                            <i className="far fa-screwdriver-wrench text-3xl text-base-content/30 mb-2"></i>
+                            <h3 className="text-lg font-semibold">No projects found</h3>
+                            <p className="text-base-content/70">Get started by creating your first project</p>
+                            <div className="flex m-auto justify-center mt-4">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => setShowAddProjectModal(true)}
+                                >
+                                    <i className="far fa-plus mr-2"></i> Add Your First Project
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {projects.length > 0 && sortedAndFilteredProjects.length === 0 && (
-                <div className="card bg-base-100 shadow-sm mb-6">
-                    <div className="card-body text-center">
-                        <i className="far fa-filter text-3xl text-base-content/30 mb-2"></i>
-                        <h3 className="text-lg font-semibold">No projects match your filters</h3>
-                        <p className="text-base-content/70">Try adjusting your search or filter criteria</p>
-                        <div className="flex m-auto justify-center mt-4">
-                            <button
-                                className="btn btn-outline"
-                                onClick={() => {
-                                    setSearch("");
-                                    setStatusFilter("all");
-                                    setTypeFilter("all");
-                                }}                            >
-                                <i className="far fa-refresh mr-2"></i> Clear Filters
-                            </button>
-                        </div>
+                {projects.length > 0 && sortedAndFilteredProjects.length === 0 && (
+                    <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card-body text-center">
+                            <i className="far fa-filter text-3xl text-base-content/30 mb-2"></i>
+                            <h3 className="text-lg font-semibold">No projects match your filters</h3>
+                            <p className="text-base-content/70">Try adjusting your search or filter criteria</p>
+                            <div className="flex m-auto justify-center mt-4">
+                                <button
+                                    className="btn btn-outline"
+                                    onClick={() => {
+                                        setSearch("");
+                                        setStatusFilter("all");
+                                        setTypeFilter("all");
+                                    }}                            >
+                                    <i className="far fa-refresh mr-2"></i> Clear Filters
+                                </button>
+                            </div>                    </div>
                     </div>
-                </div>
-            )}            {/* Add Project Modal */}
+                )}
+            </ErrorBoundary>
+
+            {/* Add Project Modal */}
             {showAddProjectModal && (
                 <ProjectModal isOpen={showAddProjectModal} onClose={() => setShowAddProjectModal(false)} onSave={handleProjectSave} />
             )}
