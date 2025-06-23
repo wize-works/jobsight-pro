@@ -187,7 +187,7 @@ export default function EquipmentPage() {
                         </div>
                     </div>
                 )}>
-                    <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+                    <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                         <div className="card-body p-2">
                             <div className="flex flex-col md:flex-row gap-6">
                                 <div className="w-full">
@@ -242,7 +242,7 @@ export default function EquipmentPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                        <div className="overflow-x-auto card bg-base-100 shadow-lg mb-6">
                             <table className="table table-zebra w-full">
                                 <thead>
                                     <tr>
@@ -277,7 +277,7 @@ export default function EquipmentPage() {
                     )}
 
                     {filteredEquipments.length === 0 && (
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card bg-base-100 shadow-lg mb-6">
                             <div className="card-body text-center">
                                 <i className="far fa-excavator text-3xl text-base-content/30 mb-2"></i>
                                 <h3 className="text-lg font-semibold">No equipment found</h3>

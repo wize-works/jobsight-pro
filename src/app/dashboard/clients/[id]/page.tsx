@@ -23,8 +23,6 @@ import ClientModal from "../components/modal-client";
 import InteractionModal from "../components/modal-interaction";
 import ModalProject from "../components/modal-project";
 import ModalContact from "../components/modal-contact";
-import ModalMediaUpload from "../components/modal-media-upload";
-import ModalAttachMedia from "../components/modal-media-attach";
 import ModalInvoice from "../components/modal-invoice";
 import ClientDetailLoading from "./loading";
 import ErrorBoundary from "@/components/error-boundary";
@@ -800,7 +798,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 {activeTab === "overview" && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-2">
-                            <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card bg-base-100 shadow-lg mb-6">
                                 <div className="card-body">
                                     <h1 className="text-2xl font-bold">{client.name}</h1>
                                     {clientStatusOptions.badge(client.status as ClientStatus)}
@@ -882,7 +880,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                 </div>
                             </div>
 
-                            <div className="card bg-base-100 shadow-sm">
+                            <div className="card bg-base-100 shadow-lg">
                                 <div className="card-body">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold">Recent Projects</h3>
@@ -936,7 +934,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                         </div>
 
                         <div>
-                            <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card bg-base-100 shadow-lg mb-6">
                                 <div className="card-body">
                                     <h3 className="text-lg font-semibold mb-4">Primary Contact</h3>
                                     {contacts.find(c => c.is_primary) ? (
@@ -973,7 +971,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                 </div>
                             </div>
 
-                            <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card bg-base-100 shadow-lg mb-6">
                                 <div className="card-body">
                                     <h3 className="text-lg font-semibold mb-4">Recent Interactions</h3>
                                     {interactions.length > 0 ? (
@@ -1011,7 +1009,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                 </div>
                             </div>
 
-                            <div className="card bg-base-100 shadow-sm">
+                            <div className="card bg-base-100 shadow-lg">
                                 <div className="card-body">
                                     <textarea
                                         className="textarea textarea-bordered w-full h-32"
@@ -1028,7 +1026,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 )}
                 {activeTab === "projects" && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Projects</h3>
@@ -1083,7 +1081,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 )}
                 {activeTab === "contacts" && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Contacts</h3>
@@ -1151,7 +1149,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 )}
                 {activeTab === "interactions" && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Interactions</h3>
@@ -1208,7 +1206,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                         </div>
                     </div>)}
                 {activeTab === "documents" && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <UniversalMediaManager
                                 mode="both"
@@ -1225,7 +1223,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 )}
                 {activeTab === "invoices" && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Invoices</h3>

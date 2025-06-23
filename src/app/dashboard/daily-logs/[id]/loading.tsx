@@ -18,7 +18,7 @@ export default function DailyLogDetailLoading() {
                 {/* Main Detail Section */}
                 <div className="lg:col-span-2">
                     {/* Basic Information Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-40 bg-base-300 animate-pulse rounded mb-4"></div>
 
@@ -56,7 +56,7 @@ export default function DailyLogDetailLoading() {
                     </div>
 
                     {/* Work Details Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-32 bg-base-300 animate-pulse rounded mb-4"></div>
 
@@ -102,7 +102,7 @@ export default function DailyLogDetailLoading() {
                     </div>
 
                     {/* Tab Content - Materials */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-20 bg-base-300 animate-pulse rounded"></div>
@@ -136,7 +136,7 @@ export default function DailyLogDetailLoading() {
                     </div>
 
                     {/* Equipment Table */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-24 bg-base-300 animate-pulse rounded"></div>
@@ -169,7 +169,7 @@ export default function DailyLogDetailLoading() {
                 {/* Sidebar */}
                 <div className="lg:col-span-1">
                     {/* Summary Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-20 bg-base-300 animate-pulse rounded mb-4"></div>
 
@@ -203,7 +203,7 @@ export default function DailyLogDetailLoading() {
                     </div>
 
                     {/* Notes Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-16 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="h-4 w-full bg-base-300 animate-pulse rounded mb-2"></div>
@@ -213,7 +213,7 @@ export default function DailyLogDetailLoading() {
                     </div>
 
                     {/* Weather Card */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-6 w-20 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="flex items-center justify-between mb-4">

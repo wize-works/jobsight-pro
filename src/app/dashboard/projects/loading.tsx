@@ -36,7 +36,7 @@ export default function ProjectsLoading({ viewType = "grid" }: { viewType?: "gri
             </div>
 
             {/* Search and Filters */}
-            <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+            <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="h-12 w-full bg-base-300 animate-pulse rounded-lg"></div>
@@ -52,7 +52,7 @@ export default function ProjectsLoading({ viewType = "grid" }: { viewType?: "gri
             {viewType === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {Array.from({ length: 6 }).map((_, index) => (
-                        <div key={index} className="card bg-base-100 shadow-sm">
+                        <div key={index} className="card bg-base-100 shadow-lg">
                             <div className="card-body p-4">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="h-6 w-32 bg-base-300 animate-pulse rounded"></div>
@@ -85,7 +85,7 @@ export default function ProjectsLoading({ viewType = "grid" }: { viewType?: "gri
                     ))}
                 </div>
             ) : (
-                <div className="card bg-base-100 shadow-sm">
+                <div className="card bg-base-100 shadow-lg">
                     <div className="card-body p-0">
                         <div className="overflow-x-auto">
                             <table className="table table-zebra">

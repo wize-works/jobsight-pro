@@ -61,8 +61,7 @@ export const DailyLogCard = ({
 
     return (
         <div
-            className={`card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border cursor-pointer ${isSelected ? "border-primary ring-2 ring-primary/20" : ""
-                }`}
+            className={`card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200`}
             onClick={() => onSelect?.(log)}
         >
             <div className="card-body p-6">

@@ -161,7 +161,7 @@ export default function WeatherWidget({
 
     if (loading) {
         return (
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <h3 className="text-lg font-semibold mb-4">Weather</h3>
                     <div className="flex items-center justify-center h-32">
@@ -174,7 +174,7 @@ export default function WeatherWidget({
 
     if (error || !weather) {
         return (
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <h3 className="text-lg font-semibold mb-4">Weather</h3>
                     <div className="alert alert-error">
@@ -187,7 +187,7 @@ export default function WeatherWidget({
     }
 
     return (
-        <div className="card bg-base-100 shadow-sm">
+        <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Weather</h3>

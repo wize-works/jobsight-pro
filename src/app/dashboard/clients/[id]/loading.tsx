@@ -27,7 +27,7 @@ export default function ClientDetailLoading() {
                 {/* Main Content - Left Side */}
                 <div className="md:col-span-2">
                     {/* Client Information Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="h-16 w-16 bg-base-300 animate-pulse rounded-full"></div>
@@ -51,7 +51,7 @@ export default function ClientDetailLoading() {
                     </div>
 
                     {/* Projects Section */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-24 bg-base-300 animate-pulse rounded"></div>
@@ -80,7 +80,7 @@ export default function ClientDetailLoading() {
                 {/* Sidebar - Right Side */}
                 <div className="md:col-span-1">
                     {/* Client Logo Upload */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body text-center">
                             <div className="h-32 w-32 bg-base-300 animate-pulse rounded-full mx-auto mb-4"></div>
                             <div className="h-8 w-28 bg-base-300 animate-pulse rounded-lg mx-auto"></div>
@@ -88,7 +88,7 @@ export default function ClientDetailLoading() {
                     </div>
 
                     {/* Quick Stats */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-24 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-4">
@@ -103,7 +103,7 @@ export default function ClientDetailLoading() {
                     </div>
 
                     {/* Contact Info */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-32 bg-base-300 animate-pulse rounded"></div>
@@ -124,7 +124,7 @@ export default function ClientDetailLoading() {
                     </div>
 
                     {/* Notes Section */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-6 w-16 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-2">

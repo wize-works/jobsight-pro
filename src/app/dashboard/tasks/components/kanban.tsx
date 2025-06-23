@@ -57,7 +57,7 @@ function TaskCard({ task, onTaskUpdate, projects = [], crews = [] }: TaskCardPro
 
     return (
         <div
-            className={`card bg-base-100 shadow-sm border border-base-300 cursor-move transition-all duration-200 hover:shadow-md mb-3 ${isDragging ? "opacity-50 scale-95" : ""
+            className={`card bg-base-100 shadow-lg border border-base-300 cursor-move transition-all duration-200 hover:shadow-md mb-3 ${isDragging ? "opacity-50 scale-95" : ""
                 }`}
             draggable
             onDragStart={handleDragStart}
@@ -204,7 +204,7 @@ function KanbanColumn({ title, status, tasks, onTaskUpdate, projects = [], crews
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <div className={`card bg-base-100 shadow-sm h-full border-l-4 ${getColumnColor(status)} ${isDragOver ? "ring-2 ring-primary ring-opacity-50 scale-[1.02]" : ""
+            <div className={`card bg-base-100 shadow-lg h-full border-l-4 ${getColumnColor(status)} ${isDragOver ? "ring-2 ring-primary ring-opacity-50 scale-[1.02]" : ""
                 } transition-all duration-200`}>
                 <div className="card-body p-4">
                     <div className="flex justify-between items-center mb-4">
@@ -276,7 +276,7 @@ export default function KanbanPage({ tasks = [], projects = [], crews = [] }: Ka
     return (
         <div className="space-y-6">
             {/* Kanban Board */}
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body p-4">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="card-title">Task Board</h2>

@@ -263,7 +263,7 @@ export default function MediaUpload() {
 
             <div className="space-y-6">
                 {/* Upload Area */}
-                <div className="card bg-base-100 shadow-sm">
+                <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
                         <div
                             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
@@ -291,7 +291,7 @@ export default function MediaUpload() {
 
                 {/* Project Selection */}
                 {files.length > 0 && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <h3 className="card-title">Upload Settings</h3>
                             <div className="form-control">
@@ -317,7 +317,7 @@ export default function MediaUpload() {
 
                 {/* File List */}
                 {files.length > 0 && (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="card-title">Files to Upload ({files.length})</h3>

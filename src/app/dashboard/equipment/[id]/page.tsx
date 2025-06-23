@@ -824,7 +824,7 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                         )}
                         {/* Media Tab */}
                         {activeTab === "media" && (
-                            <div className="card bg-base-100 shadow-sm">
+                            <div className="card bg-base-100 shadow-lg">
                                 <div className="card-body">
                                     <UniversalMediaManager
                                         mode="both"

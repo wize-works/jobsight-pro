@@ -132,7 +132,7 @@ export default function InvoicesPage() {
                     {/* Invoice Statistics */}
                     <ErrorBoundary>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                            <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat bg-base-100 shadow-lg">
                                 <div className="stat-title">Total Invoices</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-primary">{invoices.length}</div>
@@ -142,7 +142,7 @@ export default function InvoicesPage() {
                                 </div>
                                 <div className="stat-desc">All invoices in the system</div>
                             </div>
-                            <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat bg-base-100 shadow-lg">
                                 <div className="stat-title">Total Amount</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-accent">
@@ -154,7 +154,7 @@ export default function InvoicesPage() {
                                 </div>
                                 <div className="stat-desc">Total amount of all invoices</div>
                             </div>
-                            <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat bg-base-100 shadow-lg">
                                 <div className="stat-title">Paid Invoices</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-success">
@@ -166,7 +166,7 @@ export default function InvoicesPage() {
                                 </div>
                                 <div className="stat-desc">Invoices marked as paid</div>
                             </div>
-                            <div className="stat bg-base-100 shadow-sm">
+                            <div className="stat bg-base-100 shadow-lg">
                                 <div className="stat-title">Overdue Invoices</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-error">
@@ -183,7 +183,7 @@ export default function InvoicesPage() {
 
                     {/* Search and Filters */}
                     <ErrorBoundary>
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card bg-base-100 shadow-lg mb-6">
                             <div className="card-body p-2">
                                 <div className="flex flex-col md:flex-row gap-6">
                                     <label className="input input-bordered input-secondary flex items-center gap-2 w-full">

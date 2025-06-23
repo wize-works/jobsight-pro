@@ -18,7 +18,7 @@ export default function CrewDetailLoading() {
                 {/* Main Content - Left Side */}
                 <div className="lg:col-span-2">
                     {/* Crew Information Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="h-16 w-16 bg-base-300 animate-pulse rounded-full"></div>
@@ -50,7 +50,7 @@ export default function CrewDetailLoading() {
                     </div>
 
                     {/* Tab Content - Members Section */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-24 bg-base-300 animate-pulse rounded"></div>
@@ -82,7 +82,7 @@ export default function CrewDetailLoading() {
                     </div>
 
                     {/* Schedule/Projects Section */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-32 bg-base-300 animate-pulse rounded"></div>
@@ -111,7 +111,7 @@ export default function CrewDetailLoading() {
                 {/* Sidebar - Right Side */}
                 <div className="lg:col-span-1">
                     {/* Quick Stats */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-24 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-4">
@@ -127,7 +127,7 @@ export default function CrewDetailLoading() {
                     </div>
 
                     {/* Equipment Section */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-24 bg-base-300 animate-pulse rounded"></div>
@@ -150,7 +150,7 @@ export default function CrewDetailLoading() {
                     </div>
 
                     {/* Notes Section */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-6 w-16 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-2 mb-4">

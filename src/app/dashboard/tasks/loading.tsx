@@ -13,7 +13,7 @@ export default function TasksListLoading() {
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 {[...Array(4)].map((_, index) => (
-                    <div key={index} className="stat bg-base-100 shadow-sm">
+                    <div key={index} className="stat bg-base-100 shadow-lg">
                         <div className="stat-figure">
                             <div className="h-12 w-12 bg-base-300 animate-pulse rounded-full"></div>
                         </div>
@@ -31,7 +31,7 @@ export default function TasksListLoading() {
             </div>
 
             {/* Filters and Search */}
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col lg:flex-row gap-4">
                         <div className="h-12 w-full lg:w-80 bg-base-300 animate-pulse rounded-lg"></div>
@@ -45,7 +45,7 @@ export default function TasksListLoading() {
             </div>
 
             {/* Task Table */}
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">

@@ -25,6 +25,9 @@ export default function ClientsPage() {
     );
 
     useEffect(() => {
+        if (!businessId) {
+            return;
+        }
         const fetchClients = async () => {
             try {
                 const data = await getClientsWithStats(businessId);
@@ -104,7 +107,7 @@ export default function ClientsPage() {
                 </div>
             )}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Total Clients</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-primary">{clients.length}</div>
@@ -115,7 +118,7 @@ export default function ClientsPage() {
                         <div className="stat-desc">Total number of clients</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Active Clients</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-success">{clients.filter(c => c.status === "active").length}</div>
@@ -126,7 +129,7 @@ export default function ClientsPage() {
                         <div className="stat-desc">Clients currently engaged</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Prospects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-warning">{clients.filter(c => c.status === "prospect").length}</div>
@@ -137,7 +140,7 @@ export default function ClientsPage() {
                         <div className="stat-desc">Potential clients in pipeline</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow-sm">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Inactive Clients</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-error">{clients.filter(c => c.status === "inactive").length}</div>
@@ -161,7 +164,7 @@ export default function ClientsPage() {
                     </div>
                 </div>
             )}>
-                <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+                <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                     <div className="card-body p-2">
                         <div className="flex flex-col md:flex-row gap-6">
                             <div className="w-full">
@@ -217,7 +220,7 @@ export default function ClientsPage() {
 
                 {/* List View */}
                 {viewType === "list" && (
-                    <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                    <div className="overflow-x-auto card bg-base-100 shadow-lg mb-6">
                         <table className="table table-zebra w-full">
                             <thead>
                                 <tr>
@@ -281,7 +284,7 @@ export default function ClientsPage() {
                 {/* No clients found message */}
 
                 {filteredClients.length === 0 && (
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body text-center">
                             <i className="far fa-users text-4xl text-base-content/30 mb-4"></i>
                             <h3 className="text-lg font-semibold">No clients found</h3>

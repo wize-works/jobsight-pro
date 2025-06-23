@@ -155,7 +155,7 @@ export default function BusinessPage() {
             {activeTab === "profile" && (
                 <form action={handleSaveChanges}>
                     <div className="grid grid-cols-2 gap-6 mb-4">
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="card-title text-xl">Business Information</h2>
@@ -225,7 +225,7 @@ export default function BusinessPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <h2 className="card-title text-xl mb-4">Business Address</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">

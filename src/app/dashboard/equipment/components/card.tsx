@@ -33,17 +33,6 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
             .slice(0, 2);
     };
 
-    const getStatusIcon = (status: string | null) => {
-        switch (status) {
-            case 'in_use': return 'fas fa-cog fa-spin';
-            case 'available': return 'fas fa-check-circle';
-            case 'maintenance': return 'fas fa-wrench';
-            case 'repair': return 'fas fa-tools';
-            case 'retired': return 'fas fa-archive';
-            default: return 'fas fa-question';
-        }
-    };
-
     const getTypeIcon = (type: string | null) => {
         switch (type) {
             case 'heavy': return 'fas fa-truck';
@@ -75,7 +64,7 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
     const maintenanceStatus = getMaintenanceStatus();
 
     return (
-        <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border">
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200">
             <div className="card-body p-6">
                 {/* Header Section */}
                 <div className="flex items-start justify-between mb-4">
@@ -111,8 +100,8 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
                         {equipmentStatusOptions.badge(equipment.status as EquipmentStatus)}
                         {maintenanceStatus && (
                             <div className={`text-xs px-2 py-1 rounded ${maintenanceStatus.status === 'overdue' ? 'bg-error/20 text-error' :
-                                    maintenanceStatus.status === 'due_soon' ? 'bg-warning/20 text-warning' :
-                                        'bg-info/20 text-info'
+                                maintenanceStatus.status === 'due_soon' ? 'bg-warning/20 text-warning' :
+                                    'bg-info/20 text-info'
                                 }`}>
                                 {maintenanceStatus.status === 'overdue' ? 'Overdue' :
                                     maintenanceStatus.status === 'due_soon' ? 'Due Soon' :
@@ -194,8 +183,8 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
                 {/* Maintenance Information */}
                 {equipment.next_maintenance && (
                     <div className={`alert py-2 mb-4 ${maintenanceStatus?.status === 'overdue' ? 'alert-error' :
-                            maintenanceStatus?.status === 'due_soon' ? 'alert-warning' :
-                                'alert-info'
+                        maintenanceStatus?.status === 'due_soon' ? 'alert-warning' :
+                            'alert-info'
                         }`}>
                         <i className="fas fa-calendar-alt text-sm" />
                         <div className="text-sm">

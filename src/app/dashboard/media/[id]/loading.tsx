@@ -16,7 +16,7 @@ export default function MediaDetailLoading() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Media preview skeleton */}
                 <div className="lg:col-span-2">
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="bg-base-300 animate-pulse rounded-lg min-h-[400px]"></div>
                         </div>
@@ -25,7 +25,7 @@ export default function MediaDetailLoading() {
 
                 {/* Media details skeleton */}
                 <div>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-7 w-24 bg-base-300 animate-pulse rounded mb-4"></div>
 
@@ -48,7 +48,7 @@ export default function MediaDetailLoading() {
                         </div>
                     </div>
 
-                    <div className="card bg-base-100 shadow-sm mt-6">
+                    <div className="card bg-base-100 shadow-lg mt-6">
                         <div className="card-body">
                             <div className="h-7 w-32 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

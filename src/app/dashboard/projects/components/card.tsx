@@ -1,11 +1,16 @@
-import { ProjectWithDetails, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { ProjectWithDetails, ProjectStatus, projectStatusOptions, Project, projectTypeOptions, ProjectType } from "@/types/projects";
+import { updateProject } from "@/app/actions/projects";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { progressBar } from "@/utils/progress";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { useBusiness } from "@/lib/business-context";
 
 export const ProjectCard = ({ project }: {
     project: ProjectWithDetails
 }) => {
+    const { businessId } = useBusiness();
+
     const getProjectInitials = (name: string) => {
         return name
             .split(' ')
@@ -33,9 +38,7 @@ export const ProjectCard = ({ project }: {
     const statusInfo = getStatusInfo(project.status || "planning");
 
     return (
-        <div
-            className="card bg-base-100 shadow-sm border"
-        >
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200" >
             <div className="card-body p-6">
                 {/* Header Section */}
                 <div className="flex items-start justify-between mb-4">
@@ -107,7 +110,7 @@ export const ProjectCard = ({ project }: {
                         <div className="stat-title text-xs">Budget</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-warning">{project.type || "N/A"}</div>
+                        <div className="stat-value text-lg text-warning">{projectTypeOptions.get(project.type as ProjectType).label || "N/A"}</div>
                         <div className="stat-title text-xs">Type</div>
                     </div>
                 </div>
@@ -136,13 +139,15 @@ export const ProjectCard = ({ project }: {
                         >
                             <i className="fas fa-tasks text-sm" />
                         </button>
-                        {project.status === "planning" && (
+                        {project.status === "planning" || project.status === "planned" && (
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
                                 title="Start project"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    // TODO: Open start project modal or action
+                                    updateProject(businessId, project.id, { status: "in_progress" } as Project);
+                                    toast.success("Project started successfully");
+                                    window.location.reload();
                                 }}
                             >
                                 <i className="fas fa-play text-sm" />

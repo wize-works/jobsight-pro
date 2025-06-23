@@ -41,7 +41,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                 <div className="mt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="card bg-base-100 shadow-sm animate-pulse">
+                            <div key={i} className="card bg-base-100 shadow-lg animate-pulse">
                                 <div className="card-body">
                                     <div className="flex items-center justify-between space-x-6">
                                         <div className="skeleton h-5 w-32"></div>
@@ -64,7 +64,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                 <div className="mt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="card bg-base-100 shadow-sm animate-pulse">
+                            <div key={i} className="card bg-base-100 shadow-lg animate-pulse">
                                 <div className="card-body">
                                     <div className="flex items-center justify-between space-x-6">
                                         <div className="skeleton h-5 w-32"></div>
@@ -109,7 +109,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                             {crews.map((crew) => (
-                                <div key={crew.id} className="card bg-base-100 shadow-sm flex justify-between">
+                                <div key={crew.id} className="card bg-base-100 shadow-lg flex justify-between">
                                     <div className="card-body">
                                         <div className="flex items-center justify-between space-x-6">
                                             <div className="text-lg font-semibold">{crew.name}</div>
@@ -143,7 +143,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                             {availableCrews.map((crew) => (
-                                <div key={crew.id} className="card bg-base-100 shadow-sm flex justify-between">
+                                <div key={crew.id} className="card bg-base-100 shadow-lg flex justify-between">
                                     <div className="card-body">
                                         <div className="flex items-center justify-between space-x-6">
                                             <div className="text-lg font-semibold">{crew.name}</div>

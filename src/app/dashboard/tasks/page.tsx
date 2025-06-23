@@ -246,7 +246,7 @@ export default function TasksPage() {
                 {/* Statistics Cards */}
                 <ErrorBoundary>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                        <div className="stat bg-base-100 shadow-sm">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-figure text-primary">
                                 <div className="bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
                                     <i className="far fa-tasks fa-lg"></i>
@@ -256,7 +256,7 @@ export default function TasksPage() {
                             <div className="stat-value text-primary">{totalTasks}</div>
                             <div className="stat-desc">Total number of tasks across all projects</div>
                         </div>
-                        <div className="stat bg-base-100 shadow-sm">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-figure text-success">
                                 <div className="bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
                                     <i className="far fa-check-circle fa-lg"></i>
@@ -266,7 +266,7 @@ export default function TasksPage() {
                             <div className="stat-value text-success">{completedTasks}</div>
                             <div className="stat-desc">{totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% completion rate</div>
                         </div>
-                        <div className="stat bg-base-100 shadow-sm">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-figure text-info">
                                 <div className="bg-info/20 rounded-full h-12 w-12 flex items-center justify-center">
                                     <i className="far fa-play-circle fa-lg"></i>
@@ -276,7 +276,7 @@ export default function TasksPage() {
                             <div className="stat-value text-info">{inProgressTasks}</div>
                             <div className="stat-desc">Currently active tasks</div>
                         </div>
-                        <div className="stat bg-base-100 shadow-sm">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-figure text-error">
                                 <div className="bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
                                     <i className="far fa-exclamation-triangle fa-lg"></i>
@@ -291,7 +291,7 @@ export default function TasksPage() {
 
                 {/* Filters and Search */}
                 <ErrorBoundary>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-2">
                             <div className="flex flex-col lg:flex-row gap-4">
                                 {/* Search */}
@@ -357,7 +357,7 @@ export default function TasksPage() {
                             crews={crews.map(c => ({ id: c.id, name: c.name }))}
                         />
                     ) : (
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <div className="overflow-x-auto">
                                     <table className="table table-zebra">

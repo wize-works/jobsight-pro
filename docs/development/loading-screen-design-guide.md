@@ -73,7 +73,7 @@ For pages displaying multiple items (projects, clients, etc.):
 // Basic grid skeleton
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {[...Array(6)].map((_, i) => (
-        <div key={i} className="card bg-base-100 shadow-sm border">
+        <div key={i} className="card bg-base-100 shadow-lg border">
             <div className="card-body">
                 <div className="h-6 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse mb-4"></div>
@@ -95,7 +95,7 @@ For detail pages with sidebar and main content:
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
     {/* Sidebar skeleton */}
     <div className="lg:col-span-1">
-        <div className="card bg-base-100 shadow-sm border">
+        <div className="card bg-base-100 shadow-lg border">
             <div className="card-body space-y-4">
                 <div className="h-6 bg-gray-200 rounded w-3/4 animate-pulse"></div>
                 <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
