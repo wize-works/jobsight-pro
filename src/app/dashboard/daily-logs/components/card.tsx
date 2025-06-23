@@ -1,6 +1,10 @@
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { formatDate } from "@/utils/date";
 import Link from "next/link";
+import { useState } from "react";
+import { useBusiness } from "@/lib/business-context";
+import { toast } from "@/hooks/use-toast";
+import { generateDailyLogHTML } from "@/app/actions/generate-html";
 
 export const DailyLogCard = ({
     log,
@@ -11,6 +15,66 @@ export const DailyLogCard = ({
     isSelected?: boolean;
     onSelect?: (log: DailyLogWithDetails) => void;
 }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+    const { businessId } = useBusiness();
+
+    const handleDownloadPDF = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!businessId) {
+            toast({
+                title: "Error",
+                description: "No business context available.",
+                variant: "error",
+            });
+            return;
+        }
+
+        setIsDownloading(true); try {
+            // Generate HTML using server action
+            const html = await generateDailyLogHTML(businessId, log.id);
+            const filename = `daily-log-${log.project?.name || 'unknown'}-${formatDate(log.date)}.pdf`;
+
+            // Generate PDF
+            const pdfResponse = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ html, filename }),
+            });
+
+            if (!pdfResponse.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+
+            // Download the PDF
+            const blob = await pdfResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `daily-log-${log.project?.name || 'unknown'}-${formatDate(log.date)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast({
+                title: "Success",
+                description: "Daily log PDF downloaded successfully.",
+            });
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            toast({
+                title: "Error",
+                description: "Failed to download daily log PDF. Please try again.",
+                variant: "error",
+            });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
     const formatCurrency = (amount: number | undefined) => {
         if (!amount) return "$0";
         return new Intl.NumberFormat('en-US', {
@@ -243,16 +307,17 @@ export const DailyLogCard = ({
                             >
                                 <i className="fas fa-users text-sm" />
                             </Link>
-                        )}
-                        <button
+                        )}                        <button
                             className="btn btn-ghost btn-sm btn-circle"
                             title="Export log"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // TODO: Implement export functionality
-                            }}
+                            onClick={handleDownloadPDF}
+                            disabled={isDownloading}
                         >
-                            <i className="fas fa-download text-sm" />
+                            {isDownloading ? (
+                                <i className="fas fa-spinner fa-spin text-sm" />
+                            ) : (
+                                <i className="fas fa-download text-sm" />
+                            )}
                         </button>
                     </div>
                     <Link
