@@ -8,7 +8,7 @@ export default function MediaUploadLoading() {
                 </div>
             </div>
 
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <div className="h-40 bg-base-300 animate-pulse rounded-lg mb-6"></div>
 

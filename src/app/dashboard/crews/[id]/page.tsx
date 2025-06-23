@@ -22,7 +22,9 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
     const [history, setHistory] = useState<ProjectCrewWithDetails[]>([]);
     const [equipment, setEquipment] = useState<EquipmentAssignmentWithEquipmentDetails[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]); useEffect(() => {
+    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
+
+    useEffect(() => {
         if (!businessId) {
             return;
         }
@@ -64,7 +66,9 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
         };
 
         fetchData();
-    }, [businessId, params]); if (loading) {
+    }, [businessId, params]);
+
+    if (loading) {
         return <CrewDetailLoading />;
     }
 

@@ -56,7 +56,7 @@ export default function InvoiceCard({ invoice, onEdit }: InvoiceCardProps) {
     };
 
     return (
-        <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border">
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200">
             <div className="card-body p-6">
                 {/* Header Section */}
                 <div className="flex items-start justify-between mb-4">

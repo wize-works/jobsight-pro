@@ -32,22 +32,23 @@ import dynamic from "next/dynamic";
 import WeatherWidget from "@/components/weather-widget";
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
+import TabLoading from "@/components/tab-loading";
 
 // Dynamic imports for tab components
 const TasksTab = dynamic(() => import("../components/tab-tasks"), {
-    loading: () => <ModalLoading message="Loading tasks..." />,
+    loading: () => <TabLoading message="Loading tasks..." />,
 });
 
 const CrewsTab = dynamic(() => import("../components/tab-crews"), {
-    loading: () => <ModalLoading message="Loading crews..." />,
+    loading: () => <TabLoading message="Loading crews..." />,
 });
 
 const IssuesTab = dynamic(() => import("../components/tab-issues"), {
-    loading: () => <ModalLoading message="Loading issues..." />,
+    loading: () => <TabLoading message="Loading issues..." />,
 });
 
 const MediaTab = dynamic(() => import("../components/tab-media"), {
-    loading: () => <ModalLoading message="Loading media..." />,
+    loading: () => <TabLoading message="Loading media..." />,
 });
 
 // Dynamic imports for modal components
@@ -301,7 +302,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 </div>
             )}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
                                 <div className="rounded-full bg-primary/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
@@ -314,7 +315,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
                     </div>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
                                 <div className="rounded-full bg-accent/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
@@ -327,7 +328,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
                     </div>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
                                 <div className="rounded-full bg-info/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
@@ -340,7 +341,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
                     </div>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
                                 <div className="rounded-full bg-success/10 p-3 mr-4 h-10 w-10 flex items-center justify-center">
@@ -368,7 +369,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             )}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2">
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card bg-base-100 shadow-lg mb-6">
                             <div className="card-body">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="flex flex-col justify-start items-start gap-2 mb-4">
@@ -487,7 +488,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                         {activeTab === "overview" && (
                             <>
-                                <div className="card bg-base-100 shadow-sm mb-6">
+                                <div className="card bg-base-100 shadow-lg mb-6">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Milestones</h3>
@@ -538,7 +539,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                 </div>
 
-                                <div className="card bg-base-100 shadow-sm mb-6">
+                                <div className="card bg-base-100 shadow-lg mb-6">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Recent Tasks</h3>
@@ -604,7 +605,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             <CrewsTab projectId={project.id} crews={crews} />
                         )}
                         {activeTab === "budget" && (
-                            <div className="card bg-base-100 shadow-sm">
+                            <div className="card bg-base-100 shadow-lg">
                                 <div className="card-body">
                                     <div className="alert alert-info">
                                         <h3 className="text-lg font-semibold">Budget Overview</h3>
@@ -622,7 +623,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     <div className="lg:col-span-1">
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <h3 className="text-lg font-semibold mb-4">Project Progress</h3>
                                 <div className="mb-4">
@@ -666,7 +667,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card bg-base-100 shadow-lg mb-6">
                             <div className="card-body">
                                 <h3 className="text-lg font-semibold mb-4">Client Contacts</h3>
                                 {contacts?.map((contact, index) => (
@@ -700,7 +701,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
-                        <div className="card bg-base-100 shadow-sm mb-6">
+                        <div className="card bg-base-100 shadow-lg mb-6">
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-lg font-semibold">Assigned Crews</h3>

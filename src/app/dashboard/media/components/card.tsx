@@ -85,8 +85,7 @@ export const MediaCard = ({
 
     return (
         <div
-            className={`card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border cursor-pointer ${isSelected ? "ring-2 ring-primary border-primary" : ""
-                }`}
+            className={`card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200`}
             onClick={() => onSelect?.(media.id)}
         >
             {/* Media Preview */}

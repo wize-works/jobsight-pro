@@ -201,7 +201,7 @@ export default function ProjectsPage() {
             </ErrorBoundary>
 
             {/* Filters and Search */}
-            <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+            <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
                         <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
@@ -259,7 +259,7 @@ export default function ProjectsPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body p-0">
                             <div className="overflow-x-auto">
                                 <table className="table table-zebra">
@@ -318,7 +318,7 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 )}            {projects.length === 0 && (
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body text-center">
                             <i className="far fa-screwdriver-wrench text-3xl text-base-content/30 mb-2"></i>
                             <h3 className="text-lg font-semibold">No projects found</h3>
@@ -336,7 +336,7 @@ export default function ProjectsPage() {
                 )}
 
                 {projects.length > 0 && sortedAndFilteredProjects.length === 0 && (
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body text-center">
                             <i className="far fa-filter text-3xl text-base-content/30 mb-2"></i>
                             <h3 className="text-lg font-semibold">No projects match your filters</h3>

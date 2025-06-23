@@ -21,7 +21,7 @@ export const ClientCard = ({ client }: {
     };
 
     return (
-        <div key={client.id} className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200 border">
+        <div key={client.id} className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200 hover:shadow-2xl transition-shadow duration-200">
             <div className="card-body p-6">
                 {/* Header Section */}
                 <div className="flex items-start justify-between mb-4">
@@ -133,16 +133,16 @@ export const ClientCard = ({ client }: {
 
                 <div className="stats stats-horizontal w-full mb-4">
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-primary">{client.total_projects || 0}</div>
-                        <div className="stat-title text-xs">Total Projects</div>
+                        <div className="stat-value text-primary">{client.total_projects || 0}</div>
+                        <div className="stat-title">Total Projects</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-success">{client.active_projects || 0}</div>
-                        <div className="stat-title text-xs">Active</div>
+                        <div className="stat-value text-success">{client.active_projects || 0}</div>
+                        <div className="stat-title">Active</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-warning">{formatCurrency(client.total_budget)}</div>
-                        <div className="stat-title text-xs">Total Value</div>
+                        <div className="stat-value text-warning">{formatCurrency(client.total_budget)}</div>
+                        <div className="stat-title">Total Value</div>
                     </div>
                 </div>
 

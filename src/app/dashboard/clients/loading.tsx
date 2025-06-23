@@ -13,7 +13,7 @@ export default function ClientsListLoading({ viewType = "grid" }: { viewType?: "
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="stat bg-base-100 shadow-sm">
+                    <div key={index} className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">
                             <div className="h-5 w-24 bg-base-300 animate-pulse rounded"></div>
                         </div>
@@ -33,7 +33,7 @@ export default function ClientsListLoading({ viewType = "grid" }: { viewType?: "
             </div>
 
             {/* Search and Filters */}
-            <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+            <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                 <div className="card-body p-2">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="w-full">
@@ -51,7 +51,7 @@ export default function ClientsListLoading({ viewType = "grid" }: { viewType?: "
                 /* Grid View */
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {Array.from({ length: 6 }).map((_, index) => (
-                        <div key={index} className="card bg-base-100 shadow-sm">
+                        <div key={index} className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <div className="flex justify-between mb-4">
                                     <div className="flex justify-between">
@@ -79,7 +79,7 @@ export default function ClientsListLoading({ viewType = "grid" }: { viewType?: "
                 </div>
             ) : (
                 /* List View */
-                <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                <div className="overflow-x-auto card bg-base-100 shadow-lg mb-6">
                     <table className="table table-zebra w-full">
                         <thead>
                             <tr>

@@ -73,7 +73,7 @@ export default function InitializeDatabaseClient() {
                 </div>
             </div>
 
-            <div className="card bg-base-100 shadow-sm">
+            <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
                     <h2 className="card-title">Supabase Database Initialization</h2>
                     <div className="divider mt-0"></div>
@@ -166,7 +166,7 @@ export default function InitializeDatabaseClient() {
                 </div>
             </div>
 
-            <div className="card bg-base-100 shadow-sm mt-6">
+            <div className="card bg-base-100 shadow-lg mt-6">
                 <div className="card-body">
                     <h2 className="card-title">Database Schema</h2>
                     <div className="divider mt-0"></div>

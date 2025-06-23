@@ -450,7 +450,7 @@ export default function CrewDetailComponent({
             </div>            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-6">
                 <div className="order-2 md:order-last">
                     <ErrorBoundary fallback={() => (
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <div className="alert alert-warning">
                                     <i className="fas fa-exclamation-triangle"></i>
@@ -462,7 +462,7 @@ export default function CrewDetailComponent({
                             </div>
                         </div>
                     )}>
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <h2 className="card-title">Crew Leader</h2>
                                 <p className="text-base-content/70 mb-4">Contact information</p>
@@ -503,7 +503,7 @@ export default function CrewDetailComponent({
                                 </div>
                             </div>
                         </div>
-                        <div className="card bg-base-100 shadow-sm mt-6">
+                        <div className="card bg-base-100 shadow-lg mt-6">
                             <div className="card-body">
                                 <h2 className="card-title">Notes</h2>
                                 <p className="text-base-content/70 mb-4">Add any important notes about the crew here.</p>
@@ -527,7 +527,7 @@ export default function CrewDetailComponent({
                 <div className="flex flex-col gap-6 col-span-2">
 
                     <div className="order-1 md:order-1">
-                        <div className="card bg-base-100 shadow-sm">
+                        <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <div className="flex flex-col md:flex-row justify-between mb-6">
                                     <div>
@@ -605,7 +605,7 @@ export default function CrewDetailComponent({
                             </a>
                         </div>                        {activeTab === "members" && (
                             <ErrorBoundary fallback={() => (
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="alert alert-warning">
                                             <i className="fas fa-exclamation-triangle"></i>
@@ -617,7 +617,7 @@ export default function CrewDetailComponent({
                                     </div>
                                 </div>
                             )}>
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Crew Members</h3>
@@ -708,7 +708,7 @@ export default function CrewDetailComponent({
                             </ErrorBoundary>
                         )}                        {activeTab === "schedule" && (
                             <ErrorBoundary fallback={() => (
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="alert alert-warning">
                                             <i className="fas fa-exclamation-triangle"></i>
@@ -720,7 +720,7 @@ export default function CrewDetailComponent({
                                     </div>
                                 </div>
                             )}>
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Upcoming Schedule</h3>
@@ -785,7 +785,7 @@ export default function CrewDetailComponent({
                             </ErrorBoundary>
                         )}                        {activeTab === "equipment" && (
                             <ErrorBoundary fallback={() => (
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="alert alert-warning">
                                             <i className="fas fa-exclamation-triangle"></i>
@@ -797,7 +797,7 @@ export default function CrewDetailComponent({
                                     </div>
                                 </div>
                             )}>
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Assigned Equipment</h3>                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
@@ -858,7 +858,7 @@ export default function CrewDetailComponent({
                             </ErrorBoundary>
                         )}                        {activeTab === "history" && (
                             <ErrorBoundary fallback={() => (
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="alert alert-warning">
                                             <i className="fas fa-exclamation-triangle"></i>
@@ -870,7 +870,7 @@ export default function CrewDetailComponent({
                                     </div>
                                 </div>
                             )}>
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-lg font-semibold">Work History</h3>

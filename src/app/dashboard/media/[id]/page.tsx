@@ -210,7 +210,7 @@ export default function MediaDetail() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Media preview */}
                 <div className="lg:col-span-2">
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="bg-base-200 rounded-lg flex items-center justify-center min-h-[400px]">
                                 {mediaItem.type === "image" ? (
@@ -264,7 +264,7 @@ export default function MediaDetail() {
 
                 {/* Media details */}
                 <div>
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <h3 className="card-title text-lg mb-4">Details</h3>
 

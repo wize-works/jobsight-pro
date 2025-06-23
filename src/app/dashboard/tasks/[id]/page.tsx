@@ -163,7 +163,7 @@ export default function TaskDetailPage() {
                 <ErrorBoundary>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2">
-                            <div className="card bg-base-100 shadow-sm">
+                            <div className="card bg-base-100 shadow-lg">
                                 <div className="card-body">
                                     <h1 className="text-2xl font-bold">{task.name}</h1>
                                     <h2 className="card-title mb-4">Task Information</h2>
@@ -242,7 +242,7 @@ export default function TaskDetailPage() {
                         </div>
 
                         <div>
-                            <div className="card bg-base-100 shadow-sm mb-6">
+                            <div className="card bg-base-100 shadow-lg mb-6">
                                 <div className="card-body">
                                     <h3 className="card-title text-lg mb-4">Quick Actions</h3>
                                     <div className="space-y-6">
@@ -271,7 +271,7 @@ export default function TaskDetailPage() {
                             </div>
 
                             {task.created_at && (
-                                <div className="card bg-base-100 shadow-sm">
+                                <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <h3 className="card-title text-lg mb-4">Task Details</h3>
                                         <div className="space-y-6 text-sm">

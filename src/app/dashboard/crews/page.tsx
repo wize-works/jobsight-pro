@@ -167,7 +167,7 @@ export default function CrewsList() {
             </ErrorBoundary>
 
             <ErrorBoundary fallback={() => (
-                <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+                <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                     <div className="card-body p-2">
                         <div className="alert alert-error">
                             <i className="far fa-exclamation-triangle"></i>
@@ -176,7 +176,7 @@ export default function CrewsList() {
                     </div>
                 </div>
             )}>
-                <div className="card bg-base-100 shadow-sm mb-6 rounded-lg">
+                <div className="card bg-base-100 shadow-lg mb-6 rounded-lg">
                     <div className="card-body p-2">
                         <div className="flex flex-col md:flex-row gap-6">
                             <label className="input input-bordered input-secondary flex items-center gap-2 w-full">
@@ -204,7 +204,7 @@ export default function CrewsList() {
             </ErrorBoundary>
 
             <ErrorBoundary fallback={() => (
-                <div className="card bg-base-100 shadow-sm mb-6">
+                <div className="card bg-base-100 shadow-lg mb-6">
                     <div className="card-body text-center">
                         <i className="far fa-exclamation-triangle text-3xl text-error mb-2"></i>
                         <h3 className="text-lg font-semibold">Failed to load crews</h3>
@@ -227,7 +227,7 @@ export default function CrewsList() {
                         ))}
                     </div>
                 ) : (
-                    <div className="overflow-x-auto card bg-base-100 shadow-sm mb-6">
+                    <div className="overflow-x-auto card bg-base-100 shadow-lg mb-6">
                         <table className="table table-zebra w-full">
                             <thead>
                                 <tr>
@@ -267,7 +267,7 @@ export default function CrewsList() {
                 )}
 
                 {crews.length === 0 && (
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body text-center">
                             <i className="far fa-users text-3xl text-base-content/30 mb-2"></i>
                             <h3 className="text-lg font-semibold">No crews found</h3>

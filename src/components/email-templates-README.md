@@ -299,7 +299,7 @@ import { WelcomeEmail } from '@/components/email-examples';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 await resend.emails.send({
-  from: 'noreply@jobsight.co',
+  from: 'noreply@updates.jobsight.co',
   to: 'user@example.com',
   subject: 'Welcome to JobSight Pro!',
   react: WelcomeEmail({

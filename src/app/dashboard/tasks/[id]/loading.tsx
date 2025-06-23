@@ -13,7 +13,7 @@ export default function TaskDetailLoading() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content */}
                 <div className="lg:col-span-2">
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             {/* Task Title */}
                             <div className="h-8 w-48 bg-base-300 animate-pulse rounded mb-4"></div>
@@ -54,7 +54,7 @@ export default function TaskDetailLoading() {
                     </div>
 
                     {/* Progress Section */}
-                    <div className="card bg-base-100 shadow-sm mt-6">
+                    <div className="card bg-base-100 shadow-lg mt-6">
                         <div className="card-body">
                             <div className="h-6 w-32 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-4">
@@ -85,7 +85,7 @@ export default function TaskDetailLoading() {
                 {/* Sidebar */}
                 <div className="lg:col-span-1">
                     {/* Project Information */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-28 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-3">
@@ -100,7 +100,7 @@ export default function TaskDetailLoading() {
                     </div>
 
                     {/* Assigned Crew */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-28 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-3">
@@ -112,7 +112,7 @@ export default function TaskDetailLoading() {
                     </div>
 
                     {/* Activity Log */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-6 w-24 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="space-y-4">

@@ -145,7 +145,7 @@ export default function UsersPermissionsTab() {
     };
 
     return (
-        <div className="card bg-base-100 shadow-sm">
+        <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="card-title text-xl">Users & Permissions</h2>

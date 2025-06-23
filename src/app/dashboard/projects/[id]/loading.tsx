@@ -20,7 +20,7 @@ export default function ProjectDetailLoading() {
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="card bg-base-100 shadow-sm">
+                    <div key={index} className="card bg-base-100 shadow-lg">
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
                                 <div className="h-10 w-10 bg-base-300 animate-pulse rounded-full mr-4"></div>
@@ -38,7 +38,7 @@ export default function ProjectDetailLoading() {
                 {/* Main Content */}
                 <div className="lg:col-span-2">
                     {/* Project Details Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="flex flex-col justify-start items-start gap-2 mb-4">
@@ -109,7 +109,7 @@ export default function ProjectDetailLoading() {
                     </div>
 
                     {/* Milestones Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-20 bg-base-300 animate-pulse rounded"></div>
@@ -144,7 +144,7 @@ export default function ProjectDetailLoading() {
                     </div>
 
                     {/* Recent Tasks Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-24 bg-base-300 animate-pulse rounded"></div>
@@ -188,7 +188,7 @@ export default function ProjectDetailLoading() {
                 {/* Sidebar */}
                 <div className="lg:col-span-1">
                     {/* Project Progress Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-32 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="mb-4">
@@ -226,7 +226,7 @@ export default function ProjectDetailLoading() {
                     </div>
 
                     {/* Client Contacts Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="h-6 w-28 bg-base-300 animate-pulse rounded mb-4"></div>
                             {Array.from({ length: 2 }).map((_, index) => (
@@ -241,7 +241,7 @@ export default function ProjectDetailLoading() {
                     </div>
 
                     {/* Assigned Crews Card */}
-                    <div className="card bg-base-100 shadow-sm mb-6">
+                    <div className="card bg-base-100 shadow-lg mb-6">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="h-6 w-28 bg-base-300 animate-pulse rounded"></div>
@@ -257,7 +257,7 @@ export default function ProjectDetailLoading() {
                     </div>
 
                     {/* Weather Widget Skeleton */}
-                    <div className="card bg-base-100 shadow-sm">
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <div className="h-6 w-20 bg-base-300 animate-pulse rounded mb-4"></div>
                             <div className="flex items-center justify-between mb-4">

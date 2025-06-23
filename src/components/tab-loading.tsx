@@ -1,14 +1,14 @@
-interface ModalLoadingProps {
+interface TabLoadingProps {
     message?: string;
     icon?: 'spinner' | 'fontawesome';
 }
 
-export default function ModalLoading({
+export default function TabLoading({
     message = "Loading...",
     icon = 'spinner'
-}: ModalLoadingProps) {
+}: TabLoadingProps) {
     return (
-        <div className="fixed inset-0 bg-neutral/10 flex items-center justify-center z-50">
+        <div className="bg-base-300/50 flex items-center justify-center z-50 p-20">
             <div className="bg-base-100 rounded-lg p-8 flex flex-col items-center gap-4 shadow-xl">
                 {icon === 'fontawesome' ? (
                     <i className="fas fa-spinner fa-spin text-3xl text-primary"></i>

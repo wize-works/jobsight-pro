@@ -304,7 +304,7 @@ export default function DailyLogsList({
             )}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {filteredLogs.length === 0 ? (
-                        <div className="col-span-2 alert alert-info">
+                        <div className="col-span-3 alert alert-info">
                             <i className="far fa-info-circle mr-2"></i>
                             No daily logs found matching your criteria
                         </div>
