@@ -3,11 +3,13 @@ import { chromium } from 'playwright-core';
 
 export async function POST(request: NextRequest) {
     try {
-        const { url } = await request.json();
+        const { url, filename = 'invoice.pdf', returnAsAttachment = true } = await request.json();
 
         if (!url) {
             return NextResponse.json({ error: 'URL is required' }, { status: 400 });
-        }        // Launch browser and generate PDF
+        }
+
+        // Launch browser and generate PDF
         const browser = await chromium.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
         await page.goto(url, { waitUntil: 'networkidle' });
 
         // Wait for the page to fully load
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000);
 
         // Generate PDF as buffer instead of saving to file
         const pdfBuffer = await page.pdf({
@@ -35,11 +37,21 @@ export async function POST(request: NextRequest) {
 
         await browser.close();
 
-        // Return PDF as response with appropriate headers
+        // If this is for email attachment, return as base64 JSON
+        if (!returnAsAttachment) {
+            return NextResponse.json({
+                success: true,
+                filename: filename,
+                pdf: pdfBuffer.toString('base64'),
+                size: pdfBuffer.length
+            });
+        }
+
+        // Return PDF as response with appropriate headers for download
         return new NextResponse(pdfBuffer, {
             headers: {
                 'Content-Type': 'application/pdf',
-                'Content-Disposition': 'attachment; filename="invoice.pdf"',
+                'Content-Disposition': `attachment; filename="${filename}"`,
                 'Content-Length': pdfBuffer.length.toString(),
             },
         });
