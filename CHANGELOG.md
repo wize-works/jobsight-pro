@@ -1,3 +1,16 @@
+# [1.79.0](https://github.com/wize-works/jobsight-pro/compare/v1.78.0...v1.79.0) (2025-06-23)
+
+
+### Bug Fixes
+
+* Clean up formatting and spacing in Dashboard component for improved readability ([522cbdf](https://github.com/wize-works/jobsight-pro/commit/522cbdfeda8a7805e061d7350c47e6e34ca3634c))
+
+
+### Features
+
+* Enhance AI guidance system in Dashboard with new insights and improved data handling ([156c213](https://github.com/wize-works/jobsight-pro/commit/156c2133257ae11f2cb3eddc43c23df7a71ca089))
+* Implement Compact Weather Widget with current weather and 5-day forecast functionality ([c3275f5](https://github.com/wize-works/jobsight-pro/commit/c3275f56e0d43ab98302e35d2ae13aa298283e2d))
+
 # [1.78.0](https://github.com/wize-works/jobsight-pro/compare/v1.77.0...v1.78.0) (2025-06-23)
 
 
