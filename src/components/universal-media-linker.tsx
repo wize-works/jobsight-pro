@@ -189,12 +189,12 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
     }, []);
 
     return (
-        <div className={`space-y-4 ${compact ? 'text-sm' : ''}`}>
+        <div className={`space-y-4 pt-6 ${compact ? 'text-sm' : ''}`}>
             {/* Header */}
             {!compact && (
                 <div>
-                    <h3 className="text-lg font-semibold">{title}</h3>
-                    <p className="text-base-content/70 text-sm">{description}</p>
+                    <h3 className="text-lg font-semibold">Link Media</h3>
+                    <p className="text-base-content/70 text-sm">Link to existing images, videos, documents, and other files related to this.</p>
                 </div>
             )}
 
@@ -205,7 +205,7 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                         <div className="flex-1">
                             <input
                                 type="text"
-                                className="input input-bordered w-full"
+                                className="input input-bordered input-secondary w-full"
                                 placeholder="Search files..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -217,7 +217,7 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                     {showFilters && (
                         <div className="flex gap-2">
                             <select
-                                className="select select-bordered"
+                                className="select select-bordered input-secondary"
                                 value={filterType}
                                 onChange={(e) => setFilterType(e.target.value)}
                                 disabled={disabled}
@@ -332,10 +332,10 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                                 <div
                                     key={media.id}
                                     className={`card bg-base-200 border-2 cursor-pointer transition-all ${isLinked
-                                            ? "border-success bg-success/5 opacity-60"
-                                            : isSelected
-                                                ? "border-primary bg-primary/5"
-                                                : "border-base-300 hover:border-base-400"
+                                        ? "border-success bg-success/5 opacity-60"
+                                        : isSelected
+                                            ? "border-primary bg-primary/5"
+                                            : "border-base-300 hover:border-base-400"
                                         } ${disabled ? 'cursor-not-allowed' : ''}`}
                                     onClick={() => !isLinked && handleMediaSelect(media.id)}
                                 >

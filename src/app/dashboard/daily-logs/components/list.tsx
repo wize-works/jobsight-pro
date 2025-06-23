@@ -129,7 +129,8 @@ export default function DailyLogsList({
                         New Log
                     </button>
                 </div>
-            </div>            {/* Stats Cards */}
+            </div>
+            {/* Stats Cards */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error mb-6">
                     <i className="fas fa-exclamation-triangle"></i>
@@ -140,7 +141,7 @@ export default function DailyLogsList({
                 </div>
             )}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Total Logs</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-3xl text-primary">{logs.length}</div>
@@ -150,7 +151,7 @@ export default function DailyLogsList({
                         </div>
                         <div className="stat-desc">Updated just now</div>
                     </div>
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Hours Logged</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-3xl text-info">{logs.reduce((total, log) => total + (log.hours_worked || 0), 0)}</div>
@@ -160,7 +161,7 @@ export default function DailyLogsList({
                         </div>
                         <div className="stat-desc">Across all crews</div>
                     </div>
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Active Crews</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-3xl text-accent">{crews.filter(crew => crew.status === "active").length}</div>
@@ -170,17 +171,19 @@ export default function DailyLogsList({
                         </div>
                         <div className="stat-desc">Currently working</div>
                     </div>
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Active Projects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-3xl text-warning">{projects.filter(project => project.status && ["active", "in_progress"].includes(project.status)).length}</div>
                             <div className="stat-icon text-warning bg-warning/20 rounded-full h-12 w-12 flex items-center justify-center">
                                 <i className="far fa-screwdriver-wrench fa-xl text-warning"></i>
                             </div>
-                        </div>                    <div className="stat-desc">Ongoing projects</div>
+                        </div>
+                        <div className="stat-desc">Ongoing projects</div>
                     </div>
                 </div>
-            </ErrorBoundary>            {/* Filters */}
+            </ErrorBoundary>
+            {/* Filters */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error mb-6">
                     <i className="fas fa-exclamation-triangle"></i>
@@ -190,7 +193,7 @@ export default function DailyLogsList({
                     </div>
                 </div>
             )}>
-                <div className="bg-base-100 p-2 rounded-lg shadow mb-6">
+                <div className="bg-base-100 p-2 rounded-lg shadow-lg mb-6">
 
                     <div className="flex flex-col md:flex-row gap-6 mb-4">
                         <select
@@ -290,9 +293,11 @@ export default function DailyLogsList({
                         >
                             <i className="far fa-refresh mr-2"></i>
                             Clear Filters
-                        </button>                </div>
+                        </button>
+                    </div>
                 </div>
-            </ErrorBoundary>            {/* Logs List */}
+            </ErrorBoundary>
+            {/* Logs List */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
                     <i className="fas fa-exclamation-triangle"></i>

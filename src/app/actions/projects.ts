@@ -7,6 +7,7 @@ import { Client } from "@/types/clients";
 import { createNotificationWithEmail } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
 import type { NotificationInsert } from "@/types/notifications";
+import { AIContextCache } from "@/lib/ai/cache";
 
 
 export const getProjects = async (businessId: string): Promise<Project[]> => {
@@ -62,9 +63,12 @@ export const createProject = async (businessId: string, project: ProjectInsert):
         if (error) {
             console.error("Error creating project:", error);
             return null;
-        }
+        } const createdProject = data as Project;
 
-        const createdProject = data as Project;        // Create notification for project creation
+        // Invalidate AI context cache after project creation
+        AIContextCache.invalidateByEntity(businessId, 'projects', 'create');
+
+        // Create notification for project creation
         await triggerProjectNotification(businessId, createdProject.id, createdProject.name, "created", createdProject.created_by || undefined);
 
         return createdProject;
@@ -83,9 +87,12 @@ export const updateProject = async (businessId: string, id: string, project: Pro
         if (error) {
             console.error("Error updating project:", error);
             return null;
-        }
+        } const updatedProject = data as Project;
 
-        const updatedProject = data as Project;        // Create notification for project update
+        // Invalidate AI context cache after project update
+        AIContextCache.invalidateByEntity(businessId, 'projects', 'update');
+
+        // Create notification for project update
         await triggerProjectNotification(businessId, updatedProject.id, updatedProject.name, "updated", updatedProject.updated_by || undefined);
 
         return updatedProject;
@@ -104,14 +111,15 @@ export const deleteProject = async (businessId: string, id: string): Promise<boo
             projectName = project.name;
         } catch (error) {
             console.warn("Could not fetch project name for notification:", error);
-        }
-
-        const { error } = await deleteWithBusinessCheck("projects", id, businessId);
+        } const { error } = await deleteWithBusinessCheck("projects", id, businessId);
 
         if (error) {
             console.error("Error deleting project:", error);
             return false;
         }
+
+        // Invalidate AI context cache after project deletion
+        AIContextCache.invalidateByEntity(businessId, 'projects', 'delete');
 
         // Create notification for project deletion
         await triggerProjectNotification(businessId, id, projectName, "deleted");

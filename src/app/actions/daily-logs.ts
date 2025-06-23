@@ -1,5 +1,6 @@
 "use server";
 
+import { AIContextCache } from "@/lib/ai/cache";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
 import { applyCreated } from "@/utils/apply-created";
@@ -138,8 +139,10 @@ export const createDailyLog = async (businessId: string, log: DailyLogInsert): P
             projectName,
             createdLog.date || new Date().toISOString().split('T')[0],
             "created",
-            createdLog.created_by || undefined
-        );
+            createdLog.created_by || undefined);
+
+        // Invalidate AI context cache after daily log creation
+        AIContextCache.invalidateByEntity(businessId, 'daily_logs', 'create');
     } catch (notificationError) {
         console.error("Error creating notification for daily log:", notificationError);
         // Don't fail the daily log creation if notification fails

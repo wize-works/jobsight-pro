@@ -156,7 +156,7 @@ export default function ProjectsPage() {
                 </div>
             )}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title">Total Projects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-primary">{totalProjects}</div>
@@ -167,7 +167,7 @@ export default function ProjectsPage() {
                         <div className="stat-desc">All projects across all statuses</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title">Active Projects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-success">{activeProjects}</div>
@@ -178,7 +178,7 @@ export default function ProjectsPage() {
                         <div className="stat-desc">Projects currently in progress</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title">Upcoming Projects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-info">{upcomingProjects}</div>
@@ -188,14 +188,15 @@ export default function ProjectsPage() {
                         </div>
                         <div className="stat-desc">Projects scheduled to start soon</div>
                     </div>
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title">Completed Projects</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-secondary">{completedProjects}</div>
                             <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
                                 <i className="far fa-check-circle text-secondary text-2xl"></i>
                             </div>
-                        </div>                    <div className="stat-desc">Projects successfully completed</div>
+                        </div>
+                        <div className="stat-desc">Projects successfully completed</div>
                     </div>
                 </div>
             </ErrorBoundary>
@@ -242,7 +243,9 @@ export default function ProjectsPage() {
                     </div>
 
                 </div>
-            </div>            {/* Projects Grid/List View */}
+            </div>
+
+            {/* Projects Grid/List View */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
                     <i className="fas fa-exclamation-triangle"></i>

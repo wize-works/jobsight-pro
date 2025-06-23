@@ -4,6 +4,7 @@ import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
 import { DailyLogInsert } from "@/types/daily-logs";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
+import { AIContextCache, CacheMetrics } from "@/lib/ai/cache";
 
 interface AIQueryResult {
     response: string;
@@ -17,9 +18,20 @@ interface ConversationMessage {
     content: string;
 }
 
-// Enhanced AI context data function
+// Enhanced AI context data function with caching
 export const getAIContextData = async (businessId: string) => {
     try {
+        // Check cache first
+        const cachedData = AIContextCache.getAIContext(businessId);
+        if (cachedData) {
+            CacheMetrics.recordHit();
+            console.log('AI Context: Cache hit for business', businessId);
+            return cachedData.data;
+        }
+
+        CacheMetrics.recordMiss();
+        console.log('AI Context: Cache miss for business', businessId, '- fetching fresh data');
+
         // Get projects with enhanced relational data and analytics
         const { data: projects, error: projectsError } = await fetchByBusinessWithQuery(businessId, {
             from: "projects",
@@ -148,7 +160,7 @@ export const getAIContextData = async (businessId: string) => {
             orderBy: { column: "name", ascending: true }
         });
 
-        return {
+        const contextData = {
             projects: projects || [],
             clients: clients || [],
             crews: crews || [],
@@ -176,6 +188,14 @@ export const getAIContextData = async (businessId: string) => {
                 equipment: equipmentError
             }
         };
+
+        // Store in cache
+        AIContextCache.setAIContext(businessId, contextData);
+
+        // Warm up additional cache data for better performance
+        await AIContextCache.warmupCache(businessId, contextData);
+
+        return contextData;
     } catch (error) {
         console.error("Error fetching AI context data:", error);
         return {
@@ -197,11 +217,23 @@ export const getAIContextData = async (businessId: string) => {
 export async function processAIQuery(
     businessId: string,
     message: string,
-    conversationHistory: ConversationMessage[] = []
+    conversationHistory: ConversationMessage[] = [],
+    userId?: string
 ): Promise<AIQueryResult> {
     try {
+        // Check for conversation context in cache if userId provided
+        let enhancedHistory = conversationHistory;
+        if (userId) {
+            const cachedContext = AIContextCache.getConversationContext(businessId, userId);
+            if (cachedContext && cachedContext.conversationHistory) {
+                // Merge cached conversation history with current history
+                enhancedHistory = [...cachedContext.conversationHistory, ...conversationHistory];
+                console.log('AI Query: Using cached conversation context');
+            }
+        }
+
         // Get comprehensive context data using the new relational query
-        const contextData = await getAIContextData(businessId);        // Analyze the query to understand what the user is asking for
+        const contextData = await getAIContextData(businessId);// Analyze the query to understand what the user is asking for
         const queryContext = analyzeQuery(message, contextData);
 
         // Add debugging info
@@ -619,18 +651,39 @@ Format as a professional project summary.`;
                     action: "clarify_project"
                 };
             }
-        }
-
-        // Try to parse as JSON for structured responses
+        }        // Try to parse as JSON for structured responses
         try {
             const parsedResponse = JSON.parse(aiResponse);
+
+            // Cache conversation context if userId provided
+            if (userId) {
+                const newContext = {
+                    conversationHistory: [...enhancedHistory, { role: "user", content: message }, { role: "assistant", content: aiResponse }],
+                    lastQueryTimestamp: Date.now(),
+                    recentQueries: [message],
+                };
+                AIContextCache.setConversationContext(businessId, userId, newContext);
+            }
+
             return parsedResponse;
         } catch {
             // If not JSON, return as plain response
-            return {
+            const result = {
                 response: aiResponse,
                 action: "none"
             };
+
+            // Cache conversation context if userId provided
+            if (userId) {
+                const newContext = {
+                    conversationHistory: [...enhancedHistory, { role: "user", content: message }, { role: "assistant", content: aiResponse }],
+                    lastQueryTimestamp: Date.now(),
+                    recentQueries: [message],
+                };
+                AIContextCache.setConversationContext(businessId, userId, newContext);
+            }
+
+            return result;
         }
 
     } catch (error) {
@@ -794,7 +847,7 @@ Only include information that is actually present in the input. Be precise and f
         // Try to match crew from extracted crew_info
         let crewId = "";
         if (extractedData.crew_info && contextData.crews.length > 0) {
-            const crewMatch = contextData.crews.find(crew =>
+            const crewMatch = contextData.crews.find((crew: { name: string; }) =>
                 extractedData.crew_info.toLowerCase().includes(crew.name.toLowerCase()) ||
                 crew.name.toLowerCase().includes(extractedData.crew_info.toLowerCase())
             );

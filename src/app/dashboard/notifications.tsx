@@ -126,17 +126,17 @@ export const Notifications = () => {
                     onClick={() => setIsOpen(!isOpen)}
                 >
                     <i className="far fa-bell"></i>
-                    {notifications.length > 0 && (
-                        <span className="indicator-item indicator-bottom">
-                            {notifications.length > 99 ? '99+' : notifications.length}
-                        </span>
-                    )}
                 </div>
+                {notifications.length > 0 && (
+                    <span className="indicator-item indicator-bottom badge badge-info rounded-full">
+                        {notifications.length > 99 ? '99+' : notifications.length}
+                    </span>
+                )}
             </div>
             {isOpen && (
                 <div
                     tabIndex={0}
-                    className="mt-3 z-[1] card card-compact w-96 dropdown-content bg-base-100 shadow-xl border"
+                    className="mt-3 z-[1] card card-compact w-80 dropdown-content bg-base-100 shadow-xl"
                 >
                     <div className="card-body">
                         <div className="flex justify-between items-center mb-2">
@@ -163,7 +163,7 @@ export const Notifications = () => {
                                 <p>No new notifications</p>
                             </div>
                         ) : (
-                            <div className="max-h-96 overflow-y-auto">
+                            <div className="max-h-96 overflow-y-auto overflow-x-hidden">
                                 {notifications.slice(0, 10).map((notification) => (
                                     <div
                                         key={notification.id}

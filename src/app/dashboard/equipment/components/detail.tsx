@@ -783,20 +783,18 @@ export default function EquipmentDetail({
                             </div>
                         )}                        {/* Media Tab */}
                         {activeTab === "media" && (
-                            <div className="card bg-base-100 shadow-lg">
-                                <div className="card-body">
-                                    <UniversalMediaManager
-                                        mode="both"
-                                        entityType="equipment"
-                                        onUpload={handleMediaUpload}
-                                        availableMedia={availableMedia}
-                                        linkedMedia={equipmentMedia}
-                                        onLink={handleMediaLink}
-                                        onUnlink={handleMediaUnlink}
-                                        title="Equipment Media"
-                                        description="Upload images, videos, documents, and other files related to this equipment."
-                                    />
-                                </div>
+                            <div className="card-body">
+                                <UniversalMediaManager
+                                    mode="both"
+                                    entityType="equipment"
+                                    onUpload={handleMediaUpload}
+                                    availableMedia={availableMedia}
+                                    linkedMedia={equipmentMedia}
+                                    onLink={handleMediaLink}
+                                    onUnlink={handleMediaUnlink}
+                                    title="Equipment Media"
+                                    description="Upload images, videos, documents, and other files related to this equipment."
+                                />
                             </div>
                         )}
                     </div>

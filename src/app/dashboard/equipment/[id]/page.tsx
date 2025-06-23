@@ -136,14 +136,24 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
         fetchData();
     }, [businessId, params]);
 
+    // Load media data when equipment is available
+    useEffect(() => {
+        if (equipment?.id && businessId) {
+            console.log('Loading media data for equipment:', equipment.id);
+            loadMediaData();
+        }
+    }, [equipment?.id, businessId]);
+
     // Load media data for UniversalMediaManager
     const loadMediaData = async () => {
         try {
+            console.log('loadMediaData called for equipment:', equipment?.id);
             setIsLoadingMedia(true);
             const [linked, available] = await Promise.all([
                 getAllMediaByEquipmentId(businessId, equipment?.id || ""),
                 getAvailableMediaForEquipment(businessId, equipment?.id || "")
             ]);
+            console.log('Media data loaded - linked:', linked.length, 'available:', available.length);
             setEquipmentMedia(linked);
             setAvailableMedia(available);
         } catch (error) {
@@ -822,22 +832,21 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                                 </div>
                             </div>
                         )}
+
                         {/* Media Tab */}
                         {activeTab === "media" && (
-                            <div className="card bg-base-100 shadow-lg">
-                                <div className="card-body">
-                                    <UniversalMediaManager
-                                        mode="both"
-                                        entityType="equipment"
-                                        onUpload={handleMediaUpload}
-                                        availableMedia={availableMedia}
-                                        linkedMedia={equipmentMedia}
-                                        onLink={handleMediaLink}
-                                        onUnlink={handleMediaUnlink}
-                                        title="Equipment Media"
-                                        description="Upload images, videos, documents, and other files related to this equipment."
-                                    />
-                                </div>
+                            <div className="card-body">
+                                <UniversalMediaManager
+                                    mode="both"
+                                    entityType="equipment"
+                                    onUpload={handleMediaUpload}
+                                    availableMedia={availableMedia}
+                                    linkedMedia={equipmentMedia}
+                                    onLink={handleMediaLink}
+                                    onUnlink={handleMediaUnlink}
+                                    title="Equipment Media"
+                                    description="Upload images, videos, documents, and other files related to this equipment."
+                                />
                             </div>
                         )}
                     </div>

@@ -102,7 +102,8 @@ export const Navbar = ({
 
             <div className="flex-1">
                 {/* Quick search or breadcrumbs could go here */}
-            </div>            <div className="flex items-center gap-4">
+            </div>
+            <div className="flex items-center gap-4">
                 <OfflineIndicator />
                 <SyncStatusIndicator />
                 <ThemeToggle />

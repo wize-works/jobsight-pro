@@ -1163,10 +1163,10 @@ export const getAllMediaByEquipmentId = async (businessId: string, equipmentId: 
     try {
         // Get all media types for this equipment
         const [images, videos, documents, audios] = await Promise.all([
-            getMediaByEquipmentId(businessId, equipmentId, "images"),
-            getMediaByEquipmentId(businessId, equipmentId, "videos"),
-            getMediaByEquipmentId(businessId, equipmentId, "documents"),
-            getMediaByEquipmentId(businessId, equipmentId, "audios")
+            getMediaByEquipmentId(businessId, equipmentId, "image"),
+            getMediaByEquipmentId(businessId, equipmentId, "video"),
+            getMediaByEquipmentId(businessId, equipmentId, "document"),
+            getMediaByEquipmentId(businessId, equipmentId, "audio")
         ]);
 
         return [...images, ...videos, ...documents, ...audios];

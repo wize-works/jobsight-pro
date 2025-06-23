@@ -21,10 +21,45 @@ const nextConfig = {
             config.externals.push('playwright-core');
         }
 
+        // Enhanced tree shaking optimizations
+        config.optimization = {
+            ...config.optimization,
+            usedExports: true,
+            sideEffects: false,
+            // Enable more aggressive tree shaking
+            innerGraph: true,
+            // Optimize module concatenation for better tree shaking
+            concatenateModules: true,
+        };
+
+        // Configure specific module tree shaking
+        config.module.rules = config.module.rules || [];
+        config.module.rules.push({
+            test: /\.js$/,
+            include: [
+                /node_modules\/(date-fns|lodash|react-icons|@supabase)/,
+            ],
+            sideEffects: false,
+        });
+
+        // Add specific optimizations for large libraries
+        if (config.resolve.alias) {
+            // Tree shake date-fns by using ES modules
+            config.resolve.alias['date-fns'] = require.resolve('date-fns');
+        }
+
         return config;
-    },
-    experimental: {
-        optimizePackageImports: ['@kinde-oss/kinde-auth-nextjs']
+    }, experimental: {
+        optimizePackageImports: [
+            '@kinde-oss/kinde-auth-nextjs',
+            'date-fns',
+            'react-chartjs-2',
+            'recharts',
+            'react-leaflet',
+            'leaflet',
+            '@supabase/supabase-js',
+            'chart.js'
+        ]
     },
     images: {
         remotePatterns: [

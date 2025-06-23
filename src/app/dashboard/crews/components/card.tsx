@@ -120,16 +120,16 @@ export const CrewCard = ({
 
                 <div className="stats stats-horizontal w-full mb-4">
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-primary">{crew.member_count || 0}</div>
-                        <div className="stat-title text-xs">Team Size</div>
+                        <div className="stat-value text-primary">{crew.member_count || 0}</div>
+                        <div className="stat-title">Team Size</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-success">{crew.active_projects || 0}</div>
-                        <div className="stat-title text-xs">Active Projects</div>
+                        <div className="stat-value text-success">{crew.active_projects || 0}</div>
+                        <div className="stat-title">Active Projects</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-lg text-warning">{formatHours(crew.total_hours || 0)}</div>
-                        <div className="stat-title text-xs">Total Hours</div>
+                        <div className="stat-value text-warning">{formatHours(crew.total_hours || 0)}</div>
+                        <div className="stat-title">Total Hours</div>
                     </div>
                 </div>
 
