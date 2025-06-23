@@ -1,3 +1,10 @@
+# [1.78.0](https://github.com/wize-works/jobsight-pro/compare/v1.77.0...v1.78.0) (2025-06-23)
+
+
+### Features
+
+* Add Weather Widget Usage Guide and enhance caching system ([4b66146](https://github.com/wize-works/jobsight-pro/commit/4b6614646953612eb238188f332ed3a9fc5c463f))
+
 # [1.77.0](https://github.com/wize-works/jobsight-pro/compare/v1.76.0...v1.77.0) (2025-06-23)
 
 
