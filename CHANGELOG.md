@@ -1,3 +1,10 @@
+# [1.77.0](https://github.com/wize-works/jobsight-pro/compare/v1.76.0...v1.77.0) (2025-06-23)
+
+
+### Features
+
+* Refactor card components to use shadow-lg for improved visual hierarchy; remove TestVoicePage component; add TabLoading component for consistent loading UI. ([6c078e3](https://github.com/wize-works/jobsight-pro/commit/6c078e37de0e98bbc77e21b93188aa59adb1a3be))
+
 # [1.76.0](https://github.com/wize-works/jobsight-pro/compare/v1.75.0...v1.76.0) (2025-06-22)
 
 
