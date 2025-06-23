@@ -217,9 +217,7 @@ by JobSight Technologies`}
                                     />
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Attachment Options */}
+                        </div>                        {/* Attachment Options */}
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
@@ -245,51 +243,44 @@ by JobSight Technologies`}
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </div>
 
-                {/* Modal Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
-                    {error && (
-                        <div className="alert alert-error mb-4">
-                            <i className="far fa-exclamation-triangle"></i>
-                            <span>{error}</span>
-                        </div>
-                    )}
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            className="btn btn-outline"
-                            onClick={onClose}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn btn-primary gap-2"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                const form = e.currentTarget.closest('form');
-                                if (form) {
-                                    handleSubmit({ preventDefault: () => { }, currentTarget: form } as any);
-                                }
-                            }}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <span className="loading loading-spinner loading-sm"></span>
-                                    Sending...
-                                </>
-                            ) : (
-                                <>
-                                    <i className="far fa-paper-plane"></i>
-                                    Send Invoice
-                                </>
+                        {/* Modal Footer - moved inside form */}
+                        <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 -mx-6 -mb-6 mt-6">
+                            {error && (
+                                <div className="alert alert-error mb-4">
+                                    <i className="far fa-exclamation-triangle"></i>
+                                    <span>{error}</span>
+                                </div>
                             )}
-                        </button>
-                    </div>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline"
+                                    onClick={onClose}
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary gap-2"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="loading loading-spinner loading-sm"></span>
+                                            Sending...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="far fa-paper-plane"></i>
+                                            Send Invoice
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

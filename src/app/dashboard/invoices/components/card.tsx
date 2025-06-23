@@ -4,9 +4,10 @@ import Link from 'next/link';
 interface InvoiceCardProps {
     invoice: InvoiceWithClient;
     onEdit?: (invoice: InvoiceWithClient) => void;
+    onSend?: (invoice: InvoiceWithClient) => void;
 }
 
-export default function InvoiceCard({ invoice, onEdit }: InvoiceCardProps) {
+export default function InvoiceCard({ invoice, onEdit, onSend }: InvoiceCardProps) {
     const formatCurrency = (amount: number | undefined | null) => {
         if (!amount) return "$0.00";
         return new Intl.NumberFormat('en-US', {
@@ -200,13 +201,14 @@ export default function InvoiceCard({ invoice, onEdit }: InvoiceCardProps) {
                             }}
                         >
                             <i className="fas fa-download text-sm" />
-                        </button>
-                        <button
+                        </button>                        <button
                             className="btn btn-ghost btn-sm btn-circle"
                             title="Send invoice"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                // TODO: Implement send functionality
+                                if (onSend) {
+                                    onSend(invoice);
+                                }
                             }}
                         >
                             <i className="fas fa-paper-plane text-sm" />
