@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient } from "@/types/invoices";
-import { getInvoicesWithClient } from '@/app/actions/invoices';
+import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient, InvoiceWithDetails } from "@/types/invoices";
+import { getInvoicesWithClient, getInvoiceWitDetailsById } from '@/app/actions/invoices';
 import { formatCurrency } from "@/utils/formatters";
 import InvoiceCard from './components/card';
 import { useBusiness } from '@/lib/business-context';
@@ -21,8 +21,13 @@ const InvoiceEditModal = dynamic(() => import("./components/modal-edit"), {
     ssr: false
 });
 
+const InvoiceSendModal = dynamic(() => import("./components/modal-send"), {
+    loading: () => <ModalLoading message="Loading send form..." />,
+    ssr: false
+});
+
 export default function InvoicesPage() {
-    const { businessId } = useBusiness();
+    const { businessId, business } = useBusiness();
     const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
     const [initialInvoices, setInitialInvoices] = useState<InvoiceWithClient[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,7 +38,9 @@ export default function InvoicesPage() {
     );
     const [showNewModal, setShowNewModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showSendModal, setShowSendModal] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<InvoiceWithClient | null>(null);
+    const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState<InvoiceWithDetails | null>(null);
 
     useEffect(() => {
         async function fetchInvoices() {
@@ -70,6 +77,22 @@ export default function InvoicesPage() {
 
     const handleNewInvoice = () => {
         setShowNewModal(true);
+    };
+
+    const handleSendInvoice = async (invoice: InvoiceWithClient) => {
+        if (!businessId) return;
+
+        try {
+            // Fetch the full invoice details needed for the send modal
+            const invoiceDetails = await getInvoiceWitDetailsById(businessId, invoice.id);
+            if (invoiceDetails) {
+                setSelectedInvoice(invoice);
+                setSelectedInvoiceDetails(invoiceDetails);
+                setShowSendModal(true);
+            }
+        } catch (error) {
+            console.error('Error fetching invoice details:', error);
+        }
     };
 
     const handleSaveNewInvoice = (newInvoice: any) => {
@@ -233,6 +256,7 @@ export default function InvoicesPage() {
                                         key={invoice.id}
                                         invoice={invoice}
                                         onEdit={handleEditInvoice}
+                                        onSend={handleSendInvoice}
                                     />
                                 ))}
                             </div>
@@ -270,6 +294,12 @@ export default function InvoicesPage() {
                                                         >
                                                             <i className="far fa-edit"></i>
                                                         </button>
+                                                        <button
+                                                            className="btn btn-sm btn-ghost"
+                                                            onClick={() => handleSendInvoice(invoice)}
+                                                        >
+                                                            <i className="far fa-paper-plane"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -297,6 +327,18 @@ export default function InvoicesPage() {
                             }}
                             onSave={handleSaveEditInvoice}
                             invoice={selectedInvoice}
+                        />
+                    )}                    {/* Send Invoice Modal */}
+                    {selectedInvoiceDetails && business && (
+                        <InvoiceSendModal
+                            isOpen={showSendModal}
+                            onClose={() => {
+                                setShowSendModal(false);
+                                setSelectedInvoice(null);
+                                setSelectedInvoiceDetails(null);
+                            }}
+                            invoice={selectedInvoiceDetails}
+                            business={business}
                         />
                     )}
                 </div>
