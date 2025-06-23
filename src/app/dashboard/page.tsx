@@ -272,7 +272,9 @@ export default function Dashboard() {
             {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
             {<TaskModal isOpen={taskModal} onClose={() => setTaskModal(false)} task={null} />}
             {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
-            {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}            {/* Key Performance Indicators */}
+            {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
+
+            {/* Key Performance Indicators */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
                     <i className="fas fa-exclamation-triangle"></i>
@@ -491,10 +493,12 @@ export default function Dashboard() {
                                         <p>All tasks are on track!</p>
                                     </div>
                                 )}
-                            </div>                    </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </ErrorBoundary>            {/* Team Performance & Recent Activity */}
+            </ErrorBoundary>
+            {/* Team Performance & Recent Activity */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
                     <i className="fas fa-exclamation-triangle"></i>
@@ -569,7 +573,8 @@ export default function Dashboard() {
                                         </Link>
                                     </div>
                                 )}
-                            </div>                    </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </ErrorBoundary>
