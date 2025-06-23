@@ -1,3 +1,10 @@
+# [1.81.0](https://github.com/wize-works/jobsight-pro/compare/v1.80.0...v1.81.0) (2025-06-23)
+
+
+### Features
+
+* add HTML generation for client details and daily logs; implement crew member management modal ([999536d](https://github.com/wize-works/jobsight-pro/commit/999536d086bd73cc43edb08bb4c492f9a3392069))
+
 # [1.80.0](https://github.com/wize-works/jobsight-pro/compare/v1.79.0...v1.80.0) (2025-06-23)
 
 
