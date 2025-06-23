@@ -68,6 +68,7 @@ export default function InvoiceDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [showSendModal, setShowSendModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
 
     useEffect(() => {
         async function fetchInvoice() {
@@ -93,20 +94,21 @@ export default function InvoiceDetailPage() {
         }
 
         fetchInvoice();
-    }, [business, id]);
+    }, [business, id]); const getPdf = async () => {
+        if (!invoice) return;
 
-    const getPdf = async () => {
-        toast.info("This feature is under development. Please check back later.");
-        // try {
-        //     const url = `${window.location.origin}/printables/invoices/${invoice.id}`;
-        //     const filename = `${invoice.invoice_number}.pdf`;
+        setDownloadingPdf(true); try {
+            const url = `${window.location.origin}/api/invoices/${invoice.id}/html?businessId=${invoice.business_id}`;
+            const filename = `Invoice-${invoice.invoice_number}.pdf`;
 
-        //     await downloadPdfFromUrl(url, filename);
-        //     toast.success("PDF downloaded successfully!");
-        // } catch (error) {
-        //     console.error('Error downloading PDF:', error);
-        //     toast.error("Failed to download PDF. Please try again.");
-        // }
+            await downloadPdfFromUrl(url, filename);
+            toast.success("PDF downloaded successfully!");
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            toast.error("Failed to download PDF. Please try again.");
+        } finally {
+            setDownloadingPdf(false);
+        }
     }
 
     // Format currency
@@ -185,9 +187,17 @@ export default function InvoiceDetailPage() {
                             )}
                             <Link href={`/printables/invoices/${invoice.id}`} className="btn btn-outline btn-sm" target="_blank">
                                 <i className="far fa-print mr-2"></i> Print
-                            </Link>
-                            <button className="btn btn-outline btn-sm" onClick={getPdf}>
-                                <i className="far fa-download mr-2"></i> Download
+                            </Link>                            <button className="btn btn-outline btn-sm" onClick={getPdf} disabled={downloadingPdf}>
+                                {downloadingPdf ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-xs mr-2"></span>
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="far fa-download mr-2"></i> Download
+                                    </>
+                                )}
                             </button>
                             <button className="btn btn-primary btn-sm" onClick={() => setShowSendModal(true)}>
                                 <i className="far fa-paper-plane mr-2"></i> Send

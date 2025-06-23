@@ -1,5 +1,46 @@
+import { useState } from 'react';
 import { invoiceStatusOptions, InvoiceWithClient, InvoiceStatus, paymentMethodOptions, PaymentMethod } from '@/types/invoices';
 import Link from 'next/link';
+import { toast } from '@/hooks/use-toast';
+
+async function downloadPdfFromUrl(url: string, filename: string) {
+    try {
+        // Call our API route to generate the PDF
+        const response = await fetch('/api/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url, filename }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate PDF');
+        }
+
+        // Convert response to blob
+        const pdfBlob = await response.blob();
+
+        // Create download link
+        const downloadUrl = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+
+        return true;
+    } catch (error) {
+        console.error('Error downloading PDF:', error);
+        throw error;
+    }
+}
 
 interface InvoiceCardProps {
     invoice: InvoiceWithClient;
@@ -8,6 +49,8 @@ interface InvoiceCardProps {
 }
 
 export default function InvoiceCard({ invoice, onEdit, onSend }: InvoiceCardProps) {
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
+
     const formatCurrency = (amount: number | undefined | null) => {
         if (!amount) return "$0.00";
         return new Intl.NumberFormat('en-US', {
@@ -191,26 +234,41 @@ export default function InvoiceCard({ invoice, onEdit, onSend }: InvoiceCardProp
 
                 {/* Action Buttons */}
                 <div className="card-actions justify-between items-center pt-2">
-                    <div className="flex gap-1">
-                        <button
-                            className="btn btn-ghost btn-sm btn-circle"
-                            title="Download invoice"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // TODO: Implement download functionality
-                            }}
-                        >
+                    <div className="flex gap-1">                        <button
+                        className="btn btn-ghost btn-sm btn-circle"
+                        title="Download invoice"
+                        disabled={downloadingPdf}
+                        onClick={async (e) => {
+                            e.stopPropagation();
+                            setDownloadingPdf(true);
+                            try {
+                                const url = `${window.location.origin}/api/invoices/${invoice.id}/html?businessId=${invoice.business_id}`;
+                                const filename = `Invoice-${invoice.invoice_number}.pdf`;
+                                await downloadPdfFromUrl(url, filename);
+                                toast.success("PDF downloaded successfully!");
+                            } catch (error) {
+                                console.error('Error downloading PDF:', error);
+                                toast.error("Failed to download PDF. Please try again.");
+                            } finally {
+                                setDownloadingPdf(false);
+                            }
+                        }}
+                    >
+                        {downloadingPdf ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
                             <i className="fas fa-download text-sm" />
-                        </button>                        <button
-                            className="btn btn-ghost btn-sm btn-circle"
-                            title="Send invoice"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onSend) {
-                                    onSend(invoice);
-                                }
-                            }}
-                        >
+                        )}
+                    </button><button
+                        className="btn btn-ghost btn-sm btn-circle"
+                        title="Send invoice"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (onSend) {
+                                onSend(invoice);
+                            }
+                        }}
+                    >
                             <i className="fas fa-paper-plane text-sm" />
                         </button>
                         {onEdit && invoice.status !== "paid" && (
