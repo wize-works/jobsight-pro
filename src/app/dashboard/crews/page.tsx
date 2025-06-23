@@ -40,9 +40,7 @@ export default function CrewsList() {
         specialty: "",
         status: "active",
         notes: "",
-    });
-
-    useEffect(() => {
+    }); useEffect(() => {
         const fetchCrews = async () => {
             try {
                 const data = await getCrewsWithDetails(businessId);
@@ -57,6 +55,16 @@ export default function CrewsList() {
             fetchCrews();
         }
     }, [businessId]);
+
+    const refreshCrews = async () => {
+        try {
+            const data = await getCrewsWithDetails(businessId);
+            setCrews(data);
+        } catch (error) {
+            console.error("Error refreshing crews:", error);
+            toast.error("Failed to refresh crews. Please try again later.");
+        }
+    };
 
     const filteredCrews = crews.filter((crew) => {
         const matchesSearchTerm = crew.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -218,14 +226,13 @@ export default function CrewsList() {
                     </div>
                 </div>
             )}>
-                {viewType === "grid" ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredCrews.map((crew) => (
-                            <div key={crew.id}>
-                                <CrewCard crew={crew} />
-                            </div>
-                        ))}
-                    </div>
+                {viewType === "grid" ? (<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredCrews.map((crew) => (
+                        <div key={crew.id}>
+                            <CrewCard crew={crew} onRefresh={refreshCrews} />
+                        </div>
+                    ))}
+                </div>
                 ) : (
                     <div className="overflow-x-auto card bg-base-100 shadow-lg mb-6">
                         <table className="table table-zebra w-full">

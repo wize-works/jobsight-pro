@@ -28,10 +28,12 @@ import ClientDetailLoading from "./loading";
 import ErrorBoundary from "@/components/error-boundary";
 import UniversalMediaManager from "@/components/universal-media-manager";
 
+import { generateClientHTML } from "@/app/actions/generate-html";
+
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
-    const { businessId } = useBusiness();
+    const { businessId, business } = useBusiness();
     const { user } = useKindeAuth();
-    const router = useRouter();    // Data loading states
+    const router = useRouter();// Data loading states
     const [loading, setLoading] = useState(true);
     const [client, setClient] = useState<Client>({} as Client);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -57,8 +59,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [mediaLoading, setMediaLoading] = useState(false); const [logoUploadLoading, setLogoUploadLoading] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceLoading, setInvoiceLoading] = useState(false);
-    const [archiveLoading, setArchiveLoading] = useState(false);
-    const [archiveInfo, setArchiveInfo] = useState<{
+    const [archiveLoading, setArchiveLoading] = useState(false); const [archiveInfo, setArchiveInfo] = useState<{
         relatedData: {
             projectCount: number;
             contactCount: number;
@@ -66,6 +67,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             invoiceCount: number;
         };
     } | null>(null);
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
     useEffect(() => {
         const fetchData = async () => {
             if (!businessId) {
@@ -95,9 +97,62 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             } finally {
                 setLoading(false);
             }
-        };
-        fetchData();
-    }, [params, businessId]);
+        }; fetchData();
+    }, [params, businessId]);    // PDF download function
+    const downloadClientPdf = async () => {
+        if (!client || !businessId) return;
+
+        setDownloadingPdf(true);
+        try {
+            // Generate HTML using server action
+            const html = await generateClientHTML(businessId, client.id);
+            const filename = `Client-${client.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+
+            // Generate PDF from HTML
+            const pdfResponse = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ html, filename }),
+            });
+
+            if (!pdfResponse.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+
+            // Convert response to blob
+            const pdfBlob = await pdfResponse.blob();
+
+            // Create download link
+            const downloadUrl = window.URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast.success({
+                title: "PDF downloaded successfully",
+                description: "Client details have been exported to PDF.",
+                autoClose: true,
+            });
+        } catch (error) {
+            console.error('Error downloading client PDF:', error);
+            toast.error({
+                title: "Failed to download PDF",
+                description: "There was an error generating the client PDF. Please try again.",
+            });
+        } finally {
+            setDownloadingPdf(false);
+        }
+    };
 
     const handleAddContact = async (formData: any): Promise<{ success: boolean }> => {
         setContactLoading(true);
@@ -692,7 +747,18 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                         <i className="far fa-plus mr-2"></i>
                                         New Project
                                     </button>
-                                </li>                            <li><a><i className="far fa-file-pdf mr-2"></i> Export as PDF</a></li>
+                                </li>                            <li><button onClick={downloadClientPdf} disabled={downloadingPdf}>
+                                    {downloadingPdf ? (
+                                        <>
+                                            <span className="loading loading-spinner loading-xs mr-2"></span>
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="far fa-file-pdf mr-2"></i> Export as PDF
+                                        </>
+                                    )}
+                                </button></li>
                                 {client.status === 'archived' ? (
                                     <li>
                                         <button

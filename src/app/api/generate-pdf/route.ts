@@ -3,10 +3,10 @@ import { chromium } from 'playwright-core';
 
 export async function POST(request: NextRequest) {
     try {
-        const { url, filename = 'invoice.pdf', returnAsAttachment = true } = await request.json();
+        const { url, html, filename = 'document.pdf', returnAsAttachment = true } = await request.json();
 
-        if (!url) {
-            return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+        if (!url && !html) {
+            return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
         }
 
         // Launch browser and generate PDF
@@ -17,8 +17,13 @@ export async function POST(request: NextRequest) {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        // Navigate to the URL
-        await page.goto(url, { waitUntil: 'networkidle' });
+        if (html) {
+            // Set HTML content directly
+            await page.setContent(html, { waitUntil: 'networkidle' });
+        } else {
+            // Navigate to the URL
+            await page.goto(url, { waitUntil: 'networkidle' });
+        }
 
         // Wait for the page to fully load
         await page.waitForTimeout(2000);
