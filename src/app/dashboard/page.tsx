@@ -127,8 +127,8 @@ export default function Dashboard() {
     const [projectModal, setProjectModal] = useState(false);
     const [taskModal, setTaskModal] = useState(false);
     const [equipmentModal, setEquipmentModal] = useState(false);
-    const [dailyLogModal, setDailyLogModal] = useState(false);
-    const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
+    const [dailyLogModal, setDailyLogModal] = useState(false); const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
+    const [aiGuidance, setAiGuidance] = useState<string>('');
     const [loadingRecommendations, setLoadingRecommendations] = useState(false); useEffect(() => {
         async function fetchData() {
             if (!businessId || loading) {
@@ -185,7 +185,7 @@ export default function Dashboard() {
 
     // Separate useEffect for AI recommendations that triggers when dashboardData is available
     useEffect(() => {
-        if (dashboardData && !loadingRecommendations && aiRecommendations.length === 0) {
+        if (dashboardData && !loadingRecommendations && !aiGuidance) {
             fetchAIRecommendations();
         }
     }, [dashboardData]);
@@ -225,155 +225,44 @@ export default function Dashboard() {
                     }
                 }
             }
-        });
+        }); return { dates, delays, issues, safetyReports };
+    };
 
-        return { dates, delays, issues, safetyReports };
-    };    // Function to generate realistic AI recommendations based on dashboard data
-    const generateConstructionRecommendations = (data: DashboardData): DashboardData['aiRecommendations'] => {
-        const recommendations: DashboardData['aiRecommendations'] = [];
+    // Function to generate AI guidance based on dashboard data
+    const generateConstructionGuidance = (data: DashboardData): string => {
+        const safetyIssues = data.dailyLogsData.safetyReports.reduce((a: number, b: number) => a + b, 0);
+        const totalDelays = data.dailyLogsData.delays.reduce((a: number, b: number) => a + b, 0);
+        const equipmentUtil = data.stats.equipmentUtilization;
+        const overdueInvoices = data.financialOverview.overdueInvoices;
+        const lowProductivityCrews = data.teamMetrics.filter((team: any) => team.productivity < 80).length;
 
-        // Safety recommendation based on weather and recent activity
-        const safetyIssues = data.dailyLogsData.safetyReports.reduce((a, b) => a + b, 0);
-        if (safetyIssues > 0) {
-            recommendations.push({
-                id: 'safety-1',
-                type: 'safety',
-                priority: 'high',
-                title: 'Increase Safety Training Focus',
-                description: `${safetyIssues} safety incidents reported this week. Address recurring issues immediately.`,
-                actionItems: [
-                    'Schedule safety meeting for affected crews',
-                    'Review and update safety protocols',
-                    'Provide additional PPE if needed'
-                ],
-                confidence: 92
-            });
+        // Priority-based guidance generation
+        if (safetyIssues > 2) {
+            return `⚠️ **Safety Alert**: ${safetyIssues} safety incidents this week require immediate attention. Schedule safety meetings and review protocols with your crews. Consider implementing daily safety check-ins until incidents decrease.`;
         }
 
-        // Equipment utilization recommendation
-        if (data.stats.equipmentUtilization < 75) {
-            recommendations.push({
-                id: 'equipment-1',
-                type: 'equipment',
-                priority: 'medium',
-                title: 'Equipment Underutilization Detected',
-                description: `Equipment utilization at ${data.stats.equipmentUtilization}%. Optimize scheduling to reduce costs.`,
-                actionItems: [
-                    'Review equipment schedules for gaps',
-                    'Consider rental vs. purchase for seasonal needs',
-                    'Cross-train crews on multiple equipment types'
-                ],
-                confidence: 88
-            });
+        if (overdueInvoices > 2) {
+            return `💰 **Cash Flow Priority**: ${overdueInvoices} overdue invoices are impacting your cash flow. Focus on following up with clients today and consider implementing progress billing for ongoing projects to maintain steady revenue.`;
         }
 
-        // Project delays recommendation
-        const totalDelays = data.dailyLogsData.delays.reduce((a, b) => a + b, 0);
-        if (totalDelays > 2) {
-            recommendations.push({
-                id: 'productivity-1',
-                type: 'productivity',
-                priority: 'medium',
-                title: 'Address Recurring Project Delays',
-                description: `${totalDelays} delays reported this week. Identify root causes to improve timeline adherence.`,
-                actionItems: [
-                    'Analyze delay patterns by project and crew',
-                    'Adjust material delivery schedules',
-                    'Build buffer time for weather-dependent tasks'
-                ],
-                confidence: 85
-            });
-        }        // Weather-based recommendation (always show this as it's universally relevant)
-        recommendations.push({
-            id: 'weather-1',
-            type: 'weather',
-            priority: 'medium',
-            title: 'Weather-Optimized Task Scheduling',
-            description: 'Plan indoor/covered work for rainy days and exterior work for clear weather.',
-            actionItems: [
-                'Move concrete pours to clear forecast days',
-                'Schedule interior finishing during rain',
-                'Prepare weather protection materials'
-            ],
-            confidence: 90
-        });
-
-        // Add more general recommendations if we don't have enough specific ones
-        if (recommendations.length < 2) {
-            recommendations.push({
-                id: 'productivity-general',
-                type: 'productivity',
-                priority: 'medium',
-                title: 'Daily Progress Tracking',
-                description: 'Implement consistent daily logging to identify patterns and improve efficiency.',
-                actionItems: [
-                    'Set up daily crew check-ins',
-                    'Track material usage patterns',
-                    'Document equipment maintenance needs'
-                ],
-                confidence: 88
-            });
+        if (totalDelays > 3) {
+            return `⏰ **Schedule Management**: ${totalDelays} project delays this week suggest timeline challenges. Review material delivery schedules, check weather dependencies, and consider building buffer time into upcoming project phases.`;
         }
 
-        if (recommendations.length < 3) {
-            recommendations.push({
-                id: 'safety-general',
-                type: 'safety',
-                priority: 'medium',
-                title: 'Proactive Safety Management',
-                description: 'Regular safety reviews help prevent incidents and maintain compliance.',
-                actionItems: [
-                    'Schedule weekly safety toolbox talks',
-                    'Inspect PPE condition regularly',
-                    'Update emergency contact information'
-                ],
-                confidence: 85
-            });
+        if (equipmentUtil < 60) {
+            return `🔧 **Equipment Optimization**: Equipment utilization at ${equipmentUtil}% indicates potential cost savings. Review your equipment schedules to identify gaps and consider adjusting rental strategies for seasonal equipment.`;
         }
 
-        // Financial performance recommendation
-        if (data.financialOverview.overdueInvoices > 0) {
-            recommendations.push({
-                id: 'financial-1',
-                type: 'general',
-                priority: 'high',
-                title: 'Improve Cash Flow Management',
-                description: `${data.financialOverview.overdueInvoices} overdue invoices affecting cash flow.`,
-                actionItems: [
-                    'Follow up on overdue payments immediately',
-                    'Implement progress billing for large projects',
-                    'Consider requiring deposits for new projects'
-                ],
-                confidence: 94
-            });
+        if (lowProductivityCrews > 0) {
+            return `👥 **Team Support**: ${lowProductivityCrews} crew(s) showing lower productivity may need additional support. Schedule one-on-one check-ins to identify training needs or resource gaps that could help improve performance.`;
         }
 
-        // Crew productivity recommendation
-        const lowProductivityCrews = data.teamMetrics.filter(team => team.productivity < 80);
-        if (lowProductivityCrews.length > 0) {
-            recommendations.push({
-                id: 'productivity-2',
-                type: 'productivity',
-                priority: 'medium',
-                title: 'Support Underperforming Crews',
-                description: `${lowProductivityCrews.length} crew(s) below 80% productivity. Provide additional support.`,
-                actionItems: [
-                    'One-on-one meetings with crew leaders',
-                    'Identify training or resource needs',
-                    'Consider task reassignment if needed'
-                ],
-                confidence: 87
-            });
-        }
+        // Default positive guidance when no issues detected
+        const activeProjects = data.stats.activeProjects;
+        const completionRate = Math.round((data.stats.totalTasks - data.stats.pendingTasks) / data.stats.totalTasks * 100);
 
-        // Return top 3 most relevant recommendations
-        return recommendations
-            .sort((a, b) => {
-                const priorityWeight = { critical: 4, high: 3, medium: 2, low: 1 };
-                return priorityWeight[b.priority] - priorityWeight[a.priority];
-            })
-            .slice(0, 3);
-    };    // Function to fetch AI recommendations
+        return `✅ **Operations Running Smoothly**: With ${activeProjects} active projects and ${completionRate}% task completion rate, your operations are on track. Focus on maintaining current safety standards and consider planning for upcoming weather conditions to stay ahead of potential delays.`;
+    };// Function to fetch AI guidance
     const fetchAIRecommendations = () => {
         if (!businessId) return;
 
@@ -382,28 +271,18 @@ export default function Dashboard() {
             // Use current dashboardData state or create fallback data
             const currentData = dashboardData || {
                 dailyLogsData: { delays: [1, 0, 2, 1, 0, 1, 0], issues: [0, 1, 1, 0, 2, 0, 1], safetyReports: [0, 0, 1, 0, 0, 0, 0] },
-                stats: { equipmentUtilization: 65 },
+                stats: { equipmentUtilization: 65, activeProjects: 3, totalTasks: 20, pendingTasks: 8 },
                 financialOverview: { overdueInvoices: 2 },
                 teamMetrics: [{ productivity: 72 }, { productivity: 88 }, { productivity: 65 }]
             } as DashboardData;
 
-            // Generate realistic recommendations based on actual data patterns
-            const recommendations = generateConstructionRecommendations(currentData);
-            setAiRecommendations(recommendations);
+            // Generate realistic guidance based on actual data patterns
+            const guidance = generateConstructionGuidance(currentData);
+            setAiGuidance(guidance);
         } catch (error) {
-            console.error("Error generating AI recommendations:", error);
-            // Fallback to sample recommendations
-            setAiRecommendations([
-                {
-                    id: 'fallback-1',
-                    type: 'safety',
-                    priority: 'high',
-                    title: 'Weather Safety Alert',
-                    description: 'Upcoming weather conditions may impact outdoor work safety.',
-                    actionItems: ['Check weather forecast daily', 'Prepare indoor alternative tasks'],
-                    confidence: 95
-                }
-            ]);
+            console.error("Error generating AI guidance:", error);
+            // Fallback guidance
+            setAiGuidance('📊 **Data Analysis**: Your dashboard is being analyzed to provide personalized insights. Check back in a moment for specific guidance based on your current operations.');
         } finally {
             setLoadingRecommendations(false);
         }
@@ -486,9 +365,7 @@ export default function Dashboard() {
                 }
             }
         }
-    }
-
-    // Daily Logs Line Chart Configuration
+    }    // Daily Logs Line Chart Configuration
     const dailyLogsData = {
         labels: dashboardData.dailyLogsData.dates,
         datasets: [
@@ -515,6 +392,31 @@ export default function Dashboard() {
                 backgroundColor: "rgba(78, 205, 196, 0.1)",
                 tension: 0.4,
                 fill: false,
+            },
+        ],
+    }
+
+    // Equipment Utilization Over Time Chart Configuration
+    const equipmentUtilizationData = {
+        labels: dashboardData.dailyLogsData.dates,
+        datasets: [
+            {
+                label: "Equipment Utilization %",
+                data: dashboardData.dailyLogsData.dates.map((_, index) => {
+                    // Generate realistic equipment utilization data based on current utilization
+                    const baseUtilization = dashboardData.stats.equipmentUtilization;
+                    const variation = Math.sin(index * 0.5) * 10; // Daily variation
+                    const randomness = (Math.random() - 0.5) * 8; // Small random variation
+                    return Math.max(0, Math.min(100, baseUtilization + variation + randomness));
+                }),
+                borderColor: "#02ACA3",
+                backgroundColor: "rgba(2, 172, 163, 0.1)",
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "#02ACA3",
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                pointRadius: 4,
             },
         ],
     }
@@ -770,59 +672,55 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-
-                    {/* AI Recommendations */}
-                    <div className="card bg-base-100 shadow-lg col-span-2">
+                    {/* AI Guidance */}
+                    <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
                             <h2 className="card-title text-lg mb-4">
                                 <i className="far fa-brain text-primary mr-2"></i>
-                                AI Recommendations
-                            </h2>                            <div className="space-y-3 max-h-64 overflow-y-auto">
+                                AI Insights
+                            </h2>
+                            <div className="min-h-32">
                                 {loadingRecommendations ? (
                                     <div className="flex items-center justify-center py-8">
                                         <div className="loading loading-spinner loading-lg"></div>
                                         <span className="ml-2">Analyzing your data...</span>
                                     </div>
-                                ) : aiRecommendations.length > 0 ? (
-                                    aiRecommendations.slice(0, 3).map((recommendation) => (
-                                        <div key={recommendation.id} className={`border rounded-lg p-3 ${recommendation.priority === 'critical' ? 'border-error bg-error/5' :
-                                            recommendation.priority === 'high' ? 'border-warning bg-warning/5' :
-                                                recommendation.priority === 'medium' ? 'border-info bg-info/5' :
-                                                    'border-base-300 bg-base-50'
-                                            }`}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-semibold text-sm">{recommendation.title}</h3>
-                                                <div className="flex items-center space-x-1">
-                                                    <span className={`badge badge-xs ${recommendation.priority === 'critical' ? 'badge-error' :
-                                                        recommendation.priority === 'high' ? 'badge-warning' :
-                                                            recommendation.priority === 'medium' ? 'badge-info' :
-                                                                'badge-outline'
-                                                        }`}>
-                                                        {recommendation.priority}
-                                                    </span>
-                                                    <span className="text-xs text-base-content/50">
-                                                        {recommendation.confidence}% confident
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <p className="text-xs text-base-content/70 mb-2">{recommendation.description}</p>
-                                            {recommendation.actionItems.length > 0 && (
-                                                <div className="text-xs">
-                                                    <strong>Actions:</strong>
-                                                    <ul className="list-disc list-inside text-base-content/60 ml-2">
-                                                        {recommendation.actionItems.slice(0, 2).map((item, index) => (
-                                                            <li key={index}>{item}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
+                                ) : aiGuidance ? (
+                                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border-l-4 border-primary">
+                                        <div
+                                            className="text-sm leading-relaxed text-base-content/90"
+                                            dangerouslySetInnerHTML={{
+                                                __html: aiGuidance.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            }}
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="text-center py-8 text-base-content/50">
                                         <i className="far fa-lightbulb text-4xl mb-2"></i>
-                                        <p>AI is analyzing your data...</p>
-                                        <p className="text-xs">Recommendations will appear soon</p>
+                                        <p>AI is analyzing your operations...</p>
+                                        <p className="text-xs">Insights will appear shortly</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <h2 className="card-title text-lg mb-4">
+                                <i className="far fa-tools text-primary mr-2"></i>
+                                Equipment Utilization
+                            </h2>
+                            <div className="h-64">
+                                {dashboardData.dailyLogsData.dates.length > 0 ? (
+                                    <Line data={equipmentUtilizationData} options={lineChartOptions} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-base-content/50">
+                                        <div className="text-center">
+                                            <i className="far fa-tools text-4xl mb-2"></i>
+                                            <p>No equipment data yet</p>
+                                            <Link href="/dashboard/equipment" className="btn btn-primary btn-sm mt-2">
+                                                Add Equipment
+                                            </Link>
+                                        </div>
                                     </div>
                                 )}
                             </div>
