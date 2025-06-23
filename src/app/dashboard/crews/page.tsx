@@ -121,7 +121,7 @@ export default function CrewsList() {
                 </div>
             )}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Total Crews</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-primary">{crews.length}</div>
@@ -132,7 +132,7 @@ export default function CrewsList() {
                         <div className="stat-desc">All crews in the system</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Total Members</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-secondary">{crews.reduce((total, crew) => total + crew.member_count, 0)}</div>
@@ -143,7 +143,7 @@ export default function CrewsList() {
                         <div className="stat-desc">Total crew members across all crews</div>
                     </div>
 
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Active Crews</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-accent">{crews.filter(crew => crew.status === "active").length}</div>
@@ -153,7 +153,7 @@ export default function CrewsList() {
                         </div>
                         <div className="stat-desc">Currently working</div>
                     </div>
-                    <div className="stat bg-base-100 shadow">
+                    <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Available Crews</div>
                         <div className="flex items-center justify-between">
                             <div className="stat-value text-success">{crews.filter(crew => crew.status === "available").length}</div>

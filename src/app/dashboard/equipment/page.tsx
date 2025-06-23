@@ -128,7 +128,7 @@ export default function EquipmentPage() {
                     </div>
                 )}>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                        <div className="stat bg-base-100 shadow">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-title text-lg">Total Equipments</div>
                             <div className="flex items-center justify-between">
                                 <div className="stat-value text-primary">{equipments.length}</div>
@@ -138,7 +138,7 @@ export default function EquipmentPage() {
                             </div>
                             <div className="stat-desc">All equipment items</div>
                         </div>
-                        <div className="stat bg-base-100 shadow">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-title text-lg">Active Equipments</div>
                             <div className="flex items-center justify-between">
                                 <div className="stat-value text-success">
@@ -150,7 +150,7 @@ export default function EquipmentPage() {
                             </div>
                             <div className="stat-desc">Currently in use</div>
                         </div>
-                        <div className="stat bg-base-100 shadow">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-title text-lg">Available Equipments</div>
                             <div className="flex items-center justify-between">
                                 <div className="stat-value text-warning">
@@ -162,7 +162,7 @@ export default function EquipmentPage() {
                             </div>
                             <div className="stat-desc">Not currently in use</div>
                         </div>
-                        <div className="stat bg-base-100 shadow">
+                        <div className="stat bg-base-100 shadow-lg">
                             <div className="stat-title text-lg">Maintenance Due</div>
                             <div className="flex items-center justify-between">
                                 <div className="stat-value text-error">

@@ -13,6 +13,7 @@ interface UseGeolocationOptions {
     timeout?: number;
     maximumAge?: number;
     watch?: boolean;
+    skip?: boolean;
 }
 
 export function useGeolocation(options: UseGeolocationOptions = {}) {
@@ -23,13 +24,12 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
     });
 
     const watchIdRef = useRef<number | null>(null);
-    const isMountedRef = useRef(true);
-
-    const {
+    const isMountedRef = useRef(true); const {
         enableHighAccuracy = false,
         timeout = 10000,
         maximumAge = 0,
         watch = false,
+        skip = false,
     } = options;
 
     const clearWatch = useCallback(() => {
@@ -90,17 +90,19 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
                 positionOptions
             );
         }
-    }, [enableHighAccuracy, timeout, maximumAge, watch, clearWatch]);
-
-    useEffect(() => {
+    }, [enableHighAccuracy, timeout, maximumAge, watch, clearWatch, skip]); useEffect(() => {
         isMountedRef.current = true;
-        getCurrentPosition();
+
+        // Skip geolocation if skip option is true
+        if (!skip) {
+            getCurrentPosition();
+        }
 
         return () => {
             isMountedRef.current = false;
             clearWatch();
         };
-    }, [getCurrentPosition, clearWatch]);
+    }, [getCurrentPosition, clearWatch, skip]);
 
     // Cleanup on unmount
     useEffect(() => {

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useCurrentPosition } from "@/hooks/use-geolocation";
 
 interface WeatherData {
     current: {
@@ -21,26 +20,21 @@ interface WeatherData {
 }
 
 interface WeatherWidgetProps {
-    location?: string;
+    location: {
+        latitude: number;
+        longitude: number;
+        address?: string;
+    };
+    className?: string;
 }
 
 export default function WeatherWidget({
-    location = "Current Location",
+    location,
+    className,
 }: WeatherWidgetProps) {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // Use the safe geolocation hook
-    const {
-        position,
-        error: geoError,
-        loading: geoLoading
-    } = useCurrentPosition({
-        enableHighAccuracy: false,
-        timeout: 15000,
-        maximumAge: 300000, // 5 minutes
-    });
 
     const getWeatherIcon = (condition: string): string => {
         const conditionLower = condition.toLowerCase();
@@ -78,19 +72,8 @@ export default function WeatherWidget({
                 setLoading(true);
                 setError(null);
 
-                let lat: number, lon: number;
-
-                if (position) {
-                    lat = position.coords.latitude;
-                    lon = position.coords.longitude;
-                } else if (geoError) {
-                    // Default to a generic location (Chicago) if geolocation fails
-                    lat = 41.8781;
-                    lon = -87.6298;
-                } else {
-                    // Still waiting for geolocation
-                    return;
-                }
+                const lat = location.latitude;
+                const lon = location.longitude;
 
                 // Fetch weather data using OneCall API
                 const response = await fetch(
@@ -153,15 +136,11 @@ export default function WeatherWidget({
             }
         };
 
-        // Only fetch weather when geolocation is done (success or failure)
-        if (!geoLoading) {
-            fetchWeather();
-        }
-    }, [position, geoError, geoLoading, location]);
-
-    if (loading) {
+        // Fetch weather for the provided location
+        fetchWeather();
+    }, [location]); if (loading) {
         return (
-            <div className="card bg-base-100 shadow-lg">
+            <div className={`card bg-base-100 shadow-lg ${className || ''}`}>
                 <div className="card-body">
                     <h3 className="text-lg font-semibold mb-4">Weather</h3>
                     <div className="flex items-center justify-center h-32">
@@ -174,7 +153,7 @@ export default function WeatherWidget({
 
     if (error || !weather) {
         return (
-            <div className="card bg-base-100 shadow-lg">
+            <div className={`card bg-base-100 shadow-lg ${className || ''}`}>
                 <div className="card-body">
                     <h3 className="text-lg font-semibold mb-4">Weather</h3>
                     <div className="alert alert-error">
@@ -184,16 +163,16 @@ export default function WeatherWidget({
                 </div>
             </div>
         );
-    }
-
-    return (
-        <div className="card bg-base-100 shadow-lg">
+    } return (
+        <div className={`card bg-base-100 shadow-lg ${className || ''}`}>
             <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Weather</h3>
-                    {/* <span className="text-sm text-base-content/70">
-                        {location}
-                    </span> */}
+                    {location?.address && (
+                        <span className="text-xs text-base-content/60 truncate max-w-32" title={location.address}>
+                            📍 {location.address}
+                        </span>
+                    )}
                 </div>
 
                 {/* Current Weather */}

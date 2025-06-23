@@ -1,5 +1,6 @@
 "use server";
 
+import { AIContextCache } from "@/lib/ai/cache";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { applyCreated } from "@/utils/apply-created";
@@ -146,9 +147,7 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
         if (error) {
             console.error("Error creating task:", error);
             return null;
-        }
-
-        if (data) {
+        } if (data) {
             // Get the current user session to identify who created the task
             const { getUser } = getKindeServerSession();
             const user = await getUser();            // Get project name for notification
@@ -170,6 +169,9 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
                 data.assigned_to || undefined,
                 user?.id
             );
+
+            // Invalidate AI context cache after task creation
+            AIContextCache.invalidateByEntity(businessId, 'tasks', 'create');
         }
 
         return data as unknown as Task;

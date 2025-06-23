@@ -73,9 +73,7 @@ const MediaModal = dynamic(() => import("../components/modal-media"), {
 });
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { businessId } = useBusiness();
-
-    // Use the safe geolocation hook
+    const { businessId } = useBusiness();    // Use the safe geolocation hook for fallback location
     const {
         position,
         error: geoError,
@@ -722,7 +720,38 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                 )) || <p>No crews assigned.</p>}
                             </div>
-                        </div>                    <WeatherWidget location={project.location || "Project Location"} />
+                        </div>                    <WeatherWidget
+                            location={(() => {
+                                // Check if project has location in coordinate format "Lat: X, Lon: Y"
+                                if (project.location) {
+                                    const coordMatch = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
+                                    if (coordMatch) {
+                                        const [_, lat, lon] = coordMatch;
+                                        return {
+                                            latitude: parseFloat(lat),
+                                            longitude: parseFloat(lon),
+                                            address: project.location
+                                        };
+                                    }
+                                }
+
+                                // Use user's current location as fallback
+                                if (position) {
+                                    return {
+                                        latitude: position.coords.latitude,
+                                        longitude: position.coords.longitude,
+                                        address: "Current Location"
+                                    };
+                                }
+
+                                // Default fallback location (Chicago)
+                                return {
+                                    latitude: 41.8781,
+                                    longitude: -87.6298,
+                                    address: "Default Location"
+                                };
+                            })()}
+                        />
                     </div>
                 </div>
             </ErrorBoundary>
