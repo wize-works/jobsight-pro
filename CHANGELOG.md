@@ -1,3 +1,10 @@
+# [1.93.0](https://github.com/wize-works/jobsight-pro/compare/v1.92.0...v1.93.0) (2025-06-24)
+
+
+### Features
+
+* Implement unified LocationDisplay component across all modules for consistent location presentation ([5c098a4](https://github.com/wize-works/jobsight-pro/commit/5c098a48d1086960474e1e50ff3a619d7450feba))
+
 # [1.92.0](https://github.com/wize-works/jobsight-pro/compare/v1.91.0...v1.92.0) (2025-06-24)
 
 
