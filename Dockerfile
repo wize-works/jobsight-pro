@@ -99,11 +99,17 @@ RUN npx puppeteer browsers install chrome --path /opt/chrome
 
 # Set up cache and temp directories with proper permissions
 RUN mkdir -p /app/.next/cache/images && \
+    mkdir -p /app/.next/cache/fetch-cache && \
+    mkdir -p /app/.next/cache/webpack && \
+    mkdir -p /app/.next/cache/swc && \
+    mkdir -p /app/.next/static && \
+    mkdir -p /app/.next/server && \
     mkdir -p /tmp/puppeteer-artifacts && \
     mkdir -p /home/puppeteeruser/.cache/puppeteer && \
     mkdir -p /opt/chrome && \
     chmod 755 /tmp/puppeteer-artifacts && \
     chmod 755 /opt/chrome && \
+    chmod -R 755 /app/.next && \
     chown -R puppeteeruser:puppeteeruser /app && \
     chown -R puppeteeruser:puppeteeruser /tmp/puppeteer-artifacts && \
     chown -R puppeteeruser:puppeteeruser /home/puppeteeruser/.cache && \
@@ -116,6 +122,10 @@ USER puppeteeruser
 ENV PUPPETEER_CACHE_DIR=/home/puppeteeruser/.cache/puppeteer
 ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome/chrome/linux-*/chrome-linux*/chrome
 ENV TMPDIR=/tmp/puppeteer-artifacts
+
+# Set Next.js cache environment variables
+ENV NEXT_CACHE_HANDLER=default
+ENV NEXT_CACHE_DIR=/app/.next/cache
 
 # Runtime envs come from Kubernetes
 EXPOSE 3000

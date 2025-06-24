@@ -53,6 +53,39 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV TMPDIR=/tmp/puppeteer-artifacts
 ```
 
+## Container Cache Directory Fix
+
+During production deployment, you may encounter cache directory errors:
+```
+Failed to update prerender cache for [hash] [Error: ENOENT: no such file or directory, mkdir '/app/.next/cache/fetch-cache']
+```
+
+### Solution Applied
+
+1. **Dockerfile Updates**: Added comprehensive cache directory creation
+   ```dockerfile
+   RUN mkdir -p /app/.next/cache/images && \
+       mkdir -p /app/.next/cache/fetch-cache && \
+       mkdir -p /app/.next/cache/webpack && \
+       mkdir -p /app/.next/cache/swc && \
+       mkdir -p /app/.next/static && \
+       mkdir -p /app/.next/server
+   ```
+
+2. **Kubernetes Volume Mounts**: Added dedicated volume mount for Next.js cache
+   ```yaml
+   - name: nextjs-cache
+     mountPath: /app/.next/cache
+   ```
+
+3. **Proper Permissions**: Ensured puppeteeruser owns all cache directories
+   ```dockerfile
+   chmod -R 755 /app/.next && \
+   chown -R puppeteeruser:puppeteeruser /app
+   ```
+
+This prevents Next.js from failing when trying to create cache directories at runtime.
+
 ## Testing
 
 ### Local Testing
