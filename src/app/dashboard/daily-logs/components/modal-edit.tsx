@@ -43,7 +43,8 @@ export default function EditModal({
     isOpen,
     onClose,
     onSave
-}: EditModalProps) {    const [formData, setFormData] = useState({
+}: EditModalProps) {
+    const [formData, setFormData] = useState({
         date: "",
         project_id: "",
         crew_id: "",
@@ -117,7 +118,7 @@ export default function EditModal({
             ...prev,
             [name]: value
         }));
-    };    const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    }; const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const numValue = value === "" ? 0 : Number(value);
         setFormData(prev => ({
@@ -139,12 +140,12 @@ export default function EditModal({
                 if (startTime && endTime) {
                     const start = new Date(`2000-01-01T${startTime}`);
                     const end = new Date(`2000-01-01T${endTime}`);
-                    
+
                     // Handle overnight shifts
                     if (end < start) {
                         end.setDate(end.getDate() + 1);
                     }
-                    
+
                     const diffMs = end.getTime() - start.getTime();
                     const diffHours = Math.round((diffMs / (1000 * 60 * 60)) * 2) / 2; // Round to nearest 0.5
                     updated.hours_worked = Math.max(0, diffHours);
