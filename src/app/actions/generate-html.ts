@@ -39,6 +39,11 @@ const formatDate = (dateString: string | null) => {
 
 export async function generateClientHTML(businessId: string, clientId: string): Promise<string> {
     try {
+        // Validate inputs
+        if (!businessId || !clientId) {
+            throw new Error('Business ID and Client ID are required');
+        }
+
         // Fetch client data using existing server action
         const clientDetails = await getClientDetailsByID(businessId, clientId);
 
@@ -46,8 +51,17 @@ export async function generateClientHTML(businessId: string, clientId: string): 
             throw new Error('Client not found');
         }
 
-        const { client, projects, contacts, interactions } = clientDetails;        // Get business info separately
-        const business = await getBusinessById(businessId);
+        const { client, projects, contacts, interactions } = clientDetails;        // Get business info separately - with fallback to client's business_id
+        const actualBusinessId = businessId || client.business_id;
+        if (!actualBusinessId) {
+            throw new Error('Unable to determine business ID');
+        }
+
+        const business = await getBusinessById(actualBusinessId);
+
+        if (!business) {
+            console.warn('Business not found, using default values');
+        }
 
         // Get invoices for this client (we'll need to add this to the client details action if not already included)
         const invoices = (client as any).invoices || [];
@@ -487,13 +501,27 @@ export async function generateClientHTML(businessId: string, clientId: string): 
 
 export async function generateDailyLogHTML(businessId: string, logId: string): Promise<string> {
     try {
+        // Validate inputs
+        if (!businessId || !logId) {
+            throw new Error('Business ID and Log ID are required');
+        }
+
         // Fetch daily log data using existing server action
         const log = await getDailyLogWithDetailsById(businessId, logId);
 
         if (!log) {
             throw new Error('Daily log not found');
-        }        // Get business info separately
-        const business = await getBusinessById(businessId);
+        }        // Get business info separately - with fallback handling
+        const actualBusinessId = businessId || log.business_id;
+        if (!actualBusinessId) {
+            throw new Error('Unable to determine business ID');
+        }
+
+        const business = await getBusinessById(actualBusinessId);
+
+        if (!business) {
+            console.warn('Business not found, using default values');
+        }
 
         // Create business info object
         const businessInfo = {
