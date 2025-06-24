@@ -178,15 +178,19 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: playwright-cache
-              mountPath: /home/pwuser/.cache
+            - name: puppeteer-cache
+              mountPath: /home/puppeteeruser/.cache
+            - name: nextjs-cache
+              mountPath: /app/.next/cache
             - name: shm
               mountPath: /dev/shm
       
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: playwright-cache
+        - name: puppeteer-cache
+          emptyDir: {}
+        - name: nextjs-cache
           emptyDir: {}
         - name: shm
           emptyDir:
