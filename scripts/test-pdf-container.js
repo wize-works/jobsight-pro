@@ -2,10 +2,10 @@
 
 /**
  * Test script to verify PDF generation works in container environment
- * Run this script inside the container to test Playwright setup
+ * Run this script inside the container to test Puppeteer setup
  */
 
-const { chromium } = require('playwright-core');
+const puppeteer = require('puppeteer');
 
 async function testPDFGeneration() {
     console.log('🧪 Testing PDF generation in container...');
@@ -13,10 +13,10 @@ async function testPDFGeneration() {
     try {
         console.log('📁 Checking directories...');
         console.log('TMPDIR:', process.env.TMPDIR || '/tmp');
-        console.log('PLAYWRIGHT_BROWSERS_PATH:', process.env.PLAYWRIGHT_BROWSERS_PATH || 'default');
+        console.log('PUPPETEER_CACHE_DIR:', process.env.PUPPETEER_CACHE_DIR || 'default');
 
         console.log('🚀 Launching Chromium...');
-        const browser = await chromium.launch({
+        const browser = await puppeteer.launch({
             headless: true,
             args: [
                 '--no-sandbox',
@@ -33,10 +33,7 @@ async function testPDFGeneration() {
         });
 
         console.log('📄 Creating page...');
-        const context = await browser.newContext();
-        const page = await context.newPage();
-
-        console.log('🎨 Setting test content...');
+        const page = await browser.newPage(); console.log('🎨 Setting test content...');
         await page.setContent(`
             <!DOCTYPE html>
             <html>
@@ -55,7 +52,10 @@ async function testPDFGeneration() {
                 <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
             </body>
             </html>
-        `, { waitUntil: 'networkidle' });
+        `, { waitUntil: 'networkidle0' });
+
+        // Give the page some time to render
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         console.log('📋 Generating PDF...');
         const pdfBuffer = await page.pdf({

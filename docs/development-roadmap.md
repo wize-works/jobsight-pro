@@ -86,7 +86,9 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [x] Fix PDF export functionality for containerized deployments  
 - [x] Fix PDF export server action deployment issues
 - [x] Implement media storage for PDF artifacts to resolve local storage issues
-- [ ] Configure Playwright Docker setup following official documentation (in progress - fixing user creation)
+- [x] Configure Playwright Docker setup following official documentation (cancelled - migrated to Puppeteer)
+- [x] Migrate PDF generation from Playwright to Puppeteer for simplified deployment and smaller container size
+- [ ] Optimize Puppeteer Docker configuration for production deployment
 - [ ] Create automated report scheduling
 - [ ] Add report sharing capabilities
 
@@ -238,12 +240,12 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 ## 📝 **Progress Tracking**
 
 **Last Updated**: June 23, 2025  
-**Phase 1 Completion**: 50.0% (16/32 items)  
+**Phase 1 Completion**: 53.1% (17/32 items)  
 **Phase 2 Completion**: 0% (0/43 items)  
 **Phase 3 Completion**: 0% (0/30 items)  
 **Quick Wins Completion**: 0% (0/10 items)  
 
-**Total Progress**: 13.9% (16/115 items)
+**Total Progress**: 14.8% (17/115 items)
 
 ---
 
