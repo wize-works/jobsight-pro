@@ -1,3 +1,10 @@
+## [1.82.1](https://github.com/wize-works/jobsight-pro/compare/v1.82.0...v1.82.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* Clean up formatting and spacing in EditModal component for improved readability ([298ca64](https://github.com/wize-works/jobsight-pro/commit/298ca6497738c2cc984863f43643213e76cbc7d1))
+
 # [1.82.0](https://github.com/wize-works/jobsight-pro/compare/v1.81.0...v1.82.0) (2025-06-24)
 
 
