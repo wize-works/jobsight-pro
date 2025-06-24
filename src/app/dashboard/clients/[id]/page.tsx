@@ -29,7 +29,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import UniversalMediaManager from "@/components/universal-media-manager";
 
 import { generateClientHTML } from "@/app/actions/generate-html";
-import { generateClientPdf } from "@/app/actions/pdf-generation";
+import { generateClientPdf } from "@/app/actions/pdf-generation-gotenberg";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();

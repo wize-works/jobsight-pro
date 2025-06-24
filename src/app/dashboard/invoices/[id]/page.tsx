@@ -23,7 +23,7 @@ const ModalPayment = dynamic(() => import("../components/modal-payment"), {
 async function downloadPdfFromUrl(url: string, filename: string) {
     try {
         // Call our API route to generate the PDF
-        const response = await fetch('/api/generate-pdf', {
+        const response = await fetch('/api/generate-pdf-gotenberg', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

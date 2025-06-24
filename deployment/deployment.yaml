@@ -166,6 +166,8 @@ spec:
                 secretKeyRef:
                   name: jobsight-secrets
                   key: OPENAI_API_KEY
+            - name: GOTENBERG_URL
+              value: "http://gotenberg-service:3000"
 
           resources:
             requests:
@@ -178,21 +180,11 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: puppeteer-cache
-              mountPath: /home/puppeteeruser/.cache
             - name: nextjs-cache
               mountPath: /app/.next/cache
-            - name: shm
-              mountPath: /dev/shm
       
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: puppeteer-cache
-          emptyDir: {}
         - name: nextjs-cache
           emptyDir: {}
-        - name: shm
-          emptyDir:
-            medium: Memory
-            sizeLimit: 2Gi

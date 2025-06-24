@@ -86,9 +86,11 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [x] Fix PDF export functionality for containerized deployments  
 - [x] Fix PDF export server action deployment issues
 - [x] Implement media storage for PDF artifacts to resolve local storage issues
-- [x] Configure Playwright Docker setup following official documentation (cancelled - migrated to Puppeteer)
-- [x] Migrate PDF generation from Playwright to Puppeteer for simplified deployment and smaller container size
-- [x] Optimize Puppeteer Docker configuration for production deployment (fixed cache directory permissions)
+- [x] Migrate PDF generation from browser-based solutions to Gotenberg microservice
+- [x] Clean up Dockerfile to remove browser dependencies and use Gotenberg service
+- [x] Remove all Puppeteer/Playwright remnants and update all PDF endpoints to use Gotenberg
+- [x] Update all components and API endpoints to use new Gotenberg-based PDF generation
+- [ ] Deploy and test Gotenberg PDF generation in production
 - [ ] Create automated report scheduling
 - [ ] Add report sharing capabilities
 

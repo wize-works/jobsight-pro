@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import { uploadPdfBuffer } from '@/app/actions/media';
 import { linkExistingMediaToClient } from '@/app/actions/media';
+
+const GOTENBERG_URL = process.env.GOTENBERG_URL || 'http://gotenberg-service:3000';
 
 export async function POST(request: NextRequest) {
     try {
@@ -24,77 +25,59 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'businessId is required when saveToStorage is true' }, { status: 400 });
         }
 
-        // Launch browser with Docker-optimized arguments
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-web-security',
-                '--disable-features=VizDisplayCompositor',
-                '--disable-features=TranslateUI',
-                '--disable-ipc-flooding-protection',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding',
-                '--disable-extensions',
-                '--disable-plugins',
-                '--disable-default-apps',
-                '--no-default-browser-check',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ]
-        });
-
         let pdfBuffer: Buffer;
 
         try {
-            const page = await browser.newPage();
+            if (html) {
+                // For HTML content, use Gotenberg's HTML endpoint
+                const formData = new FormData();
+                formData.append('files', new Blob([html], { type: 'text/html' }), 'index.html');
 
-            // Set page cache to disabled to prevent local storage usage
-            await page.setRequestInterception(true);
-            page.on('request', (request: any) => {
-                const headers = {
-                    ...request.headers(),
-                    'cache-control': 'no-cache, no-store, must-revalidate',
-                    'pragma': 'no-cache',
-                    'expires': '0'
-                };
-                request.continue({ headers });
-            });
+                // Set PDF options
+                formData.append('paperWidth', '8.27');  // A4 width in inches
+                formData.append('paperHeight', '11.7'); // A4 height in inches
+                formData.append('marginTop', '0.79');
+                formData.append('marginBottom', '0.79');
+                formData.append('marginLeft', '0.79');
+                formData.append('marginRight', '0.79');
 
-            try {
-                if (html) {
-                    // Set HTML content directly
-                    await page.setContent(html, { waitUntil: 'networkidle0' });
-                } else {
-                    // Navigate to the URL
-                    await page.goto(url, { waitUntil: 'networkidle0' });
-                }                // Wait for the page to fully load
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Generate PDF as buffer
-                const pdfData = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: {
-                        top: '20px',
-                        bottom: '20px',
-                        left: '20px',
-                        right: '20px'
-                    }
+                const response = await fetch(`${GOTENBERG_URL}/forms/chromium/convert/html`, {
+                    method: 'POST',
+                    body: formData,
                 });
 
-                pdfBuffer = Buffer.from(pdfData);
-            } finally {
-                // Ensure cleanup
-                await page.close();
+                if (!response.ok) {
+                    throw new Error(`Gotenberg HTML conversion failed: ${response.statusText}`);
+                }
+
+                pdfBuffer = Buffer.from(await response.arrayBuffer());
+            } else {
+                // For URL, use Gotenberg's URL endpoint
+                const response = await fetch(`${GOTENBERG_URL}/forms/chromium/convert/url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        paperWidth: 8.27,
+                        paperHeight: 11.7,
+                        marginTop: 0.79,
+                        marginBottom: 0.79,
+                        marginLeft: 0.79,
+                        marginRight: 0.79,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Gotenberg URL conversion failed: ${response.statusText}`);
+                }
+
+                pdfBuffer = Buffer.from(await response.arrayBuffer());
             }
-        } finally {
-            await browser.close();
+        } catch (error) {
+            console.error('Gotenberg PDF generation failed:', error);
+            throw error;
         }
 
         // If saveToStorage is enabled, upload to media storage
@@ -154,7 +137,7 @@ export async function POST(request: NextRequest) {
             });
         }
     } catch (error) {
-        console.error('Error generating PDF:', error);
+        console.error('Error generating PDF with Gotenberg:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json(
             {
