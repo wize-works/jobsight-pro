@@ -1,6 +1,7 @@
 "use server";
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { generateClientHTML, generateInvoiceHTML } from "@/app/actions/generate-html";
 
 export interface PdfGenerationOptions {
     html?: string;
@@ -25,8 +26,14 @@ export interface PdfGenerationResult {
 /**
  * Generate a PDF from HTML content or URL using Gotenberg and optionally save to media storage
  */
-export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOptions): Promise<PdfGenerationResult> {
-    const { business } = await withBusinessServer();
+export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOptions, businessId?: string): Promise<PdfGenerationResult> {
+    // Only use withBusinessServer if businessId is not provided
+    let actualBusinessId = businessId;
+
+    if (!actualBusinessId) {
+        const { business } = await withBusinessServer();
+        actualBusinessId = business.id;
+    }
 
     try {
         const {
@@ -55,7 +62,7 @@ export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOpt
                 html,
                 url,
                 filename,
-                businessId: business.id,
+                businessId: actualBusinessId,
                 clientId,
                 projectId,
                 description,
@@ -97,16 +104,14 @@ export async function generateClientPdfWithGotenberg(
         const html = await generateClientHTML(businessId, clientId);
 
         // Generate filename with date
-        const filename = `Client-${clientName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
-
-        // Generate and save PDF using Gotenberg
+        const filename = `Client-${clientName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;        // Generate and save PDF using Gotenberg
         return await generatePdfDocumentWithGotenberg({
             html,
             filename,
             description: `Client profile PDF for ${clientName}`,
             saveToStorage: true,
             clientId
-        });
+        }, businessId);
 
     } catch (error) {
         console.error('Error generating client PDF with Gotenberg:', error);
@@ -131,9 +136,7 @@ export async function generateProjectPdfWithGotenberg(
         // const { generateProjectHTML } = await import('@/app/actions/generate-html');
         // const html = await generateProjectHTML(businessId, projectId);
 
-        const filename = `Project-${projectName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
-
-        return await generatePdfDocumentWithGotenberg({
+        const filename = `Project-${projectName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`; return await generatePdfDocumentWithGotenberg({
             // html, // Will be implemented when project HTML generation is ready
             url: `${process.env.NEXTAUTH_URL}/dashboard/projects/${projectId}`, // Fallback to URL
             filename,
@@ -141,7 +144,7 @@ export async function generateProjectPdfWithGotenberg(
             saveToStorage: true,
             projectId,
             clientId
-        });
+        }, businessId);
 
     } catch (error) {
         console.error('Error generating project PDF with Gotenberg:', error);
@@ -161,22 +164,26 @@ export async function generateClientPdf(
     clientName: string
 ): Promise<PdfGenerationResult> {
     try {
-        // Generate client HTML content
-        const { generateClientHTML } = await import('@/app/actions/generate-html');
+        console.log('Starting client PDF generation for:', { businessId, clientId, clientName });
+
+        // Generate client HTML content using direct import
         const html = await generateClientHTML(businessId, clientId);
+        console.log('Successfully generated client HTML, length:', html.length);
 
         const filename = `Client-${clientName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
 
+        console.log('Calling generatePdfDocumentWithGotenberg with filename:', filename);
         return await generatePdfDocumentWithGotenberg({
             html,
             filename,
             description: `Client report PDF for ${clientName}`,
             saveToStorage: true,
             clientId
-        });
+        }, businessId);
 
     } catch (error) {
         console.error('Error generating client PDF with Gotenberg:', error);
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to generate client PDF'
@@ -192,18 +199,14 @@ export async function generateInvoicePdf(
     invoiceId: string,
     filename: string
 ): Promise<PdfGenerationResult> {
-    try {
-        // Generate invoice HTML content
-        const { generateInvoiceHTML } = await import('@/app/actions/generate-html');
-        const html = await generateInvoiceHTML(businessId, invoiceId);
-
-        return await generatePdfDocumentWithGotenberg({
+    try {        // Generate invoice HTML content using direct import
+        const html = await generateInvoiceHTML(businessId, invoiceId); return await generatePdfDocumentWithGotenberg({
             html,
             filename,
             description: `Invoice PDF`,
             saveToStorage: false, // For direct download
             returnAsAttachment: true
-        });
+        }, businessId);
 
     } catch (error) {
         console.error('Error generating invoice PDF with Gotenberg:', error);
