@@ -1,3 +1,10 @@
+# [1.86.0](https://github.com/wize-works/jobsight-pro/compare/v1.85.0...v1.86.0) (2025-06-24)
+
+
+### Features
+
+* Implement PDF generation with Azure media storage; optimize Playwright usage and add new API endpoints ([f50d04b](https://github.com/wize-works/jobsight-pro/commit/f50d04be67f4ea8c34416c644179c29d2798d8f6))
+
 # [1.85.0](https://github.com/wize-works/jobsight-pro/compare/v1.84.0...v1.85.0) (2025-06-24)
 
 
