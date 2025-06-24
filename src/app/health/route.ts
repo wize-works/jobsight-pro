@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-    try {
-        // Basic health check
+    try {        // Basic health check
         const health: {
             status: string;
             timestamp: string;
@@ -10,7 +9,7 @@ export async function GET() {
             environment: string;
             uptime: number;
             container?: {
-                playwright_browsers_path: string | undefined;
+                puppeteer_cache_dir: string | undefined;
                 tmpdir: string;
             };
         } = {
@@ -22,11 +21,11 @@ export async function GET() {
         };
 
         // Check if we're in a container environment
-        const isContainer = process.env.PLAYWRIGHT_BROWSERS_PATH !== undefined;
+        const isContainer = process.env.PUPPETEER_CACHE_DIR !== undefined;
 
         if (isContainer) {
             health.container = {
-                playwright_browsers_path: process.env.PLAYWRIGHT_BROWSERS_PATH,
+                puppeteer_cache_dir: process.env.PUPPETEER_CACHE_DIR,
                 tmpdir: process.env.TMPDIR || '/tmp',
             };
         }

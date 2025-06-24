@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { chromium } from 'playwright-core';
+import puppeteer from 'puppeteer';
 
 export async function GET() {
     try {
         // Test basic PDF generation capability
-        const browser = await chromium.launch({
+        const browser = await puppeteer.launch({
             headless: true,
             args: [
                 '--no-sandbox',
@@ -20,13 +20,10 @@ export async function GET() {
             ]
         });
 
-        const context = await browser.newContext();
-        const page = await context.newPage();
+        const page = await browser.newPage(); await page.setContent('<html><body><h1>Health Check</h1></body></html>');
 
-        await page.setContent('<html><body><h1>Health Check</h1></body></html>', {
-            waitUntil: 'networkidle',
-            timeout: 5000
-        });
+        // Give page time to render
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -42,7 +39,7 @@ export async function GET() {
             timestamp: new Date().toISOString(),
             environment: {
                 node_env: process.env.NODE_ENV,
-                playwright_browsers_path: process.env.PLAYWRIGHT_BROWSERS_PATH,
+                puppeteer_cache_dir: process.env.PUPPETEER_CACHE_DIR,
                 tmpdir: process.env.TMPDIR
             }
         });
@@ -54,10 +51,9 @@ export async function GET() {
             status: 'unhealthy',
             pdf_generation: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-            environment: {
+            timestamp: new Date().toISOString(), environment: {
                 node_env: process.env.NODE_ENV,
-                playwright_browsers_path: process.env.PLAYWRIGHT_BROWSERS_PATH,
+                puppeteer_cache_dir: process.env.PUPPETEER_CACHE_DIR,
                 tmpdir: process.env.TMPDIR
             }
         }, { status: 500 });

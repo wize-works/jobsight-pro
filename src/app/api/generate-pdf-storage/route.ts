@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chromium } from 'playwright-core';
+import puppeteer from 'puppeteer';
 import { uploadPdfBuffer } from '@/app/actions/media';
 import { linkExistingMediaToClient } from '@/app/actions/media';
 
@@ -22,8 +22,10 @@ export async function POST(request: NextRequest) {
 
         if (saveToStorage && !businessId) {
             return NextResponse.json({ error: 'businessId is required when saveToStorage is true' }, { status: 400 });
-        }        // Launch browser with Docker-optimized arguments based on Playwright official docs
-        const browser = await chromium.launch({
+        }
+
+        // Launch browser with Docker-optimized arguments
+        const browser = await puppeteer.launch({
             headless: true,
             args: [
                 '--no-sandbox',
@@ -50,34 +52,29 @@ export async function POST(request: NextRequest) {
         let pdfBuffer: Buffer;
 
         try {
-            const context = await browser.newContext({
-                ignoreHTTPSErrors: true,
-                bypassCSP: true,
-            });
-            const page = await context.newPage();
+            const page = await browser.newPage();
 
             // Set page cache to disabled to prevent local storage usage
-            await page.route('**/*', route => {
+            await page.setRequestInterception(true);
+            page.on('request', (request: any) => {
                 const headers = {
-                    ...route.request().headers(),
+                    ...request.headers(),
                     'cache-control': 'no-cache, no-store, must-revalidate',
                     'pragma': 'no-cache',
                     'expires': '0'
                 };
-                route.continue({ headers });
+                request.continue({ headers });
             });
 
             try {
                 if (html) {
                     // Set HTML content directly
-                    await page.setContent(html, { waitUntil: 'networkidle' });
+                    await page.setContent(html, { waitUntil: 'networkidle0' });
                 } else {
                     // Navigate to the URL
-                    await page.goto(url, { waitUntil: 'networkidle' });
-                }
-
-                // Wait for the page to fully load
-                await page.waitForTimeout(2000);
+                    await page.goto(url, { waitUntil: 'networkidle0' });
+                }                // Wait for the page to fully load
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
                 // Generate PDF as buffer
                 const pdfData = await page.pdf({
@@ -95,7 +92,6 @@ export async function POST(request: NextRequest) {
             } finally {
                 // Ensure cleanup
                 await page.close();
-                await context.close();
             }
         } finally {
             await browser.close();

@@ -34,7 +34,7 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:22-slim
 
-# Install system dependencies for Playwright/Chromium
+# Install system dependencies for Puppeteer/Chromium
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -66,16 +66,16 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a Playwright user (using simple approach for compatibility)
-RUN groupadd --gid 1001 pwuser && \
-    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home pwuser
+# Create a Puppeteer user (using simple approach for compatibility)
+RUN groupadd --gid 1001 puppeteeruser && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home puppeteeruser
 
 # Create necessary directories with proper permissions
-RUN mkdir -p /tmp/playwright-artifacts && \
-    chmod 777 /tmp/playwright-artifacts && \
-    mkdir -p /home/pwuser/.cache && \
-    chown -R pwuser:pwuser /home/pwuser && \
-    chown -R pwuser:pwuser /home/pwuser/.cache
+RUN mkdir -p /tmp/puppeteer-artifacts && \
+    chmod 777 /tmp/puppeteer-artifacts && \
+    mkdir -p /home/puppeteeruser/.cache && \
+    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser && \
+    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser/.cache
 
 WORKDIR /app
 
@@ -88,27 +88,34 @@ LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 # Copy full contents from builder
 COPY --from=builder /app .
 
-# Install Playwright browsers and dependencies as root
+# Install Puppeteer and Chromium as root
 USER root
-RUN npx playwright install chromium && \
-    npx playwright install-deps chromium
+
+# Install Puppeteer directly from package.json and set up browser
+RUN npm ls puppeteer || npm install puppeteer
+
+# Install Chrome browser for Puppeteer
+RUN npx puppeteer browsers install chrome --path /opt/chrome
 
 # Set up cache and temp directories with proper permissions
 RUN mkdir -p /app/.next/cache/images && \
-    mkdir -p /tmp/playwright-artifacts && \
-    mkdir -p /home/pwuser/.cache/ms-playwright && \
-    chmod 755 /tmp/playwright-artifacts && \
-    chown -R pwuser:pwuser /app && \
-    chown -R pwuser:pwuser /tmp/playwright-artifacts && \
-    chown -R pwuser:pwuser /home/pwuser/.cache
+    mkdir -p /tmp/puppeteer-artifacts && \
+    mkdir -p /home/puppeteeruser/.cache/puppeteer && \
+    mkdir -p /opt/chrome && \
+    chmod 755 /tmp/puppeteer-artifacts && \
+    chmod 755 /opt/chrome && \
+    chown -R puppeteeruser:puppeteeruser /app && \
+    chown -R puppeteeruser:puppeteeruser /tmp/puppeteer-artifacts && \
+    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser/.cache && \
+    chown -R puppeteeruser:puppeteeruser /opt/chrome
 
-# Switch to Playwright user
-USER pwuser
+# Switch to Puppeteer user
+USER puppeteeruser
 
-# Set environment variables for Playwright following official guidance
-ENV PLAYWRIGHT_BROWSERS_PATH=/home/pwuser/.cache/ms-playwright
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV TMPDIR=/tmp/playwright-artifacts
+# Set environment variables for Puppeteer
+ENV PUPPETEER_CACHE_DIR=/home/puppeteeruser/.cache/puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome/chrome/linux-*/chrome-linux*/chrome
+ENV TMPDIR=/tmp/puppeteer-artifacts
 
 # Runtime envs come from Kubernetes
 EXPOSE 3000
