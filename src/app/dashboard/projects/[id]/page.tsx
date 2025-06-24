@@ -72,6 +72,10 @@ const MediaModal = dynamic(() => import("../components/modal-media"), {
     loading: () => <ModalLoading message="Loading media viewer..." />,
 });
 
+const CrewModal = dynamic(() => import("../components/modal-crew"), {
+    loading: () => <ModalLoading message="Loading crew assignment..." />,
+});
+
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId } = useBusiness();    // Use the safe geolocation hook for fallback location
     const {
@@ -101,9 +105,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
-    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
-    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null); const [editModalOpen, setEditModalOpen] = useState(false);
     const [mediaModalOpen, setMediaModalOpen] = useState(false);
+    const [crewModalOpen, setCrewModalOpen] = useState(false);
 
     // Refs to prevent multiple fetches
     const hasFetched = useRef(false);
@@ -152,9 +156,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         contacts,
                         manager,
                         stats
-                    } = projectDetails;
-
-                    setProject(project);
+                    } = projectDetails; setProject(project);
+                    setProgress(project.progress || 0);
                     setMilestones(milestones);
                     setTasks(tasks);
                     setCrews(crews);
@@ -233,11 +236,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setTaskModalOpen(false);
         setSelectedTask(null);
         toast.success("Task saved successfully!");
-    };
-
-    const handleTaskModalClose = () => {
+    }; const handleTaskModalClose = () => {
         setTaskModalOpen(false);
         setSelectedTask(null);
+    };
+
+    const handleCrewAssigned = (crew: CrewWithMemberInfo) => {
+        setCrews(prev => [...prev, crew]);
+    };
+
+    const handleCrewsUpdated = (updatedCrews: CrewWithMemberInfo[]) => {
+        setCrews(updatedCrews);
     }; if (loading || !projectId) {
         return <ProjectDetailLoading />;
     }
@@ -278,9 +287,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </li>
                             <li>
                                 <button onClick={() => setMilestoneModalOpen(true)}>Add Milestone</button>
-                            </li>
-                            <li>
-                                <button>Assign Crew</button>
+                            </li>                            <li>
+                                <button onClick={() => setCrewModalOpen(true)}>Assign Crew</button>
                             </li>
                             <li>
                                 <button onClick={() => setMediaModalOpen(true)}>Upload Media</button>
@@ -598,9 +606,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                         {activeTab === "tasks" && (
                             <TasksTab tasks={tasks} />
-                        )}
-                        {activeTab === "crew" && (
-                            <CrewsTab projectId={project.id} crews={crews} />
+                        )}                        {activeTab === "crew" && (
+                            <CrewsTab projectId={project.id} crews={crews} onCrewsUpdated={handleCrewsUpdated} />
                         )}
                         {activeTab === "budget" && (
                             <div className="card bg-base-100 shadow-lg">
@@ -700,13 +707,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
 
                         <div className="card bg-base-100 shadow-lg mb-6">
-                            <div className="card-body">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold">Assigned Crews</h3>
-                                    <button className="btn btn-sm btn-primary">
-                                        <i className="far fa-plus mr-1"></i> Assign
-                                    </button>
-                                </div>
+                            <div className="card-body">                                <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Assigned Crews</h3>
+                                <button className="btn btn-sm btn-primary" onClick={() => setCrewModalOpen(true)}>
+                                    <i className="far fa-plus mr-1"></i> Assign
+                                </button>
+                            </div>
                                 {crews?.map((crew) => (
                                     <div key={crew.id} className="mb-3">
                                         <div className="font-medium">
@@ -754,13 +760,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         />
                     </div>
                 </div>
-            </ErrorBoundary>
-
-            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
+            </ErrorBoundary>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
             {editModalOpen && <ProjectEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
             {mediaModalOpen && <MediaModal isOpen={mediaModalOpen} onClose={() => setMediaModalOpen(false)} projectId={project.id} />}
+            {crewModalOpen && <CrewModal isOpen={crewModalOpen} onClose={() => setCrewModalOpen(false)} projectId={project.id} onCrewAssigned={handleCrewAssigned} assignedCrewIds={crews.map(crew => crew.id)} />}
         </div>
     );
 };
