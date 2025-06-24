@@ -66,14 +66,15 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user (Debian style)
-RUN addgroup app && adduser --disabled-password --gecos "" --ingroup app appuser
+# Create a Playwright user following official Docker guidance
+RUN addgroup --system --gid 1001 pwuser && \
+    adduser --system --uid 1001 --gid 1001 --shell /bin/bash --create-home pwuser
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /tmp/playwright-artifacts && \
     chmod 777 /tmp/playwright-artifacts && \
-    mkdir -p /home/appuser/.cache && \
-    chown -R appuser:app /home/appuser/.cache
+    mkdir -p /home/pwuser/.cache && \
+    chown -R pwuser:pwuser /home/pwuser/.cache
 
 WORKDIR /app
 
@@ -94,21 +95,19 @@ RUN npx playwright install chromium && \
 # Set up cache and temp directories with proper permissions
 RUN mkdir -p /app/.next/cache/images && \
     mkdir -p /tmp/playwright-artifacts && \
-    mkdir -p /home/appuser/.cache/ms-playwright && \
+    mkdir -p /home/pwuser/.cache/ms-playwright && \
     chmod 755 /tmp/playwright-artifacts && \
-    chown -R appuser:app /app && \
-    chown -R appuser:app /tmp/playwright-artifacts && \
-    chown -R appuser:app /home/appuser/.cache
+    chown -R pwuser:pwuser /app && \
+    chown -R pwuser:pwuser /tmp/playwright-artifacts && \
+    chown -R pwuser:pwuser /home/pwuser/.cache
 
-# Switch to non-root user
-USER appuser
+# Switch to Playwright user
+USER pwuser
 
-# Set environment variables for Playwright
-ENV PLAYWRIGHT_BROWSERS_PATH=/home/appuser/.cache/ms-playwright
+# Set environment variables for Playwright following official guidance
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/pwuser/.cache/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV TMPDIR=/tmp/playwright-artifacts
-ENV PLAYWRIGHT_DISABLE_DEV_SHM=1
-ENV PLAYWRIGHT_DISABLE_FILE_DOWNLOADS=1
 
 # Runtime envs come from Kubernetes
 EXPOSE 3000

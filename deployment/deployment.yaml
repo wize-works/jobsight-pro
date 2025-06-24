@@ -22,9 +22,13 @@ spec:
             - containerPort: 3000
           securityContext:
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 1001
+            runAsGroup: 1001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           env:
             - name: ENVIRONMENT
               value: "production"
@@ -165,8 +169,26 @@ spec:
 
           resources:
             requests:
-              memory: "128Mi"
+              memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "256Mi"
+              memory: "1Gi"
               cpu: "500m"
+          
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: playwright-cache
+              mountPath: /home/pwuser/.cache
+            - name: shm
+              mountPath: /dev/shm
+      
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: playwright-cache
+          emptyDir: {}
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi

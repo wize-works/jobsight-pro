@@ -7,21 +7,17 @@ export async function POST(request: NextRequest) {
 
         if (!url && !html) {
             return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
-        }        // Launch browser with minimal local storage usage
+        }        // Launch browser with Docker-optimized arguments based on Playwright official docs
         const browser = await chromium.launch({
             headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu',
                 '--disable-web-security',
                 '--disable-features=VizDisplayCompositor',
-                '--disable-background-downloads',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding',
@@ -29,14 +25,10 @@ export async function POST(request: NextRequest) {
                 '--disable-plugins',
                 '--disable-default-apps',
                 '--no-default-browser-check',
-                '--disable-hang-monitor',
-                '--disable-prompt-on-repost',
-                '--disable-sync',
-                '--disable-translate',
-                '--disable-logging',
-                '--disable-web-resources',
-                '--memory-pressure-off',
-                '--max_old_space_size=4096'
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
             ]
         });
         const context = await browser.newContext();
