@@ -103,11 +103,11 @@ export async function generateClientHTML(businessId: string, clientId: string): 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Details - ${client.name}</title>
-    <style>
+    <style> 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 40px;
+            padding: 36px;
             background: white;
             color: #333;
             line-height: 1.5;
@@ -567,9 +567,8 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             position: relative;
         }
-        
         .container {
-            padding: 30px 40px;
+            padding: 36px;
             height: 100%;
         }
         

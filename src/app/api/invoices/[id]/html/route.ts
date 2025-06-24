@@ -133,11 +133,10 @@ export async function GET(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice ${invoice.invoice_number}</title>
-    <style>
-        body {
+    <style>        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 40px;
+            padding: 36px;
             background: white;
             color: #333;
             line-height: 1.5;

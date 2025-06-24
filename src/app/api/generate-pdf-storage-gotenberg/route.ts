@@ -31,15 +31,13 @@ export async function POST(request: NextRequest) {
             if (html) {
                 // For HTML content, use Gotenberg's HTML endpoint
                 const formData = new FormData();
-                formData.append('files', new Blob([html], { type: 'text/html' }), 'index.html');
-
-                // Set PDF options
+                formData.append('files', new Blob([html], { type: 'text/html' }), 'index.html');                // Set PDF options
                 formData.append('paperWidth', '8.27');  // A4 width in inches
                 formData.append('paperHeight', '11.7'); // A4 height in inches
-                formData.append('marginTop', '0.79');
-                formData.append('marginBottom', '0.79');
-                formData.append('marginLeft', '0.79');
-                formData.append('marginRight', '0.79');
+                formData.append('marginTop', '0.5');
+                formData.append('marginBottom', '0.5');
+                formData.append('marginLeft', '0.5');
+                formData.append('marginRight', '0.5');
 
                 const response = await fetch(`${GOTENBERG_URL}/forms/chromium/convert/html`, {
                     method: 'POST',
@@ -52,21 +50,19 @@ export async function POST(request: NextRequest) {
 
                 pdfBuffer = Buffer.from(await response.arrayBuffer());
             } else {
-                // For URL, use Gotenberg's URL endpoint
+                // For URL, use Gotenberg's URL endpoint with form data
+                const formData = new FormData();
+                formData.append('url', url);
+                formData.append('paperWidth', '8.27');
+                formData.append('paperHeight', '11.7');
+                formData.append('marginTop', '0.5');
+                formData.append('marginBottom', '0.5');
+                formData.append('marginLeft', '0.5');
+                formData.append('marginRight', '0.5');
+
                 const response = await fetch(`${GOTENBERG_URL}/forms/chromium/convert/url`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        url: url,
-                        paperWidth: 8.27,
-                        paperHeight: 11.7,
-                        marginTop: 0.79,
-                        marginBottom: 0.79,
-                        marginLeft: 0.79,
-                        marginRight: 0.79,
-                    }),
+                    body: formData,
                 });
 
                 if (!response.ok) {
