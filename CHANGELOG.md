@@ -1,3 +1,10 @@
+# [1.87.0](https://github.com/wize-works/jobsight-pro/compare/v1.86.0...v1.87.0) (2025-06-24)
+
+
+### Features
+
+* Update Docker and deployment configurations for Playwright; enhance PDF generation and testing scripts ([8c296d9](https://github.com/wize-works/jobsight-pro/commit/8c296d9347b2b453cf418671d2eae7841816b5e5))
+
 # [1.86.0](https://github.com/wize-works/jobsight-pro/compare/v1.85.0...v1.86.0) (2025-06-24)
 
 
