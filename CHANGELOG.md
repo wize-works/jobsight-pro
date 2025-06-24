@@ -1,3 +1,10 @@
+## [1.88.1](https://github.com/wize-works/jobsight-pro/compare/v1.88.0...v1.88.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* Enhance Puppeteer Docker configuration by adding cache directory creation and permissions for Next.js ([8c85ac4](https://github.com/wize-works/jobsight-pro/commit/8c85ac4d19fb9e4aacf7297d2f1681c212963f41))
+
 # [1.88.0](https://github.com/wize-works/jobsight-pro/compare/v1.87.1...v1.88.0) (2025-06-24)
 
 
