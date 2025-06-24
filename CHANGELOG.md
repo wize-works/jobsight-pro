@@ -1,3 +1,10 @@
+# [1.88.0](https://github.com/wize-works/jobsight-pro/compare/v1.87.1...v1.88.0) (2025-06-24)
+
+
+### Features
+
+* Migrate PDF generation from Playwright to Puppeteer ([4fa5511](https://github.com/wize-works/jobsight-pro/commit/4fa551166cf59ac77cbfea1e0f6210cb98642588))
+
 ## [1.87.1](https://github.com/wize-works/jobsight-pro/compare/v1.87.0...v1.87.1) (2025-06-24)
 
 
