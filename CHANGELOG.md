@@ -1,3 +1,10 @@
+# [1.89.0](https://github.com/wize-works/jobsight-pro/compare/v1.88.1...v1.89.0) (2025-06-24)
+
+
+### Features
+
+* Migrate PDF generation from Puppeteer to Gotenberg microservice ([024d1bc](https://github.com/wize-works/jobsight-pro/commit/024d1bcfe853a40ad070814d8de8a29cb85c2432))
+
 ## [1.88.1](https://github.com/wize-works/jobsight-pro/compare/v1.88.0...v1.88.1) (2025-06-24)
 
 
