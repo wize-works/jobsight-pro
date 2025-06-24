@@ -66,14 +66,15 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a Playwright user following official Docker guidance
-RUN addgroup --system --gid 1001 pwuser && \
-    adduser --system --uid 1001 --gid 1001 --shell /bin/bash --create-home pwuser
+# Create a Playwright user (using simple approach for compatibility)
+RUN groupadd --gid 1001 pwuser && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home pwuser
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /tmp/playwright-artifacts && \
     chmod 777 /tmp/playwright-artifacts && \
     mkdir -p /home/pwuser/.cache && \
+    chown -R pwuser:pwuser /home/pwuser && \
     chown -R pwuser:pwuser /home/pwuser/.cache
 
 WORKDIR /app

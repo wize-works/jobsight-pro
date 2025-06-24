@@ -83,10 +83,10 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Build custom report builder interface
 - [ ] Implement predictive analytics for project delays
 - [x] Add export functionality for all reports (PDF, CSV)
-- [x] Fix PDF export functionality for containerized deployments
+- [x] Fix PDF export functionality for containerized deployments  
 - [x] Fix PDF export server action deployment issues
 - [x] Implement media storage for PDF artifacts to resolve local storage issues
-- [x] Configure Playwright Docker setup following official documentation
+- [ ] Configure Playwright Docker setup following official documentation (in progress - fixing user creation)
 - [ ] Create automated report scheduling
 - [ ] Add report sharing capabilities
 
