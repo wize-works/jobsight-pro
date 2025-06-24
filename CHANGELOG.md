@@ -1,3 +1,10 @@
+# [1.83.0](https://github.com/wize-works/jobsight-pro/compare/v1.82.1...v1.83.0) (2025-06-24)
+
+
+### Features
+
+* Add CrewModal component for assigning crews to projects; implement crew assignment logic in CrewsTab ([c7895ac](https://github.com/wize-works/jobsight-pro/commit/c7895ac921ad79eda4eda05f760722662405bd9f))
+
 ## [1.82.1](https://github.com/wize-works/jobsight-pro/compare/v1.82.0...v1.82.1) (2025-06-24)
 
 
