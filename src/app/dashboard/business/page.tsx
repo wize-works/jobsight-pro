@@ -150,20 +150,17 @@ export default function BusinessPage() {
                 >
                     Subscription
                 </a>
-            </div>
-
-            {activeTab === "profile" && (
+            </div>            {activeTab === "profile" && (
                 <form action={handleSaveChanges}>
-                    <div className="grid grid-cols-2 gap-6 mb-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
                         <div className="card bg-base-100 shadow-lg">
-                            <div className="card-body">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h2 className="card-title text-xl">Business Information</h2>
-                                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                        <i className="far fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
-                                    </button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="card-body">                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                                <h2 className="card-title text-xl">Business Information</h2>
+                                <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={isSubmitting}>
+                                    <i className="far fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text">Business Name</span>
@@ -228,20 +225,19 @@ export default function BusinessPage() {
                         <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <h2 className="card-title text-xl mb-4">Business Address</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                                    <div className="form-control md:col-span-6">
-                                        <label className="label">
-                                            <span className="label-text">Street Address</span>
-                                        </label>
-                                        <input type="text" name="address" className="input input-bordered w-full" defaultValue={business?.address || ""} />
-                                    </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">                                    <div className="form-control lg:col-span-6">
+                                    <label className="label">
+                                        <span className="label-text">Street Address</span>
+                                    </label>
+                                    <input type="text" name="address" className="input input-bordered w-full" defaultValue={business?.address || ""} />
+                                </div>
 
-                                    <div className="form-control md:col-span-3">
+                                    <div className="form-control lg:col-span-3">
                                         <label className="label">
                                             <span className="label-text">City</span>
                                         </label>
                                         <input type="text" name="city" className="input input-bordered w-full" defaultValue={business?.city || ""} />
-                                    </div>                                    <div className="form-control md:col-span-1">
+                                    </div>                                    <div className="form-control lg:col-span-1">
                                         <label className="label">
                                             <span className="label-text">State</span>
                                         </label>
@@ -303,16 +299,14 @@ export default function BusinessPage() {
                                             <option value="WI">WI - Wisconsin</option>
                                             <option value="WY">WY - Wyoming</option>
                                         </select>
-                                    </div>
-
-                                    <div className="form-control md:col-span-2">
+                                    </div>                                    <div className="form-control lg:col-span-2">
                                         <label className="label">
                                             <span className="label-text">Zip Code</span>
                                         </label>
                                         <input type="text" name="zip" className="input input-bordered w-full" defaultValue={business?.zip || ""} />
                                     </div>
 
-                                    <div className="form-control col-span-3">
+                                    <div className="form-control lg:col-span-3">
                                         <label className="label">
                                             <span className="label-text">Country</span>
                                         </label>
