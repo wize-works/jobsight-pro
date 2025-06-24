@@ -7,12 +7,21 @@ export async function POST(request: NextRequest) {
 
         if (!url && !html) {
             return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
-        }
-
-        // Launch browser and generate PDF
+        }        // Launch browser and generate PDF
         const browser = await chromium.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor'
+            ]
         });
         const context = await browser.newContext();
         const page = await context.newPage();

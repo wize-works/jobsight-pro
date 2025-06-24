@@ -18,7 +18,8 @@
         "start": "next start",
         "lint": "next lint",
         "bundle-analyzer": "npx @next/bundle-analyzer build",
-        "analyze-tree-shaking": "node scripts/analyze-tree-shaking.js"
+        "analyze-tree-shaking": "node scripts/analyze-tree-shaking.js",
+        "test:pdf": "node scripts/test-pdf-container.js"
     },
     "dependencies": {
         "@azure/storage-blob": "^12.27.0",
