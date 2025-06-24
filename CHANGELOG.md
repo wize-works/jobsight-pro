@@ -1,3 +1,10 @@
+# [1.91.0](https://github.com/wize-works/jobsight-pro/compare/v1.90.0...v1.91.0) (2025-06-24)
+
+
+### Features
+
+* Integrate HTML generation for client and invoice PDFs; refactor PDF generation functions to accept businessId ([55287e2](https://github.com/wize-works/jobsight-pro/commit/55287e241300b125113df65e514e905f70a49ec9))
+
 # [1.90.0](https://github.com/wize-works/jobsight-pro/compare/v1.89.0...v1.90.0) (2025-06-24)
 
 
