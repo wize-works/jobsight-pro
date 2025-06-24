@@ -1,3 +1,10 @@
+# [1.92.0](https://github.com/wize-works/jobsight-pro/compare/v1.91.0...v1.92.0) (2025-06-24)
+
+
+### Features
+
+* Add weather helper functions to Dashboard component for improved weather display ([d9a3920](https://github.com/wize-works/jobsight-pro/commit/d9a39201b7346afec8a8abc8f7285bf8b13d90aa))
+
 # [1.91.0](https://github.com/wize-works/jobsight-pro/compare/v1.90.0...v1.91.0) (2025-06-24)
 
 
