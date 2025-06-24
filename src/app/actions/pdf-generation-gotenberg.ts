@@ -161,15 +161,14 @@ export async function generateClientPdf(
     clientName: string
 ): Promise<PdfGenerationResult> {
     try {
-        // You can implement client HTML generation later
-        // const { generateClientHTML } = await import('@/app/actions/generate-html');
-        // const html = await generateClientHTML(businessId, clientId);
+        // Generate client HTML content
+        const { generateClientHTML } = await import('@/app/actions/generate-html');
+        const html = await generateClientHTML(businessId, clientId);
 
         const filename = `Client-${clientName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
 
         return await generatePdfDocumentWithGotenberg({
-            // html, // Will be implemented when client HTML generation is ready
-            url: `${process.env.NEXTAUTH_URL}/dashboard/clients/${clientId}`, // Fallback to URL
+            html,
             filename,
             description: `Client report PDF for ${clientName}`,
             saveToStorage: true,
@@ -181,6 +180,36 @@ export async function generateClientPdf(
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to generate client PDF'
+        };
+    }
+}
+
+/**
+ * Generate an invoice PDF using Gotenberg and return as downloadable response
+ */
+export async function generateInvoicePdf(
+    businessId: string,
+    invoiceId: string,
+    filename: string
+): Promise<PdfGenerationResult> {
+    try {
+        // Generate invoice HTML content
+        const { generateInvoiceHTML } = await import('@/app/actions/generate-html');
+        const html = await generateInvoiceHTML(businessId, invoiceId);
+
+        return await generatePdfDocumentWithGotenberg({
+            html,
+            filename,
+            description: `Invoice PDF`,
+            saveToStorage: false, // For direct download
+            returnAsAttachment: true
+        });
+
+    } catch (error) {
+        console.error('Error generating invoice PDF with Gotenberg:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate invoice PDF'
         };
     }
 }
