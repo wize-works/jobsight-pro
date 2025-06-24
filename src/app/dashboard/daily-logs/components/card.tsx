@@ -105,16 +105,46 @@ export const DailyLogCard = ({
             .join('')
             .toUpperCase()
             .slice(0, 2);
-    };
-
-    const getWeatherIcon = (weather: string | null) => {
+    }; const getWeatherIcon = (weather: string | null) => {
         if (!weather) return "fas fa-question";
+
+        // Try to parse as JSON first
+        try {
+            const weatherData = JSON.parse(weather);
+            if (weatherData.current) {
+                const condition = weatherData.current.condition.toLowerCase();
+                if (condition.includes('rain') || condition.includes('drizzle')) return "fas fa-cloud-rain";
+                if (condition.includes('sun') || condition.includes('clear')) return "fas fa-sun";
+                if (condition.includes('cloud')) return "fas fa-cloud";
+                if (condition.includes('snow')) return "fas fa-snowflake";
+                if (condition.includes('thunderstorm') || condition.includes('storm')) return "fas fa-bolt";
+                return "fas fa-cloud-sun";
+            }
+        } catch {
+            // Fall back to legacy string parsing
+        }
+
         const weatherLower = weather.toLowerCase();
         if (weatherLower.includes('rain')) return "fas fa-cloud-rain";
         if (weatherLower.includes('sun') || weatherLower.includes('clear')) return "fas fa-sun";
         if (weatherLower.includes('cloud')) return "fas fa-cloud";
         if (weatherLower.includes('snow')) return "fas fa-snowflake";
         return "fas fa-cloud-sun";
+    };
+
+    const getWeatherDisplay = (weather: string | null) => {
+        if (!weather) return null;
+
+        try {
+            const weatherData = JSON.parse(weather);
+            if (weatherData.current) {
+                return `${weatherData.current.description}, ${weatherData.current.temperature}°F`;
+            }
+        } catch {
+            // Fall back to legacy string format
+        }
+
+        return weather;
     };
 
     const hasIssues = () => {
@@ -156,13 +186,12 @@ export const DailyLogCard = ({
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                        {log.weather && (
-                            <div className="flex items-center gap-1 text-sm text-base-content/70">
-                                <i className={`${getWeatherIcon(log.weather)} w-4`} />
-                                <span>{log.weather}</span>
-                            </div>
-                        )}
+                    <div className="flex flex-col items-end gap-1">                        {log.weather && (
+                        <div className="flex items-center gap-1 text-sm text-base-content/70">
+                            <i className={`${getWeatherIcon(log.weather)} w-4`} />
+                            <span>{getWeatherDisplay(log.weather)}</span>
+                        </div>
+                    )}
                     </div>
                 </div>
 
@@ -307,7 +336,8 @@ export const DailyLogCard = ({
                             >
                                 <i className="fas fa-users text-sm" />
                             </Link>
-                        )}                        <button
+                        )}
+                        <button
                             className="btn btn-ghost btn-sm btn-circle"
                             title="Export log"
                             onClick={handleDownloadPDF}

@@ -128,7 +128,7 @@ export const Notifications = () => {
                     <i className="far fa-bell"></i>
                 </div>
                 {notifications.length > 0 && (
-                    <span className="indicator-item indicator-bottom badge badge-info rounded-full">
+                    <span className="indicator-item indicator-bottom badge badge-info badge-sm rounded-full">
                         {notifications.length > 99 ? '99+' : notifications.length}
                     </span>
                 )}
