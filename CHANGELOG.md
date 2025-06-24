@@ -1,3 +1,10 @@
+# [1.90.0](https://github.com/wize-works/jobsight-pro/compare/v1.89.0...v1.90.0) (2025-06-24)
+
+
+### Features
+
+* Implement PDF generation for invoices using HTML content; refactor download logic in invoice components ([729e7f4](https://github.com/wize-works/jobsight-pro/commit/729e7f447d89e4f0790f3e98d6a11681f7e792de))
+
 # [1.89.0](https://github.com/wize-works/jobsight-pro/compare/v1.88.1...v1.89.0) (2025-06-24)
 
 
