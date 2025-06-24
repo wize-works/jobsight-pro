@@ -656,7 +656,8 @@ export default function Dashboard() {
                                 <div className="stat-title">Overdue</div>
                                 <div className="stat-value text-error">{dashboardData.financialOverview.overdueInvoices}</div>
                             </div>
-                        </div>                    </div>
+                        </div>
+                    </div>
                 </div>
             </ErrorBoundary>
 
@@ -790,39 +791,40 @@ export default function Dashboard() {
                                 <i className="far fa-building text-primary mr-2"></i>
                                 Active Projects
                             </h2>
-                            <div className="space-y-3">                                {dashboardData.projectsWithProgress.length > 0 ? (
-                                dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
-                                    <div key={project.id} className="border border-base-300 rounded-lg p-4">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <Link href={`/dashboard/projects/${project.id}`} className="hover:text-primary transition-colors">
-                                                    <h3 className="font-semibold hover:underline">{project.name}</h3>
-                                                </Link>
-                                                <p className="text-sm text-base-content/70">{project.clientName}</p>
+                            <div className="space-y-3">
+                                {dashboardData.projectsWithProgress.length > 0 ? (
+                                    dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
+                                        <div key={project.id} className="border border-base-300 rounded-lg p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <Link href={`/dashboard/projects/${project.id}`} className="hover:text-primary transition-colors">
+                                                        <h3 className="font-semibold hover:underline">{project.name}</h3>
+                                                    </Link>
+                                                    <p className="text-sm text-base-content/70">{project.clientName}</p>
+                                                </div>
+                                                <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                                                    {project.status}
+                                                </span>
                                             </div>
-                                            <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                                                {project.status}
-                                            </span>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-sm">Progress: {project.progress}%</span>
+                                                <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
+                                            </div>
+                                            <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
+                                            <div className="text-xs text-base-content/50 mt-1">
+                                                Crew: {project.crewName}
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm">Progress: {project.progress}%</span>
-                                            <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
-                                        </div>
-                                        <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
-                                        <div className="text-xs text-base-content/50 mt-1">
-                                            Crew: {project.crewName}
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-base-content/50">
+                                        <i className="far fa-plus-circle text-4xl mb-2"></i>
+                                        <p>No active projects yet</p>
+                                        <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
+                                            Create Project
+                                        </Link>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 text-base-content/50">
-                                    <i className="far fa-plus-circle text-4xl mb-2"></i>
-                                    <p>No active projects yet</p>
-                                    <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
-                                        Create Project
-                                    </Link>
-                                </div>
-                            )}
+                                )}
                             </div>
                         </div>
                     </div>
@@ -918,41 +920,42 @@ export default function Dashboard() {
                                 <i className="far fa-clock text-primary mr-2"></i>
                                 Recent Activity
                             </h2>
-                            <div className="space-y-3">                                {dashboardData.recentActivity.length > 0 ? (
-                                dashboardData.recentActivity.slice(0, 3).map((activity) => (
-                                    <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
-                                        {activity.type === 'daily_log' ? (
-                                            <Link href={`/dashboard/daily-logs/${activity.id}`} className="hover:text-primary transition-colors">
-                                                <p className="font-medium text-sm hover:underline">{activity.message}</p>
-                                            </Link>
-                                        ) : (
-                                            <p className="font-medium text-sm">{activity.message}</p>
-                                        )}<div className="text-xs text-base-content/70 space-y-1">
-                                            <div>
-                                                <Link href={`/dashboard/projects/${activity.projectId}`} className="hover:text-primary transition-colors hover:underline">
-                                                    {activity.projectName}
+                            <div className="space-y-3">
+                                {dashboardData.recentActivity.length > 0 ? (
+                                    dashboardData.recentActivity.slice(0, 3).map((activity) => (
+                                        <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
+                                            {activity.type === 'daily_log' ? (
+                                                <Link href={`/dashboard/daily-logs/${activity.id}`} className="hover:text-primary transition-colors">
+                                                    <p className="font-medium text-sm hover:underline">{activity.message}</p>
                                                 </Link>
-                                                {" • "}{activity.clientName}
-                                            </div>
-                                            <div>{formatDate(activity.timestamp)}</div>
-                                            {activity.weather && getWeatherDisplay(activity.weather) && (
-                                                <div className="flex items-center gap-1">
-                                                    <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
-                                                    <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
+                                            ) : (
+                                                <p className="font-medium text-sm">{activity.message}</p>
+                                            )}<div className="text-xs text-base-content/70 space-y-1">
+                                                <div>
+                                                    <Link href={`/dashboard/projects/${activity.projectId}`} className="hover:text-primary transition-colors hover:underline">
+                                                        {activity.projectName}
+                                                    </Link>
+                                                    {" • "}{activity.clientName}
                                                 </div>
-                                            )}
+                                                <div>{formatDate(activity.timestamp)}</div>
+                                                {activity.weather && getWeatherDisplay(activity.weather) && (
+                                                    <div className="flex items-center gap-1">
+                                                        <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
+                                                        <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-base-content/50">
+                                        <i className="far fa-clipboard-list text-4xl mb-2"></i>
+                                        <p>No recent activity</p>
+                                        <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
+                                            Add Daily Log
+                                        </Link>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 text-base-content/50">
-                                    <i className="far fa-clipboard-list text-4xl mb-2"></i>
-                                    <p>No recent activity</p>
-                                    <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
-                                        Add Daily Log
-                                    </Link>
-                                </div>
-                            )}
+                                )}
                             </div>
                         </div>
                     </div>

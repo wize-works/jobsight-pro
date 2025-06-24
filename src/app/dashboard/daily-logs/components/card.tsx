@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import { generateDailyLogHTML } from "@/app/actions/generate-html";
+import LocationDisplay from "@/components/location-display";
 
 export const DailyLogCard = ({
     log,
@@ -187,12 +188,13 @@ export const DailyLogCard = ({
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">                        {log.weather && (
-                        <div className="flex items-center gap-1 text-sm text-base-content/70">
-                            <i className={`${getWeatherIcon(log.weather)} w-4`} />
-                            <span>{getWeatherDisplay(log.weather)}</span>
-                        </div>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                        {log.weather && (
+                            <div className="flex items-center gap-1 text-sm text-base-content/70">
+                                <i className={`${getWeatherIcon(log.weather)} w-4`} />
+                                <span>{getWeatherDisplay(log.weather)}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -228,7 +230,7 @@ export const DailyLogCard = ({
                 {/* Statistics Section */}
                 <div className="divider my-3"></div>
 
-                <div className="stats stats-horizontal w-full mb-auto">
+                <div className="stats stats-horizontal w-full">
                     <div className="stat px-2 py-3">
                         <div className="stat-value text-primary">{log.hours_worked || 0}</div>
                         <div className="stat-title">Hours Worked</div>
@@ -241,8 +243,10 @@ export const DailyLogCard = ({
                         <div className="stat-value text-warning">{formatCurrency(getTotalMaterialCost())}</div>
                         <div className="stat-title">Material Cost</div>
                     </div>
-                </div>                {/* Materials and Equipment Preview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                </div>
+
+                {/* Materials and Equipment Preview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-auto">
                     <div>
                         <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
                             <i className="fas fa-boxes text-xs text-base-content/60" />

@@ -10,9 +10,6 @@ import { toast } from "@/hooks/use-toast";
 import { Client } from "@/types/clients";
 import { getClientContactsByClientId } from "@/app/actions/client-contacts";
 import { ClientContact } from "@/types/client-contacts";
-import { getCrewsByProjectId } from "@/app/actions/crews";
-import { getProjectIssuesWithDetailsByProjectId } from "@/app/actions/projects-issues";
-import { getMediaByProjectId } from "@/app/actions/media";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
@@ -21,9 +18,7 @@ import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/t
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { ProjectIssue, ProjectIssueWithDetails } from "@/types/projects-issues";
-import { Media } from "@/types/media";
 import { CrewWithMemberInfo } from "@/types/crews";
-import Loading from "@/app/loading";
 import ProjectDetailLoading from "./loading";
 import { progressBar } from "@/utils/progress";
 import { formatDistance, formatDistanceToNow } from "date-fns";
@@ -33,6 +28,7 @@ import WeatherWidget from "@/components/weather-widget";
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
 import TabLoading from "@/components/tab-loading";
+import LocationDisplay from "@/components/location-display";
 
 // Dynamic imports for tab components
 const TasksTab = dynamic(() => import("../components/tab-tasks"), {
@@ -287,7 +283,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </li>
                             <li>
                                 <button onClick={() => setMilestoneModalOpen(true)}>Add Milestone</button>
-                            </li>                            <li>
+                            </li>
+                            <li>
                                 <button onClick={() => setCrewModalOpen(true)}>Assign Crew</button>
                             </li>
                             <li>
@@ -295,7 +292,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </li>
                         </ul>
                     </div>
-                </div>            </div>
+                </div>
+            </div>
 
             {/* Project Stats Cards */}
             <ErrorBoundary fallback={(error) => (
@@ -358,7 +356,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     <span className="text-lg text-base-content font-medium">Budget: {formatCurrency(project.budget || 0.00)}</span>
                                     <span className="text-sm text-base-content/50">Spent: {formatCurrency((project.budget || 0) * (progress / 100))}</span>
                                 </div>
-                            </div>                    </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </ErrorBoundary>
@@ -427,39 +426,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                             <h4 className="text-sm font-medium text-base-content/70">Project Type</h4>
                                             <p>{project.type || "Not specified"}</p>
                                         </div>
-
-                                        <div className="mb-1 flex flex-col justify-between">
-                                            <span>Location:</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="badge badge-primary badge-outline mr-2">{project.location || "No location assigned"}</span>                                            <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateProjectLocationFromGPS}>
-                                                    <i className="far fa-map-marker-alt"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-start gap-2 mb-6">
-                                            {project.location && project.location !== "No location assigned" && (
-                                                <>
-                                                    <Link href={`https://maps.apple.com/?q=${project.location}`} className="btn btn-accent btn-xs">
-                                                        <i className="fab fa-apple fa-lg"></i> View on Map
-                                                    </Link>
-                                                    <Link href={`https://google.com/maps/place/${project.location}`} className="btn btn-accent btn-xs">
-                                                        <i className="fab fa-google fa-lg"></i> View on Map
-                                                    </Link>
-                                                    <Link
-                                                        href={(() => {
-                                                            const match = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
-                                                            if (match) {
-                                                                const [_, lat, lon] = match;
-                                                                return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15&layers=M&marker=color:red|${lat},${lon}`;
-                                                            }
-                                                            return '#';
-                                                        })()}
-                                                        className="btn btn-accent btn-xs"
-                                                    >
-                                                        <i className="far fa-map fa-lg"></i> View on Map
-                                                    </Link>
-                                                </>
-                                            )}
+                                        <div className="mt-6">
+                                            <LocationDisplay
+                                                location={project.location}
+                                                showUpdateButton={true}
+                                                onUpdateLocation={updateProjectLocationFromGPS}
+                                            />
                                         </div>
                                     </div>
                                     <div>
@@ -477,6 +449,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Location Section */}
                                 <div>
                                     <h4 className="text-sm font-medium text-base-content/70 mb-2">Description</h4>
                                     <p>{project.description || "No description provided"}</p>
@@ -760,7 +734,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         />
                     </div>
                 </div>
-            </ErrorBoundary>            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
+            </ErrorBoundary>
+            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
             {editModalOpen && <ProjectEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}

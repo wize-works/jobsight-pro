@@ -22,6 +22,7 @@ import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import ModalLoading from "@/components/modal-loading";
 import EquipmentDetailLoading from "./loading";
+import LocationDisplay from "@/components/location-display";
 
 // Dynamic imports for modal components
 const MaintenanceModal = dynamic(() => import("../components/modal-maintenance").then(mod => ({ default: mod.MaintenanceModal })), {
@@ -442,43 +443,13 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                             <div className="mb-1 flex justify-between">
                                 <span>Next Maintenance:</span>
                                 <span>{equipment.next_maintenance || "Not set"}</span>
-                            </div>
-
-                            <div className="mb-1 flex justify-between">
-                                <span>Location:</span>
-                                <div className="flex items-center gap-2 ml-2">
-                                    <div className="rounded-lg bg-primary/50 p-2 flex items-center gap-2">
-                                        <span className="">{location || "No location assigned"}</span>
-                                    </div>
-                                    <button className="btn btn-secondary btn-xs join-item" type="button" onClick={updateLocationFromGPS}>
-                                        <i className="far fa-map-marker-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="mb-1 flex justify-end gap-2">
-                                {location && location !== "No location assigned" && (
-                                    <>
-                                        <Link href={`https://maps.apple.com/?q=${location}`} className="btn btn-accent btn-xs">
-                                            <i className="fab fa-apple fa-lg"></i> View on Map
-                                        </Link>
-                                        <Link href={`https://google.com/maps/place/${location}`} className="btn btn-accent btn-xs">
-                                            <i className="fab fa-google fa-lg"></i> View on Map
-                                        </Link>
-                                        <Link
-                                            href={(() => {
-                                                const match = location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
-                                                if (match) {
-                                                    const [_, lat, lon] = match;
-                                                    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15&layers=M&marker=color:red|${lat},${lon}`;
-                                                }
-                                                return '#';
-                                            })()}
-                                            className="btn btn-accent btn-xs"
-                                        >
-                                            <i className="far fa-map fa-lg"></i> View on Map
-                                        </Link>
-                                    </>
-                                )}
+                            </div>                            {/* Location Section */}
+                            <div className="mb-6">
+                                <LocationDisplay
+                                    location={location}
+                                    showUpdateButton={true}
+                                    onUpdateLocation={updateLocationFromGPS}
+                                />
                             </div>
 
                             <div className="divider"></div>

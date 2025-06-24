@@ -2,6 +2,7 @@ import { Equipment } from "@/types/equipment";
 import Link from "next/link";
 import { EquipmentStatus, EquipmentType, EquipmentCondition } from "@/types/equipment";
 import { equipmentStatusOptions, equipmentTypeOptions, equipmentConditionOptions } from "@/types/equipment";
+import LocationDisplay from "@/components/location-display";
 
 interface EquipmentCardProps {
     equipment: Equipment;
@@ -129,9 +130,7 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
                         ) : (
                             <span className="text-base-content/50 italic">Model not provided</span>
                         )}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm">
+                    </div>                    <div className="flex items-center gap-2 text-sm">
                         <i className="fas fa-barcode w-4 text-base-content/60" />
                         {equipment.serial_number ? (
                             <span className="text-base-content/80 font-mono text-xs">{equipment.serial_number}</span>
@@ -140,14 +139,12 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm">
-                        <i className="fas fa-map-marker-alt w-4 text-base-content/60" />
-                        {equipment.location ? (
-                            <span className="text-base-content/80">{equipment.location}</span>
-                        ) : (
-                            <span className="text-base-content/50 italic">Location not specified</span>
-                        )}
-                    </div>
+                    {equipment.location && (
+                        <LocationDisplay
+                            location={equipment.location}
+                            compact={true}
+                        />
+                    )}
 
                     {equipment.description && (
                         <div className="flex items-start gap-2 text-sm">
