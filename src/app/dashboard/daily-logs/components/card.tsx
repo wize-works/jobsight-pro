@@ -105,7 +105,8 @@ export const DailyLogCard = ({
             .join('')
             .toUpperCase()
             .slice(0, 2);
-    }; const getWeatherIcon = (weather: string | null) => {
+    };
+    const getWeatherIcon = (weather: string | null) => {
         if (!weather) return "fas fa-question";
 
         // Try to parse as JSON first

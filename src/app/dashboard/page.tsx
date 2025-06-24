@@ -129,7 +129,52 @@ export default function Dashboard() {
     const [equipmentModal, setEquipmentModal] = useState(false);
     const [dailyLogModal, setDailyLogModal] = useState(false); const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
     const [aiGuidance, setAiGuidance] = useState<string>('');
-    const [loadingRecommendations, setLoadingRecommendations] = useState(false); useEffect(() => {
+    const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+
+    // Weather helper functions (similar to daily log card component)
+    const getWeatherIcon = (weather: string | null) => {
+        if (!weather) return "fas fa-question";
+
+        // Try to parse as JSON first
+        try {
+            const weatherData = JSON.parse(weather);
+            if (weatherData.current) {
+                const condition = weatherData.current.condition.toLowerCase();
+                if (condition.includes('rain') || condition.includes('drizzle')) return "fas fa-cloud-rain";
+                if (condition.includes('sun') || condition.includes('clear')) return "fas fa-sun";
+                if (condition.includes('cloud')) return "fas fa-cloud";
+                if (condition.includes('snow')) return "fas fa-snowflake";
+                if (condition.includes('thunderstorm') || condition.includes('storm')) return "fas fa-bolt";
+                return "fas fa-cloud-sun";
+            }
+        } catch {
+            // Fall back to legacy string parsing
+        }
+
+        const weatherLower = weather.toLowerCase();
+        if (weatherLower.includes('rain')) return "fas fa-cloud-rain";
+        if (weatherLower.includes('sun') || weatherLower.includes('clear')) return "fas fa-sun";
+        if (weatherLower.includes('cloud')) return "fas fa-cloud";
+        if (weatherLower.includes('snow')) return "fas fa-snowflake";
+        return "fas fa-cloud-sun";
+    };
+
+    const getWeatherDisplay = (weather: string | null) => {
+        if (!weather) return null;
+
+        try {
+            const weatherData = JSON.parse(weather);
+            if (weatherData.current) {
+                return `${weatherData.current.description}, ${weatherData.current.temperature}°F`;
+            }
+        } catch {
+            // Fall back to legacy string format
+        }
+
+        return weather;
+    };
+
+    useEffect(() => {
         async function fetchData() {
             if (!businessId || loading) {
                 return;
@@ -874,12 +919,14 @@ export default function Dashboard() {
                                 {dashboardData.recentActivity.length > 0 ? (
                                     dashboardData.recentActivity.slice(0, 3).map((activity) => (
                                         <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
-                                            <p className="font-medium text-sm">{activity.message}</p>
-                                            <div className="text-xs text-base-content/70 space-y-1">
+                                            <p className="font-medium text-sm">{activity.message}</p>                                            <div className="text-xs text-base-content/70 space-y-1">
                                                 <div>{activity.projectName} • {activity.clientName}</div>
                                                 <div>{formatDate(activity.timestamp)}</div>
-                                                {activity.weather && (
-                                                    <div className="badge badge-outline badge-sm">{activity.weather}</div>
+                                                {activity.weather && getWeatherDisplay(activity.weather) && (
+                                                    <div className="flex items-center gap-1">
+                                                        <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
+                                                        <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
