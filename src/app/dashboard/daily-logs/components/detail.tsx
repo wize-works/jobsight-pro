@@ -10,8 +10,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { CrewMember } from "@/types/crew-members";
 import TabSafety from "./tab-safety";
-import { DailyLogMaterial } from "@/types/daily-log-materials";
-import { DailyLogEquipment } from "@/types/daily-log-equipment";
 import ModalLoading from "@/components/modal-loading";
 import UniversalMediaManager from "@/components/universal-media-manager";
 import {
@@ -21,6 +19,8 @@ import {
     unlinkMediaFromDailyLog,
     getMedias
 } from "@/app/actions/media";
+import { generateDailyLogHTML } from "@/app/actions/generate-html";
+import { formatDate } from "@/utils/date";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 
@@ -41,6 +41,36 @@ const extractNumber = (str: any) => {
     return match ? parseFloat(match[1]) : 0;
 };
 
+// Helper function to parse weather data
+const parseWeatherData = (weatherString: string | null) => {
+    if (!weatherString) return null;
+
+    try {
+        const weatherData = JSON.parse(weatherString);
+        return weatherData;
+    } catch {
+        // If it's not JSON, treat as legacy string format
+        return {
+            legacy: true,
+            description: weatherString
+        };
+    }
+};
+
+// Helper function to get weather icon
+const getWeatherIcon = (condition: string | null, description?: string) => {
+    if (!condition && !description) return "fas fa-question";
+
+    const weather = (condition || description || "").toLowerCase();
+    if (weather.includes('rain') || weather.includes('drizzle')) return "fas fa-cloud-rain";
+    if (weather.includes('sun') || weather.includes('clear')) return "fas fa-sun";
+    if (weather.includes('cloud')) return "fas fa-cloud";
+    if (weather.includes('snow')) return "fas fa-snowflake";
+    if (weather.includes('thunderstorm') || weather.includes('storm')) return "fas fa-bolt";
+    if (weather.includes('mist') || weather.includes('fog')) return "fas fa-smog";
+    return "fas fa-cloud-sun";
+};
+
 type DailyLogDetailProps = {
     log: DailyLogWithDetails;
     crews: Crew[];
@@ -53,6 +83,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     const [activeTab, setActiveTab] = useState<"overview" | "labor-hours" | "materials-equipment" | "safety-quality" | "photos-documents">("overview");
     const [currentLog, setCurrentLog] = useState<DailyLogWithDetails>(log);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     // Media state
     const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
@@ -62,9 +93,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     // Load media data when component mounts or log changes
     useEffect(() => {
         loadMediaData();
-    }, [currentLog.id, businessId]);
-
-    const loadMediaData = async () => {
+    }, [currentLog.id, businessId]); const loadMediaData = async () => {
         if (!businessId) return;
 
         setMediaLoading(true);
@@ -78,14 +107,119 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
             setAvailableMedia(available);
         } catch (error) {
             console.error("Error loading media data:", error);
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Failed to load media data",
+                variant: "error",
             });
         } finally {
             setMediaLoading(false);
         }
-    };    // Calculate totals for summary
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!businessId) {
+            toast({
+                title: "Error",
+                description: "No business context available.",
+                variant: "error",
+            });
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            // Generate HTML using server action
+            const html = await generateDailyLogHTML(businessId, currentLog.id);
+            const filename = `daily-log-${currentLog.project?.name || 'unknown'}-${formatDate(currentLog.date)}.pdf`;
+
+            // Generate PDF
+            const pdfResponse = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ html, filename }),
+            });
+
+            if (!pdfResponse.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+
+            // Download the PDF
+            const blob = await pdfResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `daily-log-${currentLog.project?.name || 'unknown'}-${formatDate(currentLog.date)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast({
+                title: "Success",
+                description: "Daily log PDF downloaded successfully.",
+            });
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            toast({
+                title: "Error",
+                description: "Failed to download daily log PDF. Please try again.",
+                variant: "error",
+            });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleShare = async () => {
+        try {
+            const shareUrl = `${window.location.origin}/dashboard/daily-logs/${currentLog.id}`;
+
+            // Try to use the Web Share API if available (mobile devices)
+            if (navigator.share && navigator.canShare({ url: shareUrl })) {
+                await navigator.share({
+                    title: `Daily Log - ${currentLog.project?.name || 'Unknown Project'}`,
+                    text: `Daily log for ${currentLog.project?.name || 'Unknown Project'} from ${formatDate(currentLog.date)}`,
+                    url: shareUrl,
+                });
+
+                toast({
+                    title: "Success",
+                    description: "Daily log shared successfully.",
+                });
+            } else {
+                // Fallback to clipboard
+                await navigator.clipboard.writeText(shareUrl);
+
+                toast({
+                    title: "Link Copied",
+                    description: "Daily log link copied to clipboard.",
+                });
+            }
+        } catch (error) {
+            console.error('Error sharing daily log:', error);
+
+            // If all else fails, try to copy to clipboard manually
+            try {
+                const shareUrl = `${window.location.origin}/dashboard/daily-logs/${currentLog.id}`;
+                await navigator.clipboard.writeText(shareUrl);
+
+                toast({
+                    title: "Link Copied",
+                    description: "Daily log link copied to clipboard.",
+                });
+            } catch (clipboardError) {
+                toast({
+                    title: "Error",
+                    description: "Failed to share daily log. Please copy the URL manually.",
+                    variant: "error",
+                });
+            }
+        }
+    };// Calculate totals for summary
     const totalMaterialCost = currentLog.materials.reduce((total, material) =>
         total + (extractNumber(material.quantity) * (material.cost || 0)), 0);
 
@@ -154,12 +288,26 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                     >
                         <i className="far fa-edit mr-2"></i>
                         Edit
-                    </button>
-                    <button className="btn btn-outline btn-sm">
-                        <i className="far fa-print mr-2"></i>
-                        Print
-                    </button>
-                    <button className="btn btn-outline btn-sm">
+                    </button>                    <button
+                        className="btn btn-outline btn-sm"
+                        onClick={handleDownloadPDF}
+                        disabled={isDownloading}
+                    >
+                        {isDownloading ? (
+                            <>
+                                <i className="fas fa-spinner fa-spin mr-2"></i>
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <i className="far fa-download mr-2"></i>
+                                Export Log
+                            </>
+                        )}                    </button>
+                    <button
+                        className="btn btn-outline btn-sm"
+                        onClick={handleShare}
+                    >
                         <i className="far fa-share mr-2"></i>
                         Share
                     </button>
@@ -249,36 +397,95 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Weather Conditions */}
+                            </div>                            {/* Weather Conditions */}
                             <div className="card bg-base-100 shadow">
                                 <div className="card-body">
                                     <h3 className="card-title">Weather Conditions</h3>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-6">
-                                            <div className="text-center">
-                                                <i className="far fa-sun text-3xl text-yellow-500"></i>
-                                                <p className="font-medium">Sunny</p>
-                                            </div>
-                                            <div className="text-center">
-                                                <i className="far fa-thermometer-half text-2xl text-red-500"></i>
-                                                <p className="font-medium">75°F</p>
-                                            </div>
-                                            <div className="text-center">
-                                                <i className="far fa-wind text-2xl text-blue-500"></i>
-                                                <p className="font-medium">5 mph</p>
-                                            </div>
-                                            <div className="text-center">
-                                                <i className="far fa-cloud-rain text-2xl text-gray-500"></i>
-                                                <p className="font-medium">0 in</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-base-content/70">Perfect working conditions</p>
-                                    </div>
-                                </div>
-                                <div>
+                                    {(() => {
+                                        const weatherData = parseWeatherData(currentLog.weather);
 
+                                        if (!weatherData) {
+                                            return (
+                                                <div className="text-center py-8">
+                                                    <i className="fas fa-question text-4xl text-base-content/30 mb-2"></i>
+                                                    <p className="text-base-content/70">No weather data recorded</p>
+                                                    <p className="text-sm text-base-content/50">Weather conditions were not captured for this daily log</p>
+                                                </div>
+                                            );
+                                        }
+
+                                        if (weatherData.legacy) {
+                                            return (
+                                                <div className="flex items-center gap-4">
+                                                    <div className="text-center">
+                                                        <i className={`${getWeatherIcon(null, weatherData.description)} text-3xl text-primary`}></i>
+                                                        <p className="font-medium mt-2">{weatherData.description}</p>
+                                                    </div>
+                                                    <p className="text-base-content/70">Legacy weather data</p>
+                                                </div>
+                                            );
+                                        }
+
+                                        const { current } = weatherData;
+                                        const windDirection = current.windDirection ?
+                                            ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(current.windDirection / 22.5) % 16] : '';
+
+                                        return (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="text-center">
+                                                            <i className={`${getWeatherIcon(current.condition, current.description)} text-4xl text-primary`}></i>
+                                                            <p className="font-medium mt-1 capitalize">{current.description}</p>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <i className="fas fa-thermometer-half text-3xl text-red-500"></i>
+                                                            <p className="font-bold text-xl">{current.temperature}°F</p>
+                                                            <p className="text-sm text-base-content/60">Feels {current.feelsLike}°F</p>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <i className="fas fa-wind text-2xl text-blue-500"></i>
+                                                            <p className="font-medium">{current.windSpeed} mph</p>
+                                                            <p className="text-sm text-base-content/60">{windDirection}</p>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <i className="fas fa-tint text-2xl text-blue-600"></i>
+                                                            <p className="font-medium">{current.humidity}%</p>
+                                                            <p className="text-sm text-base-content/60">Humidity</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-base-content/70 text-sm">
+                                                            Captured at {new Date(weatherData.location.timestamp).toLocaleTimeString()}
+                                                        </p>
+                                                        <p className="text-base-content/50 text-xs">
+                                                            {weatherData.location.latitude.toFixed(4)}, {weatherData.location.longitude.toFixed(4)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Additional weather details */}
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-base-300">
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium">Pressure</p>
+                                                        <p className="text-lg">{current.pressure} hPa</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium">UV Index</p>
+                                                        <p className="text-lg">{current.uvIndex}</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium">Cloud Cover</p>
+                                                        <p className="text-lg">{current.cloudCover}%</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium">Visibility</p>
+                                                        <p className="text-lg">{Math.round(current.visibility / 1000)} km</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>

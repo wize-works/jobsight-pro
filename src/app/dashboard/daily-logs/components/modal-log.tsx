@@ -39,11 +39,11 @@ export default function DailyLogModal({
     const [projects, setProjects] = useState<Project[]>([]);
     const [equipments, setEquipments] = useState<Equipment[]>([]);
     const [crewMembers, setCrewMembers] = useState<CrewMember[]>([]);
-    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
-    const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general"); const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [weatherLoading, setWeatherLoading] = useState(false);
     const [formData, setFormData] = useState({
         date: format(new Date(), "yyyy-MM-dd"),
         project_id: "",
@@ -345,11 +345,95 @@ export default function DailyLogModal({
     // Remove material
     const removeMaterial = (index: number) => {
         setMaterials(prev => prev.filter((_, i) => i !== index));
-    };
-
-    // Remove equipment
+    };    // Remove equipment
     const removeEquipment = (index: number) => {
         setEquipment(prev => prev.filter((_, i) => i !== index));
+    };
+
+    // Capture current weather
+    const captureCurrentWeather = async () => {
+        setWeatherLoading(true);
+        try {
+            // Request location permission
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5 minutes
+                });
+            });
+
+            const { latitude, longitude } = position.coords;
+
+            // Fetch weather data
+            const response = await fetch(`/api/weather/current?lat=${latitude}&lon=${longitude}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch weather data');
+            }
+
+            const weatherData = await response.json();
+
+            // Format weather data for storage
+            const weatherInfo = {
+                location: {
+                    latitude,
+                    longitude,
+                    timestamp: new Date().toISOString()
+                },
+                current: {
+                    temperature: Math.round(weatherData.current.temp),
+                    feelsLike: Math.round(weatherData.current.feels_like),
+                    humidity: weatherData.current.humidity,
+                    windSpeed: Math.round(weatherData.current.wind_speed),
+                    windDirection: weatherData.current.wind_deg,
+                    pressure: weatherData.current.pressure,
+                    visibility: weatherData.current.visibility,
+                    uvIndex: weatherData.current.uvi,
+                    cloudCover: weatherData.current.clouds,
+                    condition: weatherData.current.weather[0].main,
+                    description: weatherData.current.weather[0].description,
+                    icon: weatherData.current.weather[0].icon
+                }
+            };
+
+            // Store as JSON string
+            setFormData(prev => ({
+                ...prev,
+                weather: JSON.stringify(weatherInfo)
+            }));
+
+            toast({
+                title: "Weather Captured",
+                description: `Current weather conditions saved: ${weatherInfo.current.description}, ${weatherInfo.current.temperature}°F`,
+            });
+
+        } catch (error) {
+            console.error('Error capturing weather:', error);
+            let errorMessage = "Failed to capture weather data.";
+
+            if (error instanceof GeolocationPositionError) {
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = "Location access denied. Please enable location services.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = "Location information unavailable.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = "Location request timed out.";
+                        break;
+                }
+            }
+
+            toast({
+                title: "Weather Error",
+                description: errorMessage,
+                variant: "error",
+            });
+        } finally {
+            setWeatherLoading(false);
+        }
     };
 
     const resetForm = () => {
@@ -666,17 +750,60 @@ export default function DailyLogModal({
                                                 <label className="label">
                                                     <span className="label-text font-medium">Weather</span>
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    name="weather"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.weather}
-                                                    onChange={handleInputChange}
-                                                    placeholder="e.g., Sunny, 75°F"
-                                                    disabled={loading}
-                                                />
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-secondary gap-2"
+                                                        onClick={captureCurrentWeather}
+                                                        disabled={loading || weatherLoading}
+                                                    >
+                                                        {weatherLoading ? (
+                                                            <>
+                                                                <span className="loading loading-spinner loading-sm"></span>
+                                                                Capturing...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <i className="far fa-map-marker-alt"></i>
+                                                                Capture Current Weather
+                                                            </>
+                                                        )}
+                                                    </button>
+
+                                                    {formData.weather && (
+                                                        <div className="flex items-center gap-2 text-sm text-success">
+                                                            <i className="far fa-check-circle"></i>
+                                                            Weather data captured
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
+                                        {formData.weather && (() => {
+                                            try {
+                                                const weatherInfo = JSON.parse(formData.weather);
+                                                return (
+                                                    <div className="alert alert-info">
+                                                        <i className="far fa-info-circle"></i>
+                                                        <div>
+                                                            <div className="font-medium">Current Conditions</div>
+                                                            <div className="text-sm">
+                                                                {weatherInfo.current.description} • {weatherInfo.current.temperature}°F
+                                                                (feels like {weatherInfo.current.feelsLike}°F) •
+                                                                Wind: {weatherInfo.current.windSpeed} mph •
+                                                                Humidity: {weatherInfo.current.humidity}%
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            } catch {
+                                                return (
+                                                    <div className="text-sm text-base-content/60">
+                                                        Weather data: {formData.weather.substring(0, 100)}...
+                                                    </div>
+                                                );
+                                            }
+                                        })()}
                                     </div>
                                 </div>
 
@@ -828,8 +955,7 @@ export default function DailyLogModal({
                                                     onChange={handleInputChange}
                                                     placeholder="Any delays or setbacks..."
                                                     rows={3}
-                                                    disabled={loading}
-                                                />
+                                                    disabled={loading} />
                                             </div>
                                         </div>
                                     </div>

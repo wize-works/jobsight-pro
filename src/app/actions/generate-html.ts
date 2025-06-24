@@ -2,7 +2,7 @@
 
 import { getClientDetailsByID } from "./clients";
 import { getDailyLogWithDetailsById } from "./daily-logs";
-import { getUserBusiness, getBusinessById } from "./business";
+import { getBusinessById } from "./business";
 
 // Helper function to convert relative URLs to absolute URLs for PDF generation
 const getAbsoluteUrl = (url: string): string => {
