@@ -1,3 +1,10 @@
+# [1.82.0](https://github.com/wize-works/jobsight-pro/compare/v1.81.0...v1.82.0) (2025-06-24)
+
+
+### Features
+
+* Refactor weather handling in daily log components; add weather capture functionality in modals ([4acaca6](https://github.com/wize-works/jobsight-pro/commit/4acaca626001c807ed620bcf189f07ae806b5b37))
+
 # [1.81.0](https://github.com/wize-works/jobsight-pro/compare/v1.80.0...v1.81.0) (2025-06-23)
 
 
