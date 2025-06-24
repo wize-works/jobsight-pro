@@ -1,3 +1,10 @@
+## [1.87.1](https://github.com/wize-works/jobsight-pro/compare/v1.87.0...v1.87.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* Update Playwright user creation in Dockerfile for compatibility; adjust development roadmap for ongoing tasks ([ba11291](https://github.com/wize-works/jobsight-pro/commit/ba112913519634f81c05341c69c7779e226f5e7c))
+
 # [1.87.0](https://github.com/wize-works/jobsight-pro/compare/v1.86.0...v1.87.0) (2025-06-24)
 
 
