@@ -1,3 +1,10 @@
+# [1.85.0](https://github.com/wize-works/jobsight-pro/compare/v1.84.0...v1.85.0) (2025-06-24)
+
+
+### Features
+
+* Add input validation for business and client IDs in HTML generation functions; improve error handling and fallback logic ([7fb9b85](https://github.com/wize-works/jobsight-pro/commit/7fb9b852b05d5e4e4420685e27e364ee131b8100))
+
 # [1.84.0](https://github.com/wize-works/jobsight-pro/compare/v1.83.0...v1.84.0) (2025-06-24)
 
 
