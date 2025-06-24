@@ -6,22 +6,29 @@ import { Crew, CrewWithMemberInfo } from "@/types/crews";
 import { set } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { removeCrewFromProject } from "@/app/actions/project-crews";
+import { removeCrewFromProject, addCrewToProject } from "@/app/actions/project-crews";
 import { useBusiness } from "@/lib/business-context";
 import ErrorBoundary from "@/components/error-boundary";
+import { toast } from "@/hooks/use-toast";
 
-export default function CrewsTab({ projectId, crews }: { projectId: string, crews: CrewWithMemberInfo[] }) {
+interface CrewsTabProps {
+    projectId: string;
+    crews: CrewWithMemberInfo[];
+    onCrewsUpdated?: (crews: CrewWithMemberInfo[]) => void;
+}
+
+export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabProps) {
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
-    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]);
-
-    useEffect(() => {
+    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]); useEffect(() => {
         async function loadCrews() {
             try {
                 setLoading(true);
                 const available = await getAvailableCrews(businessId);
-
-                setAvailableCrews(available);
+                // Filter out crews that are already assigned to this project
+                const assignedCrewIds = crews.map(crew => crew.id);
+                const filteredAvailable = available.filter(crew => !assignedCrewIds.includes(crew.id));
+                setAvailableCrews(filteredAvailable);
 
             } catch (error) {
                 console.error("Error loading crews:", error);
@@ -32,6 +39,51 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
 
         loadCrews();
     }, [crews, businessId]);
+
+    const handleRemoveCrew = async (crewId: string, crewName: string) => {
+        try {
+            const success = await removeCrewFromProject(businessId, projectId, crewId);
+            if (success) {
+                toast.success(`${crewName} removed from project successfully!`);
+                // Update the local crews list by removing the crew
+                if (onCrewsUpdated) {
+                    const updatedCrews = crews.filter(crew => crew.id !== crewId);
+                    onCrewsUpdated(updatedCrews);
+                }
+                // Refresh available crews list
+                const available = await getAvailableCrews(businessId);
+                setAvailableCrews(available);
+            } else {
+                toast.error("Failed to remove crew from project");
+            }
+        } catch (error) {
+            console.error("Error removing crew:", error);
+            toast.error("An error occurred while removing the crew");
+        }
+    };
+
+    const handleAssignCrew = async (crewId: string, crewName: string) => {
+        try {
+            const result = await addCrewToProject(businessId, projectId, crewId);
+            if (result) {
+                toast.success(`${crewName} assigned to project successfully!`);
+                // Find the assigned crew and add it to the crews list
+                const assignedCrew = availableCrews.find(crew => crew.id === crewId);
+                if (assignedCrew && onCrewsUpdated) {
+                    const updatedCrews = [...crews, assignedCrew];
+                    onCrewsUpdated(updatedCrews);
+                }
+                // Refresh available crews list to remove the assigned crew
+                const available = await getAvailableCrews(businessId);
+                setAvailableCrews(available);
+            } else {
+                toast.error("Failed to assign crew to project");
+            }
+        } catch (error) {
+            console.error("Error assigning crew:", error);
+            toast.error("An error occurred while assigning the crew");
+        }
+    };
 
 
     if (loading) {
@@ -122,10 +174,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                                             <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                                 <i className="far fa-eye"></i>
                                                 View
-                                            </Link>
-                                            <button className="btn btn-sm btn-error" onClick={async () => {
-                                                await removeCrewFromProject(businessId, projectId, crew.id);
-                                            }}>
+                                            </Link>                                            <button className="btn btn-sm btn-error" onClick={() => handleRemoveCrew(crew.id, crew.name)}>
                                                 <i className="far fa-user-minus"></i>
                                                 Remove
                                             </button>
@@ -156,10 +205,7 @@ export default function CrewsTab({ projectId, crews }: { projectId: string, crew
                                             <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                                 <i className="far fa-eye"></i>
                                                 View
-                                            </Link>
-                                            <button className="btn btn-sm btn-success" onClick={() => {
-                                                // Handle crew assignment logic here
-                                            }}>
+                                            </Link>                                            <button className="btn btn-sm btn-success" onClick={() => handleAssignCrew(crew.id, crew.name)}>
                                                 <i className="far fa-user-plus"></i>
                                                 Assign
                                             </button>
