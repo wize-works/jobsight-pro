@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { useBusiness } from "@/lib/business-context";
 import ErrorBoundary from "@/components/error-boundary";
 import TaskModal from "@/app/dashboard/tasks/components/modal-task";
+import LocationDisplay from "@/components/location-display";
 
 // Helper function to format date
 function formatDate(dateString: string | number | Date) {
@@ -237,13 +238,25 @@ export default function TaskDetailPage() {
                                                 <div className="text-lg">{formatDate(task.end_date)}</div>
                                             </div>
                                         )}
-                                    </div>
-                                    {task.description && (
+                                    </div>                                    {task.description && (
                                         <div className="mt-4">
                                             <label className="label">
                                                 <span className="label-text font-medium">Description</span>
                                             </label>
                                             <div className="text-base-content/80">{task.description}</div>
+                                        </div>
+                                    )}
+
+                                    {/* Project Location */}
+                                    {project?.location && (
+                                        <div className="mt-6">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Project Location</span>
+                                            </label>
+                                            <LocationDisplay
+                                                location={project.location}
+                                                compact={true}
+                                            />
                                         </div>
                                     )}
                                 </div>

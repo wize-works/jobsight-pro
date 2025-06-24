@@ -10,6 +10,7 @@ import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
+import InvoiceDetailLoading from "./loading";
 
 // Dynamic imports for modal components
 const ModalSend = dynamic(() => import("../components/modal-send"), {
@@ -125,10 +126,7 @@ export default function InvoiceDetailPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="loading loading-spinner loading-lg"></div>
-                <span className="ml-2">Loading invoice details...</span>
-            </div>
+            <InvoiceDetailLoading />
         );
     }
 

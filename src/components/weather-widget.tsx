@@ -170,7 +170,7 @@ export default function WeatherWidget({
                     <h3 className="text-lg font-semibold">Weather</h3>
                     {location?.address && (
                         <span className="text-xs text-base-content/60 truncate max-w-32" title={location.address}>
-                            📍 {location.address}
+                            <i className="far fa-map-pin text-primary" /> {location.address}
                         </span>
                     )}
                 </div>

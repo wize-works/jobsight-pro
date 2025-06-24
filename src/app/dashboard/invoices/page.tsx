@@ -9,6 +9,7 @@ import InvoiceCard from './components/card';
 import { useBusiness } from '@/lib/business-context';
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
+import InvoicesListLoading from "./loading";
 
 // Lazy load modal components for better performance
 const InvoiceNewModal = dynamic(() => import("./components/modal-new"), {
@@ -110,12 +111,7 @@ export default function InvoicesPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto">
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="loading loading-spinner loading-lg"></div>
-                    <span className="ml-2">Loading invoices...</span>
-                </div>
-            </div>
+            <InvoicesListLoading viewType={viewType} />
         );
     }
 
@@ -328,7 +324,8 @@ export default function InvoicesPage() {
                             onSave={handleSaveEditInvoice}
                             invoice={selectedInvoice}
                         />
-                    )}                    {/* Send Invoice Modal */}
+                    )}
+                    {/* Send Invoice Modal */}
                     {selectedInvoiceDetails && business && (
                         <InvoiceSendModal
                             isOpen={showSendModal}

@@ -5,6 +5,7 @@ import { progressBar } from "@/utils/progress";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useBusiness } from "@/lib/business-context";
+import LocationDisplay from "@/components/location-display";
 
 export const ProjectCard = ({ project }: {
     project: ProjectWithDetails
@@ -63,15 +64,13 @@ export const ProjectCard = ({ project }: {
                     <div className="flex-shrink-0">
                         {projectStatusOptions.badge(project.status as ProjectStatus)}
                     </div>
-                </div>
-
-                {/* Project Information */}
+                </div>                {/* Project Information */}
                 <div className="space-y-2 mb-4">
                     {project.location && (
-                        <div className="flex items-center gap-2 text-sm">
-                            <i className="fas fa-map-marker-alt w-4 text-base-content/60" />
-                            <span className="text-base-content/80 truncate">{project.location}</span>
-                        </div>
+                        <LocationDisplay
+                            location={project.location}
+                            compact={true}
+                        />
                     )}
 
                     {(project.start_date || project.end_date) && (
@@ -81,7 +80,9 @@ export const ProjectCard = ({ project }: {
                                 {formatDate(project.start_date)} - {formatDate(project.end_date)}
                             </span>
                         </div>
-                    )}                    {project.budget && (
+                    )}
+
+                    {project.budget && (
                         <div className="flex items-center gap-2 text-sm">
                             <i className="fas fa-dollar-sign w-4 text-base-content/60" />
                             <span className="text-base-content/80 font-medium">{formatCurrency(project.budget)}</span>
