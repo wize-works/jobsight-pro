@@ -566,20 +566,18 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             background: white;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             position: relative;
-        }
-        .container {
-            padding: 36px;
+        }        .container {
+            padding: 32px;
             height: 100%;
         }
-        
-        /* Header Section */
+          /* Header Section */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 35px;
-            padding-bottom: 25px;
-            border-bottom: 3px solid #ff6b35;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #ff6b35;
             position: relative;
         }
         
@@ -605,28 +603,25 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             color: #1a1a1a;
             margin-bottom: 8px;
         }
-        
-        .log-info-panel {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+          .log-info-panel {
+            background: #ff6b35;
             color: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            min-width: 280px;
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+            padding: 24px;
+            border-radius: 8px;
+            min-width: 300px;
+            border: 1px solid #e5e5e5;
         }
-        
-        .log-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 15px;
+          .log-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
             text-align: center;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
-        
-        .info-grid {
+          .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
             font-size: 13px;
         }
         
@@ -634,14 +629,13 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             display: flex;
             flex-direction: column;
         }
-        
-        .info-label {
+          .info-label {
             font-weight: 500;
             opacity: 0.9;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         
         .info-value {
@@ -655,49 +649,45 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             align-items: center;
             gap: 5px;
         }
-        
-        /* Section Styling */
+          /* Section Styling */
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             background: #fafafa;
-            border-radius: 10px;
-            padding: 25px;
+            border-radius: 8px;
+            padding: 24px;
             border-left: 4px solid #ff6b35;
+            border: 1px solid #e5e5e5;
         }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
+          .section-title {
+            font-size: 16px;
+            font-weight: 600;
             color: #1a1a1a;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-        
-        .section-icon {
-            width: 20px;
-            height: 20px;
+          .section-icon {
+            width: 18px;
+            height: 18px;
             background: #ff6b35;
-            border-radius: 4px;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
         }
-        
-        .project-grid {
+          .project-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
+            gap: 16px;
         }
-        
-        .project-item {
+          .project-item {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 6px;
             border: 1px solid #e5e5e5;
         }
         
@@ -715,43 +705,41 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             font-weight: 600;
             font-size: 14px;
         }
-        
-        /* Work Description */
+          /* Work Description */
         .work-description {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #e5e5e5;
             font-size: 14px;
             line-height: 1.6;
             color: #333333;
         }
-        
-        /* Table Styling */
+          /* Table Styling */
         .data-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e5e5;
         }
         
         .data-table th {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            background: #ff6b35;
             color: white;
-            padding: 15px 12px;
+            padding: 14px 12px;
             text-align: left;
             font-weight: 600;
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
-        .data-table td {
+          .data-table td {
             padding: 12px;
             border-bottom: 1px solid #f0f0f0;
             font-size: 13px;
+            vertical-align: top;
         }
         
         .data-table tr:last-child td {
@@ -776,12 +764,12 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             display: grid;
             gap: 15px;
         }
-        
-        .note-item {
+          .note-item {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 6px;
             border-left: 4px solid #ff6b35;
+            border: 1px solid #e5e5e5;
         }
         
         .note-label {
@@ -797,12 +785,11 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             color: #333333;
             line-height: 1.5;
         }
-        
-        /* Footer */
+          /* Footer */
         .footer {
-            margin-top: 40px;
-            padding-top: 25px;
-            border-top: 2px solid #f0f0f0;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
             text-align: center;
             color: #888888;
             font-size: 12px;
@@ -814,25 +801,25 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             color: #666666;
             margin-bottom: 5px;
         }
-        
-        /* Utilities */
+          /* Utilities */
         .badge {
             display: inline-block;
             background: #ff6b35;
             color: white;
             padding: 4px 8px;
-            border-radius: 4px;
+            border-radius: 3px;
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
-        .empty-state {
+          .empty-state {
             text-align: center;
             color: #999999;
             font-style: italic;
-            padding: 20px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 4px;
         }
         
         @media print {
