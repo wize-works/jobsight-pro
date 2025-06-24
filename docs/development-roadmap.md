@@ -82,8 +82,9 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Create safety incident trend analysis
 - [ ] Build custom report builder interface
 - [ ] Implement predictive analytics for project delays
-- [ ] Add export functionality for all reports (PDF, CSV)
+- [x] Add export functionality for all reports (PDF, CSV)
 - [x] Fix PDF export functionality for containerized deployments
+- [x] Fix PDF export server action deployment issues
 - [ ] Create automated report scheduling
 - [ ] Add report sharing capabilities
 
