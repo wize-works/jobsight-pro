@@ -6,10 +6,9 @@ export async function GET() {
             status: string;
             timestamp: string;
             version: string;
-            environment: string;
-            uptime: number;
+            environment: string; uptime: number;
             container?: {
-                puppeteer_cache_dir: string | undefined;
+                gotenberg_url: string | undefined;
                 tmpdir: string;
             };
         } = {
@@ -21,11 +20,11 @@ export async function GET() {
         };
 
         // Check if we're in a container environment
-        const isContainer = process.env.PUPPETEER_CACHE_DIR !== undefined;
+        const isContainer = process.env.GOTENBERG_URL !== undefined;
 
         if (isContainer) {
             health.container = {
-                puppeteer_cache_dir: process.env.PUPPETEER_CACHE_DIR,
+                gotenberg_url: process.env.GOTENBERG_URL,
                 tmpdir: process.env.TMPDIR || '/tmp',
             };
         }

@@ -134,7 +134,7 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
             const filename = `daily-log-${currentLog.project?.name || 'unknown'}-${formatDate(currentLog.date)}.pdf`;
 
             // Generate PDF
-            const pdfResponse = await fetch('/api/generate-pdf', {
+            const pdfResponse = await fetch('/api/generate-pdf-gotenberg', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -5,7 +5,7 @@
  * that saves artifacts to Azure media storage instead of local storage.
  */
 
-import { generatePdfDocument } from '@/app/actions/pdf-generation';
+import { generatePdfDocumentWithGotenberg } from '@/app/actions/pdf-generation-gotenberg';
 
 // Simple HTML content for testing
 const testHtml = `
@@ -36,7 +36,7 @@ const testHtml = `
         <h2>Technical Details</h2>
         <p>The PDF generation process now:</p>
         <ol>
-            <li>Launches Playwright with optimized arguments</li>
+            <li>Calls Gotenberg service for PDF generation</li>
             <li>Generates PDF in memory</li>
             <li>Uploads buffer directly to Azure storage</li>
             <li>Creates media record with metadata</li>
@@ -54,7 +54,7 @@ export async function testPdfGeneration() {
     console.log('Testing PDF generation with media storage...');
 
     try {
-        const result = await generatePdfDocument({
+        const result = await generatePdfDocumentWithGotenberg({
             html: testHtml,
             filename: `test-pdf-${Date.now()}.pdf`,
             description: 'Test PDF generated for media storage verification',
@@ -84,7 +84,7 @@ export async function testClientPdfGeneration(businessId: string, clientId: stri
     console.log('Testing client PDF generation...');
 
     try {
-        const { generateClientPdf } = await import('@/app/actions/pdf-generation');
+        const { generateClientPdf } = await import('@/app/actions/pdf-generation-gotenberg');
 
         const result = await generateClientPdf(businessId, clientId, clientName);
 

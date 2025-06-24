@@ -15,10 +15,6 @@ const nextConfig = {
                 tls: false,
                 child_process: false,
             };
-
-            // Exclude playwright from client bundle
-            config.externals = config.externals || [];
-            config.externals.push('playwright-core');
         }
 
         // Enhanced tree shaking optimizations

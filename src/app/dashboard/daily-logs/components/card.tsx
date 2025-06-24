@@ -36,7 +36,7 @@ export const DailyLogCard = ({
             const filename = `daily-log-${log.project?.name || 'unknown'}-${formatDate(log.date)}.pdf`;
 
             // Generate PDF
-            const pdfResponse = await fetch('/api/generate-pdf', {
+            const pdfResponse = await fetch('/api/generate-pdf-gotenberg', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         if (attachPDF) {
             try {
                 // Call our PDF generation API
-                const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/api/generate-pdf`, {
+                const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/api/generate-pdf-gotenberg`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

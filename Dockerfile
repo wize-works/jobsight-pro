@@ -34,48 +34,15 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:22-slim
 
-# Install system dependencies for Puppeteer/Chromium
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y \
     wget \
-    gnupg \
     ca-certificates \
-    procps \
-    libxss1 \
-    libgconf-2-4 \
-    libxrandr2 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libatk1.0-0 \
-    libcairo-gobject2 \
-    libgtk-3-0 \
-    libgdk-pixbuf2.0-0 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxi6 \
-    libxrender1 \
-    libxtst6 \
-    libglib2.0-0 \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    fonts-liberation \
-    libappindicator3-1 \
-    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a Puppeteer user (using simple approach for compatibility)
-RUN groupadd --gid 1001 puppeteeruser && \
-    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home puppeteeruser
-
-# Create necessary directories with proper permissions
-RUN mkdir -p /tmp/puppeteer-artifacts && \
-    chmod 777 /tmp/puppeteer-artifacts && \
-    mkdir -p /home/puppeteeruser/.cache && \
-    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser && \
-    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser/.cache
+# Create an application user
+RUN groupadd --gid 1001 appuser && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home appuser
 
 WORKDIR /app
 
@@ -88,40 +55,18 @@ LABEL org.opencontainers.image.revision=${GITHUB_SHA:-latest}
 # Copy full contents from builder
 COPY --from=builder /app .
 
-# Install Puppeteer and Chromium as root
-USER root
-
-# Install Puppeteer directly from package.json and set up browser
-RUN npm ls puppeteer || npm install puppeteer
-
-# Install Chrome browser for Puppeteer
-RUN npx puppeteer browsers install chrome --path /opt/chrome
-
-# Set up cache and temp directories with proper permissions
+# Set up cache directories with proper permissions
 RUN mkdir -p /app/.next/cache/images && \
     mkdir -p /app/.next/cache/fetch-cache && \
     mkdir -p /app/.next/cache/webpack && \
     mkdir -p /app/.next/cache/swc && \
     mkdir -p /app/.next/static && \
     mkdir -p /app/.next/server && \
-    mkdir -p /tmp/puppeteer-artifacts && \
-    mkdir -p /home/puppeteeruser/.cache/puppeteer && \
-    mkdir -p /opt/chrome && \
-    chmod 755 /tmp/puppeteer-artifacts && \
-    chmod 755 /opt/chrome && \
     chmod -R 755 /app/.next && \
-    chown -R puppeteeruser:puppeteeruser /app && \
-    chown -R puppeteeruser:puppeteeruser /tmp/puppeteer-artifacts && \
-    chown -R puppeteeruser:puppeteeruser /home/puppeteeruser/.cache && \
-    chown -R puppeteeruser:puppeteeruser /opt/chrome
+    chown -R appuser:appuser /app
 
-# Switch to Puppeteer user
-USER puppeteeruser
-
-# Set environment variables for Puppeteer
-ENV PUPPETEER_CACHE_DIR=/home/puppeteeruser/.cache/puppeteer
-ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome/chrome/linux-*/chrome-linux*/chrome
-ENV TMPDIR=/tmp/puppeteer-artifacts
+# Switch to application user
+USER appuser
 
 # Set Next.js cache environment variables
 ENV NEXT_CACHE_HANDLER=default

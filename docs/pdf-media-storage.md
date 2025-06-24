@@ -1,65 +1,53 @@
 # PDF Generation with Media Storage
 
-This document explains the updated PDF generation system that saves PDF artifacts to your Azure media storage instead of using local storage.
+This document explains the updated PDF generation system that uses Gotenberg for reliable PDF generation and saves PDF artifacts to your Azure media storage.
 
 ## Overview
 
-Previously, Playwright PDF generation relied on local filesystem storage for temporary artifacts, which could cause issues in containerized environments. The new system:
+The JobSight Pro PDF generation system has been migrated from browser-based solutions (Playwright/Puppeteer) to Gotenberg, providing:
 
-1. **Uploads PDFs directly to Azure Blob Storage** using your existing media storage infrastructure
-2. **Links PDFs to relevant entities** (clients, projects) automatically
-3. **Reduces local storage dependencies** for Playwright operations
-4. **Provides better artifact management** through your media system
+1. **Reliable PDF generation** using a dedicated microservice (Gotenberg)
+2. **Container-friendly architecture** without browser dependencies
+3. **Uploads PDFs directly to Azure Blob Storage** using your existing media storage infrastructure
+4. **Links PDFs to relevant entities** (clients, projects) automatically
+5. **Better artifact management** through your media system
 
 ## Implementation
 
-### New API Endpoints
+### API Endpoints
 
-- `/api/generate-pdf-storage` - Enhanced PDF generation that saves to media storage
-- `/api/generate-pdf` - Original endpoint (still available for backwards compatibility)
+- `/api/generate-pdf-gotenberg` - PDF generation using Gotenberg
+- `/api/generate-pdf-storage-gotenberg` - PDF generation with automatic media storage
+- `/api/health/pdf-gotenberg` - Health check for Gotenberg service
 
-### New Server Actions
+### Server Actions
 
 - `uploadPdfBuffer()` - Uploads PDF buffers directly to Azure storage
-- `generatePdfDocument()` - Generic PDF generation service
+- `generatePdfDocumentWithGotenberg()` - Generic PDF generation service using Gotenberg
 - `generateClientPdf()` - Specialized client PDF generation
+- `generateProjectPdfWithGotenberg()` - Project PDF generation
 
-### Playwright Optimizations
+### Gotenberg Integration
 
-The following Playwright browser arguments have been added to minimize local storage usage:
+The system now uses Gotenberg as a microservice for PDF generation:
 
 ```typescript
-const browser = await chromium.launch({
-    headless: true,
-    args: [
-        // ... existing args ...
-        '--disable-background-downloads',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-default-apps',
-        '--no-default-browser-check',
-        '--disable-hang-monitor',
-        '--disable-prompt-on-repost',
-        '--disable-sync',
-        '--disable-translate',
-        '--disable-logging',
-        '--disable-web-resources',
-        '--memory-pressure-off',
-        '--max_old_space_size=4096'
-    ]
+// Example of calling Gotenberg service
+const response = await fetch(gotenbergUrl, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'multipart/form-data',
+    },
+    body: formData // Contains HTML content and options
 });
 ```
 
 ### Environment Variables
 
-New environment variables for enhanced Playwright behavior:
+Required environment variables for Gotenberg integration:
 
 ```dockerfile
-ENV PLAYWRIGHT_DISABLE_DEV_SHM=1
-ENV PLAYWRIGHT_DISABLE_FILE_DOWNLOADS=1
+ENV GOTENBERG_URL=http://gotenberg:3000
 ```
 
 ## Usage Examples
@@ -67,7 +55,7 @@ ENV PLAYWRIGHT_DISABLE_FILE_DOWNLOADS=1
 ### Client PDF Generation
 
 ```typescript
-import { generateClientPdf } from '@/app/actions/pdf-generation';
+import { generateClientPdf } from '@/app/actions/pdf-generation-gotenberg';
 
 const result = await generateClientPdf(businessId, clientId, clientName);
 if (result.success) {
@@ -93,7 +81,7 @@ const result = await generatePdfDocument({
 ### Direct API Usage
 
 ```typescript
-const response = await fetch('/api/generate-pdf-storage', {
+const response = await fetch('/api/generate-pdf-storage-gotenberg', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -109,15 +97,18 @@ const response = await fetch('/api/generate-pdf-storage', {
 
 ## Benefits
 
-1. **Reduced Local Storage**: Minimal filesystem usage during PDF generation
-2. **Better Artifact Management**: PDFs are stored with proper metadata and linking
-3. **Scalability**: Works better in containerized and serverless environments
-4. **Compliance**: All generated documents are properly tracked and stored
-5. **Accessibility**: PDFs are accessible through your existing media management system
+1. **Reliable PDF Generation**: Dedicated Gotenberg service eliminates browser-related issues
+2. **Container-Friendly**: No browser dependencies in main application container
+3. **Better Artifact Management**: PDFs are stored with proper metadata and linking
+4. **Scalability**: Microservice architecture scales independently
+5. **Compliance**: All generated documents are properly tracked and stored
+6. **Accessibility**: PDFs are accessible through your existing media management system
 
 ## Migration
 
-Existing PDF generation functionality continues to work. New implementations should use the media storage approach for better performance and storage management.
+All PDF generation has been migrated to use Gotenberg. The system now uses:
+- `/api/generate-pdf-gotenberg` for basic PDF generation
+- `/api/generate-pdf-storage-gotenberg` for PDF generation with media storage
 
 ## Troubleshooting
 
@@ -125,13 +116,13 @@ Existing PDF generation functionality continues to work. New implementations sho
 
 1. **PDF not saving to storage**: Check that `businessId` is provided in the request
 2. **Linking failures**: Ensure `clientId` or `projectId` are valid when provided
-3. **Memory issues**: The new Playwright arguments should help, but monitor container memory usage
+3. **Gotenberg connection issues**: Verify `GOTENBERG_URL` environment variable is set correctly
 
 ### Environment Verification
 
 Test PDF generation with the health endpoint:
 ```
-GET /health/pdf
+GET /health/pdf-gotenberg
 ```
 
-This will verify that Playwright is working correctly with the new configuration.
+This will verify that Gotenberg service is accessible and working correctly.
