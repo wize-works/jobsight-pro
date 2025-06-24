@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
         if (!url && !html) {
             return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
-        }        // Launch browser and generate PDF
+        }        // Launch browser with minimal local storage usage
         const browser = await chromium.launch({
             headless: true,
             args: [
@@ -20,7 +20,23 @@ export async function POST(request: NextRequest) {
                 '--single-process',
                 '--disable-gpu',
                 '--disable-web-security',
-                '--disable-features=VizDisplayCompositor'
+                '--disable-features=VizDisplayCompositor',
+                '--disable-background-downloads',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-default-apps',
+                '--no-default-browser-check',
+                '--disable-hang-monitor',
+                '--disable-prompt-on-repost',
+                '--disable-sync',
+                '--disable-translate',
+                '--disable-logging',
+                '--disable-web-resources',
+                '--memory-pressure-off',
+                '--max_old_space_size=4096'
             ]
         });
         const context = await browser.newContext();

@@ -29,6 +29,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import UniversalMediaManager from "@/components/universal-media-manager";
 
 import { generateClientHTML } from "@/app/actions/generate-html";
+import { generateClientPdf } from "@/app/actions/pdf-generation";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();
@@ -98,55 +99,44 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 setLoading(false);
             }
         }; fetchData();
-    }, [params, businessId]);    // PDF download function
+    }, [params, businessId]);    // PDF download function - now saves to media storage
     const downloadClientPdf = async () => {
         if (!client || !businessId) return;
 
         setDownloadingPdf(true);
         try {
-            // Generate HTML using server action
-            const html = await generateClientHTML(businessId, client.id);
-            const filename = `Client-${client.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            // Generate PDF using the new service
+            const result = await generateClientPdf(businessId, client.id, client.name);
 
-            // Generate PDF from HTML
-            const pdfResponse = await fetch('/api/generate-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ html, filename }),
-            });
-
-            if (!pdfResponse.ok) {
-                throw new Error('Failed to generate PDF');
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to generate PDF');
             }
 
-            // Convert response to blob
-            const pdfBlob = await pdfResponse.blob();
-
-            // Create download link
-            const downloadUrl = window.URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = filename;
-
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-
+            // PDF is now saved to media storage and linked to client
             toast.success({
-                title: "PDF downloaded successfully",
-                description: "Client details have been exported to PDF.",
+                title: "PDF generated and saved",
+                description: "Client PDF has been saved to your documents and linked to this client.",
                 autoClose: true,
             });
+
+            // Refresh media data to show the new PDF
+            await loadMediaData();
+
+            // If user wants to download directly, provide download link
+            if (result.fileUrl) {
+                const link = document.createElement('a');
+                link.href = result.fileUrl;
+                link.download = result.filename || `Client-${client.name}.pdf`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
         } catch (error) {
-            console.error('Error downloading client PDF:', error);
+            console.error('Error generating client PDF:', error);
             toast.error({
-                title: "Failed to download PDF",
+                title: "Failed to generate PDF",
                 description: "There was an error generating the client PDF. Please try again.",
             });
         } finally {
@@ -747,7 +737,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                         <i className="far fa-plus mr-2"></i>
                                         New Project
                                     </button>
-                                </li>                            <li><button onClick={downloadClientPdf} disabled={downloadingPdf}>
+                                </li>                                <li><button onClick={downloadClientPdf} disabled={downloadingPdf}>
                                     {downloadingPdf ? (
                                         <>
                                             <span className="loading loading-spinner loading-xs mr-2"></span>
@@ -755,7 +745,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                         </>
                                     ) : (
                                         <>
-                                            <i className="far fa-file-pdf mr-2"></i> Export as PDF
+                                            <i className="far fa-file-pdf mr-2"></i> Generate & Save PDF
                                         </>
                                     )}
                                 </button></li>

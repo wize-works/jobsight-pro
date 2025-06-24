@@ -1175,3 +1175,70 @@ export const getAllMediaByEquipmentId = async (businessId: string, equipmentId: 
         return [];
     }
 };
+
+export async function uploadPdfBuffer(
+    businessId: string,
+    buffer: Buffer,
+    filename: string,
+    description: string = "Generated PDF document"
+): Promise<{ success: boolean; media?: Media; fileUrl?: string; error?: string }> {
+    const { business, userId } = await withBusinessServer();
+
+    try {
+        // Generate upload URL for documents
+        const uploadData = await generateUploadUrl("documents", filename);
+        if (!uploadData) {
+            throw new Error("Failed to generate upload URL");
+        }
+
+        // Upload buffer to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: buffer,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': 'application/pdf',
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: filename,
+            description: description,
+            type: "document",
+            url: uploadData.fileUrl,
+            size: buffer.length,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            throw new Error("Failed to create media record");
+        }
+
+        return {
+            success: true,
+            media: media,
+            fileUrl: uploadData.fileUrl
+        };
+
+    } catch (error) {
+        console.error("Error uploading PDF buffer:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error"
+        };
+    }
+}
