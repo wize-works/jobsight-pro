@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM node:22-slim AS builder
+FROM node:22.8-slim AS builder
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ ENV NEXT_PUBLIC_STRIPE_PUBLIC_KEY=placeholder
 RUN npm run build
 
 # Stage 2: Runtime
-FROM node:22-slim
+FROM node:22.8-slim
 
 # Install minimal system dependencies
 RUN apt-get update && apt-get install -y \

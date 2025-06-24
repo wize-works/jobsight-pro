@@ -536,9 +536,7 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             website: business?.website || '',
             tax_id: business?.tax_id || '',
             logo_url: business?.logo_url || '',
-        };
-
-        // Generate HTML for daily log
+        };        // Generate HTML for daily log
         const html = `
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -547,251 +545,478 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Log - ${log.project?.name || 'Unknown Project'} - ${formatDate(log.date)}</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 40px;
-            background: white;
-            color: #333;
-            line-height: 1.5;
+            padding: 0;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            font-size: 14px;
         }
-        .container {
-            max-width: 800px;
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
             margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
+        
+        .container {
+            padding: 30px 40px;
+            height: 100%;
+        }
+        
+        /* Header Section */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #ff6b35;
+            position: relative;
         }
+        
+        .company-info {
+            flex: 1;
+        }
+        
         .logo {
-            height: 60px;
+            height: 50px;
+            margin-bottom: 15px;
+            max-width: 200px;
         }
-        .log-info {
-            text-align: right;
+        
+        .company-details {
+            color: #666666;
+            font-size: 12px;
+            line-height: 1.4;
         }
+        
+        .company-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .log-info-panel {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            min-width: 280px;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+        }
+        
         .log-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 1px;
         }
-        .info-table {
-            border-collapse: collapse;
-        }
-        .info-table td {
-            padding: 4px 12px;
-            border: none;
-        }
-        .info-table .label {
-            font-weight: 600;
-            text-align: right;
-        }
-        .details-section {
-            margin-bottom: 40px;
-        }
-        .details-section h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #1f2937;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 8px;
-        }
-        .details-grid {
+        
+        .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 12px;
+            font-size: 13px;
         }
-        .detail-item {
-            margin-bottom: 12px;
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
         }
-        .detail-label {
-            font-weight: 600;
-            color: #6b7280;
+        
+        .info-label {
+            font-weight: 500;
+            opacity: 0.9;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        
+        .info-value {
+            font-weight: 700;
             font-size: 14px;
-            margin-bottom: 4px;
         }
-        .detail-value {
-            color: #1f2937;
+        
+        /* Weather styling */
+        .weather-value {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .table {
+        
+        /* Section Styling */
+        .section {
+            margin-bottom: 30px;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            background: #ff6b35;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .project-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .project-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .project-label {
+            font-weight: 600;
+            color: #666666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .project-value {
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Work Description */
+        .work-description {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        /* Table Styling */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .table th,
-        .table td {
-            padding: 12px;
+        
+        .data-table th {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 15px 12px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .table th {
-            background: #f9fafb;
             font-weight: 600;
-            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .table .text-right {
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .text-right {
             text-align: right;
         }
-        .footer {
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 40px;
-            border-top: 1px solid #e5e7eb;
-            padding-top: 20px;
+        
+        .currency {
+            font-weight: 600;
+            color: #ff6b35;
         }
-        .weather-icon {
+        
+        /* Notes Section */
+        .notes-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .note-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .note-label {
+            font-weight: 600;
+            color: #ff6b35;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .note-value {
+            color: #333333;
+            line-height: 1.5;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #888888;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .footer-title {
+            font-weight: 600;
+            color: #666666;
+            margin-bottom: 5px;
+        }
+        
+        /* Utilities */
+        .badge {
             display: inline-block;
-            margin-right: 8px;
+            background: #ff6b35;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999999;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        @media print {
+            .page {
+                box-shadow: none;
+                margin: 0;
+            }
+            
+            body {
+                background: white;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">            <div>
-                <img src="${getAbsoluteUrl(businessInfo.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
-                <div style="margin-top: 20px;">
-                    <div style="font-weight: bold; font-size: 16px;">${businessInfo.name}</div>
-                    <div>${businessInfo.street}</div>
-                    <div>${businessInfo.city}, ${businessInfo.state} ${businessInfo.zip}</div>
-                    <div>${businessInfo.country}</div>
-                    <div>Phone: ${businessInfo.phone}</div>
-                    <div>Email: ${businessInfo.email}</div>
+    <div class="page">
+        <div class="container">
+            <!-- Header Section -->
+            <div class="header">
+                <div class="company-info">
+                    <img src="${getAbsoluteUrl(businessInfo.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
+                    <div class="company-details">
+                        <div class="company-name">${businessInfo.name}</div>
+                        <div>${businessInfo.street}</div>
+                        <div>${businessInfo.city}, ${businessInfo.state} ${businessInfo.zip}</div>
+                        <div>${businessInfo.country}</div>
+                        <div>📞 ${businessInfo.phone}</div>
+                        <div>✉️ ${businessInfo.email}</div>
+                    </div>
+                </div>
+                
+                <div class="log-info-panel">
+                    <div class="log-title">DAILY LOG</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Date</div>
+                            <div class="info-value">${formatDate(log.date)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Log ID</div>
+                            <div class="info-value">#${log.id.slice(-8).toUpperCase()}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Weather</div>
+                            <div class="info-value weather-value">
+                                🌤️ ${log.weather || 'Not recorded'}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Hours</div>
+                            <div class="info-value">${log.hours_worked || 0}h</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="log-info">
-                <div class="log-title">DAILY LOG</div>
-                <table class="info-table">
-                    <tr>
-                        <td class="label">Date:</td>
-                        <td>${formatDate(log.date)}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Log ID:</td>
-                        <td>${log.id.slice(-8).toUpperCase()}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Weather:</td>
-                        <td>${log.weather || 'Not recorded'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Hours Worked:</td>
-                        <td>${log.hours_worked || 0} hours</td>
-                    </tr>
+
+            <!-- Project Information Section -->
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">🏗️</span>
+                    Project Information
+                </h3>
+                <div class="project-grid">
+                    <div class="project-item">
+                        <div class="project-label">Project Name</div>
+                        <div class="project-value">${log.project?.name || 'Unknown Project'}</div>
+                    </div>
+                    <div class="project-item">
+                        <div class="project-label">Client</div>
+                        <div class="project-value">${log.client?.name || 'Not specified'}</div>
+                    </div>
+                    <div class="project-item">
+                        <div class="project-label">Crew</div>
+                        <div class="project-value">${log.crew?.name || 'Not assigned'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Completed Section -->
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">✅</span>
+                    Work Completed
+                </h3>
+                <div class="work-description">
+                    ${log.work_completed || '<div class="empty-state">No work details recorded</div>'}
+                </div>
+            </div>
+
+            <!-- Materials Section -->
+            ${log.materials && log.materials.length > 0 ? `
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">📦</span>
+                    Materials Used
+                    <span class="badge">${log.materials.length} items</span>
+                </h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th class="text-right">Quantity</th>
+                            <th class="text-right">Cost per Unit</th>
+                            <th class="text-right">Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${log.materials.map((material: any) => `
+                        <tr>
+                            <td><strong>${material.name}</strong></td>
+                            <td class="text-right">${material.quantity || 0}</td>
+                            <td class="text-right">${formatCurrency(material.cost || 0)}</td>
+                            <td class="text-right currency">${formatCurrency((material.cost || 0) * (material.quantity || 0))}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
                 </table>
             </div>
-        </div>
+            ` : ''}
 
-        <!-- Project Information -->
-        <div class="details-section">
-            <h3>Project Information</h3>
-            <div class="details-grid">
-                <div>
-                    <div class="detail-item">
-                        <div class="detail-label">Project Name</div>
-                        <div class="detail-value">${log.project?.name || 'Unknown Project'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Client</div>
-                        <div class="detail-value">${log.client?.name || 'Not specified'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Crew</div>
-                        <div class="detail-value">${log.crew?.name || 'Not assigned'}</div>
-                    </div>
+            <!-- Equipment Section -->
+            ${log.equipment && log.equipment.length > 0 ? `
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">🚜</span>
+                    Equipment Used
+                    <span class="badge">${log.equipment.length} items</span>
+                </h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Equipment</th>
+                            <th class="text-right">Hours Used</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${log.equipment.map((equip: any) => `
+                        <tr>
+                            <td><strong>${equip.name}</strong></td>
+                            <td class="text-right">${equip.hours || 0}h</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            ` : ''}
+
+            <!-- Notes and Issues Section -->
+            ${(log.safety && log.safety !== "None reported") || (log.delays && log.delays !== "No delays reported") || log.quality ? `
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">📝</span>
+                    Notes & Issues
+                </h3>
+                <div class="notes-grid">
+                    ${log.safety && log.safety !== "None reported" ? `
+                        <div class="note-item">
+                            <div class="note-label">🛡️ Safety Notes</div>
+                            <div class="note-value">${log.safety}</div>
+                        </div>
+                    ` : ''}
+                    ${log.delays && log.delays !== "No delays reported" ? `
+                        <div class="note-item">
+                            <div class="note-label">⏰ Delays</div>
+                            <div class="note-value">${log.delays}</div>
+                        </div>
+                    ` : ''}
+                    ${log.quality ? `
+                        <div class="note-item">
+                            <div class="note-label">⭐ Quality Notes</div>
+                            <div class="note-value">${log.quality}</div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
-        </div>
+            ` : ''}
 
-        <!-- Work Details -->
-        <div class="details-section">
-            <h3>Work Completed</h3>
-            <div class="detail-value">
-                ${log.work_completed || 'No work details recorded'}
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-title">Daily Log Report Generated on ${formatDate(new Date().toISOString())}</div>
+                <p>For questions or updates, contact us at ${businessInfo.email} or ${businessInfo.phone}</p>
+                <p><strong>Powered by JobSight Pro</strong> - Construction Management Software</p>
             </div>
-        </div>
-
-        <!-- Materials -->
-        ${log.materials && log.materials.length > 0 ? `
-        <div class="details-section">
-            <h3>Materials Used (${log.materials.length})</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Material</th>
-                        <th class="text-right">Quantity</th>
-                        <th class="text-right">Cost per Unit</th>
-                        <th class="text-right">Total Cost</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${log.materials.map((material: any) => `
-                    <tr>
-                        <td>${material.name}</td>
-                        <td class="text-right">${material.quantity || 0}</td>
-                        <td class="text-right">${formatCurrency(material.cost || 0)}</td>
-                        <td class="text-right">${formatCurrency((material.cost || 0) * (material.quantity || 0))}</td>
-                    </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-        ` : ''}
-
-        <!-- Equipment -->
-        ${log.equipment && log.equipment.length > 0 ? `
-        <div class="details-section">
-            <h3>Equipment Used (${log.equipment.length})</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Equipment</th>
-                        <th class="text-right">Hours Used</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${log.equipment.map((equip: any) => `
-                    <tr>
-                        <td>${equip.name}</td>
-                        <td class="text-right">${equip.hours || 0}h</td>
-                    </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-        ` : ''}
-
-        <!-- Notes and Issues -->
-        ${(log.safety && log.safety !== "None reported") || (log.delays && log.delays !== "No delays reported") || log.quality ? `
-        <div class="details-section">
-            <h3>Notes & Issues</h3>
-            ${log.safety && log.safety !== "None reported" ? `
-                <div class="detail-item">
-                    <div class="detail-label">Safety Notes</div>
-                    <div class="detail-value">${log.safety}</div>
-                </div>
-            ` : ''}
-            ${log.delays && log.delays !== "No delays reported" ? `
-                <div class="detail-item">
-                    <div class="detail-label">Delays</div>
-                    <div class="detail-value">${log.delays}</div>
-                </div>
-            ` : ''}
-            ${log.quality ? `
-                <div class="detail-item">
-                    <div class="detail-label">Quality Notes</div>
-                    <div class="detail-value">${log.quality}</div>
-                </div>
-            ` : ''}
-        </div>
-        ` : ''}        <div class="footer">
-            <p>Daily Log Report Generated on ${formatDate(new Date().toISOString())}</p>
-            <p>For questions or updates, contact us at ${businessInfo.email} or ${businessInfo.phone}</p>
-            <p>Powered by JobSight Pro - Construction Management Software</p>
         </div>
     </div>
 </body>
@@ -801,5 +1026,34 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
     } catch (error) {
         console.error('Error generating daily log HTML:', error);
         throw new Error('Failed to generate daily log HTML');
+    }
+}
+
+/**
+ * Generate invoice HTML by fetching from the invoice HTML API route
+ */
+export async function generateInvoiceHTML(businessId: string, invoiceId: string): Promise<string> {
+    try {
+        // Validate inputs
+        if (!businessId || !invoiceId) {
+            throw new Error('Business ID and Invoice ID are required');
+        }
+
+        // Fetch HTML from the invoice HTML API route
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const url = `${baseUrl}/api/invoices/${invoiceId}/html?businessId=${businessId}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch invoice HTML: ${response.status} ${response.statusText}`);
+        }
+
+        const html = await response.text();
+        return html;
+
+    } catch (error) {
+        console.error('Error generating invoice HTML:', error);
+        throw new Error('Failed to generate invoice HTML');
     }
 }

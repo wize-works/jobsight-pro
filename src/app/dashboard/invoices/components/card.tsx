@@ -3,45 +3,6 @@ import { invoiceStatusOptions, InvoiceWithClient, InvoiceStatus, paymentMethodOp
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
-async function downloadPdfFromUrl(url: string, filename: string) {
-    try {
-        // Call our API route to generate the PDF
-        const response = await fetch('/api/generate-pdf-gotenberg', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url, filename }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to generate PDF');
-        }
-
-        // Convert response to blob
-        const pdfBlob = await response.blob();
-
-        // Create download link
-        const downloadUrl = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = filename;
-
-        // Trigger download
-        document.body.appendChild(link);
-        link.click();
-
-        // Cleanup
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-
-        return true;
-    } catch (error) {
-        console.error('Error downloading PDF:', error);
-        throw error;
-    }
-}
-
 interface InvoiceCardProps {
     invoice: InvoiceWithClient;
     onEdit?: (invoice: InvoiceWithClient) => void;
@@ -236,15 +197,46 @@ export default function InvoiceCard({ invoice, onEdit, onSend }: InvoiceCardProp
                 <div className="card-actions justify-between items-center pt-2">
                     <div className="flex gap-1">                        <button
                         className="btn btn-ghost btn-sm btn-circle"
-                        title="Download invoice"
-                        disabled={downloadingPdf}
+                        title="Download invoice" disabled={downloadingPdf}
                         onClick={async (e) => {
                             e.stopPropagation();
                             setDownloadingPdf(true);
                             try {
-                                const url = `${window.location.origin}/api/invoices/${invoice.id}/html?businessId=${invoice.business_id}`;
+                                // First fetch the HTML content
+                                const htmlUrl = `${window.location.origin}/api/invoices/${invoice.id}/html?businessId=${invoice.business_id}`;
+                                const htmlResponse = await fetch(htmlUrl);
+
+                                if (!htmlResponse.ok) {
+                                    throw new Error('Failed to fetch invoice HTML');
+                                }
+
+                                const html = await htmlResponse.text();
                                 const filename = `Invoice-${invoice.invoice_number}.pdf`;
-                                await downloadPdfFromUrl(url, filename);
+
+                                // Now generate PDF using HTML content
+                                const response = await fetch('/api/generate-pdf-gotenberg', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ html, filename }),
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Failed to generate PDF');
+                                }
+
+                                // Convert response to blob and download
+                                const pdfBlob = await response.blob();
+                                const downloadUrl = window.URL.createObjectURL(pdfBlob);
+                                const link = document.createElement('a');
+                                link.href = downloadUrl;
+                                link.download = filename;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(downloadUrl);
+
                                 toast.success("PDF downloaded successfully!");
                             } catch (error) {
                                 console.error('Error downloading PDF:', error);
