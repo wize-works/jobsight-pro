@@ -1,3 +1,10 @@
+# [1.84.0](https://github.com/wize-works/jobsight-pro/compare/v1.83.0...v1.84.0) (2025-06-24)
+
+
+### Features
+
+* Enhance PDF generation in containerized environments; add troubleshooting guide and health check endpoints ([a5e54a9](https://github.com/wize-works/jobsight-pro/commit/a5e54a9237fe5a758c07a19703dc33ebfc48e91a))
+
 # [1.83.0](https://github.com/wize-works/jobsight-pro/compare/v1.82.1...v1.83.0) (2025-06-24)
 
 
