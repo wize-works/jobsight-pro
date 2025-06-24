@@ -790,38 +790,39 @@ export default function Dashboard() {
                                 <i className="far fa-building text-primary mr-2"></i>
                                 Active Projects
                             </h2>
-                            <div className="space-y-3">
-                                {dashboardData.projectsWithProgress.length > 0 ? (
-                                    dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
-                                        <div key={project.id} className="border border-base-300 rounded-lg p-4">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <h3 className="font-semibold">{project.name}</h3>
-                                                    <p className="text-sm text-base-content/70">{project.clientName}</p>
-                                                </div>
-                                                <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                                                    {project.status}
-                                                </span>
+                            <div className="space-y-3">                                {dashboardData.projectsWithProgress.length > 0 ? (
+                                dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
+                                    <div key={project.id} className="border border-base-300 rounded-lg p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <Link href={`/dashboard/projects/${project.id}`} className="hover:text-primary transition-colors">
+                                                    <h3 className="font-semibold hover:underline">{project.name}</h3>
+                                                </Link>
+                                                <p className="text-sm text-base-content/70">{project.clientName}</p>
                                             </div>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className="text-sm">Progress: {project.progress}%</span>
-                                                <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
-                                            </div>
-                                            <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
-                                            <div className="text-xs text-base-content/50 mt-1">
-                                                Crew: {project.crewName}
-                                            </div>
+                                            <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                                                {project.status}
+                                            </span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-plus-circle text-4xl mb-2"></i>
-                                        <p>No active projects yet</p>
-                                        <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
-                                            Create Project
-                                        </Link>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm">Progress: {project.progress}%</span>
+                                            <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
+                                        </div>
+                                        <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
+                                        <div className="text-xs text-base-content/50 mt-1">
+                                            Crew: {project.crewName}
+                                        </div>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-base-content/50">
+                                    <i className="far fa-plus-circle text-4xl mb-2"></i>
+                                    <p>No active projects yet</p>
+                                    <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
+                                        Create Project
+                                    </Link>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>
@@ -832,32 +833,33 @@ export default function Dashboard() {
                                 <i className="far fa-exclamation-triangle text-warning mr-2"></i>
                                 Critical Tasks
                             </h2>
-                            <div className="space-y-3">
-                                {dashboardData.criticalTasks.length > 0 ? (
-                                    dashboardData.criticalTasks.slice(0, 3).map((task) => (
-                                        <div key={task.id} className={`border rounded-lg p-4 ${task.isOverdue ? 'border-error bg-error/5' : 'border-warning bg-warning/5'}`}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <h3 className="font-semibold">{task.name}</h3>
-                                                    <p className="text-sm text-base-content/70">{task.projectName}</p>
-                                                </div>
-                                                <span className={`badge ${task.isOverdue ? 'badge-error' : 'badge-warning'}`}>
-                                                    {task.isOverdue ? 'Overdue' : 'Due Soon'}
-                                                </span>
+                            <div className="space-y-3">                                {dashboardData.criticalTasks.length > 0 ? (
+                                dashboardData.criticalTasks.slice(0, 3).map((task) => (
+                                    <div key={task.id} className={`border rounded-lg p-4 ${task.isOverdue ? 'border-error bg-error/5' : 'border-warning bg-warning/5'}`}>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <Link href={`/dashboard/tasks/${task.id}`} className="hover:text-primary transition-colors">
+                                                    <h3 className="font-semibold hover:underline">{task.name}</h3>
+                                                </Link>
+                                                <p className="text-sm text-base-content/70">{task.projectName}</p>
                                             </div>
-                                            <div className="text-sm space-y-1">
-                                                <div>Due: {formatDate(task.dueDate)}</div>
-                                                <div>Assigned: {task.crewName}</div>
-                                                <div>Client: {task.clientName}</div>
-                                            </div>
+                                            <span className={`badge ${task.isOverdue ? 'badge-error' : 'badge-warning'}`}>
+                                                {task.isOverdue ? 'Overdue' : 'Due Soon'}
+                                            </span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-check-circle text-4xl mb-2 text-success"></i>
-                                        <p>All tasks are on track!</p>
+                                        <div className="text-sm space-y-1">
+                                            <div>Due: {formatDate(task.dueDate)}</div>
+                                            <div>Assigned: {task.crewName}</div>
+                                            <div>Client: {task.clientName}</div>
+                                        </div>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-base-content/50">
+                                    <i className="far fa-check-circle text-4xl mb-2 text-success"></i>
+                                    <p>All tasks are on track!</p>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>
@@ -880,31 +882,32 @@ export default function Dashboard() {
                                 <i className="far fa-users text-primary mr-2"></i>
                                 Team Performance
                             </h2>
-                            <div className="space-y-3">
-                                {dashboardData.teamMetrics.length > 0 ? (
-                                    dashboardData.teamMetrics.slice(0, 3).map((team) => (
-                                        <div key={team.id} className="flex items-center justify-between p-3 border border-base-300 rounded-lg">
-                                            <div>
-                                                <h3 className="font-semibold">{team.name}</h3>
-                                                <p className="text-sm text-base-content/70">
-                                                    {team.activeTasks} active • {team.completedTasks} completed
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-lg font-bold">{team.productivity}%</div>
-                                                <div className="text-xs text-base-content/50">productivity</div>
-                                            </div>
+                            <div className="space-y-3">                                {dashboardData.teamMetrics.length > 0 ? (
+                                dashboardData.teamMetrics.slice(0, 3).map((team) => (
+                                    <div key={team.id} className="flex items-center justify-between p-3 border border-base-300 rounded-lg">
+                                        <div>
+                                            <Link href={`/dashboard/crews/${team.id}`} className="hover:text-primary transition-colors">
+                                                <h3 className="font-semibold hover:underline">{team.name}</h3>
+                                            </Link>
+                                            <p className="text-sm text-base-content/70">
+                                                {team.activeTasks} active • {team.completedTasks} completed
+                                            </p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-user-plus text-4xl mb-2"></i>
-                                        <p>No teams created yet</p>
-                                        <Link href="/dashboard/crews" className="btn btn-primary btn-sm mt-2">
-                                            Add Teams
-                                        </Link>
+                                        <div className="text-right">
+                                            <div className="text-lg font-bold">{team.productivity}%</div>
+                                            <div className="text-xs text-base-content/50">productivity</div>
+                                        </div>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-base-content/50">
+                                    <i className="far fa-user-plus text-4xl mb-2"></i>
+                                    <p>No teams created yet</p>
+                                    <Link href="/dashboard/crews" className="btn btn-primary btn-sm mt-2">
+                                        Add Teams
+                                    </Link>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>
@@ -915,31 +918,41 @@ export default function Dashboard() {
                                 <i className="far fa-clock text-primary mr-2"></i>
                                 Recent Activity
                             </h2>
-                            <div className="space-y-3">
-                                {dashboardData.recentActivity.length > 0 ? (
-                                    dashboardData.recentActivity.slice(0, 3).map((activity) => (
-                                        <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
-                                            <p className="font-medium text-sm">{activity.message}</p>                                            <div className="text-xs text-base-content/70 space-y-1">
-                                                <div>{activity.projectName} • {activity.clientName}</div>
-                                                <div>{formatDate(activity.timestamp)}</div>
-                                                {activity.weather && getWeatherDisplay(activity.weather) && (
-                                                    <div className="flex items-center gap-1">
-                                                        <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
-                                                        <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
-                                                    </div>
-                                                )}
+                            <div className="space-y-3">                                {dashboardData.recentActivity.length > 0 ? (
+                                dashboardData.recentActivity.slice(0, 3).map((activity) => (
+                                    <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
+                                        {activity.type === 'daily_log' ? (
+                                            <Link href={`/dashboard/daily-logs/${activity.id}`} className="hover:text-primary transition-colors">
+                                                <p className="font-medium text-sm hover:underline">{activity.message}</p>
+                                            </Link>
+                                        ) : (
+                                            <p className="font-medium text-sm">{activity.message}</p>
+                                        )}<div className="text-xs text-base-content/70 space-y-1">
+                                            <div>
+                                                <Link href={`/dashboard/projects/${activity.projectId}`} className="hover:text-primary transition-colors hover:underline">
+                                                    {activity.projectName}
+                                                </Link>
+                                                {" • "}{activity.clientName}
                                             </div>
+                                            <div>{formatDate(activity.timestamp)}</div>
+                                            {activity.weather && getWeatherDisplay(activity.weather) && (
+                                                <div className="flex items-center gap-1">
+                                                    <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
+                                                    <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-clipboard-list text-4xl mb-2"></i>
-                                        <p>No recent activity</p>
-                                        <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
-                                            Add Daily Log
-                                        </Link>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-base-content/50">
+                                    <i className="far fa-clipboard-list text-4xl mb-2"></i>
+                                    <p>No recent activity</p>
+                                    <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
+                                        Add Daily Log
+                                    </Link>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>

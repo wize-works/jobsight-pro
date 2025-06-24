@@ -6,12 +6,13 @@ import { useParams, useRouter } from "next/navigation";
 import { getTaskById, updateTask, deleteTask } from "@/app/actions/tasks";
 import { getProjects } from "@/app/actions/projects";
 import { getCrews } from "@/app/actions/crews";
-import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskUpdate } from "@/types/tasks";
+import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
 import toast from "react-hot-toast";
 import { useBusiness } from "@/lib/business-context";
 import ErrorBoundary from "@/components/error-boundary";
+import TaskModal from "@/app/dashboard/tasks/components/modal-task";
 
 // Helper function to format date
 function formatDate(dateString: string | number | Date) {
@@ -27,14 +28,12 @@ export default function TaskDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const { businessId } = useBusiness();
-    const router = useRouter();
-
-    const [task, setTask] = useState<Task | null>(null);
+    const router = useRouter(); const [task, setTask] = useState<Task | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
     const [crews, setCrews] = useState<Crew[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -93,11 +92,22 @@ export default function TaskDetailPage() {
         try {
             const updatedTask = await updateTask(businessId, task.id, updatedData as TaskUpdate);
             setTask(updatedTask);
-            setIsEditing(false);
+            setIsEditModalOpen(false);
             toast.success("Task updated successfully!");
         } catch (error) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task");
+        }
+    };
+
+    // Function to refresh task data
+    const refreshTask = async () => {
+        if (!businessId || !id) return;
+        try {
+            const updatedTask = await getTaskById(businessId, id);
+            setTask(updatedTask);
+        } catch (error) {
+            console.error("Error refreshing task:", error);
         }
     };
 
@@ -142,13 +152,12 @@ export default function TaskDetailPage() {
                         <Link href="/dashboard/tasks" className="btn btn-outline">
                             <i className="far fa-arrow-left fa mr-2"></i> Back to Tasks
                         </Link>
-                        <div className="flex items-center gap-2">
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                <i className="far fa-edit mr-2"></i> Edit
-                            </button>
+                        <div className="flex items-center gap-2">                            <button
+                            className="btn btn-primary"
+                            onClick={() => setIsEditModalOpen(true)}
+                        >
+                            <i className="far fa-edit mr-2"></i> Edit
+                        </button>
                             <button
                                 className="btn btn-error"
                                 onClick={handleDeleteTask}
@@ -290,23 +299,17 @@ export default function TaskDetailPage() {
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    {/* Edit Task Modal */}
-                    {isEditing && (
-                        <div className="modal modal-open">
-                            <div className="modal-box max-w-2xl">
-                                <h3 className="font-bold text-lg mb-4">Edit Task</h3>
-                                <p className="text-base-content/70">Task editing modal coming soon. For now, use the quick actions or project detail pages to update tasks.</p>
-                                <div className="modal-action">
-                                    <button className="btn btn-ghost" onClick={() => setIsEditing(false)}>
-                                        Close
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="modal-backdrop" onClick={() => setIsEditing(false)}></div>
-                        </div>
-                    )}
+                    </div>                    {/* Task Edit Modal */}
+                    <TaskModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        task={task as TaskWithDetails}
+                        onSave={async (updatedTask) => {
+                            await refreshTask();
+                            setIsEditModalOpen(false);
+                            toast.success("Task updated successfully!");
+                        }}
+                    />
                 </ErrorBoundary>
             </div>
         </ErrorBoundary>
