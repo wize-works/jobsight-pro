@@ -14,7 +14,7 @@ interface SubscriptionStatusIndicatorProps {
 }
 
 const planLabels: Record<BusinessSubscriptionPlan, string> = {
-    starter: 'Free',
+    starter: 'starter',
     personal: 'Personal',
     pro: 'Pro',
     business: 'Business',
@@ -22,8 +22,8 @@ const planLabels: Record<BusinessSubscriptionPlan, string> = {
 };
 
 const planColors: Record<BusinessSubscriptionPlan, string> = {
-    starter: 'badge-neutral',
-    personal: 'badge-info',
+    personal: 'badge-neutral',
+    starter: 'badge-info',
     pro: 'badge-primary',
     business: 'badge-secondary',
     enterprise: 'badge-success'
@@ -92,7 +92,7 @@ export const SubscriptionStatusIndicator: React.FC<SubscriptionStatusIndicatorPr
                             <i className="far fa-check-circle mr-1"></i>
                             Active
                         </div>
-                    ) : planType === 'starter' ? (
+                    ) : planType === 'personal' ? (
                         <div className="text-info">
                             <i className="far fa-info-circle mr-1"></i>
                             Free Plan
@@ -182,14 +182,14 @@ const OriginalSubscriptionBanner: React.FC = () => {
     }
 
     // Show banner for free plan or inactive subscription
-    if (planType === 'starter') {
+    if (planType === 'personal' && isActive) {
         return (
             <div className={`alert alert-info shadow-lg`}>
                 <i className="far fa-info-circle text-xl"></i>
                 <div>
                     <h3 className="font-bold">Welcome to JobSight Pro</h3>
                     <div className="text-sm">
-                        You're on the free plan. Upgrade to unlock advanced features like AI assistance,
+                        You're on the personal plan. Upgrade to unlock advanced features like AI assistance,
                         custom branding, and unlimited projects.
                     </div>
                 </div>
@@ -197,6 +197,26 @@ const OriginalSubscriptionBanner: React.FC = () => {
                     <Link href="/dashboard/business?tab=subscription" className="btn btn-sm btn-primary">
                         <i className="far fa-arrow-up"></i>
                         Upgrade Now
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (isActive) {
+        return (
+            <div className={`alert alert-success shadow-lg`}>
+                <i className="far fa-check-circle text-xl"></i>
+                <div>
+                    <h3 className="font-bold">Subscription Active</h3>
+                    <div className="text-sm">
+                        Your {planLabels[planType]} plan is active. Enjoy all premium features!
+                    </div>
+                </div>
+                <div className="flex-none">
+                    <Link href="/dashboard/business?tab=subscription" className="btn btn-sm btn-success">
+                        <i className="far fa-trophy"></i>
+                        Manage Plan
                     </Link>
                 </div>
             </div>
