@@ -240,6 +240,27 @@ export const updateTask = async (businessId: string, id: string, task: TaskUpdat
     }
 }
 
+export const quickUpdateTask = async (businessId: string, id: string, updates: Partial<TaskUpdate>): Promise<Task> => {
+    try {
+        const updateData = await applyUpdated<TaskUpdate>(updates);
+
+        const { data, error } = await updateWithBusinessCheck("tasks", id, updateData, businessId);
+
+        if (error) {
+            console.error("Error quick updating task:", error);
+            throw error;
+        }
+
+        // Only invalidate cache for quick updates, no notifications for micro-interactions
+        AIContextCache.invalidateByEntity(businessId, 'tasks', 'update');
+
+        return data as unknown as Task;
+    } catch (err) {
+        console.error("Error in quickUpdateTask:", err);
+        throw err;
+    }
+}
+
 export const deleteTask = async (businessId: string, id: string): Promise<boolean> => {
     try {
         // Get the task data before deletion for notification

@@ -236,14 +236,14 @@ export default function WeatherWidget({
                 </div>
 
                 {/* Weather Safety Notice */}
-                <div className="mt-4 p-3 bg-yellow-500/10 rounded-lg">
+                <div className="mt-4 p-3 bg-warning/10 rounded-lg">
                     <div className="flex items-start gap-2">
-                        <i className="far fa-hard-hat text-yellow-600 mt-0.5"></i>
+                        <i className="far fa-hard-hat text-warning mt-0.5"></i>
                         <div className="text-sm">
-                            <div className="font-medium text-yellow-800 dark:text-yellow-200">
+                            <div className="font-bold text-warning">
                                 Safety Reminder
                             </div>
-                            <div className="text-yellow-700 dark:text-yellow-300">
+                            <div className="text-warning">
                                 Check weather conditions before starting work.
                                 Adjust schedules for severe weather.
                             </div>

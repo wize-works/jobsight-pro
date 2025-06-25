@@ -102,6 +102,32 @@ export const updateProject = async (businessId: string, id: string, project: Pro
     }
 };
 
+export const updateProjectProgress = async (businessId: string, id: string, progress: number): Promise<Project | null> => {
+    try {
+        const updateData = await applyUpdated<ProjectUpdate>({ progress });
+
+        const { data, error } = await updateWithBusinessCheck("projects", id, updateData, businessId);
+
+        if (error) {
+            console.error("Error updating project progress:", error);
+            return null;
+        }
+
+        const updatedProject = data as Project;
+
+        // Invalidate AI context cache after project update
+        AIContextCache.invalidateByEntity(businessId, 'projects', 'update');
+
+        // No notification for progress-only updates
+        console.log(`Project progress updated silently for project ${updatedProject.name} (${updatedProject.id}) - ${progress}%`);
+
+        return updatedProject;
+    } catch (err) {
+        console.error("Error in updateProjectProgress:", err);
+        return null;
+    }
+};
+
 export const deleteProject = async (businessId: string, id: string): Promise<boolean> => {
     try {
         // Get project details before deletion for notification

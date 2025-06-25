@@ -18,7 +18,7 @@ import { getDashboardData } from "@/app/actions/dashboard"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
 import ProjectModal from "./projects/components/modal-project"
-import TaskModal from "./tasks/components/modal-task"
+import TaskDetailsModal from "./tasks/components/task-details-modal"
 import EquipmentNewModal from "./equipment/components/modal-new"
 import DailyLogModal from "./daily-logs/components/modal-log"
 import { useBusiness } from "@/lib/business-context"
@@ -519,8 +519,22 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
-            {<TaskModal isOpen={taskModal} onClose={() => setTaskModal(false)} task={null} />}
+            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}            {taskModal && (
+                <TaskDetailsModal
+                    isOpen={taskModal}
+                    onClose={() => setTaskModal(false)}
+                    task={null} // null = create mode
+                    projects={[]} // Empty for now, will be populated by the modal if needed
+                    crews={[]} // Empty for now, will be populated by the modal if needed
+                    onTaskUpdate={() => { }} // Not used in create mode
+                    onTaskDelete={() => { }} // Not used in create mode
+                    onTaskCreate={() => {
+                        setTaskModal(false);
+                        // Refresh dashboard data
+                        window.location.reload();
+                    }}
+                />
+            )}
             {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
             {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
 

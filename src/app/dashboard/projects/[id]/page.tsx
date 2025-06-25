@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { getProjectById, getProjectDetailsByID, updateProject } from "@/app/actions/projects";
+import { getProjectById, getProjectDetailsByID, updateProject, updateProjectProgress } from "@/app/actions/projects";
 import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project-milestones";
 import { getTasksByProjectId, createTask, updateTask } from "@/app/actions/tasks";
 import { getClientById } from "@/app/actions/clients";
@@ -14,7 +14,7 @@ import { useCurrentPosition } from "@/hooks/use-geolocation";
 import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
-import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { Project, ProjectInsert, ProjectUpdate, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { ProjectIssue, ProjectIssueWithDetails } from "@/types/projects-issues";
@@ -60,7 +60,7 @@ const ProjectEditModal = dynamic(() => import("../components/modal-edit"), {
     loading: () => <ModalLoading message="Loading edit form..." />,
 });
 
-const TaskModal = dynamic(() => import("../components/modal-task"), {
+const TaskDetailsModal = dynamic(() => import("../../tasks/components/task-details-modal"), {
     loading: () => <ModalLoading message="Loading task form..." />,
 });
 
@@ -117,6 +117,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         };
         resolveParams();
     }, [params]);
+
+    // Handle URL hash fragments to activate specific tabs
+    useEffect(() => {
+        const hash = window.location.hash.substring(1); // Remove the '#' character
+        if (hash && hash === "tasks") {
+            setActiveTab("tasks");
+        }
+    }, []);
 
     // Fetch data when projectId or businessId changes
     useEffect(() => {
@@ -239,11 +247,41 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     const handleCrewAssigned = (crew: CrewWithMemberInfo) => {
         setCrews(prev => [...prev, crew]);
+    }; const handleCrewsUpdated = (updatedCrews: CrewWithMemberInfo[]) => {
+        setCrews(updatedCrews);
     };
 
-    const handleCrewsUpdated = (updatedCrews: CrewWithMemberInfo[]) => {
-        setCrews(updatedCrews);
-    }; if (loading || !projectId) {
+    // Memoize the weather widget location to prevent unnecessary refreshes
+    const weatherLocation = useMemo(() => {
+        // Check if project has location in coordinate format "Lat: X, Lon: Y"
+        if (project.location) {
+            const coordMatch = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
+            if (coordMatch) {
+                const [_, lat, lon] = coordMatch;
+                return {
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lon),
+                    address: project.location
+                };
+            }
+        }
+
+        // Use user's current location as fallback
+        if (position) {
+            return {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                address: "Current Location"
+            };
+        }
+
+        // Default fallback location (Chicago)
+        return {
+            latitude: 41.8781,
+            longitude: -87.6298,
+            address: "Default Location"
+        };
+    }, [project.location, position?.coords.latitude, position?.coords.longitude]); if (loading || !projectId) {
         return <ProjectDetailLoading />;
     }
 
@@ -609,15 +647,37 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     <div className="flex justify-between items-center mb-2">
                                         <span>Overall Progress</span>
                                         <span className="font-semibold">{progress || 0}%</span>
-                                    </div>
-                                    <input
+                                    </div>                                    <input
                                         type="range"
                                         className="range range-primary w-full"
                                         name="progress"
                                         value={progress || 0}
-                                        onChange={(e) => setProgress(Number(e.target.value))}
-                                        onMouseUp={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
-                                        onTouchEnd={(e) => updateProject(businessId, project.id, { id: project.id, progress: progress } as ProjectInsert)}
+                                        onChange={(e) => setProgress(Number(e.target.value))} onMouseUp={async (e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const newProgress = Number(target.value);
+                                            try {
+                                                await updateProjectProgress(businessId, project.id, newProgress);
+                                                toast.success(`Project progress updated to ${newProgress}%`);
+                                            } catch (error) {
+                                                console.error("Error updating progress:", error);
+                                                toast.error("Failed to update project progress");
+                                                // Reset the slider to the previous value
+                                                setProgress(project.progress || 0);
+                                            }
+                                        }}
+                                        onTouchEnd={async (e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const newProgress = Number(target.value);
+                                            try {
+                                                await updateProjectProgress(businessId, project.id, newProgress);
+                                                toast.success(`Project progress updated to ${newProgress}%`);
+                                            } catch (error) {
+                                                console.error("Error updating progress:", error);
+                                                toast.error("Failed to update project progress");
+                                                // Reset the slider to the previous value
+                                                setProgress(project.progress || 0);
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <div className="stats stats-vertical shadow">
@@ -699,45 +759,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </p>
                                     </div>
                                 )) || <p>No crews assigned.</p>}
-                            </div>
-                        </div>                    <WeatherWidget
-                            location={(() => {
-                                // Check if project has location in coordinate format "Lat: X, Lon: Y"
-                                if (project.location) {
-                                    const coordMatch = project.location.match(/Lat: ([-\d.]+), Lon: ([-\d.]+)/);
-                                    if (coordMatch) {
-                                        const [_, lat, lon] = coordMatch;
-                                        return {
-                                            latitude: parseFloat(lat),
-                                            longitude: parseFloat(lon),
-                                            address: project.location
-                                        };
-                                    }
-                                }
-
-                                // Use user's current location as fallback
-                                if (position) {
-                                    return {
-                                        latitude: position.coords.latitude,
-                                        longitude: position.coords.longitude,
-                                        address: "Current Location"
-                                    };
-                                }
-
-                                // Default fallback location (Chicago)
-                                return {
-                                    latitude: 41.8781,
-                                    longitude: -87.6298,
-                                    address: "Default Location"
-                                };
-                            })()}
-                        />
+                            </div>                        </div>                    <WeatherWidget location={weatherLocation} />
                     </div>
                 </div>
             </ErrorBoundary>
             {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
-            {taskModalOpen && <TaskModal isOpen={taskModalOpen} onClose={handleTaskModalClose} projectId={project.id} task={selectedTask} onSave={handleTaskSave} crews={crews} />}
+            {taskModalOpen && (
+                <TaskDetailsModal
+                    isOpen={taskModalOpen}
+                    onClose={handleTaskModalClose}
+                    task={selectedTask}
+                    projects={[project]} // Pass current project for task creation
+                    crews={crews}
+                    onTaskUpdate={() => { }} // Not used here, updates handled by handleTaskSave
+                    onTaskDelete={() => { }} // Not used here
+                    onTaskCreate={async (taskData) => {
+                        await handleTaskSave({ ...taskData, project_id: project.id });
+                    }}
+                />
+            )}
             {editModalOpen && <ProjectEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} project={project} onSave={(updatedProject) => setProject(updatedProject)} />}
             {mediaModalOpen && <MediaModal isOpen={mediaModalOpen} onClose={() => setMediaModalOpen(false)} projectId={project.id} />}
             {crewModalOpen && <CrewModal isOpen={crewModalOpen} onClose={() => setCrewModalOpen(false)} projectId={project.id} onCrewAssigned={handleCrewAssigned} assignedCrewIds={crews.map(crew => crew.id)} />}
