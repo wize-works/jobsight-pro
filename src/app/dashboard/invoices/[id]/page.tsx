@@ -169,7 +169,7 @@ export default function InvoiceDetailPage() {
                             </p>
                         </div>
                         <div className="flex gap-2">
-                            {invoice.status === "draft" ? (
+                            {invoice.status === "draft" || invoice.status === "pending" || invoice.status === "sent" ? (
                                 <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="btn btn-primary btn-sm">
                                     <i className="far fa-edit mr-2"></i> Edit Invoice
                                 </Link>
@@ -178,7 +178,8 @@ export default function InvoiceDetailPage() {
                             )}
                             <Link href={`/printables/invoices/${invoice.id}`} className="btn btn-outline btn-sm" target="_blank">
                                 <i className="far fa-print mr-2"></i> Print
-                            </Link>                            <button className="btn btn-outline btn-sm" onClick={getPdf} disabled={downloadingPdf}>
+                            </Link>
+                            <button className="btn btn-outline btn-sm" onClick={getPdf} disabled={downloadingPdf}>
                                 {downloadingPdf ? (
                                     <>
                                         <span className="loading loading-spinner loading-xs mr-2"></span>
