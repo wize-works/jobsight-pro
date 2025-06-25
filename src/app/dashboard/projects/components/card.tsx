@@ -6,11 +6,14 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { useBusiness } from "@/lib/business-context";
 import LocationDisplay from "@/components/location-display";
+import { useState } from "react";
+import ProjectEditModal from "./modal-edit";
 
 export const ProjectCard = ({ project }: {
     project: ProjectWithDetails
 }) => {
     const { businessId } = useBusiness();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const getProjectInitials = (name: string) => {
         return name
@@ -126,20 +129,27 @@ export const ProjectCard = ({ project }: {
                                 title="View client"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <i className="fas fa-building text-sm" />
+                                <i className="fas fa-building" />
                             </Link>
-                        )}
-                        <button
+                        )}                        <Link
+                            href={`/dashboard/projects/${project.id}#tasks`}
                             className="btn btn-ghost btn-sm btn-circle"
                             title="View tasks"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <i className="fas fa-tasks" />
+                        </Link><button
+                            className="btn btn-ghost btn-sm btn-circle"
+                            title="Edit project"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                window.location.href = `/dashboard/projects/${project.id}#tasks`;
+                                setIsEditModalOpen(true);
                             }}
                         >
-                            <i className="fas fa-tasks text-sm" />
+                            <i className="fas fa-edit" />
                         </button>
+
                         {project.status === "planning" || project.status === "planned" && (
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
@@ -151,7 +161,35 @@ export const ProjectCard = ({ project }: {
                                     window.location.reload();
                                 }}
                             >
-                                <i className="fas fa-play text-sm" />
+                                <i className="fas fa-play" />
+                            </button>
+                        )}
+                        {project.status === "in_progress" && (
+                            <button
+                                className="btn btn-ghost btn-sm btn-circle"
+                                title="Pause project"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateProject(businessId, project.id, { status: "on_hold" } as Project);
+                                    toast.success("Project paused successfully");
+                                    window.location.reload();
+                                }}
+                            >
+                                <i className="fas fa-pause" />
+                            </button>
+                        )}
+                        {project.status === "in_progress" && (
+                            <button
+                                className="btn btn-ghost btn-sm btn-circle"
+                                title="Complete project"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateProject(businessId, project.id, { status: "completed" } as Project);
+                                    toast.success("Project completed successfully");
+                                    window.location.reload();
+                                }}
+                            >
+                                <i className="fas fa-check" />
                             </button>
                         )}
                     </div>
@@ -160,7 +198,19 @@ export const ProjectCard = ({ project }: {
                         View Details
                     </Link>
                 </div>
-            </div>
+            </div>            {/* Edit Modal */}
+            {isEditModalOpen && (
+                <ProjectEditModal
+                    isOpen={isEditModalOpen}
+                    project={project}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={(updatedProject) => {
+                        setIsEditModalOpen(false);
+                        // Refresh the page to show updated data
+                        window.location.reload();
+                    }}
+                />
+            )}
         </div>
     );
 }

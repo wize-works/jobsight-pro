@@ -147,7 +147,8 @@ export default function ClientsPage() {
                             <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
                                 <i className="far fa-user-times fa-lg"></i>
                             </div>
-                        </div>                    <div className="stat-desc">Clients not currently active</div>
+                        </div>
+                        <div className="stat-desc">Clients not currently active</div>
                     </div>
                 </div>
             </ErrorBoundary>
@@ -192,7 +193,8 @@ export default function ClientsPage() {
                             <div role="tablist" className="tabs tabs-box tabs-sm flex-nowrap">
                                 <button role="tab" className={`tab tab-secondary ${viewType === "grid" ? "tab-active text-secondary" : ""}`} onClick={() => updateViewType("grid")}> <i className="far fa-grid-2"></i> </button>
                                 <button role="tab" className={`tab ${viewType === "list" ? "tab-active" : ""}`} onClick={() => updateViewType("list")}> <i className="far fa-table-rows"></i> </button>
-                            </div>                    </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </ErrorBoundary>
@@ -293,7 +295,8 @@ export default function ClientsPage() {
                                 <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
                                     <i className="far fa-plus mr-2"></i> Add Your First Client
                                 </button>
-                            </div>                    </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </ErrorBoundary>
