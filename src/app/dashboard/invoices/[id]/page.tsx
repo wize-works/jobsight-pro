@@ -61,32 +61,14 @@ export default function InvoiceDetailPage() {
 
         setDownloadingPdf(true);
         try {
-            // First fetch the HTML content
-            const htmlUrl = `${window.location.origin}/api/invoices/${invoice.id}/html?businessId=${invoice.business_id}`;
-            const htmlResponse = await fetch(htmlUrl);
-
-            if (!htmlResponse.ok) {
-                throw new Error('Failed to fetch invoice HTML');
+            const filename = `Invoice-${invoice.invoice_number}.pdf`;            // Call the server action directly
+            const { generateInvoicePdf } = await import('@/app/actions/pdf-generation-gotenberg');
+            const result = await generateInvoicePdf(invoice.business_id, invoice.id, filename); if (!result.success || !result.buffer) {
+                throw new Error(result.error || 'Failed to generate PDF');
             }
 
-            const html = await htmlResponse.text();
-            const filename = `Invoice-${invoice.invoice_number}.pdf`;
-
-            // Now generate PDF using HTML content instead of URL
-            const response = await fetch('/api/generate-pdf-gotenberg', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ html, filename }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to generate PDF');
-            }
-
-            // Convert response to blob and download
-            const pdfBlob = await response.blob();
+            // Convert buffer to blob and download
+            const pdfBlob = new Blob([result.buffer], { type: 'application/pdf' });
             const downloadUrl = window.URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = downloadUrl;

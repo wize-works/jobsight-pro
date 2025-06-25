@@ -19,6 +19,33 @@ const getAbsoluteUrl = (url: string): string => {
     return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
+// Helper function to convert image URL to base64 data URL for better PDF compatibility
+const getImageAsDataUrl = async (imageUrl: string): Promise<string> => {
+    try {
+        if (!imageUrl) return '';
+
+        // Convert to absolute URL first
+        const absoluteUrl = getAbsoluteUrl(imageUrl);
+        console.log('Fetching image from:', absoluteUrl);
+
+        const response = await fetch(absoluteUrl);
+        if (!response.ok) {
+            console.warn('Failed to fetch image:', response.status, response.statusText);
+            return absoluteUrl; // Fallback to original URL
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const mimeType = response.headers.get('content-type') || 'image/png';
+        const base64 = buffer.toString('base64');
+
+        return `data:${mimeType};base64,${base64}`;
+    } catch (error) {
+        console.error('Error converting image to data URL:', error);
+        return getAbsoluteUrl(imageUrl); // Fallback to original URL
+    }
+};
+
 // Format currency helper
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -1024,14 +1051,15 @@ export async function generateInvoiceHTML(businessId: string, invoiceId: string)
         // Validate inputs
         if (!businessId || !invoiceId) {
             throw new Error('Business ID and Invoice ID are required');
-        }
-
-        // Fetch invoice data using existing server action
+        }        // Fetch invoice data using existing server action
         const invoice = await getInvoiceWitDetailsById(businessId, invoiceId);
 
         if (!invoice) {
             throw new Error('Invoice not found');
-        }
+        }        // Debug: Log the logo URL
+        const logoUrl = await getImageAsDataUrl(invoice.business_info.logo_url || '/logo-full.png');
+        console.log('Invoice PDF Logo URL (converted):', logoUrl.substring(0, 100) + '...');
+        console.log('Business logo_url from DB:', invoice.business_info.logo_url);
 
         // Calculate totals
         const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.amount ?? 0), 0);
@@ -1242,7 +1270,7 @@ export async function generateInvoiceHTML(businessId: string, invoiceId: string)
     <div class="container">
         <div class="header">
             <div>
-                <img src="${getAbsoluteUrl(invoice.business_info.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
+                <img src="${logoUrl}" alt="Company Logo" class="logo" />
                 <div class="company-info" style="margin-top: 16px;">
                     <div class="company-name">${invoice.business_info.name}</div>
                     <div>${invoice.business_info.street}</div>
