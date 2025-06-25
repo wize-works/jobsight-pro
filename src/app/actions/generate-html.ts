@@ -3,6 +3,7 @@
 import { getClientDetailsByID } from "./clients";
 import { getDailyLogWithDetailsById } from "./daily-logs";
 import { getBusinessById } from "./business";
+import { getInvoiceWitDetailsById } from "./invoices";
 
 // Helper function to convert relative URLs to absolute URLs for PDF generation
 const getAbsoluteUrl = (url: string): string => {
@@ -1016,7 +1017,7 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
 }
 
 /**
- * Generate invoice HTML by fetching from the invoice HTML API route
+ * Generate invoice HTML for PDF generation
  */
 export async function generateInvoiceHTML(businessId: string, invoiceId: string): Promise<string> {
     try {
@@ -1025,17 +1026,353 @@ export async function generateInvoiceHTML(businessId: string, invoiceId: string)
             throw new Error('Business ID and Invoice ID are required');
         }
 
-        // Fetch HTML from the invoice HTML API route
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-        const url = `${baseUrl}/api/invoices/${invoiceId}/html?businessId=${businessId}`;
+        // Fetch invoice data using existing server action
+        const invoice = await getInvoiceWitDetailsById(businessId, invoiceId);
 
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch invoice HTML: ${response.status} ${response.statusText}`);
+        if (!invoice) {
+            throw new Error('Invoice not found');
         }
 
-        const html = await response.text();
+        // Calculate totals
+        const subtotal = invoice.items.reduce((sum: number, item: any) => sum + (item.amount ?? 0), 0);
+        const taxRate = 0.08;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+
+        // Generate the HTML content for the invoice
+        const html = `
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice ${invoice.invoice_number}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 32px;
+            background: white;
+            color: #333;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #ff6b35;
+        }
+        .logo {
+            height: 50px;
+            max-width: 200px;
+        }
+        .invoice-info {
+            text-align: right;
+        }
+        .invoice-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 16px;
+        }
+        .info-table {
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 4px 12px;
+            border: none;
+            font-size: 13px;
+        }
+        .info-table .label {
+            font-weight: 600;
+            text-align: right;
+            color: #666666;
+        }
+        .addresses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        .address-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        .address-box {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .items-table th {
+            background: #ff6b35;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .items-table .text-right {
+            text-align: right;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .items-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        .totals {
+            margin-left: auto;
+            width: 300px;
+        }
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .totals-table td {
+            padding: 8px 12px;
+            border: none;
+            font-size: 14px;
+        }
+        .totals-table .label {
+            font-weight: 600;
+            text-align: right;
+            color: #666666;
+        }
+        .totals-table .total-row {
+            border-top: 2px solid #e5e5e5;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .totals-table .total-row .label {
+            color: #1a1a1a;
+        }
+        .notes-section {
+            margin-bottom: 32px;
+        }
+        .notes-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        .notes-box {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .footer {
+            text-align: center;
+            color: #888888;
+            font-size: 12px;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-paid {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-draft {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .company-info {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #666666;
+        }
+        .company-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .amount-highlight {
+            color: #ff6b35;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <img src="${getAbsoluteUrl(invoice.business_info.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
+                <div class="company-info" style="margin-top: 16px;">
+                    <div class="company-name">${invoice.business_info.name}</div>
+                    <div>${invoice.business_info.street}</div>
+                    <div>${invoice.business_info.city}, ${invoice.business_info.state} ${invoice.business_info.zip}</div>
+                    <div>${invoice.business_info.country}</div>
+                    <div>Phone: ${invoice.business_info.phone}</div>
+                    <div>Email: ${invoice.business_info.email}</div>
+                    <div>Tax ID: ${invoice.business_info.tax_id}</div>
+                </div>
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-title">INVOICE</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="label">Invoice #:</td>
+                        <td>${invoice.invoice_number}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Issue Date:</td>
+                        <td>${formatDate(invoice.issue_date)}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Due Date:</td>
+                        <td>${formatDate(invoice.due_date)}</td>
+                    </tr>
+                    ${invoice.paid_date ? `
+                    <tr>
+                        <td class="label">Paid Date:</td>
+                        <td>${formatDate(invoice.paid_date)}</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td class="label">Status:</td>
+                        <td>
+                            <span class="status-badge status-${invoice.status || 'draft'}">
+                                ${(invoice.status || 'draft').charAt(0).toUpperCase() + (invoice.status || 'draft').slice(1)}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="addresses">
+            <div class="address-section">
+                <h3>Bill To:</h3>
+                <div class="address-box">
+                    <div style="font-weight: 600; margin-bottom: 4px;">${invoice.billing_address.name}</div>
+                    ${invoice.billing_address.attention ? `<div>Attn: ${invoice.billing_address.attention}</div>` : ''}
+                    ${invoice.billing_address.street ? `<div>${invoice.billing_address.street}</div>` : ''}
+                    ${invoice.billing_address.city ? `<div>${invoice.billing_address.city}, ${invoice.billing_address.state} ${invoice.billing_address.zip}</div>` : ''}
+                    ${invoice.billing_address.country ? `<div>${invoice.billing_address.country}</div>` : ''}
+                </div>
+            </div>
+            <div class="address-section">
+                <h3>Project:</h3>
+                <div class="address-box">
+                    <div style="font-weight: 600; margin-bottom: 4px;">${invoice.project?.name || 'General Services'}</div>
+                    <div>Invoice for services rendered as part of the project.</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #1a1a1a;">Invoice Items:</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${invoice.items.map((item: any) => `
+                    <tr>
+                        <td>${item.description}</td>
+                        <td class="text-right">${item.quantity}</td>
+                        <td class="text-right">${formatCurrency(item.unit_price ?? 0)}</td>
+                        <td class="text-right amount-highlight">${formatCurrency(item.amount ?? 0)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <table class="totals-table">
+                <tr>
+                    <td class="label">Subtotal:</td>
+                    <td class="text-right">${formatCurrency(subtotal)}</td>
+                </tr>
+                <tr>
+                    <td class="label">Tax (${(taxRate * 100).toFixed(0)}%):</td>
+                    <td class="text-right">${formatCurrency(tax)}</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="label">Total:</td>
+                    <td class="text-right amount-highlight">${formatCurrency(total)}</td>
+                </tr>
+            </table>
+        </div>
+
+        ${invoice.notes ? `
+        <div class="notes-section">
+            <h3>Notes:</h3>
+            <div class="notes-box">
+                <p>${invoice.notes}</p>
+            </div>
+        </div>
+        ` : ''}
+
+        <div class="notes-section">
+            <h3>Payment Instructions:</h3>
+            <div class="notes-box">
+                <p>Please make payment to:</p>
+                <p>${invoice.payment_method || 'Contact us for payment details'}</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Thank you for your business!</strong></p>
+            <p>If you have any questions about this invoice, please contact us at ${invoice.business_info.email} or ${invoice.business_info.phone}.</p>
+            <p>Powered by JobSight Pro - Construction Management Software</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
         return html;
 
     } catch (error) {
