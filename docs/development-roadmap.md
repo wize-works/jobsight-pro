@@ -110,6 +110,7 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [x] Add AI token limits and enforcement in AI query handlers
 - [x] Enforce subscription-tiered branding for invoices and reports (Pro+ only)
 - [ ] Implement backend for email notification delivery
+- [ ] Allow admin users to update a user's details (e.g., role, status, email, name)
 
 ### **Advanced Reporting & Analytics Dashboard**
 - [ ] Create project profitability analysis dashboard

@@ -14,6 +14,7 @@ import { TabSubscription } from "./components/tab-subscription";
 import { getCurrentSubscription } from "@/app/actions/subscriptions";
 import { BusinessSubscription } from "@/types/subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
+import { formatDate } from "@/utils/formatters";
 
 
 export default function BusinessPage() {
@@ -171,9 +172,10 @@ export default function BusinessPage() {
                             <i className="far fa-credit-card fa-lg"></i>
                         </div>
                     </div>
-                    <div className="stat-desc">Current plan: Free</div>
+                    <div className="stat-desc">Subscription start date: {formatDate(subscription?.start_date || "")}</div>
                 </div>
-            </div>            <div className="tabs tabs-box mb-6">
+            </div>
+            <div className="tabs tabs-box mb-6">
                 <a className={`tab ${activeTab === "profile" ? "tab-active" : ""}`} onClick={() => setActiveTab("profile")}>
                     Business Profile
                 </a>
@@ -202,12 +204,13 @@ export default function BusinessPage() {
                 <form action={handleSaveChanges}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
                         <div className="card bg-base-100 shadow-lg">
-                            <div className="card-body">                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-                                <h2 className="card-title text-xl">Business Information</h2>
-                                <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={isSubmitting}>
-                                    <i className="far fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
-                                </button>
-                            </div>
+                            <div className="card-body">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                                    <h2 className="card-title text-xl">Business Information</h2>
+                                    <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={isSubmitting}>
+                                        <i className="far fa-save mr-2"></i> {isSubmitting ? "Saving..." : "Save Changes"}
+                                    </button>
+                                </div>
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div className="form-control">
                                         <label className="label">
@@ -273,19 +276,21 @@ export default function BusinessPage() {
                         <div className="card bg-base-100 shadow-lg">
                             <div className="card-body">
                                 <h2 className="card-title text-xl mb-4">Business Address</h2>
-                                <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">                                    <div className="form-control lg:col-span-6">
-                                    <label className="label">
-                                        <span className="label-text">Street Address</span>
-                                    </label>
-                                    <input type="text" name="address" className="input input-bordered w-full" defaultValue={business?.address || ""} />
-                                </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+                                    <div className="form-control lg:col-span-6">
+                                        <label className="label">
+                                            <span className="label-text">Street Address</span>
+                                        </label>
+                                        <input type="text" name="address" className="input input-bordered w-full" defaultValue={business?.address || ""} />
+                                    </div>
 
                                     <div className="form-control lg:col-span-3">
                                         <label className="label">
                                             <span className="label-text">City</span>
                                         </label>
                                         <input type="text" name="city" className="input input-bordered w-full" defaultValue={business?.city || ""} />
-                                    </div>                                    <div className="form-control lg:col-span-1">
+                                    </div>
+                                    <div className="form-control lg:col-span-1">
                                         <label className="label">
                                             <span className="label-text">State</span>
                                         </label>
@@ -347,7 +352,8 @@ export default function BusinessPage() {
                                             <option value="WI">WI - Wisconsin</option>
                                             <option value="WY">WY - Wyoming</option>
                                         </select>
-                                    </div>                                    <div className="form-control lg:col-span-2">
+                                    </div>
+                                    <div className="form-control lg:col-span-2">
                                         <label className="label">
                                             <span className="label-text">Zip Code</span>
                                         </label>
