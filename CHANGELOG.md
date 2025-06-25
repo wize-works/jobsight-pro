@@ -1,3 +1,10 @@
+# [1.96.0](https://github.com/wize-works/jobsight-pro/compare/v1.95.0...v1.96.0) (2025-06-25)
+
+
+### Features
+
+* Implement direct PDF generation using Gotenberg service and refactor invoice download process ([cb5c0f2](https://github.com/wize-works/jobsight-pro/commit/cb5c0f200f010a365ab9ea3014a43d9efd32832a))
+
 # [1.95.0](https://github.com/wize-works/jobsight-pro/compare/v1.94.0...v1.95.0) (2025-06-25)
 
 
