@@ -114,16 +114,17 @@ export async function generateClientHTML(businessId: string, clientId: string): 
                 tax_id: business?.tax_id || '',
                 logo_url: business?.logo_url || '',
             }
-        };
-
-        // Calculate statistics
+        };        // Calculate statistics
         const totalProjects = projects?.length || 0;
         const activeProjects = projects?.filter((p: any) => p.status === 'active' || p.status === 'in_progress').length || 0;
         const totalInvoices = invoices?.length || 0;
         const totalInvoiceAmount = invoices?.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0) || 0;
         const paidInvoices = invoices?.filter((inv: any) => inv.status === 'paid').length || 0;
 
-        // Generate HTML
+        // Convert logo to base64 data URL for PDF compatibility
+        const logoUrl = await getImageAsDataUrl(clientData.business_info.logo_url || '/logo-full.png');
+        console.log('Client PDF Logo URL (converted):', logoUrl.substring(0, 100) + '...');
+        console.log('Business logo_url from DB:', clientData.business_info.logo_url);        // Generate HTML
         const html = `
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -135,7 +136,7 @@ export async function generateClientHTML(businessId: string, clientId: string): 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 36px;
+            padding: 32px;
             background: white;
             color: #333;
             line-height: 1.5;
@@ -148,19 +149,22 @@ export async function generateClientHTML(businessId: string, clientId: string): 
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #ff6b35;
         }
         .logo {
-            height: 60px;
+            height: 50px;
+            max-width: 200px;
         }
         .client-info {
             text-align: right;
         }
         .client-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 16px;
         }
         .info-table {
             border-collapse: collapse;
@@ -168,26 +172,37 @@ export async function generateClientHTML(businessId: string, clientId: string): 
         .info-table td {
             padding: 4px 12px;
             border: none;
+            font-size: 13px;
         }
         .info-table .label {
             font-weight: 600;
             text-align: right;
+            color: #666666;
+        }
+        .company-info {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #666666;
+        }
+        .company-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
         }
         .details-section {
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
         .details-section h3 {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 16px;
-            color: #1f2937;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 8px;
+            margin-bottom: 12px;
+            color: #1a1a1a;
         }
         .details-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 32px;
             margin-bottom: 20px;
         }
         .detail-item {
@@ -195,62 +210,77 @@ export async function generateClientHTML(businessId: string, clientId: string): 
         }
         .detail-label {
             font-weight: 600;
-            color: #6b7280;
-            font-size: 14px;
+            color: #666666;
+            font-size: 13px;
             margin-bottom: 4px;
         }
         .detail-value {
-            color: #1f2937;
+            color: #1a1a1a;
+            font-size: 13px;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
         }
         .stat-card {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
             text-align: center;
         }
         .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff6b35;
             margin-bottom: 4px;
         }
         .stat-label {
-            color: #6b7280;
-            font-size: 14px;
+            color: #666666;
+            font-size: 12px;
+            font-weight: 600;
         }
         .table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            overflow: hidden;
         }
         .table th,
         .table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
         }
         .table th {
-            background: #f9fafb;
+            background: #ff6b35;
+            color: white;
             font-weight: 600;
-            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .table .text-right {
             text-align: right;
         }
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .status-active {
             background: #dcfce7;
@@ -260,46 +290,52 @@ export async function generateClientHTML(businessId: string, clientId: string): 
             background: #f3f4f6;
             color: #374151;
         }
-        .status-pending {
+        .status-pending, .status-in_progress {
             background: #fef3c7;
             color: #92400e;
         }
         .contact-card {
-            background: #f9fafb;
+            background: #fafafa;
             padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
             margin-bottom: 12px;
         }
         .contact-name {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 4px;
+            color: #1a1a1a;
         }
         .contact-title {
-            color: #6b7280;
-            font-size: 14px;
+            color: #666666;
+            font-size: 12px;
             margin-bottom: 8px;
         }
         .contact-info {
-            font-size: 14px;
+            font-size: 12px;
+            color: #666666;
         }
         .footer {
             text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 40px;
-            border-top: 1px solid #e5e7eb;
+            color: #888888;
+            font-size: 12px;
+            margin-top: 32px;
             padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
         }
         .primary-badge {
             background: #dbeafe;
             color: #1d4ed8;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
             font-weight: 600;
             margin-left: 8px;
+        }
+        .amount-highlight {
+            color: #ff6b35;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -307,9 +343,9 @@ export async function generateClientHTML(businessId: string, clientId: string): 
     <div class="container">
         <div class="header">
             <div>
-                <img src="${getAbsoluteUrl(clientData.business_info.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
-                <div style="margin-top: 20px;">
-                    <div style="font-weight: bold; font-size: 16px;">${clientData.business_info.name}</div>
+                <img src="${logoUrl}" alt="Company Logo" class="logo" />
+                <div class="company-info" style="margin-top: 16px;">
+                    <div class="company-name">${clientData.business_info.name}</div>
                     <div>${clientData.business_info.street}</div>
                     <div>${clientData.business_info.city}, ${clientData.business_info.state} ${clientData.business_info.zip}</div>
                     <div>${clientData.business_info.country}</div>
@@ -396,9 +432,7 @@ export async function generateClientHTML(businessId: string, clientId: string): 
                     <div class="detail-value">${client.notes}</div>
                 </div>
             ` : ''}
-        </div>
-
-        <!-- Statistics -->
+        </div>        <!-- Statistics -->
         <div class="details-section">
             <h3>Client Statistics</h3>
             <div class="stats-grid">
@@ -415,7 +449,7 @@ export async function generateClientHTML(businessId: string, clientId: string): 
                     <div class="stat-label">Total Invoices</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${formatCurrency(totalInvoiceAmount)}</div>
+                    <div class="stat-value amount-highlight">${formatCurrency(totalInvoiceAmount)}</div>
                     <div class="stat-label">Total Billed</div>
                 </div>
                 <div class="stat-card">
@@ -549,9 +583,7 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
 
         if (!business) {
             console.warn('Business not found, using default values');
-        }
-
-        // Create business info object
+        }        // Create business info object
         const businessInfo = {
             name: business?.name || '',
             street: business?.address || '',
@@ -564,7 +596,33 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             website: business?.website || '',
             tax_id: business?.tax_id || '',
             logo_url: business?.logo_url || '',
-        };        // Generate HTML for daily log
+        };        // Convert logo to base64 data URL for PDF compatibility
+        const logoUrl = await getImageAsDataUrl(businessInfo.logo_url || '/logo-full.png');
+        console.log('Daily Log PDF Logo URL (converted):', logoUrl.substring(0, 100) + '...');
+        console.log('Business logo_url from DB:', businessInfo.logo_url);
+
+        // Parse weather data if it's JSON
+        let weatherDisplay = 'Not recorded';
+        if (log.weather) {
+            try {
+                if (typeof log.weather === 'string' && log.weather.startsWith('{')) {
+                    const weatherData = JSON.parse(log.weather);
+                    if (weatherData.temperature) {
+                        weatherDisplay = `${weatherData.temperature}°F`;
+                        if (weatherData.feelsLike && weatherData.feelsLike !== weatherData.temperature) {
+                            weatherDisplay += ` (feels like ${weatherData.feelsLike}°F)`;
+                        }
+                        if (weatherData.humidity) {
+                            weatherDisplay += `, ${weatherData.humidity}% humidity`;
+                        }
+                    }
+                } else {
+                    weatherDisplay = log.weather;
+                }
+            } catch (e) {
+                weatherDisplay = log.weather || 'Not recorded';
+            }
+        }// Generate HTML for daily log
         const html = `
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -573,32 +631,21 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Log - ${log.project?.name || 'Unknown Project'} - ${formatDate(log.date)}</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            background: #ffffff;
-            color: #1a1a1a;
-            line-height: 1.6;
-            font-size: 14px;
+            padding: 32px;
+            background: white;
+            color: #333;
+            line-height: 1.5;
         }
         
-        .page {
-            width: 210mm;
-            min-height: 297mm;
+        .container {
+            max-width: 800px;
             margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }        .container {
-            padding: 32px;
-            height: 100%;
         }
-          /* Header Section */
+        
+        /* Header Section */
         .header {
             display: flex;
             justify-content: space-between;
@@ -606,230 +653,174 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             margin-bottom: 32px;
             padding-bottom: 24px;
             border-bottom: 2px solid #ff6b35;
-            position: relative;
-        }
-        
-        .company-info {
-            flex: 1;
         }
         
         .logo {
             height: 50px;
-            margin-bottom: 15px;
             max-width: 200px;
         }
         
-        .company-details {
-            color: #666666;
+        .company-info {
             font-size: 12px;
             line-height: 1.4;
+            color: #666666;
         }
         
         .company-name {
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
             color: #1a1a1a;
             margin-bottom: 8px;
         }
-          .log-info-panel {
-            background: #ff6b35;
-            color: white;
-            padding: 24px;
-            border-radius: 8px;
-            min-width: 300px;
-            border: 1px solid #e5e5e5;
+        
+        .log-info-panel {
+            text-align: right;
         }
-          .log-title {
-            font-size: 20px;
+        
+        .log-title {
+            font-size: 28px;
             font-weight: 700;
+            color: #ff6b35;
             margin-bottom: 16px;
-            text-align: center;
-            letter-spacing: 0.5px;
         }
-          .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+        
+        .info-table {
+            border-collapse: collapse;
+        }
+        
+        .info-table td {
+            padding: 4px 12px;
+            border: none;
             font-size: 13px;
         }
         
-        .info-item {
-            display: flex;
-            flex-direction: column;
+        .info-table .label {
+            font-weight: 600;
+            text-align: right;
+            color: #666666;
         }
-          .info-label {
-            font-weight: 500;
-            opacity: 0.9;
-            font-size: 11px;
+        
+        /* Section Styling */
+        .section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #666666;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
         
-        .info-value {
-            font-weight: 700;
-            font-size: 14px;
-        }
-        
-        /* Weather styling */
-        .weather-value {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-          /* Section Styling */
-        .section {
-            margin-bottom: 32px;
-            background: #fafafa;
-            border-radius: 8px;
-            padding: 24px;
-            border-left: 4px solid #ff6b35;
-            border: 1px solid #e5e5e5;
-        }
-          .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-          .section-icon {
-            width: 18px;
-            height: 18px;
-            background: #ff6b35;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: 600;
-        }
-          .project-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-        }
-          .project-item {
-            background: white;
-            padding: 16px;
-            border-radius: 6px;
-            border: 1px solid #e5e5e5;
-        }
-        
-        .project-label {
-            font-weight: 600;
-            color: #666666;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-        }
-        
-        .project-value {
+        .detail-value {
             color: #1a1a1a;
             font-weight: 600;
             font-size: 14px;
         }
-          /* Work Description */
-        .work-description {
-            background: white;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #e5e5e5;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #333333;
-        }
-          /* Table Styling */
-        .data-table {
+        
+        /* Table Styling */
+        .table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
             border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #e5e5e5;
         }
         
-        .data-table th {
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        
+        .table th {
             background: #ff6b35;
             color: white;
-            padding: 14px 12px;
-            text-align: left;
             font-weight: 600;
-            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-          .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 13px;
-            vertical-align: top;
-        }
         
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .data-table tr:nth-child(even) {
-            background: #fafafa;
-        }
-        
-        .text-right {
+        .table .text-right {
             text-align: right;
         }
         
-        .currency {
-            font-weight: 600;
-            color: #ff6b35;
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        /* Work Description */
+        .work-description {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            line-height: 1.5;
         }
         
         /* Notes Section */
-        .notes-grid {
-            display: grid;
-            gap: 15px;
+        .notes-section {
+            margin-bottom: 32px;
         }
-          .note-item {
-            background: white;
+        
+        .notes-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        
+        .notes-box {
+            background: #fafafa;
             padding: 16px;
             border-radius: 6px;
-            border-left: 4px solid #ff6b35;
             border: 1px solid #e5e5e5;
-        }
-        
-        .note-label {
-            font-weight: 600;
-            color: #ff6b35;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-        
-        .note-value {
-            color: #333333;
+            font-size: 13px;
             line-height: 1.5;
         }
-          /* Footer */
+        
+        /* Footer */
         .footer {
-            margin-top: 32px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e5e5;
             text-align: center;
             color: #888888;
             font-size: 12px;
-            line-height: 1.4;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
         }
         
-        .footer-title {
-            font-weight: 600;
-            color: #666666;
-            margin-bottom: 5px;
-        }
-          /* Utilities */
+        /* Utilities */
         .badge {
             display: inline-block;
             background: #ff6b35;
@@ -841,196 +832,164 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-          .empty-state {
+        
+        .amount-highlight {
+            color: #ff6b35;
+            font-weight: 600;
+        }
+        
+        .empty-state {
             text-align: center;
             color: #999999;
             font-style: italic;
             padding: 16px;
-            background: #f9f9f9;
-            border-radius: 4px;
+            background: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
         }
         
         @media print {
-            .page {
-                box-shadow: none;
-                margin: 0;
-            }
-            
             body {
                 background: white;
             }
-        }
-    </style>
+        }    </style>
 </head>
 <body>
-    <div class="page">
-        <div class="container">
-            <!-- Header Section -->
-            <div class="header">
-                <div class="company-info">
-                    <img src="${getAbsoluteUrl(businessInfo.logo_url || '/logo-full.png')}" alt="Company Logo" class="logo" />
-                    <div class="company-details">
-                        <div class="company-name">${businessInfo.name}</div>
-                        <div>${businessInfo.street}</div>
-                        <div>${businessInfo.city}, ${businessInfo.state} ${businessInfo.zip}</div>
-                        <div>${businessInfo.country}</div>
-                        <div>📞 ${businessInfo.phone}</div>
-                        <div>✉️ ${businessInfo.email}</div>
-                    </div>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <div>
+                <img src="${logoUrl}" alt="Company Logo" class="logo" />
+                <div class="company-info" style="margin-top: 16px;">
+                    <div class="company-name">${businessInfo.name}</div>
+                    <div>${businessInfo.street}</div>
+                    <div>${businessInfo.city}, ${businessInfo.state} ${businessInfo.zip}</div>
+                    <div>${businessInfo.country}</div>
+                    <div>Phone: ${businessInfo.phone}</div>
+                    <div>Email: ${businessInfo.email}</div>
+                    <div>Tax ID: ${businessInfo.tax_id}</div>
                 </div>
-                
-                <div class="log-info-panel">
-                    <div class="log-title">DAILY LOG</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Date</div>
-                            <div class="info-value">${formatDate(log.date)}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Log ID</div>
-                            <div class="info-value">#${log.id.slice(-8).toUpperCase()}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Weather</div>
-                            <div class="info-value weather-value">
-                                🌤️ ${log.weather || 'Not recorded'}
-                            </div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Hours</div>
-                            <div class="info-value">${log.hours_worked || 0}h</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Project Information Section -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-icon">🏗️</span>
-                    Project Information
-                </h3>
-                <div class="project-grid">
-                    <div class="project-item">
-                        <div class="project-label">Project Name</div>
-                        <div class="project-value">${log.project?.name || 'Unknown Project'}</div>
-                    </div>
-                    <div class="project-item">
-                        <div class="project-label">Client</div>
-                        <div class="project-value">${log.client?.name || 'Not specified'}</div>
-                    </div>
-                    <div class="project-item">
-                        <div class="project-label">Crew</div>
-                        <div class="project-value">${log.crew?.name || 'Not assigned'}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Work Completed Section -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-icon">✅</span>
-                    Work Completed
-                </h3>
-                <div class="work-description">
-                    ${log.work_completed || '<div class="empty-state">No work details recorded</div>'}
-                </div>
-            </div>
-
-            <!-- Materials Section -->
-            ${log.materials && log.materials.length > 0 ? `
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-icon">📦</span>
-                    Materials Used
-                    <span class="badge">${log.materials.length} items</span>
-                </h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Material</th>
-                            <th class="text-right">Quantity</th>
-                            <th class="text-right">Cost per Unit</th>
-                            <th class="text-right">Total Cost</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${log.materials.map((material: any) => `
-                        <tr>
-                            <td><strong>${material.name}</strong></td>
-                            <td class="text-right">${material.quantity || 0}</td>
-                            <td class="text-right">${formatCurrency(material.cost || 0)}</td>
-                            <td class="text-right currency">${formatCurrency((material.cost || 0) * (material.quantity || 0))}</td>
-                        </tr>
-                        `).join('')}
-                    </tbody>
+            </div>            <div class="log-info-panel">
+                <div class="log-title">DAILY LOG</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="label">Date:</td>
+                        <td>${formatDate(log.date)}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Log ID:</td>
+                        <td>#${log.id.slice(-8).toUpperCase()}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Weather:</td>
+                        <td>🌤️ ${weatherDisplay}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Hours:</td>
+                        <td><span class="amount-highlight">${log.hours_worked || 0}h</span></td>
+                    </tr>
                 </table>
             </div>
-            ` : ''}
+        </div>
 
-            <!-- Equipment Section -->
-            ${log.equipment && log.equipment.length > 0 ? `
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-icon">🚜</span>
-                    Equipment Used
-                    <span class="badge">${log.equipment.length} items</span>
-                </h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Equipment</th>
-                            <th class="text-right">Hours Used</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${log.equipment.map((equip: any) => `
-                        <tr>
-                            <td><strong>${equip.name}</strong></td>
-                            <td class="text-right">${equip.hours || 0}h</td>
-                        </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-            ` : ''}
-
-            <!-- Notes and Issues Section -->
-            ${(log.safety && log.safety !== "None reported") || (log.delays && log.delays !== "No delays reported") || log.quality ? `
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-icon">📝</span>
-                    Notes & Issues
-                </h3>
-                <div class="notes-grid">
-                    ${log.safety && log.safety !== "None reported" ? `
-                        <div class="note-item">
-                            <div class="note-label">🛡️ Safety Notes</div>
-                            <div class="note-value">${log.safety}</div>
-                        </div>
-                    ` : ''}
-                    ${log.delays && log.delays !== "No delays reported" ? `
-                        <div class="note-item">
-                            <div class="note-label">⏰ Delays</div>
-                            <div class="note-value">${log.delays}</div>
-                        </div>
-                    ` : ''}
-                    ${log.quality ? `
-                        <div class="note-item">
-                            <div class="note-label">⭐ Quality Notes</div>
-                            <div class="note-value">${log.quality}</div>
-                        </div>
-                    ` : ''}
+        <!-- Project Information Section -->
+        <div class="section">
+            <h3 class="section-title">Project Information</h3>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Project Name</div>
+                    <div class="detail-value">${log.project?.name || 'Unknown Project'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Client</div>
+                    <div class="detail-value">${log.client?.name || 'Not specified'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Crew</div>
+                    <div class="detail-value">${log.crew?.name || 'Not assigned'}</div>
                 </div>
             </div>
-            ` : ''}
-
-            <!-- Footer -->
-            <div class="footer">
-                <div class="footer-title">Daily Log Report Generated on ${formatDate(new Date().toISOString())}</div>
-                <p>For questions or updates, contact us at ${businessInfo.email} or ${businessInfo.phone}</p>
-                <p><strong>Powered by JobSight Pro</strong> - Construction Management Software</p>
+        </div>        
+        <!-- Work Completed Section -->
+        <div class="section">
+            <h3 class="section-title">Work Completed</h3>
+            <div class="work-description">
+                ${log.work_completed || '<div class="empty-state">No work details recorded</div>'}
             </div>
+        </div>        <!-- Materials Section -->
+        ${log.materials && log.materials.length > 0 ? `
+        <div class="section">
+            <h3 class="section-title">Materials Used (${log.materials.length} items)</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Material</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Cost per Unit</th>
+                        <th class="text-right">Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${log.materials.map((material: any) => `
+                    <tr>
+                        <td><strong>${material.name}</strong></td>
+                        <td class="text-right">${material.quantity || 0}</td>
+                        <td class="text-right">${formatCurrency(material.cost || 0)}</td>
+                        <td class="text-right amount-highlight">${formatCurrency((material.cost || 0) * (material.quantity || 0))}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        ` : ''}        <!-- Equipment Section -->
+        ${log.equipment && log.equipment.length > 0 ? `
+        <div class="section">
+            <h3 class="section-title">Equipment Used (${log.equipment.length} items)</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Equipment</th>
+                        <th class="text-right">Hours Used</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${log.equipment.map((equip: any) => `
+                    <tr>
+                        <td><strong>${equip.name}</strong></td>
+                        <td class="text-right amount-highlight">${equip.hours || 0}h</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        ` : ''}        <!-- Notes and Issues Section -->
+        ${(log.safety && log.safety !== "None reported") || (log.delays && log.delays !== "No delays reported") || log.quality ? `
+        <div class="notes-section">
+            <h3>Notes & Issues</h3>
+            ${log.safety && log.safety !== "None reported" ? `
+                <div class="notes-box">
+                    <strong>🛡️ Safety Notes:</strong><br>
+                    ${log.safety}
+                </div>
+            ` : ''}
+            ${log.delays && log.delays !== "No delays reported" ? `
+                <div class="notes-box">
+                    <strong>⏰ Delays:</strong><br>
+                    ${log.delays}
+                </div>            ` : ''}
+            ${log.quality ? `
+                <div class="notes-box">
+                    <strong>⭐ Quality Notes:</strong><br>
+                    ${log.quality}
+                </div>
+            ` : ''}
+        </div>
+        ` : ''}
+
+        <div class="footer">
+            <p>Daily Log Report Generated on ${formatDate(new Date().toISOString())}</p>
+            <p>For questions or updates, contact us at ${businessInfo.email} or ${businessInfo.phone}</p>
+            <p>Powered by JobSight Pro - Construction Management Software</p>
         </div>
     </div>
 </body>
