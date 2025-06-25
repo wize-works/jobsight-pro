@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { InvoiceEmail } from '@/components/email-examples';
+import { generateInvoicePdf } from '@/app/actions/pdf-generation-gotenberg';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -52,39 +53,28 @@ export async function POST(request: NextRequest) {
         const emailSubject = subject || `Invoice ${invoiceData.invoice_number} from ${businessInfo?.name || 'your contractor'} via JobSight Pro`;        // Prepare invoice URLs
         const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/dashboard/invoices/${invoiceData.id}`;
         const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/pay/invoice/${invoiceData.id}`;
-        const printableUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/api/invoices/${invoiceData.id}/html?businessId=${invoiceData.business_id}`;
 
         // Generate PDF attachment if requested
         let pdfAttachment = null;
         if (attachPDF) {
             try {
-                // Call our PDF generation API
-                const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://pro.jobsight.co'}/api/generate-pdf-gotenberg`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        url: printableUrl,
-                        filename: `Invoice-${invoiceData.invoice_number}.pdf`,
-                        returnAsAttachment: false // Return as base64 for email attachment
-                    }),
-                });
-
-                if (pdfResponse.ok) {
-                    const pdfData = await pdfResponse.json();
+                // Use our new server action to generate PDF
+                const filename = `Invoice-${invoiceData.invoice_number}.pdf`;
+                const pdfResult = await generateInvoicePdf(invoiceData.business_id, invoiceData.id, filename); if (pdfResult.success && pdfResult.buffer) {
+                    // Convert buffer to base64 for email attachment
+                    const base64Content = Buffer.from(pdfResult.buffer).toString('base64');
                     pdfAttachment = {
-                        filename: pdfData.filename,
-                        content: pdfData.pdf,
+                        filename,
+                        content: base64Content,
                     };
                 } else {
-                    console.warn('Failed to generate PDF attachment:', await pdfResponse.text());
+                    console.warn('Failed to generate PDF attachment:', pdfResult.error);
                 }
             } catch (pdfError) {
                 console.warn('Error generating PDF attachment:', pdfError);
                 // Continue without PDF attachment rather than failing the email
             }
-        }        // Send email
+        }// Send email
         const emailResponse = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || 'JobSight Pro <noreply@updates.jobsight.co>',
             replyTo: businessInfo?.email || invoiceData.business_info?.email || undefined,

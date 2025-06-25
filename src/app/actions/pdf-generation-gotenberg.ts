@@ -2,6 +2,7 @@
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { generateClientHTML, generateInvoiceHTML } from "@/app/actions/generate-html";
+import { generatePdfWithGotenberg } from "@/app/actions/gotenberg-direct";
 
 export interface PdfGenerationOptions {
     html?: string;
@@ -16,6 +17,7 @@ export interface PdfGenerationOptions {
 
 export interface PdfGenerationResult {
     success: boolean;
+    buffer?: Uint8Array; // Changed from Buffer to Uint8Array for serialization
     media?: any;
     fileUrl?: string;
     filename?: string;
@@ -24,7 +26,7 @@ export interface PdfGenerationResult {
 }
 
 /**
- * Generate a PDF from HTML content or URL using Gotenberg and optionally save to media storage
+ * Generate a PDF from HTML content or URL using Gotenberg directly (no API calls)
  */
 export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOptions, businessId?: string): Promise<PdfGenerationResult> {
     // Only use withBusinessServer if businessId is not provided
@@ -51,33 +53,29 @@ export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOpt
             throw new Error('Either HTML or URL must be provided');
         }
 
-        const apiEndpoint = saveToStorage ? '/api/generate-pdf-storage-gotenberg' : '/api/generate-pdf-gotenberg';
-
-        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}${apiEndpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                html,
-                url,
-                filename,
-                businessId: actualBusinessId,
-                clientId,
-                projectId,
-                description,
-                saveToStorage,
-                returnAsAttachment
-            }),
+        // Use the direct Gotenberg action instead of API calls
+        const result = await generatePdfWithGotenberg({
+            html,
+            url,
+            filename,
+            businessId: actualBusinessId,
+            clientId,
+            projectId,
+            description,
+            saveToStorage,
+            returnAsAttachment
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to generate PDF');
-        }
-
-        const result = await response.json();
-        return result;
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to generate PDF');
+        } return {
+            success: true,
+            buffer: result.buffer ? new Uint8Array(result.buffer) : undefined,
+            media: result.media ? { buffer: result.buffer, ...result.media } : undefined,
+            fileUrl: result.fileUrl,
+            filename: result.filename,
+            size: result.size
+        };
 
     } catch (error) {
         console.error('Error in generatePdfDocumentWithGotenberg:', error);
@@ -200,7 +198,8 @@ export async function generateInvoicePdf(
     filename: string
 ): Promise<PdfGenerationResult> {
     try {        // Generate invoice HTML content using direct import
-        const html = await generateInvoiceHTML(businessId, invoiceId); return await generatePdfDocumentWithGotenberg({
+        const html = await generateInvoiceHTML(businessId, invoiceId);
+        return await generatePdfDocumentWithGotenberg({
             html,
             filename,
             description: `Invoice PDF`,
