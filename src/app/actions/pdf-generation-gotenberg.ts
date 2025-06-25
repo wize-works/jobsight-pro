@@ -1,7 +1,7 @@
 "use server";
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
-import { generateClientHTML, generateInvoiceHTML } from "@/app/actions/generate-html";
+import { generateClientHTML, generateInvoiceHTML, generateDailyLogHTML } from "@/app/actions/generate-html";
 import { generatePdfWithGotenberg } from "@/app/actions/gotenberg-direct";
 
 export interface PdfGenerationOptions {
@@ -64,14 +64,15 @@ export async function generatePdfDocumentWithGotenberg(options: PdfGenerationOpt
             description,
             saveToStorage,
             returnAsAttachment
-        });
-
-        if (!result.success) {
+        }); if (!result.success) {
             throw new Error(result.error || 'Failed to generate PDF');
         } return {
             success: true,
             buffer: result.buffer ? new Uint8Array(result.buffer) : undefined,
-            media: result.media ? { buffer: result.buffer, ...result.media } : undefined,
+            media: result.media ? (() => {
+                const { buffer, ...mediaWithoutBuffer } = result.media;
+                return mediaWithoutBuffer;
+            })() : undefined,
             fileUrl: result.fileUrl,
             filename: result.filename,
             size: result.size
@@ -212,6 +213,34 @@ export async function generateInvoicePdf(
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to generate invoice PDF'
+        };
+    }
+}
+
+/**
+ * Generate a daily log PDF using Gotenberg and return as downloadable response
+ */
+export async function generateDailyLogPdf(
+    businessId: string,
+    logId: string,
+    filename: string
+): Promise<PdfGenerationResult> {
+    try {
+        // Generate daily log HTML content using direct import
+        const html = await generateDailyLogHTML(businessId, logId);
+        return await generatePdfDocumentWithGotenberg({
+            html,
+            filename,
+            description: `Daily Log PDF`,
+            saveToStorage: false, // For direct download
+            returnAsAttachment: true
+        }, businessId);
+
+    } catch (error) {
+        console.error('Error generating daily log PDF with Gotenberg:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate daily log PDF'
         };
     }
 }
