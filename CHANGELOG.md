@@ -1,3 +1,10 @@
+# [1.95.0](https://github.com/wize-works/jobsight-pro/compare/v1.94.0...v1.95.0) (2025-06-25)
+
+
+### Features
+
+* Enhance invoice status handling in InvoiceDetailPage and InvoiceEditModal ([a806c04](https://github.com/wize-works/jobsight-pro/commit/a806c04489b805453b9b8acf097938f0eed1829a))
+
 # [1.94.0](https://github.com/wize-works/jobsight-pro/compare/v1.93.0...v1.94.0) (2025-06-25)
 
 
