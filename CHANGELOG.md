@@ -1,3 +1,10 @@
+# [1.98.0](https://github.com/wize-works/jobsight-pro/compare/v1.97.0...v1.98.0) (2025-06-25)
+
+
+### Features
+
+* add enhanced task management animations and UI components ([63c6b2f](https://github.com/wize-works/jobsight-pro/commit/63c6b2f08618c57cb078484debf2810d9dff9e61))
+
 # [1.97.0](https://github.com/wize-works/jobsight-pro/compare/v1.96.0...v1.97.0) (2025-06-25)
 
 
