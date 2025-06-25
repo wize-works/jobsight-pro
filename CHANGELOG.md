@@ -1,3 +1,10 @@
+# [1.100.0](https://github.com/wize-works/jobsight-pro/compare/v1.99.0...v1.100.0) (2025-06-25)
+
+
+### Features
+
+* Add admin user detail update functionality and enhance subscription debug component ([7d8b84f](https://github.com/wize-works/jobsight-pro/commit/7d8b84fc7d2a72d5b224c63b40f08f962e1b7672))
+
 # [1.99.0](https://github.com/wize-works/jobsight-pro/compare/v1.98.0...v1.99.0) (2025-06-25)
 
 
