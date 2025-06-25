@@ -8,16 +8,14 @@ export type BusinessSubscriptionUpdate = Database["public"]["Tables"]["business_
 export interface SubscriptionPlan {
     id: string;
     name: string;
-    monthly_price: number;
-    annual_price: number;
+    monthly_price: number | string; // string for "Custom" enterprise pricing
+    annual_price: number | string; // string for "Custom" enterprise pricing
     included_users: number;
     extra_user_price: number;
-    ai_addon_available: boolean;
-    ai_addon_price?: number;
     features: string[];
-    stripe_product_id: string;
-    stripe_monthly_price_id: string;
-    stripe_annual_price_id: string;
+    stripe_product_id: string | null;
+    stripe_monthly_price_id: string | null;
+    stripe_annual_price_id: string | null;
 }
 
 export type BillingInterval = 'monthly' | 'annual';

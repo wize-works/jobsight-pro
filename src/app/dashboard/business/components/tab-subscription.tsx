@@ -316,19 +316,9 @@ export const TabSubscription = () => {
                                             <i className="far fa-check text-success mt-1 mr-3 text-sm"></i>
                                             <span className="text-sm">
                                                 {feature}
-                                            </span>
-                                        </li>
+                                            </span>                                        </li>
                                     ))}
                                 </ul>
-
-                                {plan.ai_addon_available && (
-                                    <div className="bg-base-200 p-3 rounded-lg mb-4 text-sm">
-                                        <p className="font-semibold">
-                                            AI Add-on Available
-                                        </p>
-                                        <p>+${plan.ai_addon_price}/month</p>
-                                    </div>
-                                )}
 
                                 <div className="card-actions justify-center mt-auto">
                                     {isCurrentPlan ? (

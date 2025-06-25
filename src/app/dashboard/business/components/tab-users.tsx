@@ -6,9 +6,11 @@ import { User, UserRole, userRoleOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useEffect, useState } from "react";
 import { useBusiness } from "@/lib/business-context";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export default function UsersPermissionsTab() {
     const { businessId } = useBusiness();
+    const { canAddUsers, getUserLimit, currentPlan } = useFeatureGate();
     const [users, setUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -34,13 +36,21 @@ export default function UsersPermissionsTab() {
         } finally {
             setLoadingUsers(false);
         }
-    };
-
-    const handleInviteUser = async () => {
+    }; const handleInviteUser = async () => {
         if (!inviteEmail || !inviteFirstName) {
             toast.error({
                 title: "Error",
                 description: "Please fill in all required fields",
+            });
+            return;
+        }
+
+        // Check user limit before inviting
+        const currentUserCount = users.length;
+        if (!canAddUsers(currentUserCount, 1)) {
+            toast.error({
+                title: "User Limit Reached",
+                description: `Your ${currentPlan} plan allows up to ${getUserLimit()} users. Please upgrade your plan to add more users.`,
             });
             return;
         }
@@ -146,16 +156,28 @@ export default function UsersPermissionsTab() {
 
     return (
         <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-                <div className="flex justify-between items-center mb-4">
+            <div className="card-body">                <div className="flex justify-between items-center mb-4">
+                <div>
                     <h2 className="card-title text-xl">Users & Permissions</h2>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setShowInviteModal(true)}
-                    >
-                        <i className="far fa-user-plus mr-2"></i> Invite User
-                    </button>
+                    <div className="text-sm text-base-content/70 mt-1">
+                        {users.length} of {getUserLimit()} users used
+                        {!canAddUsers(users.length, 1) && (
+                            <span className="text-warning ml-2">
+                                <i className="far fa-exclamation-triangle mr-1"></i>
+                                Limit reached
+                            </span>
+                        )}
+                    </div>
                 </div>
+                <button
+                    className="btn btn-primary"
+                    onClick={() => setShowInviteModal(true)}
+                    disabled={!canAddUsers(users.length, 1)}
+                    title={!canAddUsers(users.length, 1) ? `Upgrade to add more than ${getUserLimit()} users` : 'Invite a new user to your team'}
+                >
+                    <i className="far fa-user-plus mr-2"></i> Invite User
+                </button>
+            </div>
 
                 {loadingUsers ? (
                     <div className="flex justify-center items-center h-32">

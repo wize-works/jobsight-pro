@@ -2,11 +2,11 @@
     {
         "id": "personal",
         "name": "Personal",
+        "description": "Ideal for individual users who need basic project management tools.",
         "monthly_price": 0,
         "annual_price": 0,
         "included_users": 1,
         "extra_user_price": 0,
-        "ai_addon_available": false,
         "stripe_product_id": "prod_SUPYjsdZJbrP74",
         "stripe_monthly_price_id": "price_1RZQjfFhqtMtMtVLawZMWMnc",
         "stripe_annual_price_id": "price_1RZQkpFhqtMtMtVLshUh6aO6",
@@ -21,64 +21,85 @@
     {
         "id": "starter",
         "name": "Starter",
+        "description": "Perfect for small teams looking to enhance their project management capabilities.",
         "monthly_price": 9.99,
         "annual_price": 99.99,
-        "included_users": 1,
-        "extra_user_price": 0,
-        "ai_addon_available": false,
-        "ai_addon_price": 5.0,
+        "included_users": 3,
+        "extra_user_price": 5.00,
         "stripe_product_id": "prod_SJQWrWsFT7ZnQk",
         "stripe_monthly_price_id": "price_1ROnf1FhqtMtMtVLvpzSujpa",
         "stripe_annual_price_id": "price_1RQ3ZbFhqtMtMtVL5CDrnJMd",
         "features": [
             "Up to 3 users",
-            "All Starter features",
-            "1GB storage",
+            "AI Assistant included",
             "Basic reporting",
             "Email support",
-            "AI assistance"
+            "1GB storage",
+            "Everything from Personal"
         ]
     },
     {
         "id": "pro",
         "name": "Pro",
-        "monthly_price": 49,
-        "annual_price": 499,
+        "description": "Designed for growing teams that need advanced features and support.",
+        "monthly_price": 19.99,
+        "annual_price": 199.99,
         "included_users": 10,
-        "extra_user_price": 5,
-        "ai_addon_available": false,
-        "ai_addon_price": 15.0,
+        "extra_user_price": 10.00,
         "stripe_product_id": "prod_SJQMFTBfoGGruq",
         "stripe_monthly_price_id": "price_1RQ3dgFhqtMtMtVLmL1A7CND",
         "stripe_annual_price_id": "price_1RPZ4WFhqtMtMtVLI6Ed1sVR",
         "features": [
             "Up to 10 users",
-            "All Starter features",
-            "5GB storage",
-            "Invoicing & scheduling",
+            "AI Assistant included",
+            "Invoicing",
+            "Scheduling",
             "Custom branding",
-            "Email support",
-            "AI assistance"
+            "5GB storage",
+            "Everything from Starter"
         ]
     },
     {
         "id": "business",
         "name": "Business",
-        "monthly_price": 149,
-        "annual_price": 1499,
+        "description": "For larger teams that require comprehensive project management tools and support.",
+        "monthly_price": 39.99,
+        "annual_price": 399.99,
         "included_users": 50,
-        "extra_user_price": 3,
-        "ai_addon_available": false,
+        "extra_user_price": 15.00,
         "stripe_product_id": "prod_SJQJqklErO9U5x",
         "stripe_monthly_price_id": "price_1ROnSgFhqtMtMtVLygljvPDg",
         "stripe_annual_price_id": "price_1RQ3flFhqtMtMtVLS2XAL2V4",
         "features": [
             "Up to 50 users",
-            "All Pro features",
-            "20GB storage",
+            "AI Assistant included",
+            "Advanced analytics",
             "Priority support",
-            "AI assistance",
-            "Report exports"
+            "Report exports",
+            "Team management",
+            "20GB storage",
+            "Everything from Pro"
+        ]
+    },
+    {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "monthly_price": "Custom",
+        "annual_price": "Custom",
+        "included_users": 100,
+        "extra_user_price": 20.00,
+        "stripe_product_id": null,
+        "stripe_monthly_price_id": null,
+        "stripe_annual_price_id": null,
+        "features": [
+            "100+ users",
+            "AI Assistant included",
+            "Custom integrations",
+            "Dedicated support",
+            "Unlimited features",
+            "Enterprise security",
+            "50GB storage",
+            "Everything from Business"
         ]
     }
 ]

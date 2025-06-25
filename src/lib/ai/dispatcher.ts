@@ -3,6 +3,7 @@ import { ChatCompletionMessageParam } from "openai/resources";
 import { getRelevantContext } from "./context";
 import { AI_MODELS, openai } from "./client";
 import { logAIInteraction } from "./handlers/ai-logs";
+import { checkAIUsageLimit, estimateTokensFromText } from "./usage-limits";
 
 export async function handleAIQuery({
     businessId,
@@ -22,6 +23,31 @@ export async function handleAIQuery({
     path?: string;
     updatedSessionState?: typeof sessionState;
 }> {
+    // Check AI usage limits before processing
+    const usageStatus = await checkAIUsageLimit(businessId);
+
+    if (!usageStatus.canUseAI) {
+        const limitMessage = usageStatus.limit === 0
+            ? "AI Assistant is not available on your current plan. Please upgrade to access AI features."
+            : `You've reached your monthly AI usage limit of ${usageStatus.limit.toLocaleString()} tokens. Your limit will reset next month, or you can upgrade your plan for higher limits.`;
+
+        return {
+            response: limitMessage,
+            action: "upgrade_required",
+            updatedSessionState: sessionState
+        };
+    }
+
+    // Estimate tokens for the request to ensure we don't exceed limits
+    const estimatedTokens = estimateTokensFromText(message + JSON.stringify(conversationHistory));
+    if (estimatedTokens > usageStatus.remainingTokens) {
+        return {
+            response: `This request would exceed your remaining AI token allowance (${usageStatus.remainingTokens.toLocaleString()} tokens remaining). Please try a shorter message or upgrade your plan.`,
+            action: "usage_warning",
+            updatedSessionState: sessionState
+        };
+    }
+
     // Get context using the most recent project
     const context = await getRelevantContext(businessId, message, sessionState);
 
@@ -29,13 +55,11 @@ export async function handleAIQuery({
         ...context,
         ...conversationHistory.slice(-5),
         { role: "user" as const, content: message }
-    ];
-
-    const completion = await openai.chat.completions.create({
+    ]; const completion = await openai.chat.completions.create({
         model: AI_MODELS.CHAT_GPT_3_5,
         messages,
         temperature: 0.3,
-        max_tokens: 1000
+        max_tokens: Math.min(1000, usageStatus.remainingTokens) // Respect remaining tokens
     });
 
     const aiText = completion.choices[0]?.message?.content ?? "I couldn’t understand that.";

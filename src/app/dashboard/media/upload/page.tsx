@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -9,6 +8,7 @@ import { Project } from "@/types/projects"
 import { MediaInsert, MediaType } from "@/types/media"
 import { toast } from "@/hooks/use-toast"
 import { useBusiness } from "@/lib/business-context"
+import { StorageLimitGuard, FileUploadWithLimits } from "@/components/subscription"
 
 interface FileUpload {
     file: File
@@ -28,9 +28,11 @@ export default function MediaUpload() {
     const [selectedProject, setSelectedProject] = useState("");
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
+    const [currentStorageUsedMB, setCurrentStorageUsedMB] = useState(0);
 
     useEffect(() => {
         loadProjects()
+        loadStorageUsage()
     }, [])
 
     const loadProjects = async () => {
@@ -39,6 +41,16 @@ export default function MediaUpload() {
             setProjects(projectsData)
         } catch (error) {
             console.error("Error loading projects:", error)
+        }
+    }
+
+    const loadStorageUsage = async () => {
+        try {
+            // TODO: Implement actual storage usage calculation
+            // For now, using placeholder data
+            setCurrentStorageUsedMB(150) // 150MB used
+        } catch (error) {
+            console.error("Error loading storage usage:", error)
         }
     }
 
@@ -60,31 +72,28 @@ export default function MediaUpload() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
     }
 
-    // Handle file selection
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files).map(file => ({
-                file,
-                id: Math.random().toString(36).substr(2, 9),
-                progress: 0,
-                status: "pending" as const
-            }))
-            setFiles(prev => [...prev, ...newFiles])
+    // Handle file selection with storage limit checking
+    const handleFileSelect = (file: File) => {
+        const newFile = {
+            file,
+            id: Math.random().toString(36).substr(2, 9),
+            progress: 0,
+            status: "pending" as const
         }
+        setFiles(prev => [...prev, newFile])
     }
 
-    // Handle file drop
+    // Handle file change from input
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            Array.from(e.target.files).forEach(handleFileSelect)
+        }
+    }    // Handle file drop with storage limit checking
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         setDragActive(false)
         if (e.dataTransfer.files) {
-            const newFiles = Array.from(e.dataTransfer.files).map(file => ({
-                file,
-                id: Math.random().toString(36).substr(2, 9),
-                progress: 0,
-                status: "pending" as const
-            }))
-            setFiles(prev => [...prev, ...newFiles])
+            Array.from(e.dataTransfer.files).forEach(handleFileSelect)
         }
     }
 
@@ -263,31 +272,44 @@ export default function MediaUpload() {
 
             <div className="space-y-6">
                 {/* Upload Area */}
-                <div className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                        <div
-                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                                ? "border-primary bg-primary/5"
-                                : "border-base-300 hover:border-base-400"
-                                }`}
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                        >
-                            <i className="far fa-cloud-upload-alt text-4xl text-base-content/50 mb-4"></i>
-                            <p className="mb-2 text-lg">Drag and drop files here, or click to browse</p>
-                            <p className="text-sm text-base-content/70 mb-4">
-                                Supports images, videos, documents, and audio files
-                            </p>
-                            <input
-                                type="file"
-                                className="file-input file-input-bordered w-full max-w-xs"
-                                multiple
-                                onChange={handleFileChange}
-                            />
+                <StorageLimitGuard
+                    currentStorageUsedMB={currentStorageUsedMB}
+                    fileSizeMB={files.reduce((total, f) => total + (f.file.size / (1024 * 1024)), 0)}
+                    showUsageIndicator={true}
+                >
+                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <FileUploadWithLimits
+                                currentStorageUsedMB={currentStorageUsedMB}
+                                multiple={true}
+                                onFileSelect={handleFileSelect}
+                                className="w-full"
+                            >
+                                <div
+                                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                                        ? "border-primary bg-primary/5"
+                                        : "border-base-300 hover:border-base-400"
+                                        }`}
+                                    onDrop={handleDrop}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                >
+                                    <i className="far fa-cloud-upload-alt text-4xl text-base-content/50 mb-4"></i>
+                                    <p className="mb-2 text-lg">Drag and drop files here, or click to browse</p>
+                                    <p className="text-sm text-base-content/70 mb-4">
+                                        Supports images, videos, documents, and audio files
+                                    </p>
+                                    <input
+                                        type="file"
+                                        className="file-input file-input-bordered w-full max-w-xs"
+                                        multiple
+                                        onChange={handleFileChange}
+                                    />
+                                </div>
+                            </FileUploadWithLimits>
                         </div>
                     </div>
-                </div>
+                </StorageLimitGuard>
 
                 {/* Project Selection */}
                 {files.length > 0 && (

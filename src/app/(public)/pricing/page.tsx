@@ -2,7 +2,7 @@
 import Link from "next/link"
 
 // Load pricing data from the centralized JSON file
-import pricingPlans from '../../../../docs/jobsight_pricing_with_ai_addon.json'
+import pricingPlans from '../../../../docs/jobsight_pricing.json'
 import Image from "next/image"
 import { useState } from "react";
 import ROICalculator from "./components/roi";
@@ -55,9 +55,7 @@ export default function Pricing() {
                                         <span className="text-base-content/70">/month</span>
                                     </div>
 
-                                    <div className="divider"></div>
-
-                                    <ul className="space-y-6">
+                                    <div className="divider"></div>                                    <ul className="space-y-6">
                                         {plan.features.map((feature, index) => (
                                             <li key={index} className="flex items-start text-lg">
                                                 <i className="far fa-check text-success mt-1 mr-2"></i>
@@ -65,13 +63,6 @@ export default function Pricing() {
                                             </li>
                                         ))}
                                     </ul>
-
-                                    {plan.ai_addon_available && (
-                                        <div className="bg-base-200 p-3 rounded-lg mt-4 text-sm">
-                                            <p className="font-semibold">AI Add-on Available</p>
-                                            <p>+${plan.ai_addon_price}/month</p>
-                                        </div>
-                                    )}
 
                                     <div className="card-actions justify-center mt-auto">
                                         <Link href={`/api/auth/register?post_login_redirect_url=%2Fregister`} className={`btn  ${plan.name === "Pro" ? 'btn-accent' : 'btn-primary'} btn-block`}>

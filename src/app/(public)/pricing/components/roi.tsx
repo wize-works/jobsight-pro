@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import pricingPlans from '../../../../../docs/jobsight_pricing_with_ai_addon.json';
+import pricingPlans from '../../../../../docs/jobsight_pricing.json';
 import Link from "next/link";
 
 export default function ROICalculator() {
@@ -18,10 +18,8 @@ export default function ROICalculator() {
         totalMonthlySavings: 0,
         roi: 0,
         paybackPeriod: 0
-    });
-
-    const currentPlan = pricingPlans.find(plan => plan.id === selectedPlan);
-    const jobsightCost = currentPlan?.monthly_price || 49; // Fallback to Pro plan monthly cost
+    }); const currentPlan = pricingPlans.find(plan => plan.id === selectedPlan);
+    const jobsightCost = typeof currentPlan?.monthly_price === 'number' ? currentPlan.monthly_price : 49; // Fallback to Pro plan monthly cost
 
     useEffect(() => {
         calculateROI();
