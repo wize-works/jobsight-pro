@@ -10,6 +10,7 @@ import { useBusiness } from '@/lib/business-context';
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
 import InvoicesListLoading from "./loading";
+import { FeatureGate } from "@/components/subscription/FeatureGate";
 
 // Lazy load modal components for better performance
 const InvoiceNewModal = dynamic(() => import("./components/modal-new"), {
@@ -137,14 +138,27 @@ export default function InvoicesPage() {
                         <div>
                             <h1 className="text-2xl font-bold mb-2">Invoices</h1>
                             <p className="text-sm text-base-content/50">Manage your invoices efficiently</p>
-                        </div>
-                        <div className="flex items-center space-x-6">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleNewInvoice}
+                        </div>                        <div className="flex items-center space-x-6">
+                            <FeatureGate
+                                feature="invoicing"
+                                requiredPlan="pro"
+                                fallback={
+                                    <button
+                                        className="btn btn-primary btn-disabled"
+                                        disabled
+                                        title="Invoicing requires Pro plan or higher"
+                                    >
+                                        <i className="far fa-lock mr-2"></i> New Invoice
+                                    </button>
+                                }
                             >
-                                <i className="far fa-plus mr-2"></i> New Invoice
-                            </button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleNewInvoice}
+                                >
+                                    <i className="far fa-plus mr-2"></i> New Invoice
+                                </button>
+                            </FeatureGate>
                         </div>
                     </div>
 

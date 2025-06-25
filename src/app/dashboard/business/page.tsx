@@ -7,10 +7,13 @@ import { getUsers, deleteUser } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
 import { getProjects } from "@/app/actions/projects";
 import { getEquipments } from "@/app/actions/equipments";
+import { getInvoicesWithClient } from "@/app/actions/invoices";
+import { getDailyLogs } from "@/app/actions/daily-logs";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
 import { getCurrentSubscription } from "@/app/actions/subscriptions";
 import { BusinessSubscription } from "@/types/subscription";
+import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
 
 
 export default function BusinessPage() {
@@ -22,25 +25,60 @@ export default function BusinessPage() {
     const [projectCount, setProjectCount] = useState(0);
     const [equipmentCount, setEquipmentCount] = useState(0);
     const [dataLoaded, setDataLoaded] = useState(false);
-
-
+    // Initialize usage data with real values - will be updated when data loads
+    const [usageData, setUsageData] = useState({
+        userCount: 0,
+        storageUsedMB: 0, // Will fetch real storage usage
+        invoicesThisMonth: 0, // Will fetch real invoice count
+        aiQueriesThisMonth: 0, // Will fetch real AI usage
+        projectsActive: 0,
+        dailyLogsThisMonth: 0 // Will fetch real daily logs count
+    });
     useEffect(() => {
         if (businessId && !dataLoaded && !loading) {
             async function fetchData() {
                 try {
-                    const [users, projects, equipment, businessSubscription] = await Promise.all([
+                    const [users, projects, equipment, businessSubscription, invoices, dailyLogs] = await Promise.all([
                         getUsers(businessId),
                         getProjects(businessId),
                         getEquipments(businessId),
-                        getCurrentSubscription(businessId)
+                        getCurrentSubscription(businessId),
+                        getInvoicesWithClient(businessId),
+                        getDailyLogs(businessId)
                     ]);
+
                     setUserCount(users.length);
                     setProjectCount(projects.length);
                     setEquipmentCount(equipment.length);
                     setSubscription(businessSubscription);
+
+                    // Calculate current month data
+                    const currentMonth = new Date().getMonth();
+                    const currentYear = new Date().getFullYear();
+
+                    const invoicesThisMonth = invoices.filter(invoice => {
+                        const invoiceDate = new Date(invoice.created_at || '');
+                        return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+                    }).length;
+
+                    const dailyLogsThisMonth = dailyLogs.filter(log => {
+                        const logDate = new Date(log.created_at || '');
+                        return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
+                    }).length;
+
+                    // Update usage data with real counts
+                    setUsageData({
+                        userCount: users.length,
+                        storageUsedMB: 0, // TODO: Calculate actual storage usage from media uploads
+                        invoicesThisMonth: invoicesThisMonth,
+                        aiQueriesThisMonth: 0, // TODO: Track AI query usage in database
+                        projectsActive: projects.filter(p => p.status === 'active' || p.status === 'in-progress').length,
+                        dailyLogsThisMonth: dailyLogsThisMonth
+                    });
+
                     setDataLoaded(true);
                 } catch (error) {
-                    console.error("Error fetching users:", error);
+                    console.error("Error fetching analytics data:", error);
                 }
             }
             fetchData();
@@ -135,9 +173,7 @@ export default function BusinessPage() {
                     </div>
                     <div className="stat-desc">Current plan: Free</div>
                 </div>
-            </div>
-
-            <div className="tabs tabs-box mb-6">
+            </div>            <div className="tabs tabs-box mb-6">
                 <a className={`tab ${activeTab === "profile" ? "tab-active" : ""}`} onClick={() => setActiveTab("profile")}>
                     Business Profile
                 </a>
@@ -150,7 +186,19 @@ export default function BusinessPage() {
                 >
                     Subscription
                 </a>
-            </div>            {activeTab === "profile" && (
+                <a
+                    className={`tab ${activeTab === "branding" ? "tab-active" : ""}`}
+                    onClick={() => setActiveTab("branding")}
+                >
+                    Branding
+                </a>
+                <a
+                    className={`tab ${activeTab === "analytics" ? "tab-active" : ""}`}
+                    onClick={() => setActiveTab("analytics")}
+                >
+                    Analytics
+                </a>
+            </div>{activeTab === "profile" && (
                 <form action={handleSaveChanges}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
                         <div className="card bg-base-100 shadow-lg">
@@ -319,11 +367,47 @@ export default function BusinessPage() {
                         </div>
                     </div>
                 </form>
-            )}
-
-            {activeTab === "users" && <UsersPermissionsTab />}
+            )}            {activeTab === "users" && <UsersPermissionsTab />}
 
             {activeTab === "subscription" && <TabSubscription />}
+
+            {activeTab === "branding" && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-2xl font-bold">Custom Branding</h2>
+                            <p className="text-base-content/70">Customize your company's brand appearance in JobSight Pro</p>
+                        </div>
+                    </div>
+                    <BrandingManager businessId={businessId || ''} />
+                </div>
+            )}
+            {activeTab === "analytics" && (
+                <div className="space-y-6">
+                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <h2 className="card-title text-xl mb-4">
+                                <i className="far fa-chart-bar mr-2"></i>
+                                Subscription Analytics & Usage
+                            </h2>
+                            <p className="text-base-content/70 mb-4">
+                                Monitor your plan usage and get insights to optimize your subscription.
+                            </p>
+                            <div className="alert alert-info mb-6">
+                                <i className="far fa-info-circle"></i>
+                                <div>
+                                    <h3 className="font-bold">Data Status</h3>
+                                    <div className="text-xs">
+                                        ✅ <strong>Real Data:</strong> Users ({usageData.userCount}), Projects ({usageData.projectsActive}), Invoices ({usageData.invoicesThisMonth}), Daily Logs ({usageData.dailyLogsThisMonth})<br />
+                                        ⏳ <strong>Coming Soon:</strong> Storage usage and AI query tracking will be implemented
+                                    </div>
+                                </div>
+                            </div>
+                            <SubscriptionAnalyticsDashboard usageData={usageData} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

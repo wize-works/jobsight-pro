@@ -14,6 +14,7 @@ import { get } from "http";
 import { useBusiness } from "@/lib/business-context";
 import OfflineIndicator from "@/components/offline-indicator";
 import SyncStatusIndicator from "@/components/sync-status-indicator";
+import { SubscriptionStatusIndicator } from "@/components/subscription";
 
 type NavbarProps = {
     sidebarCollapsed: boolean;
@@ -106,6 +107,7 @@ export const Navbar = ({
             <div className="flex items-center gap-4">
                 <OfflineIndicator />
                 <SyncStatusIndicator />
+                <SubscriptionStatusIndicator size="sm" />
                 <ThemeToggle />
                 <Notifications />
 

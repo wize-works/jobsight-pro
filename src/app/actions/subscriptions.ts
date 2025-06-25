@@ -52,7 +52,7 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
         const filePath = path.join(
             process.cwd(),
             "docs",
-            "jobsight_pricing_with_ai_addon.json",
+            "jobsight_pricing.json",
         );
         const fileContent = fs.readFileSync(filePath, "utf8");
         return JSON.parse(fileContent);

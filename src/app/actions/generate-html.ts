@@ -4,6 +4,8 @@ import { getClientDetailsByID } from "./clients";
 import { getDailyLogWithDetailsById } from "./daily-logs";
 import { getBusinessById } from "./business";
 import { getInvoiceWitDetailsById } from "./invoices";
+import { fetchByBusiness } from "@/lib/db";
+import { PLAN_HIERARCHY } from "@/lib/subscription-limits";
 
 // Helper function to convert relative URLs to absolute URLs for PDF generation
 const getAbsoluteUrl = (url: string): string => {
@@ -85,16 +87,26 @@ export async function generateClientHTML(businessId: string, clientId: string): 
             throw new Error('Unable to determine business ID');
         }
 
-        const business = await getBusinessById(actualBusinessId);
-
-        if (!business) {
+        const business = await getBusinessById(actualBusinessId); if (!business) {
             console.warn('Business not found, using default values');
         }
+
+        // Check subscription level for branding privileges
+        const { data: subscriptionData } = await fetchByBusiness("business_subscriptions", businessId, "*", {
+            filter: { business_id: businessId },
+            orderBy: { column: "created_at", ascending: false },
+            limit: 1,
+        });
+
+        const currentSubscription = subscriptionData?.[0];
+        const currentPlan = currentSubscription?.plan_id || 'personal';
+        const currentPlanLevel = PLAN_HIERARCHY[currentPlan as keyof typeof PLAN_HIERARCHY] || 0;
+        const hasCustomBranding = currentPlanLevel >= PLAN_HIERARCHY.pro;
 
         // Get invoices for this client (we'll need to add this to the client details action if not already included)
         const invoices = (client as any).invoices || [];
 
-        // Prepare client data with business info
+        // Prepare client data with business info - only include custom branding if subscription allows it
         const clientData = {
             ...client,
             contacts: contacts || [],
@@ -102,19 +114,19 @@ export async function generateClientHTML(businessId: string, clientId: string): 
             projects: projects || [],
             invoices: invoices,
             business_info: {
-                name: business?.name || '',
-                street: business?.address || '',
-                city: business?.city || '',
-                state: business?.state || '',
-                zip: business?.zip || '',
-                country: business?.country || 'USA',
-                phone: business?.phone || '',
-                email: business?.email || '',
-                website: business?.website || '',
-                tax_id: business?.tax_id || '',
-                logo_url: business?.logo_url || '',
+                name: hasCustomBranding ? business?.name || '' : "JobSight Pro",
+                street: hasCustomBranding ? business?.address || '' : '',
+                city: hasCustomBranding ? business?.city || '' : '',
+                state: hasCustomBranding ? business?.state || '' : '',
+                zip: hasCustomBranding ? business?.zip || '' : '',
+                country: hasCustomBranding ? business?.country || 'USA' : 'USA',
+                phone: hasCustomBranding ? business?.phone || '' : '',
+                email: hasCustomBranding ? business?.email || '' : 'support@jobsight.co',
+                website: hasCustomBranding ? business?.website || '' : 'https://jobsight.co',
+                tax_id: hasCustomBranding ? business?.tax_id || '' : '',
+                logo_url: hasCustomBranding ? business?.logo_url || '' : '',
             }
-        };        // Calculate statistics
+        };// Calculate statistics
         const totalProjects = projects?.length || 0;
         const activeProjects = projects?.filter((p: any) => p.status === 'active' || p.status === 'in_progress').length || 0;
         const totalInvoices = invoices?.length || 0;
@@ -579,24 +591,36 @@ export async function generateDailyLogHTML(businessId: string, logId: string): P
             throw new Error('Unable to determine business ID');
         }
 
-        const business = await getBusinessById(actualBusinessId);
-
-        if (!business) {
+        const business = await getBusinessById(actualBusinessId); if (!business) {
             console.warn('Business not found, using default values');
-        }        // Create business info object
+        }
+
+        // Check subscription level for branding privileges
+        const { data: subscriptionData } = await fetchByBusiness("business_subscriptions", businessId, "*", {
+            filter: { business_id: businessId },
+            orderBy: { column: "created_at", ascending: false },
+            limit: 1,
+        });
+
+        const currentSubscription = subscriptionData?.[0];
+        const currentPlan = currentSubscription?.plan_id || 'personal';
+        const currentPlanLevel = PLAN_HIERARCHY[currentPlan as keyof typeof PLAN_HIERARCHY] || 0;
+        const hasCustomBranding = currentPlanLevel >= PLAN_HIERARCHY.pro;
+
+        // Create business info object - only include custom branding if subscription allows it
         const businessInfo = {
-            name: business?.name || '',
-            street: business?.address || '',
-            city: business?.city || '',
-            state: business?.state || '',
-            zip: business?.zip || '',
-            country: business?.country || 'USA',
-            phone: business?.phone || '',
-            email: business?.email || '',
-            website: business?.website || '',
-            tax_id: business?.tax_id || '',
-            logo_url: business?.logo_url || '',
-        };        // Convert logo to base64 data URL for PDF compatibility
+            name: hasCustomBranding ? business?.name || '' : "JobSight Pro",
+            street: hasCustomBranding ? business?.address || '' : '',
+            city: hasCustomBranding ? business?.city || '' : '',
+            state: hasCustomBranding ? business?.state || '' : '',
+            zip: hasCustomBranding ? business?.zip || '' : '',
+            country: hasCustomBranding ? business?.country || 'USA' : 'USA',
+            phone: hasCustomBranding ? business?.phone || '' : '',
+            email: hasCustomBranding ? business?.email || '' : 'support@jobsight.co',
+            website: hasCustomBranding ? business?.website || '' : 'https://jobsight.co',
+            tax_id: hasCustomBranding ? business?.tax_id || '' : '',
+            logo_url: hasCustomBranding ? business?.logo_url || '' : '',
+        };// Convert logo to base64 data URL for PDF compatibility
         const logoUrl = await getImageAsDataUrl(businessInfo.logo_url || '/logo-full.png');
         console.log('Daily Log PDF Logo URL (converted):', logoUrl.substring(0, 100) + '...');
         console.log('Business logo_url from DB:', businessInfo.logo_url);

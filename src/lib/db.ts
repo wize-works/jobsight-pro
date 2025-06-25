@@ -605,9 +605,7 @@ export async function fetchByBusinessWithQuery(
             })
 
             return { data: enhancedData, error: null }
-        }
-
-        return { data: mainData, error: null }
+        } return { data: mainData, error: null }
     } catch (error) {
         console.error("Error in fetchByBusinessWithQuery:", error)
         return { data: null, error: error as Error }

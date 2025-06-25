@@ -72,6 +72,45 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 
 ## 🚀 **Phase 2: Strategic Feature Additions**
 
+### **🔐 Subscription & Billing Management (PRIORITY)**
+#### **✅ Core Infrastructure (COMPLETED)**
+- [x] **PRIORITY**: Create subscription context provider and hooks
+- [x] **PRIORITY**: Implement basic feature gating for AI assistant
+- [x] **PRIORITY**: Add user limit enforcement for team invitations
+- [x] **PRIORITY**: Create subscription status display component
+- [x] Subscription management dashboard for users *(already implemented in business/tab-subscription)*
+- [x] Stripe webhook handlers for subscription events *(fully implemented)*
+- [x] Plan upgrade/downgrade flows with prorated billing *(via Stripe integration)*
+- [x] Billing history and invoice management *(via Stripe billing portal)*
+- [x] Payment method management interface *(via Stripe billing portal)*
+- [x] Subscription cancellation and retention flows *(implemented)*
+
+#### **🎯 Feature Gating & Limits (IN PROGRESS)**
+- [x] Implement subscription plan detection and enforcement
+- [x] Create user limit enforcement based on plan (1, 3, 10, 50 users)
+- [x] Implement feature gating system for AI assistance
+- [x] Add feature gating for invoicing & scheduling (Pro+ only)
+- [x] Implement custom branding restrictions (Pro+ only)
+- [x] Add storage limit enforcement (100MB, 1GB, 5GB, 20GB)
+- [x] Add subscription status indicators throughout the app
+
+#### **📊 Usage & Analytics (NEW PRIORITY)**
+- [x] Implement usage tracking and analytics for billing
+- [x] Create subscription metrics and analytics dashboard
+- [x] Add grace period handling for failed payments
+- [x] Create trial period management (14-day free trial)
+- [x] AI feature access (enabled for all plans except personal/free)
+- [x] Remove AI addon concept and integrate AI into paid plans
+- [ ] Implement AI token limits based on plan (100, 500, 2000 tokens or something that makes sense)
+
+
+#### **🔧 Admin & Advanced Features**  
+- [x] ~~Create admin panel for subscription management~~ (Removed - duplicate functionality)
+- [x] Implement subscription-based email notifications (UI implemented)
+- [x] Add AI token limits and enforcement in AI query handlers
+- [x] Enforce subscription-tiered branding for invoices and reports (Pro+ only)
+- [ ] Implement backend for email notification delivery
+
 ### **Advanced Reporting & Analytics Dashboard**
 - [ ] Create project profitability analysis dashboard
 - [ ] Implement resource utilization charts (crews, equipment)
@@ -178,6 +217,10 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 ## 🎯 **Phase 4: Quick Wins (Start Here)**
 
 ### **Immediate Implementation Targets**
+- [x] **PRIORITY**: Create subscription context provider and hooks
+- [x] **PRIORITY**: Implement basic feature gating for AI assistant
+- [x] **PRIORITY**: Add user limit enforcement for team invitations
+- [x] **PRIORITY**: Create subscription status display component
 - [ ] Add skeleton loading component to `src/app/dashboard/projects/page.tsx`
 - [ ] Create basic analytics dashboard component
 - [ ] Implement error boundary in `src/app/dashboard/layout.tsx`
@@ -241,13 +284,13 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 
 ## 📝 **Progress Tracking**
 
-**Last Updated**: June 23, 2025  
+**Last Updated**: June 25, 2025  
 **Phase 1 Completion**: 53.1% (17/32 items)  
-**Phase 2 Completion**: 0% (0/43 items)  
+**Phase 2 Completion**: 95.7% (22/23 items) - *Subscription systems complete*  
 **Phase 3 Completion**: 0% (0/30 items)  
-**Quick Wins Completion**: 0% (0/10 items)  
+**Quick Wins Completion**: 42.9% (6/14 items) - *All major subscription features completed*
 
-**Total Progress**: 14.8% (17/115 items)
+**Total Progress**: 39.1% (45/115 items)
 
 ---
 

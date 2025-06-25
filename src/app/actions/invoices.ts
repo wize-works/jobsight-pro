@@ -9,6 +9,7 @@ import { createNotification } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import type { NotificationInsert } from "@/types/notifications";
+import { PLAN_HIERARCHY } from "@/lib/subscription-limits";
 
 // Create notifications for invoice events
 async function triggerInvoiceNotification(
@@ -341,7 +342,17 @@ export const getInvoiceWitDetailsById = async (businessId: string, id: string): 
     const projectId = data[0].project_id;
     const { data: project, error: projectError } = await fetchByBusiness("projects", businessId, "*", {
         filter: { id: projectId },
+    });    // Check subscription level for branding privileges
+    const { data: subscriptionData } = await fetchByBusiness("business_subscriptions", businessId, "*", {
+        filter: { business_id: businessId },
+        orderBy: { column: "created_at", ascending: false },
+        limit: 1,
     });
+
+    const currentSubscription = subscriptionData?.[0];
+    const currentPlan = currentSubscription?.plan_id || 'personal';
+    const currentPlanLevel = PLAN_HIERARCHY[currentPlan as keyof typeof PLAN_HIERARCHY] || 0;
+    const hasCustomBranding = currentPlanLevel >= PLAN_HIERARCHY.pro;
 
     const detailData = data.map((invoice: Invoice) => {
         const client = (clientData ?? []).find((client: any) => client.id === invoice.client_id);
@@ -360,17 +371,18 @@ export const getInvoiceWitDetailsById = async (businessId: string, id: string): 
                 country: client?.country || null,
             },
             business_info: {
-                name: business.name,
-                street: business?.address || null,
-                city: business?.city || null,
-                state: business?.state || null,
-                zip: business?.zip || null,
-                country: business?.country || null,
-                phone: business?.phone || null,
-                email: business?.email || null,
-                website: business?.website || null,
-                tax_id: business?.tax_id || null,
-                logo_url: business?.logo_url || null,
+                // Only include custom business branding if subscription allows it
+                name: hasCustomBranding ? business.name : "JobSight Pro",
+                street: hasCustomBranding ? business?.address || null : null,
+                city: hasCustomBranding ? business?.city || null : null,
+                state: hasCustomBranding ? business?.state || null : null,
+                zip: hasCustomBranding ? business?.zip || null : null,
+                country: hasCustomBranding ? business?.country || null : null,
+                phone: hasCustomBranding ? business?.phone || null : null,
+                email: hasCustomBranding ? business?.email || null : "support@jobsight.co",
+                website: hasCustomBranding ? business?.website || null : "https://jobsight.co",
+                tax_id: hasCustomBranding ? business?.tax_id || null : null,
+                logo_url: hasCustomBranding ? business?.logo_url || null : null,
             }
         } as InvoiceWithDetails;
     });
