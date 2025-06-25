@@ -1,3 +1,10 @@
+# [1.99.0](https://github.com/wize-works/jobsight-pro/compare/v1.98.0...v1.99.0) (2025-06-25)
+
+
+### Features
+
+* Implement subscription status components and context ([e79f9d9](https://github.com/wize-works/jobsight-pro/commit/e79f9d9945cdefb6f3ab8e80d4aca4494c572a05))
+
 # [1.98.0](https://github.com/wize-works/jobsight-pro/compare/v1.97.0...v1.98.0) (2025-06-25)
 
 
