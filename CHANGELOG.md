@@ -1,3 +1,10 @@
+# [1.97.0](https://github.com/wize-works/jobsight-pro/compare/v1.96.0...v1.97.0) (2025-06-25)
+
+
+### Features
+
+* Add daily log PDF generation functionality using Gotenberg ([cd9fee4](https://github.com/wize-works/jobsight-pro/commit/cd9fee440ceeb987b53f314ac024fc591e4bb88c))
+
 # [1.96.0](https://github.com/wize-works/jobsight-pro/compare/v1.95.0...v1.96.0) (2025-06-25)
 
 
