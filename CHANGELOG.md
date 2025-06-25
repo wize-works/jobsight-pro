@@ -1,3 +1,10 @@
+# [1.94.0](https://github.com/wize-works/jobsight-pro/compare/v1.93.0...v1.94.0) (2025-06-25)
+
+
+### Features
+
+* Refactor invoice HTML generation to use server action and improve structure ([655e6ca](https://github.com/wize-works/jobsight-pro/commit/655e6ca391994d9cd3727cce699f4ad8a2a956ac))
+
 # [1.93.0](https://github.com/wize-works/jobsight-pro/compare/v1.92.0...v1.93.0) (2025-06-24)
 
 
