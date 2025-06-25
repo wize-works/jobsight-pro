@@ -258,50 +258,56 @@ export default function InvoicesPage() {
                             </div>
                         )}
                         {viewType === "list" && (
-                            <div className="overflow-x-auto mb-6">
-                                <table className="table w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Invoice Number</th>
-                                            <th>Issued Date</th>
-                                            <th>Due Date</th>
-                                            <th>Paid Date</th>
-                                            <th>Client</th>
-                                            <th>Total Amount</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {invoices.map((invoice) => (
-                                            <tr key={invoice.id}>
-                                                <td>{invoice.invoice_number}</td>
-                                                <td>{invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : "N/A"}</td>
-                                                <td>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "N/A"}</td>
-                                                <td>{invoice.paid_date ? new Date(invoice.paid_date).toLocaleDateString() : "N/A"}</td>
-                                                <td>{invoice.client?.name}</td>
-                                                <td>{formatCurrency(invoice.amount ?? 0)}</td>
-                                                <td>{invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}</td>
-                                                <td>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            className="btn btn-sm btn-ghost"
-                                                            onClick={() => handleEditInvoice(invoice)}
-                                                        >
-                                                            <i className="far fa-edit"></i>
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-sm btn-ghost"
-                                                            onClick={() => handleSendInvoice(invoice)}
-                                                        >
-                                                            <i className="far fa-paper-plane"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="card bg-base-100 shadow-lg">
+                                <div className="card-body">
+                                    <div className="overflow-x-auto mb-6">
+                                        <table className="table w-full">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoice Number</th>
+                                                    <th>Issued Date</th>
+                                                    <th>Due Date</th>
+                                                    <th>Paid Date</th>
+                                                    <th>Client</th>
+                                                    <th>Total Amount</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {invoices.map((invoice) => (
+                                                    <tr key={invoice.id}>
+                                                        <td>{invoice.invoice_number}</td>
+                                                        <td>{invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : "N/A"}</td>
+                                                        <td>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "N/A"}</td>
+                                                        <td>{invoice.paid_date ? new Date(invoice.paid_date).toLocaleDateString() : "N/A"}</td>
+                                                        <td>{invoice.client?.name}</td>
+                                                        <td>{formatCurrency(invoice.amount ?? 0)}</td>
+                                                        <td>{invoiceStatusOptions.badge(invoice.status as InvoiceStatus)}</td>
+                                                        <td>
+                                                            <div className="flex gap-2 justify-end">
+                                                                {invoice.status === "draft" || invoice.status === "pending" || invoice.status === "sent" ? (
+                                                                    <button
+                                                                        className="btn btn-sm btn-ghost"
+                                                                        onClick={() => handleEditInvoice(invoice)}
+                                                                    >
+                                                                        <i className="far fa-edit"></i>
+                                                                    </button>
+                                                                ) : null}
+                                                                <button
+                                                                    className="btn btn-sm btn-ghost"
+                                                                    onClick={() => handleSendInvoice(invoice)}
+                                                                >
+                                                                    <i className="far fa-paper-plane"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </ErrorBoundary>
