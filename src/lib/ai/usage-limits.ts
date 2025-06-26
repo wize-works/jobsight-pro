@@ -21,15 +21,19 @@ export interface AIUsageStatus {
 export async function checkAIUsageLimit(businessId: string): Promise<AIUsageStatus> {
     try {
         // Get business subscription plan
-        const { data: subscription, error: subError } = await fetchWithBusinessById(
+        const { data: subscriptions, error: subError } = await fetchByBusiness(
             'business_subscriptions',
             businessId,
-            businessId,
-            ['plan_id']
+            ['plan_id'],
+            {
+                filter: { status: 'active' },
+                limit: 1
+            }
         );
 
-        if (subError || !subscription) {
+        if (subError || !subscriptions || subscriptions.length === 0) {
             // Default to personal plan if no subscription found
+            console.log('No active subscription found for business:', businessId);
             return {
                 currentUsage: 0,
                 limit: AI_TOKEN_LIMITS.personal,
@@ -39,8 +43,11 @@ export async function checkAIUsageLimit(businessId: string): Promise<AIUsageStat
             };
         }
 
+        const subscription = subscriptions[0];
         const plan = subscription.plan_id as BusinessSubscriptionPlan;
         const limit = AI_TOKEN_LIMITS[plan] || 0;
+
+        console.log(`Business ${businessId} has plan: ${plan}, AI limit: ${limit}`);
 
         // Personal plan has no AI access
         if (plan === 'personal') {

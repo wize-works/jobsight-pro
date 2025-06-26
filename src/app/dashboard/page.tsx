@@ -307,7 +307,9 @@ export default function Dashboard() {
         const completionRate = Math.round((data.stats.totalTasks - data.stats.pendingTasks) / data.stats.totalTasks * 100);
 
         return `✅ **Operations Running Smoothly**: With ${activeProjects} active projects and ${completionRate}% task completion rate, your operations are on track. Focus on maintaining current safety standards and consider planning for upcoming weather conditions to stay ahead of potential delays.`;
-    };// Function to fetch AI guidance
+    };
+
+    // Function to fetch AI guidance
     const fetchAIRecommendations = () => {
         if (!businessId) return;
 
@@ -498,19 +500,19 @@ export default function Dashboard() {
                         <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 md:mt-0 w-full md:w-auto">
-                        <button className="btn btn-primary md:btn-sm" onClick={() => setProjectModal(true)}>
+                        <button className="btn btn-primary btn-lg md:btn-sm" onClick={() => setProjectModal(true)}>
                             <i className="far fa-diagram-project mr-2"></i>
                             New Projects
                         </button>
-                        <button className="btn btn-secondary md:btn-sm" onClick={() => setTaskModal(true)}>
+                        <button className="btn btn-secondary btn-lg md:btn-sm" onClick={() => setTaskModal(true)}>
                             <i className="far fa-tasks mr-2"></i>
                             New Tasks
                         </button>
-                        <button className="btn btn-info md:btn-sm" onClick={() => setDailyLogModal(true)}>
+                        <button className="btn btn-info btn-lg md:btn-sm" onClick={() => setDailyLogModal(true)}>
                             <i className="far fa-calendar-alt mr-2"></i>
                             Daily Log
                         </button>
-                        <button className="btn btn-accent md:btn-sm" onClick={() => setEquipmentModal(true)}>
+                        <button className="btn btn-accent btn-lg md:btn-sm" onClick={() => setEquipmentModal(true)}>
                             <i className="far fa-users mr-2"></i>
                             New Equipment
                         </button>
@@ -519,7 +521,8 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}            {taskModal && (
+            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
+            {taskModal && (
                 <TaskDetailsModal
                     isOpen={taskModal}
                     onClose={() => setTaskModal(false)}
@@ -585,7 +588,9 @@ export default function Dashboard() {
                         <div className="stat-desc text-green-200">{formatCurrency(dashboardData.stats.pendingRevenue)} pending</div>
                     </div>
                 </div>
-            </ErrorBoundary>            {/* Charts Section */}
+            </ErrorBoundary>
+
+            {/* Charts Section */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
                     <i className="fas fa-exclamation-triangle"></i>
@@ -633,6 +638,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </ErrorBoundary>
+
             {/* Financial Overview */}
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
