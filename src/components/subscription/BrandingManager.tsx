@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
 import { FeatureGate } from "./FeatureGate";
 import { toast } from "react-hot-toast";
+import { generateUploadUrl, createMedia } from "@/app/actions/media";
+import { MediaInsert } from "@/types/media";
 
 interface BrandingSettings {
     logo_url: string;
@@ -41,26 +43,83 @@ export function BrandingManager({
         const newSettings = { ...settings, [key]: value };
         setSettings(newSettings);
         onSettingsChange?.(newSettings);
-    };
-
-    const handleLogoUpload = async (file: File) => {
+    }; const handleLogoUpload = async (file: File) => {
         if (file.size > 5 * 1024 * 1024) {
             toast.error("Logo file must be less than 5MB");
             return;
         }
 
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please select an image file");
+            return;
+        }
+
         setIsLoading(true);
         try {
-            // TODO: Implement actual logo upload to storage
-            // For now, create a local preview URL
-            const previewUrl = URL.createObjectURL(file);
-            handleSettingChange("logo_url", previewUrl);
+            // Generate upload URL for images container
+            const uploadData = await generateUploadUrl("images", file.name);
+            if (!uploadData) {
+                throw new Error("Failed to generate upload URL");
+            }
+
+            // Upload file to Azure Blob Storage
+            const uploadResponse = await fetch(uploadData.uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'x-ms-blob-type': 'BlockBlob',
+                    'Content-Type': file.type,
+                },
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+            }
+
+            // Create media record for the logo
+            const mediaData: MediaInsert = {
+                name: `${file.name}-branding-logo`,
+                description: `Custom branding logo for business`,
+                type: "image",
+                url: uploadData.fileUrl,
+                size: file.size,
+                id: "",
+                business_id: businessId,
+                project_id: null,
+                uploaded_by: "", // Will be set by server action
+                uploaded_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                created_by: "", // Will be set by server action
+                updated_at: new Date().toISOString(),
+                updated_by: "" // Will be set by server action
+            };
+
+            const media = await createMedia(businessId, mediaData);
+            if (!media) {
+                throw new Error("Failed to create media record");
+            }            // Update the logo URL in settings
+            handleSettingChange("logo_url", uploadData.fileUrl);
+
+            // Clean up any previous blob URL if it exists
+            if (settings.logo_url && settings.logo_url.startsWith('blob:')) {
+                URL.revokeObjectURL(settings.logo_url);
+            }
+
             toast.success("Logo uploaded successfully");
         } catch (error) {
+            console.error("Error uploading logo:", error);
             toast.error("Failed to upload logo");
         } finally {
             setIsLoading(false);
         }
+    }; const handleLogoRemoval = () => {
+        // Clean up blob URL if it exists
+        if (settings.logo_url && settings.logo_url.startsWith('blob:')) {
+            URL.revokeObjectURL(settings.logo_url);
+        }
+
+        handleSettingChange("logo_url", "");
     };
 
     const previewColors = {
@@ -123,30 +182,34 @@ export function BrandingManager({
                                     </div>
                                 )}
                             </div>
-                        </div>
-
-                        <div>
+                        </div>                        <div>
                             <label className="label">
                                 <span className="label-text font-medium">Upload New Logo</span>
                             </label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="file-input file-input-bordered w-full"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleLogoUpload(file);
-                                }}
-                                disabled={isLoading}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="file-input file-input-bordered w-full"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleLogoUpload(file);
+                                    }}
+                                    disabled={isLoading}
+                                />
+                                {isLoading && (
+                                    <div className="absolute inset-0 bg-base-100/50 rounded-lg flex items-center justify-center">
+                                        <span className="loading loading-spinner loading-md"></span>
+                                    </div>
+                                )}
+                            </div>
                             <div className="label">
                                 <span className="label-text-alt">Recommended: PNG or SVG, max 5MB</span>
-                            </div>
-
-                            {settings.logo_url && (
+                            </div>                            {settings.logo_url && (
                                 <button
-                                    onClick={() => handleSettingChange("logo_url", "")}
+                                    onClick={handleLogoRemoval}
                                     className="btn btn-outline btn-error btn-sm mt-2"
+                                    disabled={isLoading}
                                 >
                                     <i className="far fa-trash"></i>
                                     Remove Logo
