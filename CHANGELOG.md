@@ -1,3 +1,10 @@
+# [1.101.0](https://github.com/wize-works/jobsight-pro/compare/v1.100.0...v1.101.0) (2025-06-26)
+
+
+### Features
+
+* Implement project profitability analysis and dashboard ([b02689a](https://github.com/wize-works/jobsight-pro/commit/b02689adb951a3cb15ad4607a5527a82c64f2572))
+
 # [1.100.0](https://github.com/wize-works/jobsight-pro/compare/v1.99.0...v1.100.0) (2025-06-25)
 
 
