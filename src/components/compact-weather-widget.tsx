@@ -173,9 +173,10 @@ export default function CompactWeatherWidget({
                     {weather.forecast.map((day, index) => (
                         <div
                             key={index}
-                            className="flex items-center gap-1 text-center min-w-0"
+                            className="flex flex-col md:flex-row items-center gap-1 text-center min-w-0"
                             title={`${day.date}: ${day.condition}`}
                         >
+
                             <div className="text-xs font-medium text-base-content/70 min-w-[2.5rem]">
                                 {day.date}
                             </div>

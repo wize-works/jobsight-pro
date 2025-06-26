@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import ProjectProfitabilityDashboard from '@/components/analytics/ProjectProfitabilityDashboard';
+import ResourceUtilizationDashboard from '@/components/analytics/ResourceUtilizationDashboard';
 
-type ActiveReportType = 'profitability' | 'productivity' | 'financial' | 'equipment';
+type ActiveReportType = 'profitability' | 'resources' | 'financial' | 'compliance';
 
 export default function ReportsPage() {
     const [activeReport, setActiveReport] = useState<ActiveReportType>('profitability');
@@ -16,10 +17,10 @@ export default function ReportsPage() {
             description: 'Analyze project costs, profits, and margins'
         },
         {
-            id: 'productivity' as const,
-            title: 'Team Productivity',
-            icon: 'fa-users',
-            description: 'Track crew performance and efficiency'
+            id: 'resources' as const,
+            title: 'Resource Utilization',
+            icon: 'fa-users-cog',
+            description: 'Track crew and equipment utilization'
         },
         {
             id: 'financial' as const,
@@ -28,10 +29,10 @@ export default function ReportsPage() {
             description: 'Revenue, expenses, and cash flow analysis'
         },
         {
-            id: 'equipment' as const,
-            title: 'Equipment Utilization',
-            icon: 'fa-truck',
-            description: 'Track equipment usage and maintenance costs'
+            id: 'compliance' as const,
+            title: 'Safety & Compliance',
+            icon: 'fa-shield-alt',
+            description: 'Safety metrics and compliance tracking'
         }
     ];
 
@@ -39,12 +40,12 @@ export default function ReportsPage() {
         switch (activeReport) {
             case 'profitability':
                 return <ProjectProfitabilityDashboard />;
-            case 'productivity':
-                return <ComingSoonReport title="Team Productivity" icon="fa-users" />;
+            case 'resources':
+                return <ResourceUtilizationDashboard />;
             case 'financial':
                 return <ComingSoonReport title="Financial Overview" icon="fa-dollar-sign" />;
-            case 'equipment':
-                return <ComingSoonReport title="Equipment Utilization" icon="fa-truck" />;
+            case 'compliance':
+                return <ComingSoonReport title="Safety & Compliance" icon="fa-shield-alt" />;
             default:
                 return <ComingSoonReport title="Report" icon="fa-chart-bar" />;
         }

@@ -114,7 +114,7 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 
 ### **Advanced Reporting & Analytics Dashboard**
 - [x] Create project profitability analysis dashboard
-- [ ] Implement resource utilization charts (crews, equipment)
+- [x] Implement resource utilization charts (crews, equipment)
 - [ ] Add budget vs. actual cost tracking visualizations
 - [ ] Create crew productivity analytics
 - [ ] Implement equipment utilization reports
