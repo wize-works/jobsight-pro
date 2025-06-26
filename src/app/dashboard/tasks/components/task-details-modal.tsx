@@ -10,7 +10,6 @@ import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistance, formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
-import LocationDisplay from "@/components/location-display";
 
 interface TaskDetailsModalProps {
     isOpen: boolean;
@@ -168,36 +167,6 @@ export default function TaskDetailsModal({
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main content */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Progress */}
-                            <div className="card bg-base-100 border border-base-300">
-                                <div className="card-body p-4">
-                                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                        <i className="far fa-chart-bar text-primary"></i>
-                                        Progress
-                                    </h3>
-                                    <div className="flex items-center gap-4">
-                                        {isEditing ? (
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="100"
-                                                value={formData.progress || 0}
-                                                onChange={(e) => handleInputChange('progress', parseInt(e.target.value))}
-                                                className="range range-primary flex-1"
-                                            />
-                                        ) : (
-                                            <progress
-                                                className="progress progress-primary flex-1"
-                                                value={task?.progress || 0}
-                                                max="100"
-                                            ></progress>
-                                        )}
-                                        <span className="text-lg font-semibold min-w-[3rem] text-center">
-                                            {isEditing ? (formData.progress || 0) : (task?.progress || 0)}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* Basic Information */}
                             <div className="card bg-base-100 border border-base-300">
@@ -391,11 +360,43 @@ export default function TaskDetailsModal({
                                             )}
                                         </div>
                                     </div>
-                                </div>                            </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Sidebar */}
                         <div className="space-y-6">
+
+                            {/* Progress */}
+                            <div className="card bg-base-100 border border-base-300">
+                                <div className="card-body p-4">
+                                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                        <i className="far fa-chart-bar text-primary"></i>
+                                        Progress
+                                    </h3>
+                                    <div className="flex items-center gap-4">
+                                        {isEditing ? (
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                value={formData.progress || 0}
+                                                onChange={(e) => handleInputChange('progress', parseInt(e.target.value))}
+                                                className="range range-primary flex-1"
+                                            />
+                                        ) : (
+                                            <progress
+                                                className="progress progress-primary flex-1"
+                                                value={task?.progress || 0}
+                                                max="100"
+                                            ></progress>
+                                        )}
+                                        <span className="text-lg font-semibold min-w-[3rem] text-center">
+                                            {isEditing ? (formData.progress || 0) : (task?.progress || 0)}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                             {/* Quick Actions */}
                             <div className="card bg-base-100 border border-base-300">
                                 <div className="card-body p-4">

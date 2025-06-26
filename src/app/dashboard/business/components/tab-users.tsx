@@ -1,8 +1,8 @@
 "use client";
 import { resendUserInvitation, revokeUserInvitation, sendUserInvitation } from "@/app/actions/user-invitations";
-import { deleteUser, getUsers } from "@/app/actions/users";
+import { deleteUser, getUsers, updateUserAsAdmin } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
-import { User, UserRole, userRoleOptions } from "@/types/users";
+import { User, UserRole, userRoleOptions, UserStatus, userStatusOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useEffect, useState } from "react";
 import { useBusiness } from "@/lib/business-context";
@@ -10,10 +10,19 @@ import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export default function UsersPermissionsTab() {
     const { businessId } = useBusiness();
-    const { canAddUsers, getUserLimit, currentPlan } = useFeatureGate();
-    const [users, setUsers] = useState<User[]>([]);
+    const { canAddUsers, getUserLimit, currentPlan } = useFeatureGate(); const [users, setUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editFormData, setEditFormData] = useState({
+        first_name: "",
+        last_name: "",
+        email: "",
+        role: "member" as UserRole,
+        status: "active" as UserStatus
+    });
+    const [updatingUser, setUpdatingUser] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
     const [inviteFirstName, setInviteFirstName] = useState("");
     const [inviteLastName, setInviteLastName] = useState("");
@@ -150,9 +159,81 @@ export default function UsersPermissionsTab() {
         }
     };
 
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        setEditFormData({
+            first_name: user.first_name || "",
+            last_name: user.last_name || "",
+            email: user.email || "",
+            role: (user.role as UserRole) || "member",
+            status: (user.status as UserStatus) || "active"
+        });
+        setShowEditModal(true);
+    };
+
+    const handleUpdateUser = async () => {
+        if (!editingUser) return;
+
+        // Validate required fields
+        if (!editFormData.email || !editFormData.first_name) {
+            toast.error({
+                title: "Error",
+                description: "Email and first name are required",
+            });
+            return;
+        }
+
+        setUpdatingUser(true);
+        try {
+            const result = await updateUserAsAdmin(businessId, editingUser.id, {
+                first_name: editFormData.first_name,
+                last_name: editFormData.last_name,
+                email: editFormData.email,
+                role: editFormData.role,
+                status: editFormData.status
+            });
+
+            if (result.success && result.user) {
+                setUsers(prev => prev.map(user =>
+                    user.id === editingUser.id ? result.user! : user
+                ));
+                setShowEditModal(false);
+                setEditingUser(null);
+                toast.success({
+                    title: "User Updated",
+                    description: `${editFormData.first_name} ${editFormData.last_name} has been updated successfully`,
+                });
+            } else {
+                toast.error({
+                    title: "Update Failed",
+                    description: result.error || "Failed to update user",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating user:", error);
+            toast.error({
+                title: "Error",
+                description: "Failed to update user",
+            });
+        } finally {
+            setUpdatingUser(false);
+        }
+    };
+
+    const handleEditFormChange = (field: string, value: string) => {
+        setEditFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
     const getUserInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
+
+    // Check if current user is admin
+    const currentUserData = users.find(user => user.auth_id === currentUser?.id);
+    const isCurrentUserAdmin = currentUserData?.role === 'admin';
 
     return (
         <div className="card bg-base-100 shadow-lg">
@@ -228,14 +309,22 @@ export default function UsersPermissionsTab() {
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
-                                                {user && user.email && user.status === 'invited' && (
+                                            <div className="flex gap-2">                                {user && user.email && user.status === 'invited' && (
+                                                <button
+                                                    className="btn btn-sm btn-ghost text-primary"
+                                                    onClick={() => handleResendInvitation(user.id, user.email)}
+                                                    title="Resend invitation"
+                                                >
+                                                    <i className="far fa-paper-plane"></i>
+                                                </button>
+                                            )}
+                                                {isCurrentUserAdmin && user.auth_id !== currentUser?.id && (
                                                     <button
-                                                        className="btn btn-sm btn-ghost text-primary"
-                                                        onClick={() => handleResendInvitation(user.id, user.email)}
-                                                        title="Resend invitation"
+                                                        className="btn btn-sm btn-ghost text-info"
+                                                        onClick={() => handleEditUser(user)}
+                                                        title="Edit user"
                                                     >
-                                                        <i className="far fa-paper-plane"></i>
+                                                        <i className="far fa-edit"></i>
                                                     </button>
                                                 )}
                                                 {user.auth_id !== currentUser?.id && (
@@ -396,6 +485,103 @@ export default function UsersPermissionsTab() {
                                     <>
                                         <i className="far fa-paper-plane mr-2"></i>
                                         Send Invitation
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit User Modal */}
+            {showEditModal && editingUser && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Edit User</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">First Name *</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editFormData.first_name}
+                                    onChange={(e) => handleEditFormChange('first_name', e.target.value)}
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Last Name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={editFormData.last_name}
+                                    onChange={(e) => handleEditFormChange('last_name', e.target.value)}
+                                    placeholder="Enter last name"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-control mb-4">
+                            <label className="label">
+                                <span className="label-text">Email Address *</span>
+                            </label>
+                            <input
+                                type="email"
+                                className="input input-bordered"
+                                value={editFormData.email}
+                                onChange={(e) => handleEditFormChange('email', e.target.value)}
+                                placeholder="Enter email address"
+                            />
+                        </div>                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Role</span>
+                                </label>
+                                {userRoleOptions.select(
+                                    editFormData.role,
+                                    (value: UserRole) => handleEditFormChange('role', value),
+                                    "select-bordered"
+                                )}
+                            </div>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Status</span>
+                                </label>
+                                {userStatusOptions.select(
+                                    editFormData.status,
+                                    (value: UserStatus) => handleEditFormChange('status', value),
+                                    "select-bordered"
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="modal-action">
+                            <button
+                                className="btn btn-ghost"
+                                onClick={() => setShowEditModal(false)}
+                                disabled={updatingUser}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleUpdateUser}
+                                disabled={updatingUser}
+                            >
+                                {updatingUser ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-sm mr-2"></span>
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="far fa-save mr-2"></i>
+                                        Save Changes
                                     </>
                                 )}
                             </button>

@@ -131,9 +131,50 @@ export default function TaskGridView({
 
     return (
         <div className="space-y-6">
+
+            {/* Task Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="stat bg-base-100 shadow-lg rounded-lg">
+                    <div className="stat-figure text-primary">
+                        <i className="far fa-tasks fa-2x"></i>
+                    </div>
+                    <div className="stat-title">Total Tasks</div>
+                    <div className="stat-value text-primary">{tasks.length}</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-lg rounded-lg">
+                    <div className="stat-figure text-info">
+                        <i className="far fa-spinner-third fa-2x"></i>
+                    </div>
+                    <div className="stat-title">In Progress</div>
+                    <div className="stat-value text-info">{tasksByStatus.in_progress.length}</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-lg rounded-lg">
+                    <div className="stat-figure text-success">
+                        <i className="far fa-check-circle fa-2x"></i>
+                    </div>
+                    <div className="stat-title">Completed</div>
+                    <div className="stat-value text-success">{tasksByStatus.completed.length}</div>
+                </div>
+
+                <div className="stat bg-base-100 shadow-lg rounded-lg">
+                    <div className="stat-figure text-error">
+                        <i className="far fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <div className="stat-title">Overdue</div>
+                    <div className="stat-value text-error">
+                        {tasks.filter(task =>
+                            task.end_date &&
+                            new Date(task.end_date) < new Date() &&
+                            task.status !== 'completed'
+                        ).length}
+                    </div>
+                </div>
+            </div>
             {/* Header with filters */}
-            <div className="card bg-base-100 shadow-lg">
-                <div className="card-body p-4">
+            <div className="card bg-base-100 shadow-lg rounded-lg">
+                <div className="card-body p-2">
                     <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full">
@@ -174,47 +215,6 @@ export default function TaskGridView({
                                 ))}
                             </select>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Task Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="stat bg-base-100 shadow-lg rounded-2xl">
-                    <div className="stat-figure text-primary">
-                        <i className="far fa-tasks fa-2x"></i>
-                    </div>
-                    <div className="stat-title">Total Tasks</div>
-                    <div className="stat-value text-primary">{tasks.length}</div>
-                </div>
-
-                <div className="stat bg-base-100 shadow-lg rounded-2xl">
-                    <div className="stat-figure text-info">
-                        <i className="far fa-spinner-third fa-2x"></i>
-                    </div>
-                    <div className="stat-title">In Progress</div>
-                    <div className="stat-value text-info">{tasksByStatus.in_progress.length}</div>
-                </div>
-
-                <div className="stat bg-base-100 shadow-lg rounded-2xl">
-                    <div className="stat-figure text-success">
-                        <i className="far fa-check-circle fa-2x"></i>
-                    </div>
-                    <div className="stat-title">Completed</div>
-                    <div className="stat-value text-success">{tasksByStatus.completed.length}</div>
-                </div>
-
-                <div className="stat bg-base-100 shadow-lg rounded-2xl">
-                    <div className="stat-figure text-error">
-                        <i className="far fa-exclamation-triangle fa-2x"></i>
-                    </div>
-                    <div className="stat-title">Overdue</div>
-                    <div className="stat-value text-error">
-                        {tasks.filter(task =>
-                            task.end_date &&
-                            new Date(task.end_date) < new Date() &&
-                            task.status !== 'completed'
-                        ).length}
                     </div>
                 </div>
             </div>

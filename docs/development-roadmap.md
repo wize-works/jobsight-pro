@@ -113,7 +113,7 @@ This roadmap outlines the next phase of development priorities for JobSight Pro,
 - [ ] Allow admin users to update a user's details (e.g., role, status, email, name)
 
 ### **Advanced Reporting & Analytics Dashboard**
-- [ ] Create project profitability analysis dashboard
+- [x] Create project profitability analysis dashboard
 - [ ] Implement resource utilization charts (crews, equipment)
 - [ ] Add budget vs. actual cost tracking visualizations
 - [ ] Create crew productivity analytics

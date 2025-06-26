@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { User, UserInsert, UserUpdate } from "@/types/users";
+import { User, UserInsert, UserUpdate, UserRole, UserStatus } from "@/types/users";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -259,3 +259,64 @@ export const assignBusinessToSelf = async (userId: string, businessId: string): 
         return null;
     }
 }
+
+// Admin-only function to update any user's details
+export const updateUserAsAdmin = async (
+    businessId: string,
+    targetUserId: string,
+    updates: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        role?: string;
+        status?: string;
+    }
+): Promise<{ success: boolean; user?: User; error?: string }> => {
+    try {
+        const { userId } = await withBusinessServer();
+
+        // Get the current user to check if they're an admin
+        const currentUser = await getUserByAuthId(businessId, userId);
+        if (!currentUser) {
+            return { success: false, error: "Current user not found" };
+        }
+
+        // Check if the current user is an admin
+        if (currentUser.role !== 'admin') {
+            return { success: false, error: "Only administrators can update user details" };
+        }
+
+        // Get the target user to ensure they exist
+        const targetUser = await getUserById(businessId, targetUserId);
+        if (!targetUser) {
+            return { success: false, error: "Target user not found" };
+        }
+
+        // Prevent admins from removing their own admin status
+        if (targetUser.auth_id === userId && updates.role && updates.role !== 'admin') {
+            return { success: false, error: "You cannot remove your own admin privileges" };
+        }        // Prepare the update data
+        const userUpdate: Partial<UserUpdate> = {
+            updated_at: new Date().toISOString()
+        };
+
+        // Only include fields that are provided and valid
+        if (updates.first_name !== undefined) userUpdate.first_name = updates.first_name;
+        if (updates.last_name !== undefined) userUpdate.last_name = updates.last_name;
+        if (updates.email !== undefined) userUpdate.email = updates.email;
+        if (updates.role !== undefined) userUpdate.role = updates.role as string;
+        if (updates.status !== undefined) userUpdate.status = updates.status as string;
+
+        // Apply the updates
+        const updatedUser = await updateUser(businessId, targetUserId, userUpdate as UserUpdate);
+
+        if (updatedUser) {
+            return { success: true, user: updatedUser };
+        } else {
+            return { success: false, error: "Failed to update user" };
+        }
+    } catch (error) {
+        console.error("Error in updateUserAsAdmin:", error);
+        return { success: false, error: "Internal server error" };
+    }
+};
