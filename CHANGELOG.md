@@ -1,3 +1,11 @@
+# [1.102.0](https://github.com/wize-works/jobsight-pro/compare/v1.101.0...v1.102.0) (2025-06-26)
+
+
+### Features
+
+* Add resource utilization dashboard and related data fetching logic ([f368020](https://github.com/wize-works/jobsight-pro/commit/f3680207ed2b601eda1188390efb573f3bfb7867))
+* Update pricing structure for Pro and Business plans, enhance AI usage limit checks, and improve dashboard UI components ([0660352](https://github.com/wize-works/jobsight-pro/commit/06603524f476f577b62316f5c5c1722d64f0c699))
+
 # [1.101.0](https://github.com/wize-works/jobsight-pro/compare/v1.100.0...v1.101.0) (2025-06-26)
 
 
