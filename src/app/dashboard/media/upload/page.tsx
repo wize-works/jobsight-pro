@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { generateUploadUrl, createMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { generateUploadUrl, createMedia } from "@/lib/actions/media-client"
+import { getProjects } from "@/lib/actions/projects-client"
 import { Project } from "@/types/projects"
 import { MediaInsert, MediaType } from "@/types/media"
 import { toast } from "@/hooks/use-toast"

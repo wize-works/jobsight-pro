@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getCrews, getCrewById, createCrew, updateCrew, deleteCrewById, searchCrews } from "@/app/actions/crews"
+import { getCrews, getCrewById, createCrew, updateCrew, deleteCrewById, searchCrews } from "@/lib/actions/crews-client"
 import type { Crew, CrewInsert, CrewUpdate } from "@/types/crews"
 import { useBusiness } from "@/lib/business-context"
 

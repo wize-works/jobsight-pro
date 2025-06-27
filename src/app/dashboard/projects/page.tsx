@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
 import { progressBar } from "@/utils/progress";
 import { formatDate, formatCurrency } from "@/utils/date";
-import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
+import { createProject, getProjects, updateProjectById, getProjectsWithDetails } from "@/lib/actions/projects-client";
 import { ProjectCard } from "./components/card";
 import { useBusiness } from "@/lib/business-context";
 import ProjectsLoading from "./loading";
@@ -104,8 +104,8 @@ export default function ProjectsPage() {
         setShowAddProjectModal(false);
     }; const handleProjectSave = async (projectData: any) => {
         try {
-            // Create the new project
-            await createProject(businessId, projectData);
+            // Create the new project with correct API
+            await createProject(projectData, businessId);
 
             // Refresh the projects list after successful creation
             const projectsData = await getProjectsWithDetails(businessId);

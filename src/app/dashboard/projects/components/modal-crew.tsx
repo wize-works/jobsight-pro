@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { CrewWithMemberInfo } from "@/types/crews";
-import { addCrewToProject } from "@/app/actions/project-crews";
-import { getAvailableCrews } from "@/app/actions/crews";
+import { assignCrewToProject } from "@/lib/actions/project-crews-client";
+import { getCrewsWithDetails } from "@/lib/actions/crews-client";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 
@@ -38,7 +38,7 @@ export default function CrewModal({
     const loadAvailableCrews = async () => {
         try {
             setFetchingCrews(true);
-            const crews = await getAvailableCrews(businessId);
+            const crews = await getCrewsWithDetails(businessId);
             // Filter out crews that are already assigned to this project
             const filteredCrews = crews.filter(crew => !assignedCrewIds.includes(crew.id));
             setAvailableCrews(filteredCrews);
@@ -61,8 +61,15 @@ export default function CrewModal({
         try {
             setLoading(true);
 
-            const result = await addCrewToProject(businessId, projectId, selectedCrewId);
-            if (result) {
+            const result = await assignCrewToProject(
+                selectedCrewId,
+                projectId,
+                new Date().toISOString(), // start_date
+                null, // end_date
+                null, // notes
+                businessId
+            );
+            if (result.data && !result.error) {
                 // Find the assigned crew from the available crews list
                 const assignedCrew = availableCrews.find(crew => crew.id === selectedCrewId);
                 if (assignedCrew) {

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { getMediaById, deleteMedia, updateMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { getMediaById, deleteMediaById, updateMediaById } from "@/lib/actions/media-client"
+import { getProjects } from "@/lib/actions/projects-client"
 import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
@@ -68,18 +68,23 @@ export default function MediaDetail() {
         if (!mediaItem) return
 
         try {
-            const updated = await updateMedia(businessId, mediaItem.id, {
+            const result = await updateMediaById(mediaItem.id, {
                 name: editedItem.name || mediaItem.name,
                 description: editedItem.description ?? null,
                 project_id: editedItem.project_id ?? null
-            } as MediaUpdate)
+            } as MediaUpdate, businessId)
 
-            if (updated) {
-                setMediaItem(updated)
+            if (result.data) {
+                setMediaItem(result.data)
                 setIsEditing(false)
                 toast.success({
                     title: "Success",
                     description: "Media item updated successfully"
+                })
+            } else {
+                toast.error({
+                    title: "Error",
+                    description: result.error || "Failed to update media item",
                 })
             }
         } catch (error) {
@@ -95,7 +100,7 @@ export default function MediaDetail() {
         if (!mediaItem) return
 
         try {
-            const success = await deleteMedia(businessId, mediaItem.id)
+            const success = await deleteMediaById(businessId, mediaItem.id)
             if (success) {
                 toast.success({
                     title: "Success",

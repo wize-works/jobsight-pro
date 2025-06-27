@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { getInvoiceWitDetailsById } from "@/app/actions/invoices";
+import { getInvoiceById } from "@/lib/actions/invoices-client";
 import { useBusiness } from "@/lib/business-context";
 import QRCode from "@/components/qrcode";
 
@@ -24,7 +24,7 @@ export default function InvoiceDetailPage() {
             try {
                 setLoading(true);
                 setError(null);
-                const invoiceData = await getInvoiceWitDetailsById(businessId, id as string);
+                const invoiceData = await getInvoiceById(businessId, id as string);
 
                 if (!invoiceData) {
                     setError("Invoice not found.");

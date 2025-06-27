@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { updateInvoice } from "@/app/actions/invoices";
-import { getInvoiceItemsByInvoiceId, createInvoiceItem, updateInvoiceItem, deleteInvoiceItem } from "@/app/actions/invoice-items";
-import { getClients } from "@/app/actions/clients";
-import { getProjects } from "@/app/actions/projects";
+import { updateInvoiceById } from "@/lib/actions/invoices-client";
+import { getInvoiceItemsByInvoiceId, createInvoiceItem, updateInvoiceItemById, deleteInvoiceItemById } from "@/lib/actions/invoice-items-client";
+import { getClients } from "@/lib/actions/clients-client";
+import { getProjects } from "@/lib/actions/projects-client";
 import { InvoiceUpdate, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient } from "@/types/invoices";
 import { InvoiceItem, InvoiceItemInsert } from "@/types/invoice-items";
 import { Client } from "@/types/clients";
@@ -69,11 +69,11 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                 getProjects(businessId),
                 getInvoiceItemsByInvoiceId(businessId, invoice.id),
             ]);
-            setClients(clientsData);
-            setProjects(projectsData);
+            setClients(clientsData || []);
+            setProjects(projectsData || []);
 
             // Convert invoice items to the format we need
-            const formattedItems = invoiceItemsData.map((item: InvoiceItem) => ({
+            const formattedItems = (invoiceItemsData || []).map((item: InvoiceItem) => ({
                 id: item.id,
                 description: item.description || "",
                 quantity: item.quantity || 1,
@@ -190,7 +190,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
         // If it's an existing item, delete it from the database
         if (itemToRemove.isExisting) {
             try {
-                await deleteInvoiceItem(businessId, itemToRemove.id);
+                await deleteInvoiceItemById(itemToRemove.id, businessId, user?.id);
                 toast.success({
                     title: "Success",
                     description: "Item removed successfully"
@@ -252,9 +252,9 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                 updated_by: user?.id || null,
             };
 
-            const updatedInvoice = await updateInvoice(businessId, invoice.id, invoiceData);
+            const result = await updateInvoiceById(invoice.id, invoiceData, businessId, user?.id);
 
-            if (updatedInvoice) {
+            if (result.data && !result.error) {
                 // Handle invoice items
                 const itemPromises = items.map(async (item) => {
                     if (item.isExisting) {
@@ -275,7 +275,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                             updated_at: new Date().toISOString(),
                             updated_by: user?.id || null,
                         };
-                        return updateInvoiceItem(businessId, item.id, itemData);
+                        return updateInvoiceItemById(item.id, itemData, businessId, user?.id);
                     } else {
                         // Create new item
                         const itemData = {
@@ -294,7 +294,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                             updated_at: new Date().toISOString(),
                             updated_by: user?.id || null,
                         };
-                        return createInvoiceItem(businessId, itemData);
+                        return createInvoiceItem(itemData, businessId, user?.id);
                     }
                 });
 
@@ -304,13 +304,13 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                     title: "Success",
                     description: "Invoice updated successfully"
                 });
-                onSave(updatedInvoice);
+                onSave(result.data);
                 onClose();
                 router.refresh();
             } else {
                 toast.error({
                     title: "Error",
-                    description: "Failed to update invoice"
+                    description: result.error || "Failed to update invoice"
                 });
             }
         } catch (error) {

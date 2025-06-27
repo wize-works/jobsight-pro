@@ -3,9 +3,9 @@
 
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { sendPasswordResetEmail } from "@/app/actions/auth";
-import { sendEmailVerification } from "@/app/actions/email-verification";
-import { sendProjectUpdateNotification, sendEquipmentAlert } from "@/app/actions/email-notifications";
+import { sendPasswordResetEmail } from "@/lib/actions/auth-client";
+import { sendEmailVerification } from "@/lib/actions/email-verification-client";
+import { sendProjectUpdateNotification, sendEquipmentAlert } from "@/lib/actions/email-notifications-client";
 import { useBusiness } from "@/lib/business-context";
 
 export function useEmailSystem() {
@@ -17,10 +17,10 @@ export function useEmailSystem() {
         try {
             const result = await sendPasswordResetEmail(email);
 
-            if (result.success) {
+            if (!result.error) {
                 toast.success({
                     title: "Password Reset Sent",
-                    description: result.message,
+                    description: "Password reset email has been sent to your email address.",
                 });
             } else {
                 toast.error({
@@ -36,7 +36,7 @@ export function useEmailSystem() {
                 title: "Error",
                 description: "Failed to send password reset email",
             });
-            return { success: false, error: "Failed to send password reset email" };
+            return { error: "Failed to send password reset email" };
         } finally {
             setIsLoading(false);
         }
@@ -45,12 +45,12 @@ export function useEmailSystem() {
     const sendVerificationEmail = async (userId: string) => {
         setIsLoading(true);
         try {
-            const result = await sendEmailVerification(userId);
+            const result = await sendEmailVerification({ userId });
 
-            if (result.success) {
+            if (!result.error) {
                 toast.success({
                     title: "Verification Email Sent",
-                    description: result.message,
+                    description: "Verification email has been sent.",
                 });
             } else {
                 toast.error({
@@ -66,7 +66,7 @@ export function useEmailSystem() {
                 title: "Error",
                 description: "Failed to send verification email",
             });
-            return { success: false, error: "Failed to send verification email" };
+            return { error: "Failed to send verification email" };
         } finally {
             setIsLoading(false);
         }
@@ -82,10 +82,10 @@ export function useEmailSystem() {
         try {
             const result = await sendProjectUpdateNotification(businessId, projectId, updateType, updateDetails, updatedBy);
 
-            if (result.success) {
+            if (result.data) {
                 toast.success({
                     title: "Notifications Sent",
-                    description: result.message,
+                    description: `Successfully sent ${result.data.successful} notifications.`,
                 });
             } else {
                 toast.error({
@@ -117,10 +117,10 @@ export function useEmailSystem() {
         try {
             const result = await sendEquipmentAlert(businessId, equipmentId, alertType, description, priority);
 
-            if (result.success) {
+            if (result.data) {
                 toast.success({
                     title: "Equipment Alert Sent",
-                    description: result.message,
+                    description: `Successfully sent ${result.data.successful} equipment alerts.`,
                 });
             } else {
                 toast.error({
@@ -136,7 +136,7 @@ export function useEmailSystem() {
                 title: "Error",
                 description: "Failed to send equipment alert",
             });
-            return { success: false, error: "Failed to send equipment alert" };
+            return { error: "Failed to send equipment alert" };
         } finally {
             setIsLoading(false);
         }

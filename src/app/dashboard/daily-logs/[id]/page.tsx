@@ -1,10 +1,10 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
-import { getCrews } from "@/app/actions/crews";
-import { getProjects } from "@/app/actions/projects";
-import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
+import { getDailyLogWithDetailsById } from "@/lib/actions/daily-logs-client";
+import { getCrews } from "@/lib/actions/crews-client";
+import { getProjects } from "@/lib/actions/projects-client";
+import { getCrewMembersByCrewId } from "@/lib/actions/crew-members-client";
 import { useBusiness } from "@/lib/business-context";
 import DailyLogDetailLoading from "./loading";
 import ModalLoading from "@/components/modal-loading";

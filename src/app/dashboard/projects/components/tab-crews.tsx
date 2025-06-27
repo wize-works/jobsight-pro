@@ -1,12 +1,12 @@
 "use client";
 
-import { getCrewsByProjectId, getAvailableCrews } from "@/app/actions/crews";
-import { getCrewMemberById } from "@/app/actions/crew-members";
+import { getCrews } from "@/lib/actions/crews-client";
+import { getCrewMemberById } from "@/lib/actions/crew-members-client";
 import { Crew, CrewWithMemberInfo } from "@/types/crews";
 import { set } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { removeCrewFromProject, addCrewToProject } from "@/app/actions/project-crews";
+import { deleteProjectCrewById, assignCrewToProject } from "@/lib/actions/project-crews-client";
 import { useBusiness } from "@/lib/business-context";
 import ErrorBoundary from "@/components/error-boundary";
 import { toast } from "@/hooks/use-toast";

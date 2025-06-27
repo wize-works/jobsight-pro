@@ -1,5 +1,5 @@
 import { ProjectWithDetails, ProjectStatus, projectStatusOptions, Project, projectTypeOptions, ProjectType } from "@/types/projects";
-import { updateProject } from "@/app/actions/projects";
+import { updateProjectById } from "@/lib/actions/projects-client";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { progressBar } from "@/utils/progress";
 import Link from "next/link";
@@ -156,7 +156,7 @@ export const ProjectCard = ({ project }: {
                                 title="Start project"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "in_progress" } as Project);
+                                    updateProjectById(project.id, { status: "in_progress" } as Project, businessId);
                                     toast.success("Project started successfully");
                                     window.location.reload();
                                 }}
@@ -170,7 +170,7 @@ export const ProjectCard = ({ project }: {
                                 title="Pause project"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "on_hold" } as Project);
+                                    updateProjectById(project.id, { status: "on_hold" } as Project, businessId);
                                     toast.success("Project paused successfully");
                                     window.location.reload();
                                 }}
@@ -184,7 +184,7 @@ export const ProjectCard = ({ project }: {
                                 title="Complete project"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "completed" } as Project);
+                                    updateProjectById(project.id, { status: "completed" } as Project, businessId);
                                     toast.success("Project completed successfully");
                                     window.location.reload();
                                 }}

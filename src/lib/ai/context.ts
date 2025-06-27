@@ -1,4 +1,4 @@
-import { getProjects } from "@/app/actions/projects";
+import { getProjects } from "@/lib/actions/projects-client";
 import { ChatCompletionMessageParam } from "openai/resources";
 
 export async function getRelevantContext(

@@ -106,6 +106,31 @@ export async function createBusiness(params: CreateBusinessParams) {
             }
         }
 
+        // Create default subscription (Pro plan for development)
+        console.log("Creating default subscription for new business:", businessId)
+        const subscriptionId = uuidv4()
+        const { error: subscriptionError } = await supabase
+            .from("business_subscriptions")
+            .insert({
+                id: subscriptionId,
+                business_id: businessId,
+                plan_id: "pro", // Default to pro plan for development
+                status: "active",
+                start_date: now,
+                created_at: now,
+                updated_at: now,
+                created_by: userId,
+                updated_by: userId,
+            })
+
+        if (subscriptionError) {
+            console.error("Error creating default subscription:", subscriptionError)
+            // Don't fail the business creation, just log the error
+            console.warn("Business created without default subscription")
+        } else {
+            console.log("Default subscription created successfully")
+        }
+
         revalidatePath("/dashboard")
         return { success: true, businessId }
     } catch (error) {

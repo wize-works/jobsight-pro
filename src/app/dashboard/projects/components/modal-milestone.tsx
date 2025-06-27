@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
+import { createProjectMilestone, updateProjectMilestoneById } from "@/lib/actions/project-milestones-client";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
@@ -82,25 +82,24 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
 
             if (isEditing && milestone) {
                 // Update existing milestone
-                milestoneData.id = milestone.id;
-                const updatedMilestone = await updateProjectMilestone(businessId, milestone.id, milestoneData);
+                const result = await updateProjectMilestoneById(milestone.id, milestoneData, businessId);
 
-                if (updatedMilestone) {
+                if (result.data && !result.error) {
                     toast.success({
                         title: "Success",
                         description: "Milestone updated successfully"
                     });
-                    if (onSave) onSave(updatedMilestone);
+                    if (onSave) onSave(result.data);
                 }
             } else {
                 // Create new milestone
-                const newMilestone = await createProjectMilestone(businessId, milestoneData);
-                if (newMilestone) {
+                const result = await createProjectMilestone(milestoneData, businessId);
+                if (result.data && !result.error) {
                     toast.success({
                         title: "Success",
                         description: "Milestone created successfully"
                     });
-                    if (onSave) onSave(newMilestone);
+                    if (onSave) onSave(result.data);
                 }
             }
 

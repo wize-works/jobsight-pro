@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { getUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
+import { getUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/actions/notifications-client";
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import { useNotificationRefresh } from "@/hooks/use-notifications-refresh";

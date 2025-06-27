@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBusiness } from '@/lib/business-context';
 import { formatCurrency } from '@/utils/formatters';
-import { getResourceUtilizationData } from '@/app/actions/resource-utilization';
+import { getResourceUtilizationData } from '@/lib/actions/resource-utilization-client';
 
 interface CrewUtilization {
     id: string;
@@ -90,9 +90,13 @@ export default function ResourceUtilizationDashboard({ filters }: ResourceUtiliz
                 equipmentType: equipmentTypeFilter !== 'all' ? equipmentTypeFilter : undefined
             });
 
-            setCrewData(result.crews);
-            setEquipmentData(result.equipment);
-            setSummary(result.summary);
+            if (result.success && result.data) {
+                setCrewData(result.data.crewUtilization);
+                setEquipmentData(result.data.equipmentUtilization);
+                setSummary(result.data.summary);
+            } else {
+                setError(result.error || 'Failed to load resource utilization data');
+            }
 
         } catch (err) {
             setError('Failed to load resource utilization data');

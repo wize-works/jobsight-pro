@@ -1,6 +1,6 @@
 "use client";
-import { resendUserInvitation, revokeUserInvitation, sendUserInvitation } from "@/app/actions/user-invitations";
-import { deleteUser, getUsers, updateUserAsAdmin } from "@/app/actions/users";
+import { resendUserInvitation, cancelUserInvitation, sendUserInvitation } from "@/lib/actions/user-invitations-client";
+import { deleteUser, getUsers, updateUser } from "@/lib/actions/users-client";
 import { toast } from "@/hooks/use-toast";
 import { User, UserRole, userRoleOptions, UserStatus, userStatusOptions } from "@/types/users";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
@@ -107,7 +107,7 @@ export default function UsersPermissionsTab() {
 
             if (userStatus === 'invited') {
                 // Revoke invitation for invited users
-                const result = await revokeUserInvitation(businessId, userId);
+                const result = await cancelUserInvitation(businessId, userId);
                 success = result.success;
             } else {
                 // Delete user for active users
@@ -185,7 +185,7 @@ export default function UsersPermissionsTab() {
 
         setUpdatingUser(true);
         try {
-            const result = await updateUserAsAdmin(businessId, editingUser.id, {
+            const result = await updateUser(businessId, editingUser.id, {
                 first_name: editFormData.first_name,
                 last_name: editFormData.last_name,
                 email: editFormData.email,

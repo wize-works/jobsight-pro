@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { transcribeAudio } from '@/app/actions/ai';
+import { transcribeAudio } from '@/lib/actions/ai-client';
 import { useMediaRecorder } from '@/hooks/use-media-recorder';
 
 interface VoiceInputButtonProps {

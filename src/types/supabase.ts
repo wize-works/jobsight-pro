@@ -1824,29 +1824,35 @@ export interface Database {
                     phone: string | null
                     role: string | null
                     status: string | null
+                    email_verified: boolean | null
+                    email_verified_at: string | null
+                    verification_token_sent_at: string | null
                     avatar_url: string | null
                     created_at: string | null
+                    created_by: string | null
                     updated_at: string | null
+                    updated_by: string | null
                 }
                 Insert: {
                     auth_id?: string | null
-                    avatar_url?: string | null
-                    business_id?: string | null
-                    created_at?: string | null
-                    email?: string | null
                     first_name?: string | null
-                    id?: string | null
                     last_name?: string | null
-                    phone?: string | null
+                    email?: string
+                    phone: string | null
                     role?: string | null
                     status: string | null
+                    email_verified?: boolean | null
+                    email_verified_at?: string | null
+                    verification_token_sent_at?: string | null
+                    avatar_url?: string | null
+                    created_at?: string | null
+                    created_by?: string | null
                     updated_at?: string | null
+                    updated_by?: string | null
                 }
                 Update: {
                     auth_id?: string | null
-                    avatar_url?: string | null
                     business_id?: string | null
-                    created_at?: string | null
                     email?: string | null
                     first_name?: string | null
                     id?: string
@@ -1854,7 +1860,14 @@ export interface Database {
                     phone?: string | null
                     role?: string | null
                     status: string | null
+                    email_verified?: boolean | null
+                    email_verified_at?: string | null
+                    verification_token_sent_at?: string | null
+                    avatar_url?: string | null
+                    created_at?: string | null
+                    created_by?: string | null
                     updated_at?: string | null
+                    updated_by?: string | null
                 }
                 Relationships: []
             }

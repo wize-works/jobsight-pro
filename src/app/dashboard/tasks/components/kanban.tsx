@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TaskWithDetails, TaskStatus, taskStatusOptions, TaskPriority, taskPriorityOptions, TaskUpdate } from "@/types/tasks";
-import { updateTask } from "@/app/actions/tasks";
+import { updateTask } from "@/lib/actions/tasks-client";
 import Link from "next/link";
 import { format } from "date-fns";
 import toast from "react-hot-toast";

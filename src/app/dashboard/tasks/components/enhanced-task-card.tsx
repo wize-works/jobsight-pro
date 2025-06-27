@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { Crew } from "@/types/crews";
-import { quickUpdateTask } from "@/app/actions/tasks";
+import { quickUpdateTask } from "@/lib/actions/tasks-client";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistanceToNow } from "date-fns";
@@ -44,18 +44,20 @@ export default function EnhancedTaskCard({
         try {
             setIsUpdating(true);
             const updatedTask = await quickUpdateTask(businessId, task.id, updates);
-            onTaskUpdate(updatedTask);
+            if (updatedTask) {
+                onTaskUpdate(updatedTask);
 
-            // Subtle success feedback
-            const updateType = updates.status ? 'Status' : updates.priority ? 'Priority' : updates.assigned_to ? 'Assignment' : 'Task';
-            toast.success(`${updateType} updated`, {
-                duration: 2000,
-                style: {
-                    background: '#10B981',
-                    color: 'white',
-                    fontSize: '14px'
-                }
-            });
+                // Subtle success feedback
+                const updateType = updates.status ? 'Status' : updates.priority ? 'Priority' : updates.assigned_to ? 'Assignment' : 'Task';
+                toast.success(`${updateType} updated`, {
+                    duration: 2000,
+                    style: {
+                        background: '#10B981',
+                        color: 'white',
+                        fontSize: '14px'
+                    }
+                });
+            }
         } catch (error) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task");

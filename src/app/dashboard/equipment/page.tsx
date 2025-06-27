@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { getEquipments, searchEquipments } from "@/app/actions/equipments";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
+import { getEquipments, searchEquipments } from "@/lib/actions/equipment-client";
+import { getSpecificationsByEquipmentId } from "@/lib/actions/equipment-specifications-client";
 import type { Equipment, EquipmentStatus, EquipmentType, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";
@@ -86,7 +86,7 @@ export default function EquipmentPage() {
 
     const handleEditEquipment = async (equipment: Equipment) => {
         try {
-            const specifications = await getEquipmentSpecificationsByEquipmentId(businessId, equipment.id);
+            const specifications = await getSpecificationsByEquipmentId(businessId, equipment.id);
             setSelectedEquipment(equipment as EquipmentWithDetails);
             setSelectedSpecifications(specifications);
             setShowEditEquipmentModal(true);

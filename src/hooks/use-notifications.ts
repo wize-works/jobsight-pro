@@ -4,13 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import {
     getUserNotificationPreferences,
     updateUserNotificationPreferences
-} from "@/app/actions/notification-preferences";
+} from "@/lib/actions/notification-preferences-client";
 import {
     getAllNotificationTypePreferences,
     updateNotificationTypePreference,
     initializeDefaultNotificationTypePreferences
-} from "@/app/actions/notification-type-preferences";
-import { createNotificationWithEmail } from "@/app/actions/notifications";
+} from "@/lib/actions/notification-type-preferences-client";
+import { createNotification } from "@/lib/actions/notifications-client";
 import {
     NotificationTypeOptions,
     NotificationChannelOptions,
@@ -233,7 +233,7 @@ export function useNotifications({ userId }: UseNotificationsProps) {
             };
             console.log("Sending notification:", notification);
 
-            await createNotificationWithEmail(businessId, notification, true, userId);
+            await createNotification(notification, businessId, userId);
         } catch (error) {
             console.error("Error sending test notification:", error);
             throw error;

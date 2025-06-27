@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAIQuery } from '@/app/actions/ai';
-import { transcribeAudio } from '@/app/actions/ai';
+import { processAIQuery } from '@/lib/actions/ai-client';
+import { transcribeAudio } from '@/lib/actions/ai-client';
 import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';

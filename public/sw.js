@@ -50,16 +50,45 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event - network first with cache fallback
+// Fetch event - cache-first strategy for static assets, network-first for dynamic content
 self.addEventListener('fetch', (event) => {
     const { request } = event;
 
     // Skip non-GET requests or non-same-origin
     if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
 
-    // Skip Next.js build artifacts or server-rendered HTML
+    // Handle different types of requests
+    if (request.url.includes('/_next/static/') || request.url.includes('/_next/static/chunks/')) {
+        // Cache JavaScript chunks and static assets for offline navigation
+        event.respondWith(
+            caches.match(request).then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                return fetch(request).then((response) => {
+                    if (response.status === 200) {
+                        const clonedResponse = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, clonedResponse);
+                        });
+                    }
+                    return response;
+                }).catch(() => {
+                    // Return a fallback for missing chunks
+                    return new Response('// Chunk unavailable offline', {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/javascript' }
+                    });
+                });
+            })
+        );
+        return;
+    }
+
+    // Skip server-rendered HTML and API routes
     if (
-        request.url.includes('/_next/') ||              // React build chunks
+        request.url.includes('/api/') ||                 // API routes
         request.url.includes('__nextjs') ||             // Edge middleware internals
         request.headers.get('accept')?.includes('text/html') // SSR pages
     ) {

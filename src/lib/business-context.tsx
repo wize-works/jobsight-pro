@@ -3,7 +3,8 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
 import { useRouter, usePathname } from "next/navigation"
-import { getUserBusiness } from "@/app/actions/business"
+import { getUserBusiness } from "@/lib/actions/business-client"
+import { getUserBusiness as getServerUserBusiness } from "@/app/actions/business"
 import { useToast } from "@/hooks/use-toast"
 import type { Business } from "@/types/business";
 
@@ -37,12 +38,29 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const { toast } = useToast()
 
     // Check if we're in a registration flow
-    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'    // Function to fetch business data using server action
+    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'    // Function to fetch business data using client action with server fallback
     const fetchBusinessData = async (userId: string) => {
         try {
-            const response = await getUserBusiness(userId);
+            console.log("🔍 Fetching business data for user:", userId);
 
-            if (!response) {
+            // Try client action first (offline-first)
+            let business = await getUserBusiness(userId);
+
+            // If client action returns null, fallback to server action
+            if (!business) {
+                console.log("⚠️ Client action returned null, trying server action...");
+                business = await getServerUserBusiness(userId);
+
+                // If server action succeeded, we should sync this data to IndexedDB
+                if (business) {
+                    console.log("✅ Server action found business, syncing to offline storage");
+                }
+            } else {
+                console.log("✅ Client action found business from offline storage");
+            }
+
+            if (!business) {
+                console.log("❌ No business found for user");
                 setLoading(false);
                 // User is valid but has no business
                 if (!isRegistrationFlow) {
@@ -53,54 +71,39 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     })
                 }
                 return
-            } if ('success' in response && !response.success) {
-                console.log("❌ Business auth error:", response.error);
-                setLoading(false);
-                // If there's an error with authentication
-                if (!isRegistrationFlow) {
-                    toast.error({
-                        title: "Error",
-                        description: response.error,
-                    })
-                    console.error("Business auth error:", response.error)
-                    router.push(response.redirect)
-                }
-                return
-            } if ('id' in response) {
-                // Batch all state updates together
-                setBusinessId(response.id)
-                setBusinessData(response as Business)
-                localStorage.setItem("businessId", response.id)
-
-                // Use setTimeout to ensure state update happens after current call stack
-                setTimeout(() => {
-                    setLoading(false)
-                }, 0)
-            } else {
-                console.log("❌ Response doesn't have ID, redirecting to register");
-                setLoading(false);
-                router.push('/register');
-                toast.warning({
-                    title: "No Business Found",
-                    description: "Please register your business to continue.",
-                });
             }
+
+            // Business found successfully
+            console.log("🎉 Business found:", business.name, "ID:", business.id);
+            setBusinessId(business.id)
+            setBusinessData(business as Business)
+            localStorage.setItem("businessId", business.id)
+
+            // Use setTimeout to ensure state update happens after current call stack
+            setTimeout(() => {
+                setLoading(false)
+            }, 0)
         } catch (err) {
             console.error("💥 Error fetching business data:", err)
+            console.error("💥 Full error details:", JSON.stringify(err, null, 2))
             setError(err instanceof Error ? err.message : "Unknown error fetching business data")
 
             if (!isRegistrationFlow) {
                 toast.error({
                     title: "Error",
-                    description: "Failed to load business data",
+                    description: "Failed to load business data. Please try refreshing the page.",
                 })
             }
+            setLoading(false);
         }
     }
 
     // Function to load business data
     const loadBusinessData = async () => {
+        console.log("🚀 Starting loadBusinessData, isKindeLoading:", isKindeLoading, "user:", user?.id);
+
         if (isKindeLoading) {
+            console.log("⏳ Kinde still loading, waiting...");
             return
         }
 
@@ -110,20 +113,29 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         try {
             // If no user and not in registration flow, finish loading
             if (!user) {
+                console.log("❌ No user found, finishing loading");
                 setLoading(false)
                 return
-            }            // Try to get from localStorage first
+            }
+
+            console.log("👤 User found:", user.id, "checking for stored business...");
+
+            // Try to get from localStorage first
             const storedBusinessId = localStorage.getItem("businessId")
+            console.log("💾 Stored business ID:", storedBusinessId);
 
             if (storedBusinessId && user) {
+                console.log("✅ Found stored business ID, verifying...");
                 // Verify the stored business ID is still valid by fetching it
                 await fetchBusinessData(user.id)
                 return
             }
 
-            // Fetch user's business using server action
+            // No stored business ID, fetch user's business
+            console.log("🔄 No stored business ID, fetching from server...");
             await fetchBusinessData(user.id)
         } catch (err) {
+            console.error("💥 Error in loadBusinessData:", err);
             setError(err instanceof Error ? err.message : "Unknown error loading business data")
             setLoading(false) // Only set loading false on error
         }

@@ -5,8 +5,8 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import PushManager from "@/components/push-manager";
 import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "@/hooks/use-toast";
-import { uploadUserAvatar } from "@/app/actions/user-avatar";
-import { getUserByAuthId, getUserById } from "@/app/actions/users";
+import { uploadUserAvatar } from "@/lib/actions/user-avatar-client";
+import { getUserByAuthId, getUserById } from "@/lib/actions/users-client";
 import { useBusiness } from "@/lib/business-context";
 import { NotificationTypeOptions, NotificationChannelOptions } from "@/types/notifications";
 import ProfileLoading from "./loading";
@@ -161,10 +161,10 @@ export default function ProfilePage() {
         setIsUploadingAvatar(true);
 
         try {
-            const result = await uploadUserAvatar(businessId, file);
+            const result = await uploadUserAvatar(businessId, file, currentUser?.id || user?.id);
 
-            if (result.success && result.avatarUrl) {
-                setAvatarUrl(result.avatarUrl);
+            if (result.data?.avatarUrl) {
+                setAvatarUrl(result.data.avatarUrl);
                 toast({
                     title: "Avatar updated",
                     description:

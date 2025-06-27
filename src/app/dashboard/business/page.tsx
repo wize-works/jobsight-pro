@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useBusiness } from "@/lib/business-context";
-import { updateBusinessFromForm } from "@/app/actions/business";
-import { getUsers, deleteUser } from "@/app/actions/users";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { updateBusinessFromForm } from "@/lib/actions/business-client";
+import { getUsers, deleteUser } from "@/lib/actions/users-client";
 import { toast } from "@/hooks/use-toast";
-import { getProjects } from "@/app/actions/projects";
-import { getEquipments } from "@/app/actions/equipments";
-import { getInvoicesWithClient } from "@/app/actions/invoices";
-import { getDailyLogs } from "@/app/actions/daily-logs";
+import { getProjects } from "@/lib/actions/projects-client";
+import { getEquipments } from "@/lib/actions/equipment-client";
+import { getInvoicesWithClient } from "@/lib/actions/invoices-client";
+import { getDailyLogs } from "@/lib/actions/daily-logs-client";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
-import { getCurrentSubscription } from "@/app/actions/subscriptions";
+import { getCurrentSubscription } from "@/lib/actions/subscriptions-client";
 import { BusinessSubscription } from "@/types/subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
 import { formatDate } from "@/utils/formatters";
@@ -20,6 +21,7 @@ import { formatDate } from "@/utils/formatters";
 export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState("profile");
     const { business, businessId, loading, error, refreshBusiness } = useBusiness();
+    const { user } = useKindeAuth();
     const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userCount, setUserCount] = useState(0);
@@ -103,7 +105,13 @@ export default function BusinessPage() {
                 formData.append("id", business.id);
             }
 
-            const result = await updateBusinessFromForm(formData);
+            // Convert FormData to object for the client action
+            const formDataObj: Record<string, any> = {};
+            formData.forEach((value, key) => {
+                formDataObj[key] = value;
+            });
+
+            const result = await updateBusinessFromForm(businessId, formDataObj, user?.id || '');
 
             if (result.success) {
                 await refreshBusiness();

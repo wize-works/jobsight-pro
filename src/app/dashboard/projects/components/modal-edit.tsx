@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
 import { User } from "@/types/users";
-import { updateProject } from "@/app/actions/projects";
+import { updateProjectById } from "@/lib/actions/projects-client";
 import { formatDateForInput } from "@/utils/date";
-import { getCrewMembers } from "@/app/actions/crew-members";
+import { getCrewMembers } from "@/lib/actions/crew-members-client";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
@@ -132,14 +132,14 @@ export default function ProjectEditModal({
                 status: formData.status,
             } as ProjectInsert;
 
-            const updatedProject = await updateProject(businessId, project.id, projectData);
+            const result = await updateProjectById(project.id, projectData, businessId);
 
-            if (updatedProject) {
+            if (result.data && !result.error) {
                 toast.success({
                     title: "Success",
                     description: "Project updated successfully"
                 });
-                if (onSave) onSave(updatedProject);
+                if (onSave) onSave(result.data);
                 onClose();
             }
         } catch (error) {

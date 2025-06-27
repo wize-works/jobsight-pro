@@ -6,19 +6,19 @@ import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMainte
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
-import { getEquipmentPrintableDetail, setEquipmentLocation } from "@/app/actions/equipments";
+import { getEquipmentDetail, setEquipmentLocation } from "@/lib/actions/equipment-client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Media, MediaType } from "@/types/media";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, getAllMediaByEquipmentId, getAvailableMediaForEquipment, linkExistingMediaToEquipment, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
+import { linkMediaToEntity, unlinkMediaFromEntity, getMediaByEntity } from "@/lib/actions/media-client";
 import UniversalMediaManager from "@/components/universal-media-manager";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
+import { getSpecificationsByEquipmentId } from "@/lib/actions/equipment-specifications-client";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import ModalLoading from "@/components/modal-loading";
 import EquipmentDetailLoading from "./loading";
@@ -104,26 +104,24 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                 const { id } = await params;
 
                 // Use the optimized single query to fetch all equipment data
-                const data = await getEquipmentPrintableDetail(businessId, id);
+                const data = await getEquipmentDetail(businessId, id);
 
-                if (data) {
+                if (data?.equipment) {
                     setEquipmentData(data);
-                    setEquipment(data);
-                    setLocation(data.location || "");
+                    setEquipment(data.equipment);
+                    setLocation(data.equipment.location || "");
 
-                    // Set related data from joined results
-                    setMaintenanceList(data.equipment_maintenance || []);
-                    setUsageList(data.equipment_usage || []);
-                    setAssignmentList(data.equipment_assignments || []);
-                    setEquipmentSpecifications(data.equipment_specifications || []);
+                    // Set related data from joined results - using new structure
+                    setMaintenanceList(data.maintenance_records || []);
+                    setUsageList(data.usage_logs || []);
+                    setAssignmentList(data.assignments || []);
+                    setEquipmentSpecifications(data.specifications || []);
 
-                    // Load media separately as it's not included in the main query
-                    const [linked, available] = await Promise.all([
-                        getAllMediaByEquipmentId(businessId, id),
-                        getAvailableMediaForEquipment(businessId, id)
-                    ]);
-                    setEquipmentMedia(linked);
-                    setAvailableMedia(available);
+                    // Load media separately using generic media functions
+                    const linkedMedia = await getMediaByEntity(businessId, id, 'equipment');
+                    setEquipmentMedia(linkedMedia);
+                    // TODO: Implement available media logic
+                    setAvailableMedia([]);
                 } else {
                     setEquipment(null);
                 }

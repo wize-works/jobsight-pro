@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { getNotificationsByUserId, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
+import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/actions/notifications-client";
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -28,7 +28,7 @@ export default function NotificationsPage() {
 
         try {
             setLoading(true);
-            const allNotifications = await getNotificationsByUserId(businessId, user.id);
+            const allNotifications = await getNotifications(businessId, user.id);
             setNotifications(allNotifications);
         } catch (error) {
             console.error("Error loading notifications:", error);

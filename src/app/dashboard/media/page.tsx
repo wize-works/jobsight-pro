@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getMedias, searchMedias, deleteMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { getMedia, deleteMediaById } from "@/lib/actions/media-client"
+import { getProjects } from "@/lib/actions/projects-client"
 import { Media } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
@@ -67,7 +67,7 @@ export default function MediaLibrary() {
         try {
             setLoading(true)
             const [mediaData, projectsData] = await Promise.all([
-                getMedias(businessId),
+                getMedia(businessId),
                 getProjects(businessId)
             ])
             setMediaItems(mediaData)
@@ -85,28 +85,18 @@ export default function MediaLibrary() {
 
     // Handle search
     useEffect(() => {
-        const handleSearch = async () => {
-            if (searchQuery.trim()) {
-                try {
-                    const results = await searchMedias(businessId, searchQuery)
-                    setMediaItems(results)
-                } catch (error) {
-                    console.error("Error searching media:", error)
-                }
-            } else {
-                loadData()
-            }
-        }
-
-        const debounceTimer = setTimeout(handleSearch, 300)
-        return () => clearTimeout(debounceTimer)
+        // Implement client-side search since searchMedias is not available in client actions
+        // Search will be handled by filtering the loaded media items
     }, [searchQuery, businessId])
 
-    // Filter media items based on project and type
+    // Filter media items based on project, type, and search query
     const filteredMedia = mediaItems.filter((item) => {
         const matchesProject = selectedProject === null || item.project_id === selectedProject
         const matchesType = selectedType === null || item.type === selectedType
-        return matchesProject && matchesType
+        const matchesSearch = searchQuery.trim() === '' ||
+            (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        return matchesProject && matchesType && matchesSearch
     })    // Toggle selection of an item
     const toggleSelection = (id: string) => {
         if (selectedItems.includes(id)) {
@@ -122,7 +112,7 @@ export default function MediaLibrary() {
 
         if (confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) {
             try {
-                await Promise.all(selectedItems.map(id => deleteMedia(businessId, id)))
+                await Promise.all(selectedItems.map(id => deleteMediaById(businessId, id)))
                 setSelectedItems([])
                 await loadData()
                 toast.success({
@@ -141,7 +131,7 @@ export default function MediaLibrary() {
     const handleSingleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this item?")) {
             try {
-                await deleteMedia(businessId, id)
+                await deleteMediaById(businessId, id)
                 await loadData()
                 toast.success({
                     title: "Success",

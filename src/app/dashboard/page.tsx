@@ -14,7 +14,7 @@ import {
     Title,
 } from "chart.js"
 import { Doughnut, Bar, Line } from "react-chartjs-2"
-import { getDashboardData } from "@/app/actions/dashboard"
+import { getDashboardStats as getDashboardData } from "@/lib/actions/dashboard-client"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
 import ProjectModal from "./projects/components/modal-project"
@@ -26,7 +26,7 @@ import Loading from "@/app/loading";
 import ErrorBoundary from "@/components/error-boundary"
 import WeatherWidget from "@/components/weather-widget"
 import CompactWeatherWidget from "@/components/compact-weather-widget"
-import { processAIQuery } from "@/app/actions/ai"
+import { processAIQuery } from "@/lib/actions/ai-client"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)

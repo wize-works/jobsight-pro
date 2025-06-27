@@ -1,8 +1,8 @@
 "use client";
 
-import { getDailyLogsWithDetails } from "@/app/actions/daily-logs";
-import { getCrews } from "@/app/actions/crews";
-import { getProjects } from "@/app/actions/projects";
+import { getDailyLogsWithDetails } from "@/lib/actions/daily-logs-client";
+import { getCrews } from "@/lib/actions/crews-client";
+import { getProjects } from "@/lib/actions/projects-client";
 
 import DailyLogsList from "./components/list";
 import { useBusiness } from "@/lib/business-context";

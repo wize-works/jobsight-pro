@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createEquipment } from "@/app/actions/equipments";
+import { createEquipment } from "@/lib/actions/equipment-client";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentInsert, EquipmentStatus, EquipmentType, EquipmentCondition } from "@/types/equipment";
 import { equipmentStatusOptions, equipmentTypeOptions, equipmentConditionOptions } from "@/types/equipment";

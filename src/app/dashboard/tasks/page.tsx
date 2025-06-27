@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getTasksWithDetails } from "@/app/actions/tasks";
-import { getProjects } from "@/app/actions/projects";
-import { getCrews } from "@/app/actions/crews";
+import { getTasksWithDetails } from "@/lib/actions/tasks-client";
+import { getProjects } from "@/lib/actions/projects-client";
+import { getCrews } from "@/lib/actions/crews-client";
 import { TaskWithDetails, Task } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";

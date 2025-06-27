@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Task, TaskInsert, TaskStatus, TaskPriority, taskStatusOptions, taskPriorityOptions, TaskWithDetails } from "@/types/tasks";
-import { createTask, updateTask } from "@/app/actions/tasks";
+import { createTask, updateTask } from "@/lib/actions/tasks-client";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";

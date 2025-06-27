@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo, getClientDetailsByID } from "@/app/actions/clients";
-import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
-import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
-import { getProjectsByClientId, createProject } from "@/app/actions/projects";
-import { createInvoice } from "@/app/actions/invoices";
-import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, unlinkMediaFromClient, uploadClientLogo } from "@/app/actions/media";
+import { updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo, getClientDetailsByID } from "@/lib/actions/clients-client";
+import { createClientContact, updateClientContact } from "@/lib/actions/client-contacts-client";
+import { createClientInteraction, updateClientInteraction } from "@/lib/actions/client-interactions-client";
+import { createProject } from "@/lib/actions/projects-client";
+import { createInvoice } from "@/lib/actions/invoices-client";
+import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, unlinkMediaFromClient, uploadClientLogo } from "@/lib/actions/media-client";
 import { toast } from "@/hooks/use-toast";
 import { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
@@ -28,8 +28,8 @@ import ClientDetailLoading from "./loading";
 import ErrorBoundary from "@/components/error-boundary";
 import UniversalMediaManager from "@/components/universal-media-manager";
 
-import { generateClientHTML } from "@/app/actions/generate-html";
-import { generateClientPdf } from "@/app/actions/pdf-generation-gotenberg";
+import { generateClientHtml } from "@/lib/actions/generate-html-client";
+import { generatePdfWithGotenberg } from "@/lib/actions/gotenberg-client";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();
@@ -105,8 +105,22 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         setDownloadingPdf(true);
         try {
-            // Generate PDF using the new service
-            const result = await generateClientPdf(businessId, client.id, client.name);
+            // First generate the HTML
+            const htmlResult = await generateClientHtml(businessId, client.id);
+
+            if (!htmlResult.success || !htmlResult.html) {
+                throw new Error(htmlResult.error || 'Failed to generate HTML');
+            }
+
+            // Then generate PDF using Gotenberg
+            const result = await generatePdfWithGotenberg({
+                html: htmlResult.html,
+                filename: `client-${client.name}.pdf`,
+                businessId,
+                clientId: client.id,
+                description: `Client profile for ${client.name}`,
+                saveToStorage: true
+            }, businessId, user?.id);
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to generate PDF');

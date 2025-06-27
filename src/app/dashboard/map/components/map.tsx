@@ -13,10 +13,12 @@ import { DivIcon, Icon } from "leaflet";
 import { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import React, { useEffect, useState } from "react";
-import { getProjects, setProjectLocation } from "@/app/actions/projects";
+import { getProjects } from "@/lib/actions/projects-client";
+import { setProjectLocation } from "@/app/actions/projects";
 import { toast } from "@/hooks/use-toast";
 import { set } from "zod";
-import { getEquipments, setEquipmentLocation } from "@/app/actions/equipments";
+import { getEquipments } from "@/lib/actions/equipment-client";
+import { setEquipmentLocation } from "@/app/actions/equipments";
 import { useBusiness } from "@/lib/business-context";
 import { useRouter } from "next/navigation";
 
@@ -200,7 +202,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 disabled={
                                                     !selectedProjectId ||
                                                     selectedProjectId ===
-                                                        "select"
+                                                    "select"
                                                 }
                                             >
                                                 <i className="far fa-check"></i>
@@ -240,7 +242,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                     setEquipments((prev) =>
                                                         prev.map((p) =>
                                                             p.id ===
-                                                            equipment.id
+                                                                equipment.id
                                                                 ? equipment
                                                                 : p,
                                                         ),
@@ -292,7 +294,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 disabled={
                                                     !selectedEquipmentId ||
                                                     selectedEquipmentId ===
-                                                        "select"
+                                                    "select"
                                                 }
                                             >
                                                 <i className="far fa-check"></i>
@@ -414,13 +416,12 @@ export default function MapComponent({ location }: MapComponentProps) {
                                     <div className="flex items-center gap-2">
                                         <i className="far fa-circle text-secondary w-4"></i>
                                         <span
-                                            className={`badge badge-sm ${
-                                                item.status === "available"
+                                            className={`badge badge-sm ${item.status === "available"
                                                     ? "badge-success"
                                                     : item.status === "in_use"
-                                                      ? "badge-warning"
-                                                      : "badge-error"
-                                            }`}
+                                                        ? "badge-warning"
+                                                        : "badge-error"
+                                                }`}
                                         >
                                             {item.status?.replace("_", " ")}
                                         </span>

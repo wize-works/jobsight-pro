@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Crew, CrewInsert, CrewStatus, CrewWithDetails, CrewWithStats } from "@/types/crews";
-import { createCrew, getCrewsWithDetails } from "@/app/actions/crews";
+import { createCrew, getCrewsWithDetails } from "@/lib/actions/crews-client";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";

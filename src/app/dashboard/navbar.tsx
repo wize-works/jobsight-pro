@@ -1,4 +1,5 @@
 "use client";
+
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Notifications } from "./notifications";
@@ -8,7 +9,7 @@ import {
     useKindeBrowserClient,
 } from "@kinde-oss/kinde-auth-nextjs";
 import { User } from "@/types/users";
-import { getUserByAuthId } from "../actions/users";
+import { getUserByAuthId } from "@/lib/actions/users-client";
 import { useEffect, useState } from "react";
 import { get } from "http";
 import { useBusiness } from "@/lib/business-context";

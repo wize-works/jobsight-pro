@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { getInvoiceWitDetailsById } from "@/app/actions/invoices";
+import { getInvoiceById } from "@/lib/actions/invoices-client";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/error-boundary";
@@ -39,14 +39,14 @@ export default function InvoiceDetailPage() {
             try {
                 setLoading(true);
                 setError(null);
-                const invoiceData = await getInvoiceWitDetailsById(business.id, id);
+                const invoiceData = await getInvoiceById(business.id, id);
 
                 if (!invoiceData) {
                     setError("Invoice not found.");
                     return;
                 }
 
-                setInvoice(invoiceData);
+                setInvoice(invoiceData as any); // Type conversion needed - client action returns basic invoice
             } catch (err) {
                 console.error('Error fetching invoice:', err);
                 setError("Failed to load invoice details.");

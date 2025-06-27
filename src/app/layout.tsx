@@ -7,6 +7,10 @@ import { AuthProvider } from "@/lib/auth-context";
 import Script from "next/script";
 import { Toaster } from "@/components/toaster";
 import { ClarityProvider } from "@/components/clarity-provider";
+import { OfflineErrorBoundary } from "@/components/offline-error-boundary";
+import OfflineIndicator from "@/components/offline-indicator";
+import "@/lib/chunk-error-handler"; // Auto-registers chunk error handling
+import "@/lib/debug/indexeddb-debug"; // Debug utility for development
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -102,10 +106,13 @@ export default function RootLayout({
                     crossOrigin="anonymous"
                 />
                 <body className={inter.className}>
-                    <ThemeProvider>
-                        <ClarityProvider />
-                        {children}
-                    </ThemeProvider>
+                    <OfflineErrorBoundary>
+                        <ThemeProvider>
+                            <ClarityProvider />
+                            <OfflineIndicator />
+                            {children}
+                        </ThemeProvider>
+                    </OfflineErrorBoundary>
                 </body>
             </html>
         </AuthProvider>

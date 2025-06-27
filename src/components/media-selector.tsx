@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { getMedias, searchMedias } from "@/app/actions/media"
+import { getMedia } from "@/lib/actions/media-client"
 import { Media } from "@/types/media"
 import { useBusiness } from "@/lib/business-context"
 
@@ -40,8 +40,13 @@ export default function MediaSelector({
         const handleSearch = async () => {
             if (searchQuery.trim()) {
                 try {
-                    const results = await searchMedias(businessId, searchQuery)
-                    setMediaItems(filterMedia(results))
+                    // Client-side search through existing media
+                    const results = mediaItems.filter(media =>
+                        media.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        media.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        media.type?.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                    setMediaItems(results);
                 } catch (error) {
                     console.error("Error searching media:", error)
                 }
@@ -57,7 +62,7 @@ export default function MediaSelector({
     const loadMediaItems = async () => {
         try {
             setLoading(true)
-            const data = await getMedias(businessId)
+            const data = await getMedia(businessId)
             setMediaItems(filterMedia(data))
         } catch (error) {
             console.error("Error loading media:", error)

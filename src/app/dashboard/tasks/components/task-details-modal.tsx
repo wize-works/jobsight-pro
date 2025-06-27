@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskWithDetails, TaskUpdate } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
-import { updateTask, deleteTask, createTask } from "@/app/actions/tasks";
+import { updateTask, deleteTask, createTask } from "@/lib/actions/tasks-client";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistance, formatDistanceToNow } from "date-fns";

@@ -4,10 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatters';
 import { useBusiness } from '@/lib/business-context';
 import {
-    getProjectProfitabilityData,
+    getProjectsProfitabilityData as getProjectProfitabilityData,
     ProjectProfitabilityData,
-    ProjectProfitabilitySummary
-} from '@/app/actions/project-profitability';
+    getProfitabilitySummary
+} from '@/lib/actions/project-profitability-client';
+
+// Define the summary type based on what the component uses
+interface ProjectProfitabilitySummary {
+    totalProjects: number;
+    totalBudget: number;
+    totalSpend: number;
+    totalProfit: number;
+    averageProfitMargin: number;
+    projectsAtRisk: number;
+    projectsOverBudget: number;
+}
 
 interface ProjectProfitabilityDashboardProps {
     className?: string;
@@ -24,10 +35,9 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
         totalBudget: 0,
         totalSpend: 0,
         totalProfit: 0,
-        averageMargin: 0,
-        profitableProjects: 0,
-        unprofitableProjects: 0,
-        atRiskProjects: 0
+        averageProfitMargin: 0,
+        projectsAtRisk: 0,
+        projectsOverBudget: 0
     });
 
     // Filters
@@ -41,14 +51,34 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
 
         setLoading(true);
         try {
-            const filters = {
-                status: statusFilter !== 'all' ? statusFilter : undefined,
-                riskLevel: riskFilter !== 'all' ? riskFilter : undefined,
+            // Get all projects profitability data
+            const projectsData = await getProjectProfitabilityData(businessId);
+
+            // Apply filters client-side
+            let filteredProjects = projectsData;
+            if (statusFilter !== 'all') {
+                filteredProjects = filteredProjects.filter(p => p.status === statusFilter);
+            }
+            if (riskFilter !== 'all') {
+                filteredProjects = filteredProjects.filter(p => p.riskLevel === riskFilter);
+            }
+
+            setProjects(filteredProjects);
+
+            // Calculate summary from projects data
+            const calculatedSummary: ProjectProfitabilitySummary = {
+                totalProjects: filteredProjects.length,
+                totalBudget: filteredProjects.reduce((sum, p) => sum + p.budget, 0),
+                totalSpend: filteredProjects.reduce((sum, p) => sum + p.currentSpend, 0),
+                totalProfit: filteredProjects.reduce((sum, p) => sum + p.profit, 0),
+                averageProfitMargin: filteredProjects.length > 0
+                    ? filteredProjects.reduce((sum, p) => sum + p.profitMargin, 0) / filteredProjects.length
+                    : 0,
+                projectsAtRisk: filteredProjects.filter(p => p.riskLevel === 'high').length,
+                projectsOverBudget: filteredProjects.filter(p => p.currentSpend > p.budget).length
             };
 
-            const data = await getProjectProfitabilityData(businessId, filters);
-            setProjects(data.projects);
-            setSummary(data.summary);
+            setSummary(calculatedSummary);
         } catch (error) {
             console.error('Error loading project profitability data:', error);
         } finally {
@@ -138,7 +168,7 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                     <div className={`stat-value ${getProfitClass(summary.totalProfit)}`}>
                         {formatCurrency(summary.totalProfit)}
                     </div>
-                    <div className="stat-desc">{summary.averageMargin.toFixed(1)}% avg margin</div>
+                    <div className="stat-desc">{summary.averageProfitMargin.toFixed(1)}% avg margin</div>
                 </div>
 
                 <div className="stat bg-base-100 shadow rounded-lg">
@@ -146,7 +176,7 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                         <i className="far fa-chart-pie text-2xl"></i>
                     </div>
                     <div className="stat-title">Profitable Projects</div>
-                    <div className="stat-value text-info">{summary.profitableProjects}</div>
+                    <div className="stat-value text-info">{projects.filter(p => p.profit > 0).length}</div>
                     <div className="stat-desc">of {summary.totalProjects} total</div>
                 </div>
 
@@ -155,7 +185,7 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                         <i className="far fa-exclamation-triangle text-2xl"></i>
                     </div>
                     <div className="stat-title">At Risk</div>
-                    <div className="stat-value text-warning">{summary.atRiskProjects}</div>
+                    <div className="stat-value text-warning">{summary.projectsAtRisk}</div>
                     <div className="stat-desc">High risk projects</div>
                 </div>
             </div>
@@ -336,8 +366,8 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                                         </div>
                                         <progress
                                             className={`progress w-full ${project.budgetUtilization > 90 ? 'progress-error' :
-                                                    project.budgetUtilization > 75 ? 'progress-warning' :
-                                                        'progress-success'
+                                                project.budgetUtilization > 75 ? 'progress-warning' :
+                                                    'progress-success'
                                                 }`}
                                             value={project.budgetUtilization}
                                             max="100"

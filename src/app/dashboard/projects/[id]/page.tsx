@@ -2,16 +2,16 @@
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { getProjectById, getProjectDetailsByID, updateProject, updateProjectProgress } from "@/app/actions/projects";
-import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/app/actions/project-milestones";
-import { getTasksByProjectId, createTask, updateTask } from "@/app/actions/tasks";
-import { getClientById } from "@/app/actions/clients";
+import { getProjectById, getProjectDetailsByID, updateProject, updateProjectProgress } from "@/lib/actions/projects-client";
+import { createProjectMilestone, getProjectMilestonesByProjectId, updateProjectMilestone } from "@/lib/actions/project-milestones-client";
+import { getTasksByProjectId, createTask, updateTask } from "@/lib/actions/tasks-client";
+import { getClientById } from "@/lib/actions/clients-client";
 import { toast } from "@/hooks/use-toast";
 import { Client } from "@/types/clients";
-import { getClientContactsByClientId } from "@/app/actions/client-contacts";
+import { getClientContactsByClientId } from "@/lib/actions/client-contacts-client";
 import { ClientContact } from "@/types/client-contacts";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
-import { getCrewMemberById, getCrewMembers } from "@/app/actions/crew-members";
+import { getCrewMemberById, getCrewMembers } from "@/lib/actions/crew-members-client";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import { Project, ProjectInsert, ProjectUpdate, ProjectStatus, projectStatusOptions } from "@/types/projects";

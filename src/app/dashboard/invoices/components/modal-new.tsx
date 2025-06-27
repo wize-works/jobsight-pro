@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import { createInvoice } from "@/app/actions/invoices";
-import { createInvoiceItem } from "@/app/actions/invoice-items";
-import { getClients } from "@/app/actions/clients";
-import { getProjects } from "@/app/actions/projects";
+import { createInvoice } from "@/lib/actions/invoices-client";
+import { createInvoiceItem } from "@/lib/actions/invoice-items-client";
+import { getClients } from "@/lib/actions/clients-client";
+import { getProjects } from "@/lib/actions/projects-client";
 import { InvoiceInsert, InvoiceStatus, invoiceStatusOptions } from "@/types/invoices";
 import { InvoiceItemInsert } from "@/types/invoice-items";
 import { Client } from "@/types/clients";
@@ -178,14 +178,14 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
                 created_by: user?.id || null,
                 updated_at: new Date().toISOString(),
                 updated_by: user?.id || null,
-            }; const newInvoice = await createInvoice(businessId, invoiceData);
+            }; const newInvoice = await createInvoice(invoiceData, businessId, user?.id);
 
-            if (newInvoice) {
+            if (newInvoice && newInvoice.data) {
                 // Create invoice items
                 const itemCreationPromises = items.map(async (item) => {
                     const itemData: InvoiceItemInsert = {
                         id: crypto.randomUUID(),
-                        invoice_id: newInvoice.id,
+                        invoice_id: newInvoice.data!.id,
                         business_id: businessId,
                         description: item.description,
                         quantity: item.quantity,
@@ -199,7 +199,7 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
                         updated_at: new Date().toISOString(),
                         updated_by: user?.id || null,
                     };
-                    return createInvoiceItem(businessId, itemData);
+                    return createInvoiceItem(itemData, businessId, user?.id);
                 });
 
                 await Promise.all(itemCreationPromises);
@@ -208,13 +208,13 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
                     title: "Success",
                     description: "Invoice created successfully"
                 });
-                onSave(newInvoice);
+                onSave(newInvoice.data);
                 onClose();
                 router.refresh();
             } else {
                 toast.error({
                     title: "Error",
-                    description: "Failed to create invoice"
+                    description: newInvoice?.error || "Failed to create invoice"
                 });
             }
         } catch (error) {
