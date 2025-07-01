@@ -26,14 +26,14 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
         if (!businessResponse.id && 'error' in businessResponse) {
             console.error("[withBusinessServer] Business auth error:", businessResponse);
 
-            redirect("/register");
+            redirect("/sign-up");
         }
 
         // If no business found, redirect based on allowRegistration flag
         if (!businessResponse || 'error' in businessResponse) {
             console.error("[withBusinessServer] No business found for user:", userId);
 
-            redirect("/register");
+            redirect("/sign-up");
         }
         let subscription = {} as BusinessSubscription;
         // Check if user has an active subscription (optional check based on business requirements)
@@ -43,7 +43,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             if (!subscription || subscription.status !== 'active') {
                 console.warn("[withBusinessServer] No active subscription found for user:", userId);
                 // Allow access but could be modified based on business rules
-                redirect("/register"); // Uncomment if subscription is required for dashboard access
+                redirect("/sign-up"); // Uncomment if subscription is required for dashboard access
             }
         } catch (error) {
             console.error("[withBusinessServer] Error checking subscription:", error);

@@ -65,7 +65,7 @@ export default function Pricing() {
                                     </ul>
 
                                     <div className="card-actions justify-center mt-auto">
-                                        <Link href={`/api/auth/register?post_login_redirect_url=%2Fregister`} className={`btn  ${plan.name === "Pro" ? 'btn-accent' : 'btn-primary'} btn-block`}>
+                                        <Link href={`/sign-up`} className={`btn  ${plan.name === "Pro" ? 'btn-accent' : 'btn-primary'} btn-block`}>
                                             Register Now
                                         </Link>
                                     </div>

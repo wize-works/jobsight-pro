@@ -37,7 +37,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const { toast } = useToast()
 
     // Check if we're in a registration flow
-    const isRegistrationFlow = pathname === '/register' || pathname === '/onboarding'    // Function to fetch business data using server action
+    const isRegistrationFlow = pathname === '/sign-up'    // Function to fetch business data using server action
     const fetchBusinessData = async (userId: string) => {
         try {
             const response = await getUserBusiness(userId);
@@ -46,7 +46,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
                 // User is valid but has no business
                 if (!isRegistrationFlow) {
-                    router.push('/register')
+                    router.push('/sign-up')
                     toast.info({
                         title: "Business setup required",
                         description: "Please complete your business setup",
@@ -81,7 +81,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             } else {
                 console.log("❌ Response doesn't have ID, redirecting to register");
                 setLoading(false);
-                router.push('/register');
+                router.push('/sign-up');
                 toast.warning({
                     title: "No Business Found",
                     description: "Please register your business to continue.",
