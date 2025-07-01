@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 
-export default function OnboardingPage({
+export default async function OnboardingPage({
     searchParams,
 }: {
-    searchParams: { token?: string };
+    searchParams: Promise<{ token?: string }>;
 }) {
-    const token = searchParams.token;
+    const params = await searchParams;
+    const token = params.token;
 
     if (token) {
         // Redirect to the unified registration page with the token
