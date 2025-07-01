@@ -1,3 +1,11 @@
+# [1.103.0](https://github.com/wize-works/jobsight-pro/compare/v1.102.0...v1.103.0) (2025-07-01)
+
+
+### Features
+
+* implement sign-up page with multi-step registration flow and user metadata update API ([349e94f](https://github.com/wize-works/jobsight-pro/commit/349e94f591b9d7f0e1ff3add01671d7d1c6c45c1))
+* Revamp user invite and edit modals with improved layout and accessibility features ([54737ff](https://github.com/wize-works/jobsight-pro/commit/54737ff24358323cca11075afc4583c5a9385055))
+
 # [1.102.0](https://github.com/wize-works/jobsight-pro/compare/v1.101.0...v1.102.0) (2025-06-26)
 
 
