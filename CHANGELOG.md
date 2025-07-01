@@ -1,3 +1,10 @@
+## [1.111.6](https://github.com/wize-works/jobsight-pro/compare/v1.111.5...v1.111.6) (2025-07-01)
+
+
+### Bug Fixes
+
+* extend trial period to 30 days for subscription plans ([0999640](https://github.com/wize-works/jobsight-pro/commit/0999640c1ea183286a7b97ae1ee91b5180e5eac3))
+
 ## [1.111.5](https://github.com/wize-works/jobsight-pro/compare/v1.111.4...v1.111.5) (2025-07-01)
 
 
