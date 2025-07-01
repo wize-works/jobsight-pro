@@ -1,3 +1,10 @@
+## [1.111.2](https://github.com/wize-works/jobsight-pro/compare/v1.111.1...v1.111.2) (2025-07-01)
+
+
+### Bug Fixes
+
+* update Content-Security-Policy and remove unused API routes ([a229f8a](https://github.com/wize-works/jobsight-pro/commit/a229f8a1dfc8289d68194a7a008e5795f8e5ec74))
+
 ## [1.111.1](https://github.com/wize-works/jobsight-pro/compare/v1.111.0...v1.111.1) (2025-07-01)
 
 
