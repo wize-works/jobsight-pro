@@ -1,3 +1,10 @@
+## [1.111.3](https://github.com/wize-works/jobsight-pro/compare/v1.111.2...v1.111.3) (2025-07-01)
+
+
+### Bug Fixes
+
+* update sign-in and sign-up pages to inform users about disabled social sign-in options ([f025eaa](https://github.com/wize-works/jobsight-pro/commit/f025eaa0a6c1b47752c47ebc5f4c9f36be3f163d))
+
 ## [1.111.2](https://github.com/wize-works/jobsight-pro/compare/v1.111.1...v1.111.2) (2025-07-01)
 
 
