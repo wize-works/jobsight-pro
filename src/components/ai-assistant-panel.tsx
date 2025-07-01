@@ -53,30 +53,42 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         scrollToBottom();
     }, [conversation]);
 
+    // Generate user-specific localStorage key
+    const getConversationKey = () => {
+        if (!user?.id || !businessId) return null;
+        return `aiAssistantConversation_${businessId}_${user.id}`;
+    };
+
     useEffect(() => {
-        if (isOpen) {
-            // Load conversation from localStorage
-            const savedConversation = localStorage.getItem("aiAssistantConversation");
-            if (savedConversation) {
-                try {
-                    const parsed = JSON.parse(savedConversation);
-                    const conversationWithDates = parsed.map((msg: any) => ({
-                        ...msg,
-                        timestamp: new Date(msg.timestamp),
-                    }));
-                    setConversation(conversationWithDates);
-                } catch (err) {
-                    console.error("Error loading conversation:", err);
+        if (isOpen && user?.id && businessId) {
+            const conversationKey = getConversationKey();
+            if (conversationKey) {
+                // Load conversation from localStorage with user-specific key
+                const savedConversation = localStorage.getItem(conversationKey);
+                if (savedConversation) {
+                    try {
+                        const parsed = JSON.parse(savedConversation);
+                        const conversationWithDates = parsed.map((msg: any) => ({
+                            ...msg,
+                            timestamp: new Date(msg.timestamp),
+                        }));
+                        setConversation(conversationWithDates);
+                    } catch (err) {
+                        console.error("Error loading conversation:", err);
+                        // Clear corrupted data
+                        localStorage.removeItem(conversationKey);
+                    }
                 }
             }
         }
-    }, [isOpen]);
+    }, [isOpen, user?.id, businessId]);
 
     useEffect(() => {
-        if (conversation.length > 0) {
-            localStorage.setItem("aiAssistantConversation", JSON.stringify(conversation));
+        const conversationKey = getConversationKey();
+        if (conversation.length > 0 && conversationKey) {
+            localStorage.setItem(conversationKey, JSON.stringify(conversation));
         }
-    }, [conversation]);
+    }, [conversation, user?.id, businessId]);
 
     const addToConversation = (type: "user" | "assistant", content: string) => {
         setConversation(prev => [...prev, {
@@ -84,6 +96,14 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
             content,
             timestamp: new Date()
         }]);
+    };
+
+    const clearConversation = () => {
+        setConversation([]);
+        const conversationKey = getConversationKey();
+        if (conversationKey) {
+            localStorage.removeItem(conversationKey);
+        }
     };
 
     const handleClose = () => {
@@ -335,7 +355,7 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                         {conversation.length > 0 && (
                                             <button
                                                 className="btn btn-xs btn-ghost"
-                                                onClick={() => setConversation([])}
+                                                onClick={clearConversation}
                                                 disabled={isProcessing}
                                                 title="Clear conversation"
                                             >
