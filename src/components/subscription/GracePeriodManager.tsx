@@ -162,7 +162,7 @@ export const TrialPeriodManager: React.FC<TrialPeriodManagerProps> = ({
         if (isStarterPlan && currentSubscription?.created_at) {
             const trialStart = new Date(currentSubscription.created_at);
             const trialEnd = new Date(trialStart);
-            trialEnd.setDate(trialEnd.getDate() + 14); // 14-day trial
+            trialEnd.setDate(trialEnd.getDate() + 30); // 30-day trial
 
             const now = new Date();
 
