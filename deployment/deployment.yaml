@@ -34,51 +34,16 @@ spec:
               value: "production"
 
             # 🔐 Sensitive values from Kubernetes Secret
-            - name: KINDE_CLIENT_ID
+            - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
-                  key: KINDE_CLIENT_ID
-            - name: KINDE_CLIENT_SECRET
+                  key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            - name: CLERK_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: jobsight-secrets
-                  key: KINDE_CLIENT_SECRET
-            - name: KINDE_ISSUER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_ISSUER_URL
-            - name: KINDE_DOMAIN
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_DOMAIN
-            - name: KINDE_SITE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_SITE_URL
-            - name: KINDE_LOGOUT_REDIRECT_URI
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_LOGOUT_REDIRECT_URI
-            - name: KINDE_POST_LOGOUT_REDIRECT_URL
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_POST_LOGOUT_REDIRECT_URL
-            - name: KINDE_REDIRECT_URI
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_REDIRECT_URI
-            - name: KINDE_POST_LOGIN_REDIRECT_URL
-              valueFrom:
-                secretKeyRef:
-                  name: jobsight-secrets
-                  key: KINDE_POST_LOGIN_REDIRECT_URL
+                  key: CLERK_SECRET_KEY
             - name: OPENWEATHER_API_KEY
               valueFrom:
                 secretKeyRef:

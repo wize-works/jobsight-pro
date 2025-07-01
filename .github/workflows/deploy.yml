@@ -70,15 +70,8 @@ jobs:
         run: |
           docker build --no-cache \
             --build-arg NODE_ENV=production \
-            --build-arg KINDE_CLIENT_ID=${{ secrets.KINDE_CLIENT_ID }} \
-            --build-arg KINDE_CLIENT_SECRET=${{ secrets.KINDE_CLIENT_SECRET }} \
-            --build-arg KINDE_ISSUER_URL=${{ secrets.KINDE_ISSUER_URL }} \
-            --build-arg KINDE_DOMAIN=${{ secrets.KINDE_DOMAIN }} \
-            --build-arg KINDE_SITE_URL=${{ secrets.KINDE_SITE_URL }} \
-            --build-arg KINDE_LOGOUT_REDIRECT_URI=${{ secrets.KINDE_LOGOUT_REDIRECT_URI }} \
-            --build-arg KINDE_POST_LOGOUT_REDIRECT_URL=${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }} \
-            --build-arg KINDE_REDIRECT_URI=${{ secrets.KINDE_REDIRECT_URI }} \
-            --build-arg KINDE_POST_LOGIN_REDIRECT_URL=${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }} \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
+            --build-arg CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }} \
             --build-arg OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} \
             --build-arg NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }} \
             --build-arg SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
@@ -141,15 +134,8 @@ jobs:
         run: |
           kubectl create secret generic jobsight-secrets \
             --namespace=jobsight \
-            --from-literal=KINDE_CLIENT_ID="${{ secrets.KINDE_CLIENT_ID }}" \
-            --from-literal=KINDE_CLIENT_SECRET="${{ secrets.KINDE_CLIENT_SECRET }}" \
-            --from-literal=KINDE_ISSUER_URL="${{ secrets.KINDE_ISSUER_URL }}" \
-            --from-literal=KINDE_DOMAIN="${{ secrets.KINDE_DOMAIN }}" \
-            --from-literal=KINDE_SITE_URL="${{ secrets.KINDE_SITE_URL }}" \
-            --from-literal=KINDE_LOGOUT_REDIRECT_URI="${{ secrets.KINDE_LOGOUT_REDIRECT_URI }}" \
-            --from-literal=KINDE_POST_LOGOUT_REDIRECT_URL="${{ secrets.KINDE_POST_LOGOUT_REDIRECT_URL }}" \
-            --from-literal=KINDE_REDIRECT_URI="${{ secrets.KINDE_REDIRECT_URI }}" \
-            --from-literal=KINDE_POST_LOGIN_REDIRECT_URL="${{ secrets.KINDE_POST_LOGIN_REDIRECT_URL }}" \
+            --from-literal=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+            --from-literal=CLERK_SECRET_KEY="${{ secrets.CLERK_SECRET_KEY }}" \
             --from-literal=OPENWEATHER_API_KEY="${{ secrets.OPENWEATHER_API_KEY }}" \
             --from-literal=NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" \
             --from-literal=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
