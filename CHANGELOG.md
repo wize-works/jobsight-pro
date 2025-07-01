@@ -1,3 +1,10 @@
+## [1.111.4](https://github.com/wize-works/jobsight-pro/compare/v1.111.3...v1.111.4) (2025-07-01)
+
+
+### Bug Fixes
+
+* update pricing descriptions and enhance layout for better user experience ([ce5a26b](https://github.com/wize-works/jobsight-pro/commit/ce5a26bba51e5e9428d553284cb2d101a18a3172))
+
 ## [1.111.3](https://github.com/wize-works/jobsight-pro/compare/v1.111.2...v1.111.3) (2025-07-01)
 
 
