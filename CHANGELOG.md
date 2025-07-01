@@ -1,3 +1,10 @@
+# [1.105.0](https://github.com/wize-works/jobsight-pro/compare/v1.104.0...v1.105.0) (2025-07-01)
+
+
+### Features
+
+* update dependencies and add ESLint configuration ([b05cda2](https://github.com/wize-works/jobsight-pro/commit/b05cda295a89197f22194cfbba5e739898cdf9a0))
+
 # [1.104.0](https://github.com/wize-works/jobsight-pro/compare/v1.103.0...v1.104.0) (2025-07-01)
 
 
