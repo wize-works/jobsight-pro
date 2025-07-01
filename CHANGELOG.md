@@ -1,3 +1,10 @@
+## [1.111.5](https://github.com/wize-works/jobsight-pro/compare/v1.111.4...v1.111.5) (2025-07-01)
+
+
+### Bug Fixes
+
+* remove unnecessary label for CAPTCHA field in sign-up form ([6675364](https://github.com/wize-works/jobsight-pro/commit/6675364c1d340a38748c7155f1d83c6da6e766a6))
+
 ## [1.111.4](https://github.com/wize-works/jobsight-pro/compare/v1.111.3...v1.111.4) (2025-07-01)
 
 
