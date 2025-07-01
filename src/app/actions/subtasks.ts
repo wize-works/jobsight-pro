@@ -3,7 +3,6 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { Subtask, SubtaskInsert, SubtaskUpdate } from "@/types/subtasks";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";

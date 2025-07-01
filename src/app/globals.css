@@ -1,3 +1,5 @@
+@layer base, clerk;
+
 @import "tailwindcss";
 @plugin "daisyui";
 

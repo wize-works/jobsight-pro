@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs"
+import { useUser } from '@clerk/nextjs'
 import { useRouter, usePathname } from "next/navigation"
 import { getUserBusiness } from "@/app/actions/business"
 import { useToast } from "@/hooks/use-toast"
@@ -31,7 +31,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const [subscription, setSubscription] = useState<string>("") // Adjust type as needed
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const { user, isLoading: isKindeLoading } = useKindeBrowserClient()
+    const { user, isLoaded } = useUser()
     const router = useRouter()
     const pathname = usePathname()
     const { toast } = useToast()
@@ -100,7 +100,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
     // Function to load business data
     const loadBusinessData = async () => {
-        if (isKindeLoading) {
+        if (!isLoaded) {
             return
         }
 
@@ -132,7 +132,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     // Load business data when user changes or on initial load
     useEffect(() => {
         loadBusinessData()
-    }, [user, isKindeLoading, isRegistrationFlow])
+    }, [user?.id, isLoaded, isRegistrationFlow])
 
     // Update business ID in storage
     const setBusinessIdWithStorage = (id: string) => {

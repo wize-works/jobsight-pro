@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from '@clerk/nextjs';
 import {
-    LoginLink,
-    RegisterLink,
-} from "@kinde-oss/kinde-auth-nextjs/components";
+    SignInButton,
+    SignUpButton,
+} from '@clerk/nextjs';
 import { toast } from "@/hooks/use-toast";
 import {
     getSubscriptionPlans,
@@ -35,11 +35,11 @@ import { UserInsert } from "@/types/users";
 export default function RegisterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const {
-        user,
-        isLoading: isAuthLoading,
-        isAuthenticated,
-    } = useKindeBrowserClient();
+    const { user, isLoaded } = useUser();
+
+    // Derive authentication state from Clerk
+    const isAuthLoading = !isLoaded;
+    const isAuthenticated = !!user;
 
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<string>("");
@@ -128,10 +128,10 @@ export default function RegisterPage() {
                     try {
                         await createSelf({
                             auth_id: user.id,
-                            email: user.email,
-                            first_name: user.given_name || "",
-                            last_name: user.family_name || "",
-                            avatar_url: user.picture || "",
+                            email: user.emailAddresses[0]?.emailAddress || "",
+                            first_name: user.firstName || "",
+                            last_name: user.lastName || "",
+                            avatar_url: user.imageUrl || "",
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString(),
                             created_by: user.id,
@@ -427,12 +427,16 @@ export default function RegisterPage() {
                         <p className="mb-6">
                             Please sign in to accept your team invitation
                         </p>
-                        <RegisterLink className="btn btn-primary w-full mb-2">
-                            Create Account
-                        </RegisterLink>
-                        <LoginLink className="btn btn-ghost w-full">
-                            Already have an account? Sign In
-                        </LoginLink>
+                        <SignUpButton mode="modal">
+                            <button className="btn btn-primary w-full mb-2">
+                                Create Account
+                            </button>
+                        </SignUpButton>
+                        <SignInButton mode="modal">
+                            <button className="btn btn-ghost w-full">
+                                Already have an account? Sign In
+                            </button>
+                        </SignInButton>
                     </div>
                 </div>
             </div>
@@ -564,9 +568,11 @@ export default function RegisterPage() {
                         <div className="text-center mt-8">
                             <p className="text-sm text-base-content/70">
                                 Already have an account?{" "}
-                                <LoginLink className="link link-primary">
-                                    Sign In
-                                </LoginLink>
+                                <SignInButton mode="modal">
+                                    <button className="link link-primary">
+                                        Sign In
+                                    </button>
+                                </SignInButton>
                             </p>
                         </div>
                     )}
@@ -800,9 +806,11 @@ export default function RegisterPage() {
                                             Complete Setup
                                         </button>
                                     ) : (
-                                        <RegisterLink className="btn btn-primary">
-                                            Create Account & Continue
-                                        </RegisterLink>
+                                        <SignUpButton mode="modal">
+                                            <button className="btn btn-primary">
+                                                Create Account & Continue
+                                            </button>
+                                        </SignUpButton>
                                     )}
                                 </div>
                             </form>
@@ -833,12 +841,16 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <LoginLink className="btn btn-primary w-full">
-                        Sign In
-                    </LoginLink>
-                    <RegisterLink className="btn btn-outline w-full">
-                        Create Account
-                    </RegisterLink>
+                    <SignInButton mode="modal">
+                        <button className="btn btn-primary w-full">
+                            Sign In
+                        </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                        <button className="btn btn-outline w-full">
+                            Create Account
+                        </button>
+                    </SignUpButton>
                 </div>
             </div>
         </div>

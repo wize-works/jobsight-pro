@@ -1,7 +1,7 @@
 "use client";
-import { KindeProvider } from "@kinde-oss/kinde-auth-nextjs";
 import { ReactNode } from "react";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    return <KindeProvider>{children}</KindeProvider>;
+    // This can now be simplified since ClerkProvider is in the root layout
+    return <>{children}</>;
 };

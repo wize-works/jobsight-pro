@@ -3,10 +3,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { Notifications } from "./notifications";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-    LogoutLink,
-    useKindeBrowserClient,
-} from "@kinde-oss/kinde-auth-nextjs";
+import { useUser, UserButton, SignOutButton } from '@clerk/nextjs';
 import { User } from "@/types/users";
 import { getUserByAuthId } from "../actions/users";
 import { useEffect, useState } from "react";
@@ -27,32 +24,32 @@ export const Navbar = ({
 }: NavbarProps) => {
     const { businessId, loading } = useBusiness();
     const isMobile = useIsMobile();
-    const { user: kindeUser } = useKindeBrowserClient();
+    const { user: clerkUser, isLoaded } = useUser();
     const [userData, setUserData] = useState<User | null>(null);
     const [isLoadingUser, setIsLoadingUser] = useState(true);
 
     useEffect(() => {
-        if (!businessId || !kindeUser?.id || loading) {
+        if (!businessId || !clerkUser?.id || loading || !isLoaded) {
             setUserData(null);
-            setIsLoadingUser(false); // Ensure loading state is updated here
+            setIsLoadingUser(false);
             return;
         }
 
         const loadUserData = async () => {
-            setIsLoadingUser(true); // Set loading state before fetching data
+            setIsLoadingUser(true);
             try {
-                const dbUser = await getUserByAuthId(businessId, kindeUser.id);
+                const dbUser = await getUserByAuthId(businessId, clerkUser.id);
                 setUserData(dbUser);
             } catch (error) {
                 console.error("Error loading user data:", error);
                 setUserData(null);
             } finally {
-                setIsLoadingUser(false); // Ensure loading state is updated after fetching data
+                setIsLoadingUser(false);
             }
         };
 
         loadUserData();
-    }, [kindeUser?.id, businessId, loading]);
+    }, [clerkUser?.id, businessId, loading, isLoaded]);
 
     const handleSidebarToggle = () => {
         localStorage.setItem(
@@ -66,8 +63,8 @@ export const Navbar = ({
         if (userData?.first_name || userData?.last_name) {
             return `${userData.first_name?.[0] || ""}${userData.last_name?.[0] || ""}`.toUpperCase();
         }
-        if (kindeUser?.given_name || kindeUser?.family_name) {
-            return `${kindeUser.given_name?.[0] || ""}${kindeUser.family_name?.[0] || ""}`.toUpperCase();
+        if (clerkUser?.firstName || clerkUser?.lastName) {
+            return `${clerkUser.firstName?.[0] || ""}${clerkUser.lastName?.[0] || ""}`.toUpperCase();
         }
         return "U";
     };
@@ -76,14 +73,14 @@ export const Navbar = ({
         if (userData?.first_name || userData?.last_name) {
             return `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
         }
-        if (kindeUser?.given_name || kindeUser?.family_name) {
-            return `${kindeUser.given_name || ""} ${kindeUser.family_name || ""}`.trim();
+        if (clerkUser?.firstName || clerkUser?.lastName) {
+            return `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim();
         }
         return "User";
     };
 
     const getUserEmail = () => {
-        return userData?.email || kindeUser?.email || "user@example.com";
+        return userData?.email || clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com";
     };
 
     return (
@@ -202,10 +199,12 @@ export const Navbar = ({
                         <div className="divider my-1"></div>
 
                         <li>
-                            <LogoutLink className="flex items-center gap-3 py-2 text-error hover:bg-error/10">
-                                <i className="far fa-sign-out w-4"></i>
-                                <span>Sign Out</span>
-                            </LogoutLink>
+                            <SignOutButton>
+                                <button className="flex items-center gap-3 py-2 text-error hover:bg-error/10 w-full text-left">
+                                    <i className="far fa-sign-out w-4"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </SignOutButton>
                         </li>
                     </ul>
                 </div>

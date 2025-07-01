@@ -10,7 +10,7 @@ import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createNotification } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import type { NotificationInsert } from "@/types/notifications";
 
 // Create notifications for equipment assignment events
@@ -144,8 +144,7 @@ export const createEquipmentAssignment = async (businessId: string, assignment: 
 
         if (data) {
             // Get the current user session to identify who created the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment, project, and crew names for notification
             const [equipmentData, projectData, crewData] = await Promise.all([
@@ -172,7 +171,7 @@ export const createEquipmentAssignment = async (businessId: string, assignment: 
                 "assigned",
                 data.start_date || undefined,
                 undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -196,8 +195,7 @@ export const updateEquipmentAssignment = async (businessId: string, id: string, 
 
         if (data) {
             // Get the current user session to identify who updated the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment, project, and crew names for notification
             const [equipmentData, projectData, crewData] = await Promise.all([
@@ -227,7 +225,7 @@ export const updateEquipmentAssignment = async (businessId: string, id: string, 
                 eventType,
                 data.start_date || undefined,
                 data.end_date || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -255,8 +253,7 @@ export const deleteEquipmentAssignment = async (businessId: string, id: string):
 
         if (assignment) {
             // Get the current user session to identify who deleted the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment, project, and crew names for notification
             const [equipmentData, projectData, crewData] = await Promise.all([
@@ -283,7 +280,7 @@ export const deleteEquipmentAssignment = async (businessId: string, id: string):
                 "deleted",
                 assignment.start_date || undefined,
                 assignment.end_date || undefined,
-                user?.id
+                userId || undefined
             );
         }
 

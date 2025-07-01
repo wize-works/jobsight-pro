@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
 import { getNotificationsByUserId, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
 import type { Notification } from "@/types/notifications";
@@ -11,7 +11,7 @@ import Link from "next/link";
 import NotificationsLoading from "./loading";
 
 export default function NotificationsPage() {
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const { businessId } = useBusiness();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);

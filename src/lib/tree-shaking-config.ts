@@ -27,7 +27,7 @@ export const NON_TREE_SHAKEABLE_MODULES = [
     'react',
     'react-dom',
     'next',
-    '@kinde-oss/kinde-auth-nextjs',
+    '@clerk/nextjs',
     'stripe',
     'openai',
 ] as const;

@@ -1,16 +1,22 @@
 import { NextResponse } from 'next/server'
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+import { auth } from '@clerk/nextjs/server'
 import { getUserBusiness } from "@/app/actions/business"
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
-        return NextResponse.json({ success: false, error: 'User ID is required' })
-    }
+    const userIdParam = searchParams.get('userId')
 
     try {
+        // Get user ID from Clerk auth if not provided in params
+        let userId = userIdParam;
+        if (!userId) {
+            const { userId: authUserId } = await auth();
+            if (!authUserId) {
+                return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+            }
+            userId = authUserId;
+        }
+
         const businessResponse = await getUserBusiness(userId)
 
         // If there's an authentication error

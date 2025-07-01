@@ -2,18 +2,19 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image"
-import { LoginLink, RegisterLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { SignInButton, SignUpButton, SignOutButton, useAuth } from '@clerk/nextjs'
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
 export default function Home() {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { isLoaded, userId } = useAuth();
 
     // After mounting, we have access to the theme
     useEffect(() => {
         setMounted(true);
-    }, []);
+    }, [isLoaded, userId]);
 
     return (
         <main className="min-h-screen flex flex-col lg:flex-row relative">
@@ -29,10 +30,20 @@ export default function Home() {
                     <p className="mb-8 text-opacity-80">Construction management made simple</p>
 
                     <div className="flex flex-col gap-3">
-                        <LoginLink className="btn btn-secondary btn-outline">Sign In</LoginLink>
-                        <RegisterLink postLoginRedirectURL={"/register"} className="btn btn-primary w-full">
-                            Register with Kinde
-                        </RegisterLink>
+                        {isLoaded && userId ? (
+                            <SignOutButton>
+                                <button className="btn btn-outline">Sign Out</button>
+                            </SignOutButton>
+                        ) : (
+                            <>
+                                <Link href={"/sign-in"} className="btn btn-primary">
+                                    Login
+                                </Link>
+                                <Link href={"/sign-up"} className="btn btn-secondary">
+                                    Get Started Free
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </section>

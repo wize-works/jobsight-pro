@@ -3,7 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { ProjectCrew, ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -142,8 +142,7 @@ export const createProjectCrew = async (businessId: string, crew: ProjectCrewIns
 
         if (data) {
             // Get the current user session to identify who created the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project and crew names for notification
             const [projectData, crewData] = await Promise.all([
@@ -166,7 +165,7 @@ export const createProjectCrew = async (businessId: string, crew: ProjectCrewIns
                 undefined,
                 data.start_date || undefined,
                 data.end_date || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -190,8 +189,7 @@ export const updateProjectCrew = async (businessId: string, id: string, crew: Pr
 
         if (data) {
             // Get the current user session to identify who updated the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project and crew names for notification
             const [projectData, crewData] = await Promise.all([
@@ -217,7 +215,7 @@ export const updateProjectCrew = async (businessId: string, id: string, crew: Pr
                 undefined,
                 data.start_date || undefined,
                 data.end_date || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -245,8 +243,7 @@ export const deleteProjectCrew = async (businessId: string, id: string): Promise
 
         if (assignment) {
             // Get the current user session to identify who deleted the assignment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project and crew names for notification
             const [projectData, crewData] = await Promise.all([
@@ -269,7 +266,7 @@ export const deleteProjectCrew = async (businessId: string, id: string): Promise
                 undefined,
                 assignment.start_date || undefined,
                 assignment.end_date || undefined,
-                user?.id
+                userId || undefined
             );
         }
 

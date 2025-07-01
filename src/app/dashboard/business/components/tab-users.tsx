@@ -3,7 +3,7 @@ import { resendUserInvitation, revokeUserInvitation, sendUserInvitation } from "
 import { deleteUser, getUsers, updateUserAsAdmin } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
 import { User, UserRole, userRoleOptions, UserStatus, userStatusOptions } from "@/types/users";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { useFeatureGate } from "@/hooks/useFeatureGate";
@@ -28,7 +28,7 @@ export default function UsersPermissionsTab() {
     const [inviteLastName, setInviteLastName] = useState("");
     const [inviteRole, setInviteRole] = useState<"admin" | "manager" | "member">("member");
     const [inviting, setInviting] = useState(false);
-    const { user: currentUser } = useKindeBrowserClient();
+    const { user: currentUser } = useUser();
 
     useEffect(() => {
         loadUsers();
@@ -405,89 +405,130 @@ export default function UsersPermissionsTab() {
             {/* Invite User Modal */}
             {showInviteModal && (
                 <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Invite New User</h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">First Name *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={inviteFirstName}
-                                    onChange={(e) => setInviteFirstName(e.target.value)}
-                                    placeholder="Enter first name"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Last Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={inviteLastName}
-                                    onChange={(e) => setInviteLastName(e.target.value)}
-                                    placeholder="Enter last name"
-                                />
+                    <div className="modal-box max-w-2xl max-h-[90vh] p-0 rounded-xl">
+                        {/* Modal Header */}
+                        <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-xl font-bold">Invite New User</h2>
+                                <button
+                                    className="btn btn-sm btn-circle btn-ghost text-primary-content hover:bg-primary-content hover:text-primary"
+                                    onClick={() => setShowInviteModal(false)}
+                                    disabled={inviting}
+                                >
+                                    <i className="far fa-times"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Email Address *</span>
-                            </label>
-                            <input
-                                type="email"
-                                className="input input-bordered"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                placeholder="Enter email address"
-                            />
+                        {/* Modal Body */}
+                        <div className="p-6 overflow-y-auto max-h-[75vh]">
+                            <div className="space-y-6">
+                                {/* Basic Information */}
+                                <div className="card bg-base-100 border border-base-300">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-user text-primary"></i>
+                                            Basic Information
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">First Name *</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered input-secondary w-full"
+                                                    value={inviteFirstName}
+                                                    onChange={(e) => setInviteFirstName(e.target.value)}
+                                                    placeholder="Enter first name"
+                                                    disabled={inviting}
+                                                />
+                                            </div>
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Last Name</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered input-secondary w-full"
+                                                    value={inviteLastName}
+                                                    onChange={(e) => setInviteLastName(e.target.value)}
+                                                    placeholder="Enter last name"
+                                                    disabled={inviting}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-control mt-4">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Email Address *</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                className="input input-bordered input-secondary w-full"
+                                                value={inviteEmail}
+                                                onChange={(e) => setInviteEmail(e.target.value)}
+                                                placeholder="Enter email address"
+                                                disabled={inviting}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Permissions */}
+                                <div className="card bg-base-100 border border-base-300">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-shield-alt text-primary"></i>
+                                            Permissions
+                                        </h3>
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Role</span>
+                                            </label>
+                                            <select
+                                                className="select select-bordered select-secondary w-full"
+                                                value={inviteRole}
+                                                onChange={(e) => setInviteRole(e.target.value as "admin" | "manager" | "member")}
+                                                disabled={inviting}
+                                            >
+                                                <option value="member">Member</option>
+                                                <option value="manager">Manager</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="form-control mb-6">
-                            <label className="label">
-                                <span className="label-text">Role</span>
-                            </label>
-                            <select
-                                className="select select-bordered"
-                                value={inviteRole}
-                                onChange={(e) => setInviteRole(e.target.value as "admin" | "manager" | "member")}
-                            >
-                                <option value="member">Member</option>
-                                <option value="manager">Manager</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-
-                        <div className="modal-action">
-                            <button
-                                className="btn btn-ghost"
-                                onClick={() => setShowInviteModal(false)}
-                                disabled={inviting}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleInviteUser}
-                                disabled={inviting}
-                            >
-                                {inviting ? (
-                                    <>
-                                        <span className="loading loading-spinner loading-sm mr-2"></span>
-                                        Sending...
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="far fa-paper-plane mr-2"></i>
-                                        Send Invitation
-                                    </>
-                                )}
-                            </button>
+                        {/* Modal Footer */}
+                        <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    className="btn btn-outline"
+                                    onClick={() => setShowInviteModal(false)}
+                                    disabled={inviting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary gap-2"
+                                    onClick={handleInviteUser}
+                                    disabled={inviting || !inviteEmail || !inviteFirstName}
+                                >
+                                    {inviting ? (
+                                        <>
+                                            <span className="loading loading-spinner loading-sm"></span>
+                                            Sending...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="far fa-paper-plane"></i>
+                                            Send Invitation
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -496,95 +537,137 @@ export default function UsersPermissionsTab() {
             {/* Edit User Modal */}
             {showEditModal && editingUser && (
                 <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Edit User</h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">First Name *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={editFormData.first_name}
-                                    onChange={(e) => handleEditFormChange('first_name', e.target.value)}
-                                    placeholder="Enter first name"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Last Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={editFormData.last_name}
-                                    onChange={(e) => handleEditFormChange('last_name', e.target.value)}
-                                    placeholder="Enter last name"
-                                />
+                    <div className="modal-box max-w-2xl max-h-[90vh] p-0 rounded-xl">
+                        {/* Modal Header */}
+                        <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-xl font-bold">Edit User</h2>
+                                <button
+                                    className="btn btn-sm btn-circle btn-ghost text-primary-content hover:bg-primary-content hover:text-primary"
+                                    onClick={() => setShowEditModal(false)}
+                                    disabled={updatingUser}
+                                >
+                                    <i className="far fa-times"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <div className="form-control mb-4">
-                            <label className="label">
-                                <span className="label-text">Email Address *</span>
-                            </label>
-                            <input
-                                type="email"
-                                className="input input-bordered"
-                                value={editFormData.email}
-                                onChange={(e) => handleEditFormChange('email', e.target.value)}
-                                placeholder="Enter email address"
-                            />
-                        </div>                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Role</span>
-                                </label>
-                                {userRoleOptions.select(
-                                    editFormData.role,
-                                    (value: UserRole) => handleEditFormChange('role', value),
-                                    "select-bordered"
-                                )}
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Status</span>
-                                </label>
-                                {userStatusOptions.select(
-                                    editFormData.status,
-                                    (value: UserStatus) => handleEditFormChange('status', value),
-                                    "select-bordered"
-                                )}
+                        {/* Modal Body */}
+                        <div className="p-6 overflow-y-auto max-h-[75vh]">
+                            <div className="space-y-6">
+                                {/* Basic Information */}
+                                <div className="card bg-base-100 border border-base-300">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-user text-primary"></i>
+                                            Basic Information
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">First Name *</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered input-secondary w-full"
+                                                    value={editFormData.first_name}
+                                                    onChange={(e) => handleEditFormChange('first_name', e.target.value)}
+                                                    placeholder="Enter first name"
+                                                    disabled={updatingUser}
+                                                />
+                                            </div>
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Last Name</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered input-secondary w-full"
+                                                    value={editFormData.last_name}
+                                                    onChange={(e) => handleEditFormChange('last_name', e.target.value)}
+                                                    placeholder="Enter last name"
+                                                    disabled={updatingUser}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-control mt-4">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Email Address *</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                className="input input-bordered input-secondary w-full"
+                                                value={editFormData.email}
+                                                onChange={(e) => handleEditFormChange('email', e.target.value)}
+                                                placeholder="Enter email address"
+                                                disabled={updatingUser}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Permissions & Status */}
+                                <div className="card bg-base-100 border border-base-300">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-shield-alt text-primary"></i>
+                                            Permissions & Status
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Role</span>
+                                                </label>
+                                                {userRoleOptions.select(
+                                                    editFormData.role,
+                                                    (value: UserRole) => handleEditFormChange('role', value),
+                                                    "select-bordered select-secondary w-full"
+                                                )}
+                                            </div>
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Status</span>
+                                                </label>
+                                                {userStatusOptions.select(
+                                                    editFormData.status,
+                                                    (value: UserStatus) => handleEditFormChange('status', value),
+                                                    "select-bordered select-secondary w-full"
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="modal-action">
-                            <button
-                                className="btn btn-ghost"
-                                onClick={() => setShowEditModal(false)}
-                                disabled={updatingUser}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleUpdateUser}
-                                disabled={updatingUser}
-                            >
-                                {updatingUser ? (
-                                    <>
-                                        <span className="loading loading-spinner loading-sm mr-2"></span>
-                                        Updating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="far fa-save mr-2"></i>
-                                        Save Changes
-                                    </>
-                                )}
-                            </button>
+                        {/* Modal Footer */}
+                        <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    className="btn btn-outline"
+                                    onClick={() => setShowEditModal(false)}
+                                    disabled={updatingUser}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary gap-2"
+                                    onClick={handleUpdateUser}
+                                    disabled={updatingUser || !editFormData.email || !editFormData.first_name}
+                                >
+                                    {updatingUser ? (
+                                        <>
+                                            <span className="loading loading-spinner loading-sm"></span>
+                                            Updating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="far fa-save"></i>
+                                            Save Changes
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

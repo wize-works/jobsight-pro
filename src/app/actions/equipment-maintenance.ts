@@ -3,7 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { EquipmentMaintenance, EquipmentMaintenanceInsert, EquipmentMaintenanceUpdate } from "@/types/equipment-maintenance";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -143,8 +143,7 @@ export const createEquipmentMaintenance = async (businessId: string, maintenance
 
         if (data) {
             // Get the current user session to identify who created the maintenance
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment name for notification
             const { data: equipmentData } = await fetchByBusiness("equipment", businessId, ["name"], {
@@ -159,7 +158,7 @@ export const createEquipmentMaintenance = async (businessId: string, maintenance
                 "scheduled",
                 data.maintenance_date || undefined,
                 undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -183,8 +182,7 @@ export const updateEquipmentMaintenance = async (businessId: string, id: string,
 
         if (data) {
             // Get the current user session to identify who updated the maintenance
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment name for notification
             const { data: equipmentData } = await fetchByBusiness("equipment", businessId, ["name"], {
@@ -202,7 +200,7 @@ export const updateEquipmentMaintenance = async (businessId: string, id: string,
                 eventType,
                 data.maintenance_date || undefined,
                 data.maintenance_status === "completed" ? data.maintenance_date || undefined : undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -230,8 +228,7 @@ export const deleteEquipmentMaintenance = async (businessId: string, id: string)
 
         if (maintenance) {
             // Get the current user session to identify who deleted the maintenance
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get equipment name for notification
             const { data: equipmentData } = await fetchByBusiness("equipment", businessId, ["name"], {
@@ -246,7 +243,7 @@ export const deleteEquipmentMaintenance = async (businessId: string, id: string)
                 "deleted",
                 maintenance.maintenance_date || undefined,
                 maintenance.maintenance_status === "completed" ? maintenance.maintenance_date || undefined : undefined,
-                user?.id
+                userId || undefined
             );
         }
 

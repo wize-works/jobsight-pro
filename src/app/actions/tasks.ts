@@ -7,7 +7,7 @@ import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createNotification } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import type { NotificationInsert } from "@/types/notifications";
 
 // Create notifications for task events
@@ -149,8 +149,7 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
             return null;
         } if (data) {
             // Get the current user session to identify who created the task
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();            // Get project name for notification
+            const { userId } = await auth();
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
                 filter: { id: data.project_id },
             });
@@ -167,7 +166,7 @@ export const createTask = async (businessId: string, task: TaskInsert): Promise<
                 projectName,
                 eventType,
                 data.assigned_to || undefined,
-                user?.id
+                userId || undefined
             );
 
             // Invalidate AI context cache after task creation
@@ -200,8 +199,7 @@ export const updateTask = async (businessId: string, id: string, task: TaskUpdat
 
         if (data && existingTask) {
             // Get the current user session to identify who updated the task
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project name for notification
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
@@ -229,7 +227,7 @@ export const updateTask = async (businessId: string, id: string, task: TaskUpdat
                 projectName,
                 eventType,
                 data.assigned_to || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -278,8 +276,7 @@ export const deleteTask = async (businessId: string, id: string): Promise<boolea
 
         if (task) {
             // Get the current user session to identify who deleted the task
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project name for notification
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
@@ -295,7 +292,7 @@ export const deleteTask = async (businessId: string, id: string): Promise<boolea
                 projectName,
                 "deleted",
                 task.assigned_to || undefined,
-                user?.id
+                userId || undefined
             );
         }
 

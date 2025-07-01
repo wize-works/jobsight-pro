@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { getUserBusiness } from "@/app/actions/business"
 import type { Business } from "@/types/business"
 import { getActiveSubscription } from '../subscriptions-utils'
@@ -12,16 +12,15 @@ export type WithBusinessResult = {
 }
 
 export async function withBusinessServer(): Promise<WithBusinessResult> {
-    const kindeSession = await getKindeServerSession();
-    const user = await kindeSession.getUser();
+    const { userId } = await auth();
 
-    if (!user?.id) {
+    if (!userId) {
         console.error("[withBusinessServer] No user ID found");
-        redirect('/');
+        redirect('/sign-in');
     }
 
     try {
-        const businessResponse = await getUserBusiness(user.id);
+        const businessResponse = await getUserBusiness(userId);
 
         // If the response indicates an authentication error
         if (!businessResponse.id && 'error' in businessResponse) {
@@ -32,7 +31,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
 
         // If no business found, redirect based on allowRegistration flag
         if (!businessResponse || 'error' in businessResponse) {
-            console.error("[withBusinessServer] No business found for user:", user.id);
+            console.error("[withBusinessServer] No business found for user:", userId);
 
             redirect("/register");
         }
@@ -42,7 +41,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
             subscription = await getActiveSubscription(businessResponse.id);
 
             if (!subscription || subscription.status !== 'active') {
-                console.warn("[withBusinessServer] No active subscription found for user:", user.id);
+                console.warn("[withBusinessServer] No active subscription found for user:", userId);
                 // Allow access but could be modified based on business rules
                 redirect("/register"); // Uncomment if subscription is required for dashboard access
             }
@@ -55,10 +54,10 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
         return {
             business: businessResponse,
             subscription: subscription,
-            userId: user.id
+            userId: userId
         };
     } catch (error) {
         console.error("[withBusinessServer] Error:", error);
-        redirect('/register');
+        redirect('/sign-in');
     }
 }

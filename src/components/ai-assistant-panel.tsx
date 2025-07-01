@@ -6,7 +6,7 @@ import { processAIQuery } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
 import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
+import { useUser } from '@clerk/nextjs';
 import ErrorBoundary from '@/components/error-boundary';
 import { FeatureGate } from '@/components/subscription/FeatureGate';
 
@@ -30,7 +30,7 @@ interface ConversationMessage {
 }
 
 export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelProps) {
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const { businessId } = useBusiness();
     const [textInput, setTextInput] = useState("");
     const [isRecording, setIsRecording] = useState(false);

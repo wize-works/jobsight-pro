@@ -3,7 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
 import { Equipment, EquipmentInsert, EquipmentStatus, EquipmentUpdate } from "@/types/equipment";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -289,8 +289,7 @@ export const createEquipment = async (businessId: string, equipment: EquipmentIn
 
         if (data) {
             // Get the current user session to identify who created the equipment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Trigger notification
             await triggerEquipmentManagementNotification(
@@ -300,7 +299,7 @@ export const createEquipment = async (businessId: string, equipment: EquipmentIn
                 "created",
                 data.status || undefined,
                 data.location || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -324,8 +323,7 @@ export const updateEquipment = async (businessId: string, id: string, equipment:
 
         if (data) {
             // Get the current user session to identify who updated the equipment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Trigger notification
             await triggerEquipmentManagementNotification(
@@ -335,7 +333,7 @@ export const updateEquipment = async (businessId: string, id: string, equipment:
                 "updated",
                 data.status || undefined,
                 data.location || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -363,8 +361,7 @@ export const deleteEquipment = async (businessId: string, id: string): Promise<b
 
         if (equipment) {
             // Get the current user session to identify who deleted the equipment
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Trigger notification
             await triggerEquipmentManagementNotification(
@@ -374,7 +371,7 @@ export const deleteEquipment = async (businessId: string, id: string): Promise<b
                 "deleted",
                 equipment.status || undefined,
                 equipment.location || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -435,8 +432,7 @@ export const setEquipmentLocation = async (businessId: string, equipment: Equipm
 
         if (data) {
             // Get the current user session to identify who updated the location
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Trigger notification for location change
             await triggerEquipmentManagementNotification(
@@ -446,7 +442,7 @@ export const setEquipmentLocation = async (businessId: string, equipment: Equipm
                 "updated",
                 data.status || undefined,
                 data.location || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -713,3 +709,6 @@ export const getEquipmentPrintableDetail = async (businessId: string, id: string
         return null;
     }
 }
+
+
+

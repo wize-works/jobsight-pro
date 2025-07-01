@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/lib/auth-context";
+import { ClerkProvider } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
 import Script from "next/script";
 import { Toaster } from "@/components/toaster";
 import { ClarityProvider } from "@/components/clarity-provider";
@@ -95,7 +96,20 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <AuthProvider>
+        <ClerkProvider
+            publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ""}
+            signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/sign-in"}
+            signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || "/sign-up"}
+            afterSignInUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
+            afterSignUpUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || "/sign-up"}
+            appearance={{
+                cssLayerName: "clerk",
+                baseTheme: dark,
+                variables: {
+                    colorPrimary: "#F87431", // teal-700 to match your theme
+                },
+            }}
+        >
             <html lang="en" suppressHydrationWarning>
                 <Script
                     src="https://kit.fontawesome.com/40c3b5129c.js"
@@ -105,9 +119,10 @@ export default function RootLayout({
                     <ThemeProvider>
                         <ClarityProvider />
                         {children}
+                        <Toaster />
                     </ThemeProvider>
                 </body>
             </html>
-        </AuthProvider>
+        </ClerkProvider>
     );
 }

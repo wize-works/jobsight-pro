@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
 import { getUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
 import type { Notification } from "@/types/notifications";
@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNotificationRefresh } from "@/hooks/use-notifications-refresh";
 
 export const Notifications = () => {
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const { businessId, loading: businessLoading, error: businessError } = useBusiness();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(false);
