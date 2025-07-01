@@ -1,3 +1,10 @@
+# [1.106.0](https://github.com/wize-works/jobsight-pro/compare/v1.105.0...v1.106.0) (2025-07-01)
+
+
+### Features
+
+* enforce dynamic rendering for authenticated pages and improve localStorage access in BusinessProvider ([e2012fb](https://github.com/wize-works/jobsight-pro/commit/e2012fba3d8ea5d1bff2987964fbaaeeea6cf8a2))
+
 # [1.105.0](https://github.com/wize-works/jobsight-pro/compare/v1.104.0...v1.105.0) (2025-07-01)
 
 
