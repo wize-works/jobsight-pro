@@ -629,8 +629,7 @@ export default function SignUpPage() {
                                 className="mx-auto"
                             />
                         )}
-                        <h1 className="text-2xl font-bold mt-4 text-base-content">Join JobSight</h1>
-                        <p className="text-base-content/70 mt-2">Start managing your construction projects today</p>
+                        <p className="text-base-content/70 mt-6">Start managing your construction projects today</p>
                     </div>
 
                     {/* Clerk Sign Up Component */}
@@ -638,7 +637,10 @@ export default function SignUpPage() {
                         {/* Start Step */}
                         <SignUp.Step name="start" className="space-y-6">
                             {/* Social Sign Up */}
-                            <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                Social sign-in options are currently disabled. Please use email and password to sign in.
+                            </div>
+                            {/* <div className="grid grid-cols-3 gap-3">
                                 <Clerk.Connection
                                     name="google"
                                     className="btn btn-outline justify-center gap-3"
@@ -662,10 +664,32 @@ export default function SignUpPage() {
                                 </Clerk.Connection>
                             </div>
 
-                            <div className="divider">or continue with email</div>
+                            <div className="divider">or continue with email</div> */}
 
                             {/* Email Sign Up */}
                             <div className="space-y-4">
+                                <div className='grid grid-cols-2 gap-6'>
+                                    <Clerk.Field name="firstName" className="form-control">
+                                        <Clerk.Label className="label">
+                                            <span className="label-text">First name</span>
+                                        </Clerk.Label>
+                                        <Clerk.Input className="input input-bordered w-full" />
+                                        <Clerk.FieldError className="label">
+                                            <span className="label-text-alt text-error" />
+                                        </Clerk.FieldError>
+                                    </Clerk.Field>
+
+                                    <Clerk.Field name="lastName" className="form-control">
+                                        <Clerk.Label className="label">
+                                            <span className="label-text">Last name</span>
+                                        </Clerk.Label>
+                                        <Clerk.Input className="input input-bordered w-full" />
+                                        <Clerk.FieldError className="label">
+                                            <span className="label-text-alt text-error" />
+                                        </Clerk.FieldError>
+                                    </Clerk.Field>
+                                </div>
+
                                 <Clerk.Field name="emailAddress" className="form-control">
                                     <Clerk.Label className="label">
                                         <span className="label-text">Email address</span>
@@ -679,26 +703,6 @@ export default function SignUpPage() {
                                 <Clerk.Field name="password" className="form-control">
                                     <Clerk.Label className="label">
                                         <span className="label-text">Password</span>
-                                    </Clerk.Label>
-                                    <Clerk.Input className="input input-bordered w-full" />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
-                                    </Clerk.FieldError>
-                                </Clerk.Field>
-
-                                <Clerk.Field name="firstName" className="form-control">
-                                    <Clerk.Label className="label">
-                                        <span className="label-text">First name</span>
-                                    </Clerk.Label>
-                                    <Clerk.Input className="input input-bordered w-full" />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
-                                    </Clerk.FieldError>
-                                </Clerk.Field>
-
-                                <Clerk.Field name="lastName" className="form-control">
-                                    <Clerk.Label className="label">
-                                        <span className="label-text">Last name</span>
                                     </Clerk.Label>
                                     <Clerk.Input className="input input-bordered w-full" />
                                     <Clerk.FieldError className="label">
