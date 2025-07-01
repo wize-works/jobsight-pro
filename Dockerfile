@@ -17,8 +17,6 @@ RUN npm ci
 COPY . .
 
 # Optional env vars just for build (placeholders)
-ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=placeholder
-ENV CLERK_SECRET_KEY=placeholder
 ENV AZURE_STORAGE_ACCOUNT=placeholder
 ENV AZURE_STORAGE_KEY=placeholder
 ENV AZURE_STORAGE_ENDPOINT=https://placeholder
