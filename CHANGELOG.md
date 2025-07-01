@@ -1,3 +1,10 @@
+## [1.111.1](https://github.com/wize-works/jobsight-pro/compare/v1.111.0...v1.111.1) (2025-07-01)
+
+
+### Bug Fixes
+
+* remove unnecessary blank line in debug Clerk endpoint ([4a029c6](https://github.com/wize-works/jobsight-pro/commit/4a029c6c18a348a1383708e958529985bf7d7e1c))
+
 # [1.111.0](https://github.com/wize-works/jobsight-pro/compare/v1.110.0...v1.111.0) (2025-07-01)
 
 
