@@ -1,5 +1,8 @@
 "use client";
 
+// Disable static generation for all dashboard pages
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import type React from "react";
 import { Navbar } from "./navbar";

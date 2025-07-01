@@ -70,7 +70,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                 // Batch all state updates together
                 setBusinessId(response.id)
                 setBusinessData(response as Business)
-                localStorage.setItem("businessId", response.id)
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem("businessId", response.id)
+                }
 
                 // Use setTimeout to ensure state update happens after current call stack
                 setTimeout(() => {
@@ -112,8 +114,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             if (!user) {
                 setLoading(false)
                 return
-            }            // Try to get from localStorage first
-            const storedBusinessId = localStorage.getItem("businessId")
+            }            // Try to get from localStorage first (only on client side)
+            const storedBusinessId = typeof window !== 'undefined' ? localStorage.getItem("businessId") : null
 
             if (storedBusinessId && user) {
                 // Verify the stored business ID is still valid by fetching it
@@ -131,13 +133,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
     // Load business data when user changes or on initial load
     useEffect(() => {
+        // Skip loading during SSR/build time when Clerk is not available
+        if (typeof window === 'undefined') {
+            setLoading(false);
+            return;
+        }
+
         loadBusinessData()
     }, [user?.id, isLoaded, isRegistrationFlow])
 
     // Update business ID in storage
     const setBusinessIdWithStorage = (id: string) => {
         setBusinessId(id)
-        localStorage.setItem("businessId", id)
+        if (typeof window !== 'undefined') {
+            localStorage.setItem("businessId", id)
+        }
     }    // Function to manually refresh business data
     const refreshBusiness = useCallback(async () => {
         if (user) {
