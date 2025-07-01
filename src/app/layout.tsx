@@ -95,9 +95,32 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+    // During build time with placeholder keys, don't initialize Clerk
+    const isValidKey = publishableKey && publishableKey !== "placeholder" && publishableKey !== "";
+
+    if (!isValidKey) {
+        return (
+            <html lang="en" suppressHydrationWarning>
+                <Script
+                    src="https://kit.fontawesome.com/40c3b5129c.js"
+                    crossOrigin="anonymous"
+                />
+                <body className={inter.className}>
+                    <ThemeProvider>
+                        <ClarityProvider />
+                        {children}
+                        <Toaster />
+                    </ThemeProvider>
+                </body>
+            </html>
+        );
+    }
+
     return (
         <ClerkProvider
-            publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ""}
+            publishableKey={publishableKey}
             signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/sign-in"}
             signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || "/sign-up"}
             afterSignInUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
