@@ -283,7 +283,7 @@ export default function ROICalculator() {
                                 <span>Based on {currentPlan?.name} plan at ${jobsightCost}/month. Results may vary based on implementation and usage.</span>
                             </div>
 
-                            <Link href="/api/auth/register?post_login_redirect_url=%2Fregister" className="btn btn-primary btn-block btn-xl mt-6">
+                            <Link href="/sign-up" className="btn btn-primary btn-block btn-xl mt-6">
                                 Start Saving Today <i className="fas fa-arrow-right ml-2"></i>
                             </Link>
                         </div>
