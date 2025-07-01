@@ -1,3 +1,10 @@
+# [1.109.0](https://github.com/wize-works/jobsight-pro/compare/v1.108.0...v1.109.0) (2025-07-01)
+
+
+### Features
+
+* add dynamic rendering and publishable key validation for Clerk integration in layout ([0d1b0dc](https://github.com/wize-works/jobsight-pro/commit/0d1b0dc3681b0f1025243634b450371958453c48))
+
 # [1.108.0](https://github.com/wize-works/jobsight-pro/compare/v1.107.0...v1.108.0) (2025-07-01)
 
 
