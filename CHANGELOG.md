@@ -1,3 +1,10 @@
+# [1.107.0](https://github.com/wize-works/jobsight-pro/compare/v1.106.0...v1.107.0) (2025-07-01)
+
+
+### Features
+
+* refactor onboarding and dashboard layout for improved authentication handling and dynamic rendering ([1308e34](https://github.com/wize-works/jobsight-pro/commit/1308e3498ac817aa15f7132693753cee5dc9192d))
+
 # [1.106.0](https://github.com/wize-works/jobsight-pro/compare/v1.105.0...v1.106.0) (2025-07-01)
 
 
