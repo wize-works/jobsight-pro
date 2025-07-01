@@ -1,5 +1,8 @@
 "use client";
 
+// Disable static generation for authenticated pages
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { updateBusinessFromForm } from "@/app/actions/business";

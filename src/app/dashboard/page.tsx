@@ -1,5 +1,8 @@
 "use client"
 
+// Disable static generation for authenticated pages
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link"
 import {
     Chart as ChartJS,
@@ -366,7 +369,6 @@ export default function Dashboard() {
         labels: ["Pending", "In Progress", "Completed"],
         datasets: [
             {
-                label: "Tasks",
                 data: [
                     dashboardData.taskStatusData.pending,
                     dashboardData.taskStatusData.inProgress,

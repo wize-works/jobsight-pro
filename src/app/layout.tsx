@@ -95,32 +95,9 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    // Check if we have a valid Clerk publishable key
-    const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-    const hasValidClerkKey = clerkPublishableKey && clerkPublishableKey !== "placeholder" && clerkPublishableKey.startsWith("pk_");
-
-    // If no valid Clerk key, render without ClerkProvider (useful for demos/dev)
-    if (!hasValidClerkKey) {
-        return (
-            <html lang="en" suppressHydrationWarning>
-                <Script
-                    src="https://kit.fontawesome.com/40c3b5129c.js"
-                    crossOrigin="anonymous"
-                />
-                <body className={inter.className}>
-                    <ThemeProvider>
-                        <ClarityProvider />
-                        {children}
-                        <Toaster />
-                    </ThemeProvider>
-                </body>
-            </html>
-        );
-    }
-
     return (
         <ClerkProvider
-            publishableKey={clerkPublishableKey}
+            publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ""}
             signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/sign-in"}
             signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || "/sign-up"}
             afterSignInUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
