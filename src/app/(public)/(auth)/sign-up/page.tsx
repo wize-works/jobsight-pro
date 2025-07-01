@@ -712,9 +712,6 @@ export default function SignUpPage() {
 
                                 {/* CAPTCHA Field */}
                                 <Clerk.Field name="captcha" className="form-control">
-                                    <Clerk.Label className="label">
-                                        <span className="label-text">Security Check</span>
-                                    </Clerk.Label>
                                     <Clerk.Input />
                                     <Clerk.FieldError className="label">
                                         <span className="label-text-alt text-error" />
