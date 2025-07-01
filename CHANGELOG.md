@@ -1,3 +1,10 @@
+# [1.108.0](https://github.com/wize-works/jobsight-pro/compare/v1.107.0...v1.108.0) (2025-07-01)
+
+
+### Features
+
+* update onboarding page to handle searchParams as a Promise for improved token retrieval ([0d08f54](https://github.com/wize-works/jobsight-pro/commit/0d08f544837766f644c82fd121cc83a68c9c5ea6))
+
 # [1.107.0](https://github.com/wize-works/jobsight-pro/compare/v1.106.0...v1.107.0) (2025-07-01)
 
 
