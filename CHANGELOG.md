@@ -1,3 +1,10 @@
+# [1.110.0](https://github.com/wize-works/jobsight-pro/compare/v1.109.0...v1.110.0) (2025-07-01)
+
+
+### Features
+
+* update registration flow to use '/sign-up' endpoint and remove deprecated onboarding actions ([74a7801](https://github.com/wize-works/jobsight-pro/commit/74a78019930f715e0d0b3b498136bf40e2718788))
+
 # [1.109.0](https://github.com/wize-works/jobsight-pro/compare/v1.108.0...v1.109.0) (2025-07-01)
 
 
