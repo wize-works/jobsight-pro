@@ -1,3 +1,11 @@
+# [1.111.0](https://github.com/wize-works/jobsight-pro/compare/v1.110.0...v1.111.0) (2025-07-01)
+
+
+### Features
+
+* enhance Clerk middleware for improved error handling and authentication checks ([e85f9d9](https://github.com/wize-works/jobsight-pro/commit/e85f9d99fb32bf26873809f9f7084c990cda8cd8))
+* remove Clerk environment variables from Dockerfile ([335abba](https://github.com/wize-works/jobsight-pro/commit/335abba3bdbbad4ec884818f0e7b38a79f4b3274))
+
 # [1.110.0](https://github.com/wize-works/jobsight-pro/compare/v1.109.0...v1.110.0) (2025-07-01)
 
 
