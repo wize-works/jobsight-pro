@@ -115,6 +115,9 @@ export async function createCheckoutSession(
                 },
             ],
             mode: 'subscription',
+            subscription_data: {
+                trial_period_days: 30, // 30-day free trial
+            },
             success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/business?subscription=success`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/business?subscription=cancelled`,
             metadata: {
