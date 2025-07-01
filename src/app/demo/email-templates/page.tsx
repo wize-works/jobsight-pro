@@ -11,6 +11,9 @@ import {
     PasswordResetEmail
 } from '@/components/email-examples';
 
+// Disable static generation for this demo page
+export const dynamic = 'force-dynamic';
+
 export default function EmailTemplateDemo() {
     const [selectedTemplate, setSelectedTemplate] = useState('welcome');
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
