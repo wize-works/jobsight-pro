@@ -710,14 +710,6 @@ export default function SignUpPage() {
                                     </Clerk.FieldError>
                                 </Clerk.Field>
 
-                                {/* CAPTCHA Field */}
-                                <Clerk.Field name="captcha" className="form-control">
-                                    <Clerk.Input />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
-                                    </Clerk.FieldError>
-                                </Clerk.Field>
-
                                 <SignUp.Action submit className="btn btn-primary w-full">
                                     Create Account
                                 </SignUp.Action>
