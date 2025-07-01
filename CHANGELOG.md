@@ -1,3 +1,10 @@
+## [1.111.7](https://github.com/wize-works/jobsight-pro/compare/v1.111.6...v1.111.7) (2025-07-01)
+
+
+### Bug Fixes
+
+* remove CAPTCHA field from sign-up form ([76c870e](https://github.com/wize-works/jobsight-pro/commit/76c870e1c4f251e850b6e5ed1c136e8a749e04d6))
+
 ## [1.111.6](https://github.com/wize-works/jobsight-pro/compare/v1.111.5...v1.111.6) (2025-07-01)
 
 
