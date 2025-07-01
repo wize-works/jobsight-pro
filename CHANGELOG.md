@@ -1,3 +1,10 @@
+# [1.104.0](https://github.com/wize-works/jobsight-pro/compare/v1.103.0...v1.104.0) (2025-07-01)
+
+
+### Features
+
+* implement security fixes for AI chat to prevent cross-user data leakage by using user-specific localStorage keys and enhancing conversation management ([34a3365](https://github.com/wize-works/jobsight-pro/commit/34a33654c23ee3490ba1150e59805c3713a360a0))
+
 # [1.103.0](https://github.com/wize-works/jobsight-pro/compare/v1.102.0...v1.103.0) (2025-07-01)
 
 
