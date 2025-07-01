@@ -1,20 +1,27 @@
-import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from "next/server";
 
-export default withAuth(
-    async function middleware(req: any) {
-        const auth = req.kindeAuth as any;
-        const url = req.nextUrl.clone();
+const isProtectedRoute = createRouteMatcher([
+    '/dashboard(.*)',
+    '/projects(.*)',
+    '/app(.*)',
+    '/printables(.*)',
+]);
 
-        // Step 1: Ensure authenticated
-        if (auth.user === null || !auth.user.id) {
-            console.warn("Unauthenticated, redirecting to /");
-            url.pathname = "/";
-            return NextResponse.redirect(url);
-        }
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+    const { userId } = await auth();
+    const url = req.nextUrl.clone();
 
-        // Step 2: Check for bizstate cookie
+    // If accessing a protected route without authentication
+    if (isProtectedRoute(req) && !userId) {
+        return NextResponse.redirect(new URL('/sign-in', req.url));
+    }
+
+    // If authenticated and accessing a protected route
+    if (isProtectedRoute(req) && userId) {
+        // Check for bizstate cookie (business/subscription validation)
         const bizCookie = req.cookies.get('bizstate')?.value;
+
         if (bizCookie) {
             try {
                 const { hasBusiness, hasSubscription } = JSON.parse(bizCookie);
@@ -41,22 +48,13 @@ export default withAuth(
             url.pathname = "/landing";
             return NextResponse.redirect(url);
         }
-
-        return NextResponse.next();
-    },
-    {
-        publicPaths: [
-            "/",
-            "/landing",
-            "/pricing",
-            "/register",
-            "/onboarding",
-            "/api",
-        ],
-        loginPath: "/",
     }
-);
+
+    return NextResponse.next();
+});
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/projects/:path*", "/app/:path*", "/printables/:path*"],
+    matcher: [
+        '/((?!api/clerk|__clerk|_next/static|_next/image|favicon.ico).*)',
+    ],
 };

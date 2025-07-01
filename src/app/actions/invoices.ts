@@ -7,7 +7,7 @@ import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createNotification } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import type { NotificationInsert } from "@/types/notifications";
 import { PLAN_HIERARCHY } from "@/lib/subscription-limits";
 
@@ -145,8 +145,7 @@ export const createInvoice = async (businessId: string, invoice: InvoiceInsert):
         return null;
     } if (data) {
         // Get the current user session to identify who created the invoice
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
+        const { userId } = await auth();
 
         // Get client name for notification
         const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
@@ -162,7 +161,7 @@ export const createInvoice = async (businessId: string, invoice: InvoiceInsert):
             clientName,
             "created",
             data.amount || undefined,
-            user?.id
+            userId || undefined
         );
     }
 
@@ -181,8 +180,7 @@ export const updateInvoice = async (businessId: string, id: string, invoice: Inv
         return null;
     } if (data) {
         // Get the current user session to identify who updated the invoice
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
+        const { userId } = await auth();
 
         // Get client name for notification
         const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
@@ -198,7 +196,7 @@ export const updateInvoice = async (businessId: string, id: string, invoice: Inv
             clientName,
             "updated",
             data.amount || undefined,
-            user?.id
+            userId || undefined
         );
     }
 
@@ -222,8 +220,7 @@ export const deleteInvoice = async (businessId: string, id: string): Promise<boo
 
         if (invoice) {
             // Get the current user session to identify who deleted the invoice
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get client name for notification
             const { data: clientData } = await fetchByBusiness("clients", businessId, ["name"], {
@@ -239,7 +236,7 @@ export const deleteInvoice = async (businessId: string, id: string): Promise<boo
                 clientName,
                 "deleted",
                 invoice.amount || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -389,3 +386,4 @@ export const getInvoiceWitDetailsById = async (businessId: string, id: string): 
 
     return detailData[0] || null;
 };
+

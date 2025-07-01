@@ -2,7 +2,7 @@
 
 import type { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import { applyUpdated } from "@/utils/apply-updated";
 import { createNotification } from "@/app/actions/notifications";

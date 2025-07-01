@@ -45,9 +45,10 @@ const nextConfig = {
         }
 
         return config;
-    }, experimental: {
+    },
+    experimental: {
         optimizePackageImports: [
-            '@kinde-oss/kinde-auth-nextjs',
+            '@clerk/nextjs',
             'date-fns',
             'react-chartjs-2',
             'recharts',
@@ -64,7 +65,7 @@ const nextConfig = {
                 hostname: '**',
             },
         ],
-    },    // PWA Configuration
+    },    // PWA Configuration - CSP DISABLED FOR CLERK OAUTH ROUTES
     async headers() {
         return [
             {
@@ -89,40 +90,66 @@ const nextConfig = {
                     },
                 ],
             },
+            // No CSP for Clerk OAuth routes
             {
-                source: '/(.*)',
-                headers: [{
-                    key: 'Content-Security-Policy',
-                    value: "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com; " +
-                        "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com; " +
-                        "img-src 'self' data: https: blob: https://www.clarity.ms; " +
-                        "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com; " +
-                        "font-src 'self' data: https://kit.fontawesome.com https://ka-p.fontawesome.com https://res-1.cdn.office.net; " +
-                        "frame-src 'self'; " +
-                        "object-src 'none'; " +
-                        "base-uri 'self'; " +
-                        "worker-src 'self' blob:;"
-                },
-                {
-                    key: 'X-Frame-Options',
-                    value: 'DENY'
-                },
-                {
-                    key: 'X-Content-Type-Options',
-                    value: 'nosniff'
-                },
-                {
-                    key: 'Referrer-Policy',
-                    value: 'strict-origin-when-cross-origin'
-                }, {
-                    key: 'Permissions-Policy',
-                    value: 'camera=(), microphone=(), geolocation=(self)'
-                }
+                source: '/(sign-in|sign-up|api/auth)/:path*',
+                headers: [
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY'
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff'
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin'
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=(self)'
+                    }
+                ],
+            },
+            // CSP for all other routes
+            {
+                source: '/((?!sign-in|sign-up|api/auth).*)',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "default-src 'self'; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com https://*.clerk.accounts.dev https://*.clerk.com; " +
+                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev; " +
+                            "img-src 'self' data: https: blob: https://www.clarity.ms https://*.clerk.accounts.dev https://*.clerk.com; " +
+                            "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com; " +
+                            "font-src 'self' data: https://kit.fontawesome.com https://ka-p.fontawesome.com https://res-1.cdn.office.net https://*.clerk.accounts.dev https://*.clerk.com; " +
+                            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com; " +
+                            "object-src 'none'; " +
+                            "base-uri 'self'; " +
+                            "worker-src 'self' blob:;"
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY'
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff'
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin'
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=(self)'
+                    }
                 ],
             },
         ];
-    },// Security headers
+    },
+    // Security headers
     async rewrites() {
         return [
             {

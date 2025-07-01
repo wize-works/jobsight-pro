@@ -3,7 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneUpdate } from "@/types/project_milestones";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
@@ -146,8 +146,7 @@ export const createProjectMilestone = async (businessId: string, milestone: Proj
 
         if (data) {
             // Get the current user session to identify who created the milestone
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project name for notification
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
@@ -164,7 +163,7 @@ export const createProjectMilestone = async (businessId: string, milestone: Proj
                 "created",
                 data.due_date || undefined,
                 data.status || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -188,8 +187,7 @@ export const updateProjectMilestone = async (businessId: string, id: string, mil
 
         if (data) {
             // Get the current user session to identify who updated the milestone
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project name for notification
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
@@ -209,7 +207,7 @@ export const updateProjectMilestone = async (businessId: string, id: string, mil
                 eventType,
                 data.due_date || undefined,
                 data.status || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -237,8 +235,7 @@ export const deleteProjectMilestone = async (businessId: string, id: string): Pr
 
         if (milestone) {
             // Get the current user session to identify who deleted the milestone
-            const { getUser } = getKindeServerSession();
-            const user = await getUser();
+            const { userId } = await auth();
 
             // Get project name for notification
             const { data: projectData } = await fetchByBusiness("projects", businessId, ["name"], {
@@ -255,7 +252,7 @@ export const deleteProjectMilestone = async (businessId: string, id: string): Pr
                 "deleted",
                 milestone.due_date || undefined,
                 milestone.status || undefined,
-                user?.id
+                userId || undefined
             );
         }
 
@@ -304,3 +301,4 @@ export const getProjectMilestonesByProjectId = async (businessId: string, id: st
     }
     return data as unknown as ProjectMilestone[];
 };
+

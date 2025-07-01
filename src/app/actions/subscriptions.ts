@@ -2,7 +2,7 @@
 
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { createServerClient } from "@/lib/supabase";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import {
     fetchByBusiness,
     insertWithBusiness,
@@ -69,10 +69,9 @@ export async function createSubscription(
     try {
         // For subscription creation during registration, we need to get business manually
         const supabase = createServerClient();
-        const { getUser } = getKindeServerSession();
-        const kindeUser = await getUser();
+        const { userId } = await auth();
 
-        if (!kindeUser?.id) {
+        if (!userId) {
             return { success: false, error: "User not authenticated" };
         }
 
@@ -84,7 +83,7 @@ export async function createSubscription(
         const { data: userData, error: userError } = await supabase
             .from("users")
             .select("business_id")
-            .eq("auth_id", kindeUser.id)
+            .eq("auth_id", userId || undefined)
             .single();
 
         if (userError || !userData?.business_id) {
@@ -93,7 +92,6 @@ export async function createSubscription(
         }
 
         const businessId = userData.business_id;
-        const userId = kindeUser.id;
 
         if (!supabase) {
             console.error("Supabase client is not initialized");

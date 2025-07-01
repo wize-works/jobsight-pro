@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import PushManager from "@/components/push-manager";
 import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
     const { businessId } = useBusiness();
-    const { user, isLoading } = useKindeAuth();
+    const { user, isLoaded } = useUser();
     const [isSaving, setIsSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -83,11 +83,11 @@ export default function ProfilePage() {
 
     // Load user data when component mounts
     useEffect(() => {
-        if (user && !isLoading && businessId) {
+        if (user && isLoaded && businessId) {
             // Load current user data from database first
             loadCurrentUser();
         }
-    }, [user, isLoading, businessId]);
+    }, [user, isLoaded, businessId]);
 
     const loadCurrentUser = async () => {
         if (!user?.id || !businessId) return;
@@ -99,9 +99,9 @@ export default function ProfilePage() {
                 setAvatarUrl(dbUser.avatar_url);
                 // Set profile form from database data, fallback to Kinde only if db data is empty
                 setProfileForm({
-                    firstName: dbUser.first_name || user.given_name || "",
-                    lastName: dbUser.last_name || user.family_name || "",
-                    email: dbUser.email || user.email || "",
+                    firstName: dbUser.first_name || user.firstName || "",
+                    lastName: dbUser.last_name || user.lastName || "",
+                    email: dbUser.email || user.emailAddresses?.[0]?.emailAddress || "",
                     phone: dbUser.phone || "",
                     jobTitle: "", // This should come from database or be empty
                     language: "English", // This should come from database or default
@@ -110,9 +110,9 @@ export default function ProfilePage() {
             } else {
                 // Only use Kinde data if no database user exists (shouldn't happen in normal flow)
                 setProfileForm({
-                    firstName: user.given_name || "",
-                    lastName: user.family_name || "",
-                    email: user.email || "",
+                    firstName: user.firstName || "",
+                    lastName: user.lastName || "",
+                    email: user.emailAddresses?.[0]?.emailAddress || "",
                     phone: "",
                     jobTitle: "",
                     language: "English",
@@ -232,7 +232,7 @@ export default function ProfilePage() {
             console.error("Error updating notification preferences:", error);
             toast.error("Failed to update notification preferences");
         }
-    }; if (isLoading || !user) {
+    }; if (!isLoaded || !user) {
         return <ProfileLoading />;
     }
 

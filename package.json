@@ -22,8 +22,10 @@
     },
     "dependencies": {
         "@azure/storage-blob": "^12.27.0",
+        "@clerk/elements": "^0.23.35",
+        "@clerk/nextjs": "^6.23.1",
+        "@clerk/themes": "^2.2.52",
         "@hookform/resolvers": "latest",
-        "@kinde-oss/kinde-auth-nextjs": "latest",
         "@langchain/openai": "^0.5.13",
         "@microsoft/clarity": "^1.0.0",
         "@sentry/nextjs": "^9.27.0",

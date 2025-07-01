@@ -1,6 +1,6 @@
-// src/app/api/auth/[kindeAuth]/route.ts
+// src/app/api/auth/success/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from '@clerk/nextjs/server';
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { setBizStateCookie } from "@/lib/cookies/set-bizstate";
 
@@ -9,9 +9,8 @@ export async function GET(req: NextRequest) {
     console.log("req.url: ", req.url);
     const res = NextResponse.redirect(new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || "https://pro.jobsight.co"));
     try {
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
-        if (user?.id) {
+        const { userId } = await auth();
+        if (userId) {
             setBizStateCookie({ hasBusiness: !!business, hasSubscription: !!subscription });
         }
     } catch (err) {

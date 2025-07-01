@@ -1,47 +1,54 @@
 import type { NextRequest } from "next/server"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { createServerClient } from "@/lib/supabase"
 
 export async function GET(request: NextRequest) {
     try {
-        const kindeClient = getKindeServerSession()
-        const supabase = createServerClient()
+        const { userId } = await auth()
 
-        if (!kindeClient || !supabase) {
+        if (!userId) {
+            return Response.json({ authenticated: false }, { status: 401 })
+        }
+
+        const supabase = createServerClient()
+        if (!supabase) {
             return Response.json({ error: "Configuration error" }, { status: 500 })
         }
 
-        // Get the user from Kinde
-        const kindeUser = await kindeClient.getUser()
+        // Get user info from Clerk
+        const clerkUser = await currentUser()
 
-        if (!kindeUser || !kindeUser.id) {
+        if (!clerkUser) {
             return Response.json({ authenticated: false }, { status: 401 })
         }
 
         // Get the user from our database
-        const { data: dbUser, error } = await supabase.from("users").select("*").eq("auth_id", kindeUser.id).single()
+        const { data: dbUser, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("auth_id", userId)
+            .single()
 
         if (error) {
             console.error("Error fetching user from database:", error)
-            // If the user doesn't exist in our database, return the Kinde user
-            // The client will handle creating the user in our database
+            // Return Clerk user data for new users
             return Response.json({
-                id: kindeUser.id,
-                given_name: kindeUser.given_name,
-                family_name: kindeUser.family_name,
-                email: kindeUser.email,
-                picture: kindeUser.picture,
+                id: userId,
+                given_name: clerkUser.firstName,
+                family_name: clerkUser.lastName,
+                email: clerkUser.emailAddresses[0]?.emailAddress,
+                picture: clerkUser.imageUrl,
             })
         }
 
-        // Return a combined user object with both Kinde and database information
+        // Return combined user object
         return Response.json({
-            id: kindeUser.id, // Kinde ID
-            given_name: kindeUser.given_name,
-            family_name: kindeUser.family_name,
-            email: kindeUser.email,
-            picture: kindeUser.picture,
-            db_id: dbUser.id, // Our database UUID
+            id: userId,
+            given_name: clerkUser.firstName,
+            family_name: clerkUser.lastName,
+            email: clerkUser.emailAddresses[0]?.emailAddress,
+            picture: clerkUser.imageUrl,
+            db_id: dbUser.id,
             business_id: dbUser.business_id,
             role: dbUser.role,
         })

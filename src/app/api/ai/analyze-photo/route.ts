@@ -1,15 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeConstructionPhoto } from '@/lib/ai/photo-analysis';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
     try {
         // Check authentication
-        const { getUser } = getKindeServerSession();
-        const user = await getUser();
-
-        if (!user) {
+        const { userId } = await auth();
+        if (!userId) {
             return NextResponse.json(
                 { error: 'Authentication required' },
                 { status: 401 }

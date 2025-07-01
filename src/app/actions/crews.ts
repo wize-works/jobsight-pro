@@ -8,7 +8,7 @@ import { Project } from "@/types/projects";
 import { CrewMember, CrewMemberUpdate } from "@/types/crew-members";
 import { EquipmentAssignment, EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { Equipment } from "@/types/equipment";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { getUserBusiness } from "@/app/actions/business";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
 import { EquipmentWithAssignment, EquipmentWithAssignments } from "@/types/equipment";

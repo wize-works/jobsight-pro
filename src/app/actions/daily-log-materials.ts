@@ -3,7 +3,7 @@
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness } from "@/lib/db";
 import { DailyLogMaterial, DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { getUserBusiness } from "@/app/actions/business";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { applyCreated } from "@/utils/apply-created";
 import { applyUpdated } from "@/utils/apply-updated";
 import { withBusinessServer } from "@/lib/auth/with-business-server";

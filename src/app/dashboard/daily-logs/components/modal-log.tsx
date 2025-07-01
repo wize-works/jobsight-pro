@@ -11,7 +11,7 @@ import { DailyLogMaterialInsert } from "@/types/daily-log-materials";
 import { DailyLogEquipmentInsert } from "@/types/daily-log-equipment";
 import { toast } from "@/hooks/use-toast";
 import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/types/equipment";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { CrewMember } from "@/types/crew-members";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProjects } from "@/app/actions/projects";
@@ -31,9 +31,8 @@ export default function DailyLogModal({
     onClose,
     onSave
 }: CreateDailyLogModalProps) {
-    const { getUser, isLoading } = useKindeAuth();
+    const { user, isLoaded } = useUser();
     const searchParams = useSearchParams();
-    const user = getUser();
     const { businessId } = useBusiness();
     const [crews, setCrews] = useState<Crew[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -615,7 +614,7 @@ export default function DailyLogModal({
     };
 
 
-    if (isLoading) {
+    if (!isLoaded) {
         return <div className="loading">Loading...</div>;
     }
     if (!user) {

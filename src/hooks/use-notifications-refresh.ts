@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
 
 interface UseNotificationRefreshProps {
@@ -16,7 +16,7 @@ export function useNotificationRefresh({
     interval = 30000, // 30 seconds default
     enabled = true
 }: UseNotificationRefreshProps) {
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const { businessId } = useBusiness();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const callbackRef = useRef(onRefresh);

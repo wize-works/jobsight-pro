@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { createInvoice } from "@/app/actions/invoices";
 import { createInvoiceItem } from "@/app/actions/invoice-items";
 import { getClients } from "@/app/actions/clients";
@@ -31,7 +31,7 @@ interface InvoiceItemRow {
 export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewModalProps) {
     const router = useRouter();
     const { businessId } = useBusiness();
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [clients, setClients] = useState<Client[]>([]);

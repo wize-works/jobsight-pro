@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useUser } from "@clerk/nextjs";
 import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo, getClientDetailsByID } from "@/app/actions/clients";
 import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
@@ -33,7 +33,7 @@ import { generateClientPdf } from "@/app/actions/pdf-generation-gotenberg";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();
-    const { user } = useKindeAuth();
+    const { user } = useUser();
     const router = useRouter();// Data loading states
     const [loading, setLoading] = useState(true);
     const [client, setClient] = useState<Client>({} as Client);
