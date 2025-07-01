@@ -2,7 +2,7 @@
     {
         "id": "personal",
         "name": "Personal",
-        "description": "Ideal for individual users who need basic project management tools.",
+        "description": "Start your journey with powerful project management tools designed for solo professionals and freelancers.",
         "monthly_price": 0,
         "annual_price": 0,
         "included_users": 1,
@@ -21,7 +21,7 @@
     {
         "id": "starter",
         "name": "Starter",
-        "description": "Perfect for small teams looking to enhance their project management capabilities.",
+        "description": "Supercharge your small team's productivity with AI-powered project management that grows with you.",
         "monthly_price": 9.99,
         "annual_price": 99.99,
         "included_users": 3,
@@ -41,7 +41,7 @@
     {
         "id": "pro",
         "name": "Pro",
-        "description": "Designed for growing teams that need advanced features and support.",
+        "description": "Unlock your team's full potential with advanced features, custom branding, and professional-grade tools.",
         "monthly_price": 49,
         "annual_price": 499,
         "included_users": 10,
@@ -62,7 +62,7 @@
     {
         "id": "business",
         "name": "Business",
-        "description": "For larger teams that require comprehensive project management tools and support.",
+        "description": "Scale with confidence using enterprise-level analytics, priority support, and comprehensive team management.",
         "monthly_price": 149.99,
         "annual_price": 1499,
         "included_users": 50,
@@ -79,27 +79,6 @@
             "Team management",
             "20GB storage",
             "Everything from Pro"
-        ]
-    },
-    {
-        "id": "enterprise",
-        "name": "Enterprise",
-        "monthly_price": "Custom",
-        "annual_price": "Custom",
-        "included_users": 100,
-        "extra_user_price": 20.00,
-        "stripe_product_id": null,
-        "stripe_monthly_price_id": null,
-        "stripe_annual_price_id": null,
-        "features": [
-            "100+ users",
-            "AI Assistant included",
-            "Custom integrations",
-            "Dedicated support",
-            "Unlimited features",
-            "Enterprise security",
-            "50GB storage",
-            "Everything from Business"
         ]
     }
 ]
