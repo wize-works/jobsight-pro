@@ -1,3 +1,10 @@
+## [1.111.8](https://github.com/wize-works/jobsight-pro/compare/v1.111.7...v1.111.8) (2025-07-01)
+
+
+### Bug Fixes
+
+* implement enhanced password validation with user-friendly error messages ([90d1d93](https://github.com/wize-works/jobsight-pro/commit/90d1d93b9ba4405b89b2331b6bb488b309201c0a))
+
 ## [1.111.7](https://github.com/wize-works/jobsight-pro/compare/v1.111.6...v1.111.7) (2025-07-01)
 
 
