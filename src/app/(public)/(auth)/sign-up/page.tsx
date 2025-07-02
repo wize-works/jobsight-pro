@@ -763,10 +763,7 @@ export default function SignUpPage() {
                         {/* Start Step */}
                         <SignUp.Step name="start" className="space-y-6">
                             {/* Social Sign Up */}
-                            <div>
-                                Social sign-in options are currently disabled. Please use email and password to sign in.
-                            </div>
-                            {/* <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 <Clerk.Connection
                                     name="google"
                                     className="btn btn-outline justify-center gap-3"
@@ -775,11 +772,11 @@ export default function SignUpPage() {
                                     Google
                                 </Clerk.Connection>
                                 <Clerk.Connection
-                                    name="apple"
+                                    name="linkedin_oidc"
                                     className="btn btn-outline justify-center gap-3"
                                 >
-                                    <i className='fab fa-apple' />
-                                    Apple
+                                    <i className='fab fa-linkedin' />
+                                    LinkedIn
                                 </Clerk.Connection>
                                 <Clerk.Connection
                                     name="facebook"
@@ -790,7 +787,7 @@ export default function SignUpPage() {
                                 </Clerk.Connection>
                             </div>
 
-                            <div className="divider">or continue with email</div> */}
+                            <div className="divider">or continue with email</div>
 
                             {/* Email Sign Up */}
                             <div className="space-y-4">

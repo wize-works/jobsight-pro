@@ -52,10 +52,7 @@ export default function SignInPage() {
                                 <>
                                     <SignIn.Step name="start" className='space-y-6'>
                                         {/* Social Sign In */}
-                                        <div>
-                                            Social sign-in options are currently disabled. Please use email and password to sign in.
-                                        </div>
-                                        {/* <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-3 gap-3">
                                             <Clerk.Connection
                                                 name="google"
                                                 className="btn btn-outline justify-center gap-3"
@@ -64,10 +61,10 @@ export default function SignInPage() {
                                                 Google
                                             </Clerk.Connection>
                                             <Clerk.Connection
-                                                name="apple"
+                                                name="linkedin"
                                                 className="btn btn-outline justify-center gap-3"
                                             >
-                                                <i className='fab fa-apple' />
+                                                <i className='fab fa-linkedin' />
                                                 Apple
                                             </Clerk.Connection>
                                             <Clerk.Connection
@@ -79,7 +76,7 @@ export default function SignInPage() {
                                             </Clerk.Connection>
                                         </div>
 
-                                        <div className="divider text-xs text-base-content/50">OR</div> */}
+                                        <div className="divider text-xs text-base-content/50">OR</div>
 
                                         {/* Email Field */}
                                         <Clerk.Field name="identifier" className="form-control">
