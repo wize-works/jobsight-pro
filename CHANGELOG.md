@@ -1,3 +1,10 @@
+## [1.111.11](https://github.com/wize-works/jobsight-pro/compare/v1.111.10...v1.111.11) (2025-07-02)
+
+
+### Bug Fixes
+
+* update sign-in button label to LinkedIn and add Clerk URLs to deployment configuration ([ae98cee](https://github.com/wize-works/jobsight-pro/commit/ae98cee2767a1fa3ffb556ddbbbf22233b808467))
+
 ## [1.111.10](https://github.com/wize-works/jobsight-pro/compare/v1.111.9...v1.111.10) (2025-07-02)
 
 
