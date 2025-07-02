@@ -1,3 +1,10 @@
+## [1.111.9](https://github.com/wize-works/jobsight-pro/compare/v1.111.8...v1.111.9) (2025-07-02)
+
+
+### Bug Fixes
+
+* update social sign-in options to use LinkedIn and improve layout ([b44b7ed](https://github.com/wize-works/jobsight-pro/commit/b44b7ed64e4bb9b346250143c9f1375b2cc333b2))
+
 ## [1.111.8](https://github.com/wize-works/jobsight-pro/compare/v1.111.7...v1.111.8) (2025-07-01)
 
 
