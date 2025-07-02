@@ -61,7 +61,7 @@ export default function SignInPage() {
                                                 Google
                                             </Clerk.Connection>
                                             <Clerk.Connection
-                                                name="linkedin"
+                                                name="linkedin_oidc"
                                                 className="btn btn-outline justify-center gap-3"
                                             >
                                                 <i className='fab fa-linkedin' />
