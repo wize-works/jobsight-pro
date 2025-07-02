@@ -133,6 +133,26 @@ spec:
                   key: OPENAI_API_KEY
             - name: GOTENBERG_URL
               value: "http://gotenberg-service:3000"
+            - name: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+            - name: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+            - name: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+            - name: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jobsight-secrets
+                  key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
 
           resources:
             requests:

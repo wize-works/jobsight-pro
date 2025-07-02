@@ -88,6 +88,10 @@ jobs:
             --build-arg NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} \
             --build-arg STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} \
             --build-arg OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+            --build-arg NEXT_PUBLIC_CLERK_SIGN_IN_URL=${{ vars.NEXT_PUBLIC_CLERK_SIGN_IN_URL }} \
+            --build-arg NEXT_PUBLIC_CLERK_SIGN_UP_URL=${{ vars.NEXT_PUBLIC_CLERK_SIGN_UP_URL }} \
+            --build-arg NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=${{ vars.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL }} \
+            --build-arg NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=${{ vars.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL }} \
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.version=${{ needs.release.outputs.version }} \
             -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.release.outputs.version }} \
@@ -152,6 +156,10 @@ jobs:
             --from-literal=STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
             --from-literal=NEXT_PUBLIC_STRIPE_PUBLIC_KEY="${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}" \
             --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            --from-literal=NEXT_PUBLIC_CLERK_SIGN_IN_URL="${{ vars.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}" \
+            --from-literal=NEXT_PUBLIC_CLERK_SIGN_UP_URL="${{ vars.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}" \
+            --from-literal=NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="${{ vars.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL }}" \
+            --from-literal=NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="${{ vars.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Convert kubeconfig to use Azure CLI token
