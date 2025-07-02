@@ -1,3 +1,10 @@
+## [1.111.10](https://github.com/wize-works/jobsight-pro/compare/v1.111.9...v1.111.10) (2025-07-02)
+
+
+### Bug Fixes
+
+* update LinkedIn connection name for sign-in integration ([39bf82b](https://github.com/wize-works/jobsight-pro/commit/39bf82bf2defb38eee3845fbb6b63c6902b3f132))
+
 ## [1.111.9](https://github.com/wize-works/jobsight-pro/compare/v1.111.8...v1.111.9) (2025-07-02)
 
 
