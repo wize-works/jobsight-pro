@@ -65,7 +65,7 @@ export default function SignInPage() {
                                                 className="btn btn-outline justify-center gap-3"
                                             >
                                                 <i className='fab fa-linkedin' />
-                                                Apple
+                                                LinkedIn
                                             </Clerk.Connection>
                                             <Clerk.Connection
                                                 name="facebook"
