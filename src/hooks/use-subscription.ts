@@ -14,7 +14,6 @@ export const useSubscription = () => {
     const [error, setError] = useState<string | null>(null); const loadSubscriptionData = async () => {
         // Don't load if business is still loading or businessId is empty
         if (businessLoading || !businessId) {
-            console.log('🔍 Subscription: Waiting for business context', { businessLoading, businessId });
             return;
         }
 
@@ -26,12 +25,6 @@ export const useSubscription = () => {
                 getCurrentSubscription(businessId),
                 getSubscriptionPlans()
             ]);
-
-            console.log('🔍 Subscription Debug:', {
-                businessId,
-                subscription,
-                subscriptionPlans: subscriptionPlans?.map(p => ({ id: p.id, name: p.name }))
-            });
 
             setCurrentSubscription(subscription);
             setPlans(subscriptionPlans);
@@ -52,11 +45,6 @@ export const useSubscription = () => {
         }
 
         const foundPlan = plans.find(plan => plan.id === currentSubscription.plan_id);
-        console.log('🔍 getCurrentPlan:', {
-            currentSubscriptionPlanId: currentSubscription.plan_id,
-            availablePlans: plans.map(p => p.id),
-            foundPlan: foundPlan ? { id: foundPlan.id, name: foundPlan.name } : null
-        });
 
         return foundPlan || null;
     };

@@ -1,5 +1,5 @@
 'use client';
-
+import { SignUp as SignUpComponent } from '@clerk/nextjs';
 import * as Clerk from '@clerk/elements/common';
 import * as SignUp from '@clerk/elements/sign-up';
 import { useTheme } from "next-themes";
@@ -45,6 +45,10 @@ const PasswordField = () => {
         }
         return error; // Return the original error if we don't have a specific message
     };
+
+    // return (
+    //     <SignUpComponent />
+    // )
 
     return (
         <Clerk.Field name="password" className="form-control">
@@ -762,6 +766,7 @@ export default function SignUpPage() {
                     <SignUp.Root>
                         {/* Start Step */}
                         <SignUp.Step name="start" className="space-y-6">
+                            <Clerk.GlobalError className="block text-sm text-error" />
                             {/* Social Sign Up */}
                             <div className="grid grid-cols-3 gap-3">
                                 <Clerk.Connection
@@ -844,6 +849,7 @@ export default function SignUpPage() {
 
                         {/* Verifications Step */}
                         <SignUp.Step name="verifications" className="space-y-6">
+                            <Clerk.GlobalError className="block text-sm text-error" />
                             <div className="text-center">
                                 <h2 className="text-xl font-semibold mb-2">Verify your email</h2>
                                 <p className="text-base-content/70 mb-6">
@@ -874,6 +880,7 @@ export default function SignUpPage() {
 
                         {/* Continue Step */}
                         <SignUp.Step name="continue" className="space-y-6">
+                            <Clerk.GlobalError className="block text-sm text-error" />
                             <div className="text-center">
                                 <h2 className="text-xl font-semibold mb-2">Almost done!</h2>
                                 <p className="text-base-content/70 mb-6">
