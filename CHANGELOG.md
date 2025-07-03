@@ -1,3 +1,10 @@
+# [1.113.0](https://github.com/wize-works/jobsight-pro/compare/v1.112.0...v1.113.0) (2025-07-03)
+
+
+### Features
+
+* implement comprehensive sign-up flow with business information collection and subscription plan selection ([3e804e7](https://github.com/wize-works/jobsight-pro/commit/3e804e75918faf13714dafe8278fe2c48b3f6fd2))
+
 # [1.112.0](https://github.com/wize-works/jobsight-pro/compare/v1.111.11...v1.112.0) (2025-07-03)
 
 
