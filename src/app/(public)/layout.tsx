@@ -17,8 +17,7 @@ export default async function PublicLayout({
             <header className="navbar absolute top-0 left-0 right-0 z-50">
                 <div className="flex-1"></div>
                 <div className="flex-none space-x-4">
-                    {user?.id}
-                    {user?.emailAddresses[0]?.emailAddress}
+                    <div className="hidden">{user?.id}</div>
                     {user ? (
                         <>
                             <Link href="/dashboard" className="btn btn-primary">
