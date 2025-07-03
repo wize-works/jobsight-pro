@@ -60,7 +60,7 @@ export async function sendProjectUpdateNotification(
                 : user.email;
 
             return resend.emails.send({
-                from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
+                from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <alert@updates.jobsight.co>",
                 to: user.email,
                 subject: `Project Update: ${project.name}`,
                 react: ProjectUpdateEmail({
@@ -139,7 +139,7 @@ export async function sendEquipmentAlert(
                 : user.email;
 
             return resend.emails.send({
-                from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
+                from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <alert@updates.jobsight.co>",
                 to: user.email,
                 subject: `Equipment Alert: ${equipment.name} - ${alertType.replace('_', ' ')}`,
                 react: EquipmentAlertEmail({
