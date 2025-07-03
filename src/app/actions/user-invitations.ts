@@ -82,7 +82,7 @@ export async function sendUserInvitation(
         const emailResponse = await resend.emails.send({
             from:
                 process.env.RESEND_FROM_EMAIL ||
-                "JobSight Pro <noreply@updates.jobsight.co>",
+                "JobSight Pro <invites@updates.jobsight.co>",
             to: email,
             subject: `You're invited to join ${business.name} on JobSight Pro`,
             react: TeamInvitationEmail({
@@ -228,7 +228,7 @@ export async function resendUserInvitation(businessId: string, userId: string) {
         const emailResponse = await resend.emails.send({
             from:
                 process.env.RESEND_FROM_EMAIL ||
-                "JobSight Pro <noreply@pro.jobsight.co>",
+                "JobSight Pro <invites@updates.jobsight.co>",
             to: user.email,
             subject: `Reminder: You're invited to join ${business.name} on JobSight Pro`,
             react: TeamInvitationEmail({

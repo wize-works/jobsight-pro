@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             }
         }// Send email
         const emailResponse = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'JobSight Pro <noreply@updates.jobsight.co>',
+            from: process.env.RESEND_FROM_EMAIL || 'JobSight Pro <invoices@updates.jobsight.co>',
             replyTo: businessInfo?.email || invoiceData.business_info?.email || undefined,
             to: [recipientEmail],
             subject: emailSubject,

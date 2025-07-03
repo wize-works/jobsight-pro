@@ -44,7 +44,7 @@ export async function sendPasswordResetEmail(email: string) {
 
         // Send password reset email
         const emailResponse = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
+            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <reset@updates.jobsight.co>",
             to: email,
             subject: "Reset Your JobSight Pro Password",
             react: PasswordResetEmail({

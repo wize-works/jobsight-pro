@@ -49,7 +49,7 @@ export async function sendEmailVerification(userId: string) {
 
         const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pro.jobsight.co"}/verify-email?token=${verificationToken}`;        // Send verification email
         const emailResponse = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
+            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <verify@updates.jobsight.co>",
             to: user.email,
             subject: "Verify Your Email Address",
             react: EmailTemplate({

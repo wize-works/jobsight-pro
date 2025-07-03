@@ -34,7 +34,7 @@ export async function sendEmailNotification(
 
         // Send the email using Resend
         const emailResult = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <noreply@updates.jobsight.co>",
+            from: process.env.RESEND_FROM_EMAIL || "JobSight Pro <notify@updates.jobsight.co>",
             to: recipientEmail,
             subject: `JobSight Pro: ${subject}`, react: GeneralNotificationEmail({
                 recipientName,
