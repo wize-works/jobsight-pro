@@ -1,3 +1,10 @@
+# [1.112.0](https://github.com/wize-works/jobsight-pro/compare/v1.111.11...v1.112.0) (2025-07-03)
+
+
+### Features
+
+* implement AI usage data retrieval and enhance subscription management with trialing status support ([fb513e2](https://github.com/wize-works/jobsight-pro/commit/fb513e26dcc0c8b688571a06de48f73cd46a4a4c))
+
 ## [1.111.11](https://github.com/wize-works/jobsight-pro/compare/v1.111.10...v1.111.11) (2025-07-02)
 
 
