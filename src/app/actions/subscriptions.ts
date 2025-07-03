@@ -18,25 +18,26 @@ import { revalidatePath } from "next/cache";
 
 export async function getCurrentSubscription(businessId: string): Promise<BusinessSubscription | null> {
     try {
+        const supabase = createServerClient();
 
-
-        const { data, error } = await fetchByBusiness(
-            "business_subscriptions",
-            businessId,
-            "*",
-            {
-                filter: { status: "active" },
-            },
-        );
-
-        if (!data || data.length === 0) {
-            return null; // No active subscription found
+        if (!supabase) {
+            console.error("Supabase client not initialized");
+            return null;
         }
+
+        const { data, error } = await supabase
+            .from("business_subscriptions")
+            .select("*")
+            .eq("business_id", businessId)
+            .in("status", ["active", "trialing"])
+            .single();
+
         if (error) {
             console.error("Error fetching current subscription:", error);
             return null;
         }
-        return data[0];
+
+        return data;
     } catch (error) {
         console.error("Error fetching current subscription:", error);
         return null;
@@ -63,14 +64,15 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 }
 
 export async function createSubscription(
+    businessId: string,
     planId: string,
     billingInterval: BillingInterval,
 ): Promise<{ success: boolean; error?: string }> {
     try {
         // For subscription creation during registration, we need to get business manually
+        console.log("Creating subscription for business:", businessId, "with plan:", planId);
         const supabase = createServerClient();
         const { userId } = await auth();
-
         if (!userId) {
             return { success: false, error: "User not authenticated" };
         }
@@ -80,30 +82,25 @@ export async function createSubscription(
             console.error("Supabase client is not initialized");
             return { success: false, error: "Internal server error" };
         }
-        const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("business_id")
-            .eq("auth_id", userId || undefined)
-            .single();
-
-        if (userError || !userData?.business_id) {
-            console.error("Error getting user business for subscription:", userError);
-            return { success: false, error: "User business not found" };
-        }
-
-        const businessId = userData.business_id;
 
         if (!supabase) {
             console.error("Supabase client is not initialized");
             return { success: false, error: "Internal server error" };
         }
 
-        // Check if there's already an active subscription
+        // Check if there's already an active or trialing subscription
         const { data: existingSubscription, error: subError } = await supabase
             .from("business_subscriptions")
             .select("*")
             .eq("business_id", businessId)
-            .eq("status", "active")
+            .in("status", ["active", "trialing"])
+            .single();
+
+        // Get stripe customer ID for the business
+        const { data: stripeCustomer } = await supabase
+            .from("stripe_customers")
+            .select("stripe_customer_id")
+            .eq("business_id", businessId)
             .single();
 
         if (existingSubscription) {
@@ -112,6 +109,7 @@ export async function createSubscription(
                 .from("business_subscriptions")
                 .update({
                     plan_id: planId,
+                    stripe_customer_id: stripeCustomer?.stripe_customer_id || null,
                     updated_at: new Date().toISOString(),
                     updated_by: userId,
                 })
@@ -130,6 +128,7 @@ export async function createSubscription(
                     plan_id: planId,
                     start_date: new Date().toISOString(),
                     status: "active",
+                    stripe_customer_id: stripeCustomer?.stripe_customer_id || null,
                     created_by: userId,
                     created_at: new Date().toISOString(),
                 });

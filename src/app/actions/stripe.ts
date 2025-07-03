@@ -181,10 +181,10 @@ export async function updateStripeSubscription(
     error?: string;
 }> {
     try {
-
         const supabase = createServerClient();
 
         if (!supabase) {
+            console.error("Supabase client not initialized");
             return { success: false, error: "Supabase client not initialized" };
         }
 
@@ -205,16 +205,16 @@ export async function updateStripeSubscription(
             return { success: false, error: "Price ID not found for plan" };
         }
 
-        // Get current Stripe subscription
+        // Get current Stripe subscription (active or trialing)
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
-            .eq("status", "active")
+            .in("status", ["active", "trialing"])
             .single();
 
         if (error || !stripeSubscription) {
-            return { success: false, error: "No active subscription found" };
+            return { success: false, error: "No active or trialing subscription found" };
         }
 
         // Update subscription in Stripe
@@ -222,12 +222,13 @@ export async function updateStripeSubscription(
             stripeSubscription.stripe_subscription_id
         );
 
-        await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
+        const updatedSubscription = await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
             items: [{
                 id: subscription.items.data[0].id,
                 price: priceId,
             }],
             proration_behavior: 'create_prorations',
+            // Don't add trial_end or trial_period_days to avoid re-enabling trial
         });
 
         // Update database
@@ -243,10 +244,11 @@ export async function updateStripeSubscription(
             .from("business_subscriptions")
             .update({
                 plan_id: planId,
+                stripe_subscription_id: stripeSubscription.stripe_subscription_id,
                 updated_at: new Date().toISOString(),
             })
             .eq("business_id", businessId)
-            .eq("status", "active");
+            .in("status", ["active", "trialing"]);
 
         revalidatePath("/dashboard/business");
         return { success: true };
@@ -270,16 +272,16 @@ export async function getStripeSubscription(businessId: string): Promise<{
         }
 
 
-        // Get Stripe subscription from database
+        // Get Stripe subscription from database (active or trialing)
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
-            .eq("status", "active")
+            .in("status", ["active", "trialing"])
             .single();
 
         if (error || !stripeSubscription) {
-            return { success: false, error: "No active subscription found" };
+            return { success: false, error: "No active or trialing subscription found" };
         }
 
         // Get full subscription from Stripe
@@ -307,16 +309,16 @@ export async function cancelStripeSubscription(businessId: string): Promise<{
         }
 
 
-        // Get current Stripe subscription
+        // Get current Stripe subscription (active or trialing)
         const { data: stripeSubscription, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
-            .eq("status", "active")
+            .in("status", ["active", "trialing"])
             .single();
 
         if (error || !stripeSubscription) {
-            return { success: false, error: "No active subscription found" };
+            return { success: false, error: "No active or trialing subscription found" };
         }
 
         // Cancel subscription in Stripe (at period end)
@@ -341,7 +343,7 @@ export async function cancelStripeSubscription(businessId: string): Promise<{
                 updated_at: new Date().toISOString(),
             })
             .eq("business_id", businessId)
-            .eq("status", "active");
+            .in("status", ["active", "trialing"]);
 
         revalidatePath("/dashboard/business");
         return { success: true };

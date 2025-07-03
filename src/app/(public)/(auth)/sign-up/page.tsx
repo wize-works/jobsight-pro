@@ -333,7 +333,7 @@ export default function SignUpPage() {
             // Handle subscription based on plan type
             if (planId === "personal" || planId === "free") {
                 // For free plans, create subscription directly
-                const subscriptionResult = await createSubscription(planId, billingInterval);
+                const subscriptionResult = await createSubscription(businessResult.businessId!, planId, billingInterval);
 
                 if (subscriptionResult.success) {
                     toast.success({

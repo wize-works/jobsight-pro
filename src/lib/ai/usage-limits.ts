@@ -20,20 +20,36 @@ export interface AIUsageStatus {
 
 export async function checkAIUsageLimit(businessId: string): Promise<AIUsageStatus> {
     try {
-        // Get business subscription plan
+        // Validate businessId to prevent unnecessary API calls
+        if (!businessId || businessId.trim() === '') {
+            return {
+                currentUsage: 0,
+                limit: AI_TOKEN_LIMITS.personal,
+                percentageUsed: 0,
+                canUseAI: false,
+                remainingTokens: 0
+            };
+        }
+
+        // Get business subscription plan (active or trialing)
         const { data: subscriptions, error: subError } = await fetchByBusiness(
             'business_subscriptions',
             businessId,
             ['plan_id'],
             {
-                filter: { status: 'active' },
+                filter: {
+                    or: [
+                        { status: 'active' },
+                        { status: 'trialing' }
+                    ]
+                },
                 limit: 1
             }
         );
 
         if (subError || !subscriptions || subscriptions.length === 0) {
-            // Default to personal plan if no subscription found
-            console.log('No active subscription found for business:', businessId);
+            // Default to personal plan if no subscription found - reduce log noise to prevent spam
+            // console.log('No active or trialing subscription found for business:', businessId);
             return {
                 currentUsage: 0,
                 limit: AI_TOKEN_LIMITS.personal,
