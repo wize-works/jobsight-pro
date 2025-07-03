@@ -903,6 +903,53 @@ Only include information that is actually present in the input. Be precise and f
     }
 }
 
+// AI Usage Limit Server Action
+export async function getAIUsageData(businessId: string): Promise<{
+    success: boolean;
+    data?: {
+        currentUsage: number;
+        limit: number;
+        percentageUsed: number;
+        canUseAI: boolean;
+        remainingTokens: number;
+    };
+    error?: string;
+}> {
+    try {
+        // Validate businessId
+        if (!businessId || businessId.trim() === '') {
+            return {
+                success: false,
+                error: 'Invalid business ID',
+                data: {
+                    currentUsage: 0,
+                    limit: 0,
+                    percentageUsed: 0,
+                    canUseAI: false,
+                    remainingTokens: 0
+                }
+            };
+        }
+
+        const { checkAIUsageLimit } = await import('@/lib/ai/usage-limits');
+        const usage = await checkAIUsageLimit(businessId);
+        return { success: true, data: usage };
+    } catch (error) {
+        console.error('Error getting AI usage data:', error);
+        return {
+            success: false,
+            error: 'Failed to get AI usage data',
+            data: {
+                currentUsage: 0,
+                limit: 0,
+                percentageUsed: 0,
+                canUseAI: false,
+                remainingTokens: 0
+            }
+        };
+    }
+}
+
 // Enhanced query preprocessing and data filtering
 interface QueryContext {
     projectNames: string[];

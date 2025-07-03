@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFeatureGate } from '@/hooks/useFeatureGate';
 import { formatStorageSize, calculateStorageUsagePercentage, getPlanDisplayName } from '@/lib/subscription-limits';
-import { checkAIUsageLimit, AI_TOKEN_LIMITS } from '@/lib/ai/usage-limits';
+import { getAIUsageData } from '@/app/actions/ai';
 import { useBusiness } from '@/lib/business-context';
 
 interface UsageData {
@@ -25,6 +25,8 @@ export const SubscriptionAnalyticsDashboard: React.FC<SubscriptionAnalyticsDashb
 }) => {
     const { businessId } = useBusiness();
     const [aiUsage, setAiUsage] = useState({ currentUsage: 0, limit: 0, percentageUsed: 0, canUseAI: true, remainingTokens: 0 });
+    const [aiUsageLoading, setAiUsageLoading] = useState(false);
+    const [aiUsageLoaded, setAiUsageLoaded] = useState(false);
     const {
         currentPlan,
         getUserLimit,
@@ -39,18 +41,47 @@ export const SubscriptionAnalyticsDashboard: React.FC<SubscriptionAnalyticsDashb
     // Load AI usage data
     useEffect(() => {
         async function loadAIUsage() {
+            if (aiUsageLoading || aiUsageLoaded) return;
+
+            setAiUsageLoading(true);
             try {
-                const usage = await checkAIUsageLimit(businessId);
-                setAiUsage(usage);
+                const result = await getAIUsageData(businessId);
+                if (result.success && result.data) {
+                    setAiUsage(result.data);
+                    setAiUsageLoaded(true);
+                } else {
+                    console.error('Error loading AI usage:', result.error);
+                    // Set default values on error
+                    setAiUsage({
+                        currentUsage: 0,
+                        limit: 0,
+                        percentageUsed: 0,
+                        canUseAI: false,
+                        remainingTokens: 0
+                    });
+                    setAiUsageLoaded(true);
+                }
             } catch (error) {
                 console.error('Error loading AI usage:', error);
+                // Set default values on error
+                setAiUsage({
+                    currentUsage: 0,
+                    limit: 0,
+                    percentageUsed: 0,
+                    canUseAI: false,
+                    remainingTokens: 0
+                });
+                setAiUsageLoaded(true);
+            } finally {
+                setAiUsageLoading(false);
             }
         }
 
-        if (hasFeature('ai_assistant')) {
+        // Only load if we have AI feature, a valid businessId, and haven't loaded yet
+        if (hasFeature('ai_assistant') && businessId && businessId.length > 0 && !aiUsageLoaded) {
             loadAIUsage();
         }
-    }, [businessId, hasFeature]);
+    }, [businessId, hasFeature, aiUsageLoading, aiUsageLoaded]);
 
     const storageUsagePercentage = calculateStorageUsagePercentage(usageData.storageUsedMB, currentPlan);
     const userUsagePercentage = (usageData.userCount / getUserLimit()) * 100;

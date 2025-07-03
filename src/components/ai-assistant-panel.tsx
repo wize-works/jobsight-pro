@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAIQuery } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
-import { handleAIQuery } from '@/lib/ai/dispatcher';
 import { useBusiness } from '@/lib/business-context';
 import { useUser } from '@clerk/nextjs';
 import ErrorBoundary from '@/components/error-boundary';
@@ -190,16 +189,15 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         setError("");
 
         try {
-            const result = await handleAIQuery({
+            const result = await processAIQuery(
                 businessId,
-                userId: user?.id || "",
                 message,
-                conversationHistory: conversation.slice(-5).map(msg => ({
+                conversation.slice(-5).map(msg => ({
                     role: msg.type === "user" ? "user" : "assistant",
                     content: msg.content
                 })),
-                sessionState: {} // Provide actual session state if available
-            });
+                user?.id || ""
+            );
 
             addToConversation("assistant", result.response);
 

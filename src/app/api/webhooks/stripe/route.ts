@@ -64,12 +64,15 @@ export async function POST(request: NextRequest) {
                     created_at: new Date().toISOString(),
                 } as StripeSubscriptionInsert);
 
+                // Get stripe customer ID
+                const stripeCustomerId = subscription.customer as string;
+
                 // Check if business subscription already exists
                 const { data: existingBusinessSub } = await supabase
                     .from('business_subscriptions')
                     .select('id')
                     .eq('business_id', businessId)
-                    .eq('status', 'active')
+                    .in('status', ['active', 'trialing'])
                     .single();
 
                 if (existingBusinessSub) {
@@ -79,6 +82,7 @@ export async function POST(request: NextRequest) {
                         .update({
                             plan_id: planId,
                             stripe_subscription_id: subscription.id,
+                            stripe_customer_id: stripeCustomerId,
                             updated_at: new Date().toISOString(),
                         })
                         .eq('id', existingBusinessSub.id);
@@ -91,8 +95,9 @@ export async function POST(request: NextRequest) {
                             business_id: businessId,
                             plan_id: planId,
                             start_date: new Date().toISOString(),
-                            status: 'active',
+                            status: subscription.status === 'trialing' ? 'trialing' : 'active',
                             stripe_subscription_id: subscription.id,
+                            stripe_customer_id: stripeCustomerId,
                             created_at: new Date().toISOString(),
                         });
                 }
@@ -113,6 +118,9 @@ export async function POST(request: NextRequest) {
                 const currentPeriodStart = firstItem?.current_period_start;
                 const currentPeriodEnd = firstItem?.current_period_end;
 
+                // Get stripe customer ID
+                const stripeCustomerId = subscription.customer as string;
+
                 // Update stripe subscription
                 await supabase
                     .from('stripe_subscriptions')
@@ -128,11 +136,13 @@ export async function POST(request: NextRequest) {
                     .eq('business_id', businessId);
 
                 // Update business subscription status
-                const newStatus = subscription.status === 'active' ? 'active' : 'canceled';
+                const newStatus = subscription.status === 'active' ? 'active' :
+                    subscription.status === 'trialing' ? 'trialing' : 'canceled';
                 await supabase
                     .from('business_subscriptions')
                     .update({
                         status: newStatus,
+                        stripe_customer_id: stripeCustomerId,
                         end_date: subscription.status === 'canceled' ? new Date().toISOString() : null,
                         updated_at: new Date().toISOString(),
                     })
@@ -172,6 +182,16 @@ export async function POST(request: NextRequest) {
                     paid_at: invoice.status_transitions?.paid_at ? new Date(invoice.status_transitions.paid_at * 1000).toISOString() : null,
                     created_at: new Date().toISOString(),
                 } as StripeInvoiceInsert);
+
+                // Update business subscription with latest invoice ID
+                await supabase
+                    .from('business_subscriptions')
+                    .update({
+                        stripe_invoice_id: invoice.id,
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('stripe_subscription_id', subscription.id)
+                    .eq('business_id', businessId);
 
                 break;
             }

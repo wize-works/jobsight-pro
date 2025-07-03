@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     getCurrentSubscription,
     cancelSubscription,
@@ -29,14 +29,45 @@ export const TabSubscription = () => {
         useState<BillingInterval>("monthly");
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const isLoadingRef = useRef(false);
 
     useEffect(() => {
-        loadData();
-    }, []);
+        const loadData = async () => {
+            if (!businessId || isLoadingRef.current) return;
 
-    const loadData = async () => {
+            try {
+                isLoadingRef.current = true;
+                setIsLoading(true);
+                console.log("Loading subscription data for businessId:", businessId);
+
+                const [subscription, subscriptionPlans] = await Promise.all([
+                    getCurrentSubscription(businessId),
+                    getSubscriptionPlans(),
+                ]);
+
+                setCurrentSubscription(subscription);
+                setPlans(subscriptionPlans);
+                console.log("Subscription data loaded:", subscription);
+            } catch (error) {
+                console.error("Error loading subscription data:", error);
+            } finally {
+                setIsLoading(false);
+                isLoadingRef.current = false;
+            }
+        };
+
+        loadData();
+    }, [businessId]);
+
+    // Separate function for manual reloading
+    const reloadData = useCallback(async () => {
+        if (!businessId || isLoadingRef.current) return;
+
         try {
+            isLoadingRef.current = true;
             setIsLoading(true);
+            console.log("Reloading subscription data for businessId:", businessId);
+
             const [subscription, subscriptionPlans] = await Promise.all([
                 getCurrentSubscription(businessId),
                 getSubscriptionPlans(),
@@ -44,12 +75,14 @@ export const TabSubscription = () => {
 
             setCurrentSubscription(subscription);
             setPlans(subscriptionPlans);
+            console.log("Subscription data reloaded:", subscription);
         } catch (error) {
-            console.error("Error loading subscription data:", error);
+            console.error("Error reloading subscription data:", error);
         } finally {
             setIsLoading(false);
+            isLoadingRef.current = false;
         }
-    };
+    }, [businessId]);
 
     const handlePlanChange = async (planId: string) => {
         try {
@@ -58,17 +91,16 @@ export const TabSubscription = () => {
             // Handle personal plan separately (no Stripe required)
             if (planId === "personal") {
                 const result = await createSubscription(
+                    businessId,
                     planId,
                     billingInterval,
                 );
+
                 if (result.success) {
-                    await loadData();
-                    showToast("Subscription updated successfully!", "success");
+                    toast.success("Subscription updated successfully!");
+                    await reloadData();
                 } else {
-                    showToast(
-                        result.error || "Failed to update subscription",
-                        "error",
-                    );
+                    toast.error(result.error || "Failed to update subscription");
                 }
                 return;
             }
@@ -81,10 +113,12 @@ export const TabSubscription = () => {
                     planId,
                     billingInterval,
                 );
-                if (!result.success) {
-                    throw new Error(
-                        result.error || "Failed to update subscription",
-                    );
+
+                if (result.success) {
+                    toast.success("Subscription updated successfully!");
+                    await reloadData();
+                } else {
+                    toast.error(result.error || "Failed to update subscription");
                 }
             } else {
                 // New Stripe customer, redirect to checkout
@@ -97,29 +131,15 @@ export const TabSubscription = () => {
                     window.location.href = result.sessionUrl;
                     return;
                 } else {
-                    throw new Error(
-                        result.error || "Failed to create checkout session",
-                    );
+                    toast.error(result.error || "Failed to create checkout session");
                 }
             }
         } catch (error) {
             console.error("Error updating subscription:", error);
-            showToast("Failed to update subscription", "error");
+            toast.error("Failed to update subscription");
         } finally {
             setIsUpdating(false);
         }
-    };
-
-    const showToast = (message: string, type: "success" | "error") => {
-        const toast = document.createElement("div");
-        toast.className = "toast toast-top toast-end";
-        toast.innerHTML = `
-            <div class="alert alert-${type}">
-                <span>${message}</span>
-            </div>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
     };
 
     const handleCancelSubscription = async () => {
@@ -131,27 +151,21 @@ export const TabSubscription = () => {
                 if (result.success && result.sessionUrl) {
                     window.location.href = result.sessionUrl;
                 } else {
-                    showToast(
-                        result.error || "Failed to access billing portal",
-                        "error",
-                    );
+                    toast.error(result.error || "Failed to access billing portal");
                 }
             } else {
                 // For local-only subscriptions (like personal plan)
                 const result = await cancelSubscription(businessId);
                 if (result.success) {
-                    showToast("Subscription cancelled successfully", "success");
-                    await loadData();
+                    toast.success("Subscription cancelled successfully");
+                    await reloadData();
                 } else {
-                    showToast(
-                        result.error || "Failed to cancel subscription",
-                        "error",
-                    );
+                    toast.error(result.error || "Failed to cancel subscription");
                 }
             }
         } catch (error) {
             console.error("Error canceling subscription:", error);
-            showToast("Failed to cancel subscription", "error");
+            toast.error("Failed to cancel subscription");
         } finally {
             setIsLoading(false);
         }
