@@ -37,7 +37,7 @@ export function useUserRole(): UserRoleHookReturn {
             setError(null);
 
             try {
-                const userData = await getUserByAuthId(clerkUser.id, businessId);
+                const userData = await getUserByAuthId(businessId, clerkUser.id);
 
                 if (userData && 'role' in userData && userData.role) {
                     setUserRole(userData.role as UserRole);
