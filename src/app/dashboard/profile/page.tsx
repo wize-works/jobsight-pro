@@ -91,7 +91,7 @@ export default function ProfilePage() {
 
     const loadCurrentUser = async () => {
         if (!user?.id || !businessId) return;
-        console.log("Loading user data for:", user.id, "Business ID:", businessId);
+
         try {
             const dbUser = await getUserByAuthId(businessId, user.id);
             if (dbUser) {
