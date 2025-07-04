@@ -1,3 +1,10 @@
+## [1.114.1](https://github.com/wize-works/jobsight-pro/compare/v1.114.0...v1.114.1) (2025-07-04)
+
+
+### Bug Fixes
+
+* remove unused dashboard components and improve user role fetching logic ([a19e0f4](https://github.com/wize-works/jobsight-pro/commit/a19e0f4f6219baf4ce327b8188b8543731e92052))
+
 # [1.114.0](https://github.com/wize-works/jobsight-pro/compare/v1.113.0...v1.114.0) (2025-07-04)
 
 
