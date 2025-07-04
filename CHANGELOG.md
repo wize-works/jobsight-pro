@@ -1,3 +1,10 @@
+# [1.114.0](https://github.com/wize-works/jobsight-pro/compare/v1.113.0...v1.114.0) (2025-07-04)
+
+
+### Features
+
+* Implement role-based dashboard with user role context and dynamic widget configuration ([94894ad](https://github.com/wize-works/jobsight-pro/commit/94894ad3553bbe82e2c1341da5fbda1bc8ca451b))
+
 # [1.113.0](https://github.com/wize-works/jobsight-pro/compare/v1.112.0...v1.113.0) (2025-07-03)
 
 
