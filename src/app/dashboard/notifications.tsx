@@ -24,26 +24,42 @@ export const Notifications = () => {
         try {
             setLoading(true);
             const unreadNotifications = await getUnreadNotifications(businessId, user.id);
-            setNotifications(unreadNotifications);
+            // Additional safety check to ensure we always set an array
+            setNotifications(Array.isArray(unreadNotifications) ? unreadNotifications : []);
         } catch (error) {
             console.error("Error loading notifications:", error);
+            setNotifications([]); // Reset to empty array on error
         } finally {
             setLoading(false);
         }
     }, [user?.id, businessId]); useEffect(() => {
         if (user?.id && businessId && businessId !== "") {
             // Load notifications when prerequisites are met
+            let isMounted = true;
+
             (async () => {
                 setLoading(true);
                 try {
                     const unreadNotifications = await getUnreadNotifications(businessId, user.id);
-                    setNotifications(unreadNotifications);
+                    if (isMounted) {
+                        // Additional safety check to ensure we always set an array
+                        setNotifications(Array.isArray(unreadNotifications) ? unreadNotifications : []);
+                    }
                 } catch (error) {
                     console.error("Error loading notifications:", error);
+                    if (isMounted) {
+                        setNotifications([]); // Reset to empty array on error
+                    }
                 } finally {
-                    setLoading(false);
+                    if (isMounted) {
+                        setLoading(false);
+                    }
                 }
             })();
+
+            return () => {
+                isMounted = false;
+            };
         }
     }, [user?.id, businessId]);
 
@@ -58,7 +74,7 @@ export const Notifications = () => {
 
         try {
             await markNotificationAsRead(businessId, notificationId);
-            setNotifications(prev => prev.filter(n => n.id !== notificationId));
+            setNotifications(prev => (prev || []).filter(n => n.id !== notificationId));
         } catch (error) {
             console.error("Error marking notification as read:", error);
             toast.error("Failed to mark notification as read");
@@ -66,7 +82,7 @@ export const Notifications = () => {
     };
 
     const handleMarkAllAsRead = async () => {
-        if (!user?.id || !businessId || notifications.length === 0) return;
+        if (!user?.id || !businessId || !notifications || notifications.length === 0) return;
 
         try {
             await markAllNotificationsAsRead(businessId, user.id);
@@ -127,9 +143,9 @@ export const Notifications = () => {
                 >
                     <i className="far fa-bell"></i>
                 </div>
-                {notifications.length > 0 && (
+                {(notifications?.length || 0) > 0 && (
                     <span className="indicator-item indicator-bottom badge badge-info badge-sm rounded-full">
-                        {notifications.length > 99 ? '99+' : notifications.length}
+                        {(notifications?.length || 0) > 99 ? '99+' : (notifications?.length || 0)}
                     </span>
                 )}
             </div>
@@ -141,9 +157,9 @@ export const Notifications = () => {
                     <div className="card-body">
                         <div className="flex justify-between items-center mb-2">
                             <span className="font-bold text-lg">
-                                {loading ? "Loading..." : `${notifications.length} Notifications`}
+                                {loading ? "Loading..." : `${notifications?.length || 0} Notifications`}
                             </span>
-                            {notifications.length > 0 && (
+                            {(notifications?.length || 0) > 0 && (
                                 <button
                                     className="btn btn-xs btn-ghost"
                                     onClick={handleMarkAllAsRead}
@@ -157,14 +173,14 @@ export const Notifications = () => {
                             <div className="flex justify-center py-4">
                                 <div className="loading loading-spinner loading-sm"></div>
                             </div>
-                        ) : notifications.length === 0 ? (
+                        ) : !notifications || notifications.length === 0 ? (
                             <div className="text-center py-8 text-base-content/60">
                                 <i className="fas fa-bell-slash fa-2x mb-2"></i>
                                 <p>No new notifications</p>
                             </div>
                         ) : (
                             <div className="max-h-96 overflow-y-auto overflow-x-hidden">
-                                {notifications.slice(0, 10).map((notification) => (
+                                {(notifications || []).slice(0, 10).map((notification) => (
                                     <div
                                         key={notification.id}
                                         className="py-3 border-b border-base-300 last:border-b-0 hover:bg-base-200 rounded px-2 -mx-2 cursor-pointer"
@@ -202,9 +218,9 @@ export const Notifications = () => {
                                         </div>
                                     </div>
                                 ))}
-                                {notifications.length > 10 && (
+                                {(notifications?.length || 0) > 10 && (
                                     <div className="text-center py-2 text-xs text-base-content/60">
-                                        And {notifications.length - 10} more...
+                                        And {(notifications?.length || 0) - 10} more...
                                     </div>
                                 )}
                             </div>
