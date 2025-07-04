@@ -24,12 +24,17 @@ import ProjectModal from "./projects/components/modal-project"
 import TaskDetailsModal from "./tasks/components/task-details-modal"
 import EquipmentNewModal from "./equipment/components/modal-new"
 import DailyLogModal from "./daily-logs/components/modal-log"
+import PhotoUploadModal from "@/components/modals/photo-upload-modal"
+import TimeTrackingModal from "@/components/modals/time-tracking-modal"
+import ViewMyTasksModal from "@/components/modals/view-my-tasks-modal"
 import { useBusiness } from "@/lib/business-context"
 import Loading from "@/app/loading";
 import ErrorBoundary from "@/components/error-boundary"
 import WeatherWidget from "@/components/weather-widget"
 import CompactWeatherWidget from "@/components/compact-weather-widget"
 import { processAIQuery } from "@/app/actions/ai"
+import { RoleBasedDashboard } from "@/components/role-based-dashboard"
+import { useUserRole } from "@/hooks/use-user-role"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -126,11 +131,16 @@ interface DashboardData {
 
 export default function Dashboard() {
     const { businessId, loading } = useBusiness();
+    const { userRole, loading: roleLoading } = useUserRole();
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
     const [projectModal, setProjectModal] = useState(false);
     const [taskModal, setTaskModal] = useState(false);
     const [equipmentModal, setEquipmentModal] = useState(false);
-    const [dailyLogModal, setDailyLogModal] = useState(false); const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
+    const [dailyLogModal, setDailyLogModal] = useState(false);
+    const [photoUploadModal, setPhotoUploadModal] = useState(false);
+    const [timeTrackingModal, setTimeTrackingModal] = useState(false);
+    const [viewMyTasksModal, setViewMyTasksModal] = useState(false);
+    const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
     const [aiGuidance, setAiGuidance] = useState<string>('');
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
@@ -338,7 +348,47 @@ export default function Dashboard() {
         }
     };
 
-    if (!dashboardData || loading) {
+    const handleQuickAction = (action: string) => {
+        switch (action) {
+            case 'addDailyLog':
+                setDailyLogModal(true);
+                break;
+            case 'createProject':
+                setProjectModal(true);
+                break;
+            case 'assignTask':
+                setTaskModal(true);
+                break;
+            case 'viewMyTasks':
+                setViewMyTasksModal(true);
+                break;
+            case 'uploadPhoto':
+                setPhotoUploadModal(true);
+                break;
+            case 'startTimeTracking':
+                setTimeTrackingModal(true);
+                break;
+            case 'reportSafety':
+                setDailyLogModal(true);
+                break;
+            case 'manageUsers':
+                // TODO: Navigate to user management
+                console.log('Navigate to user management');
+                break;
+            case 'viewFinancials':
+                // TODO: Navigate to financials
+                console.log('Navigate to financials');
+                break;
+            case 'systemSettings':
+                // TODO: Navigate to system settings
+                console.log('Navigate to system settings');
+                break;
+            default:
+                console.log(`Quick action: ${action}`);
+        }
+    };
+
+    if (!dashboardData || loading || roleLoading) {
         return <Loading />
     }
 
@@ -493,496 +543,493 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                <div className="flex flex-col md:flex-row items-center justify-between">
-                    <div className="">
-                        <h1 className="text-3xl font-bold mb-2">Command Center</h1>
-                        <p className="text-lg opacity-90">Real-time insights into your projects, teams, and operations</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 md:mt-0 w-full md:w-auto">
-                        <button className="btn btn-primary btn-lg md:btn-sm" onClick={() => setProjectModal(true)}>
-                            <i className="far fa-diagram-project mr-2"></i>
-                            New Projects
-                        </button>
-                        <button className="btn btn-secondary btn-lg md:btn-sm" onClick={() => setTaskModal(true)}>
-                            <i className="far fa-tasks mr-2"></i>
-                            New Tasks
-                        </button>
-                        <button className="btn btn-info btn-lg md:btn-sm" onClick={() => setDailyLogModal(true)}>
-                            <i className="far fa-calendar-alt mr-2"></i>
-                            Daily Log
-                        </button>
-                        <button className="btn btn-accent btn-lg md:btn-sm" onClick={() => setEquipmentModal(true)}>
-                            <i className="far fa-users mr-2"></i>
-                            New Equipment
-                        </button>
+        <RoleBasedDashboard fallbackRole="member" onQuickAction={handleQuickAction}>
+            <div className="space-y-6">
+                {/* Modal Components */}
+                {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
+                {taskModal && (
+                    <TaskDetailsModal
+                        isOpen={taskModal}
+                        onClose={() => setTaskModal(false)}
+                        task={null} // null = create mode
+                        projects={[]} // Empty for now, will be populated by the modal if needed
+                        crews={[]} // Empty for now, will be populated by the modal if needed
+                        onTaskUpdate={() => { }} // Not used in create mode
+                        onTaskDelete={() => { }} // Not used in create mode
+                        onTaskCreate={() => {
+                            setTaskModal(false);
+                            // Refresh dashboard data
+                            window.location.reload();
+                        }}
+                    />
+                )}
+                {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
+                {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
 
-                    </div>
-                </div>
-            </div>
-
-            {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
-            {taskModal && (
-                <TaskDetailsModal
-                    isOpen={taskModal}
-                    onClose={() => setTaskModal(false)}
-                    task={null} // null = create mode
-                    projects={[]} // Empty for now, will be populated by the modal if needed
-                    crews={[]} // Empty for now, will be populated by the modal if needed
-                    onTaskUpdate={() => { }} // Not used in create mode
-                    onTaskDelete={() => { }} // Not used in create mode
-                    onTaskCreate={() => {
-                        setTaskModal(false);
-                        // Refresh dashboard data
-                        window.location.reload();
+                {/* New Quick Action Modals */}
+                <PhotoUploadModal
+                    isOpen={photoUploadModal}
+                    onClose={() => setPhotoUploadModal(false)}
+                    onPhotoCapture={(photoData) => {
+                        console.log('Photo captured:', photoData);
+                        // TODO: Implement photo upload to backend
+                        setPhotoUploadModal(false);
                     }}
                 />
-            )}
-            {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
-            {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
-
-            {/* Key Performance Indicators */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load dashboard statistics</h3>
-                        <div className="text-xs">Please refresh the page to try again.</div>
-                    </div>
-                </div>
-            )}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="stat bg-gradient-to-br from-primary/70 to-primary/100 text-primary-content rounded-lg shadow-lg">
-                        <div className="stat-figure">
-                            <i className="far fa-screwdriver-wrench text-3xl opacity-80"></i>
-                        </div>
-                        <div className="stat-title text-blue-100">Active Projects</div>
-                        <div className="stat-value">{dashboardData.stats.activeProjects}</div>
-                        <div className="stat-desc text-blue-200">of {dashboardData.stats.totalProjects} total</div>
-                    </div>
-
-                    <div className="stat bg-gradient-to-br from-secondary/70 to-secondary/100 text-secondary-content rounded-lg shadow-lg">
-                        <div className="stat-figure">
-                            <i className="far fa-tasks text-3xl opacity-80"></i>
-                        </div>
-                        <div className="stat-title text-emerald-100">Pending Tasks</div>
-                        <div className="stat-value">{dashboardData.stats.pendingTasks}</div>
-                        <div className="stat-desc text-emerald-200">of {dashboardData.stats.totalTasks} total</div>
-                    </div>
-
-                    <div className="stat bg-gradient-to-br from-accent/70 to-accent/100 text-accent-content rounded-lg shadow-lg">
-                        <div className="stat-figure">
-                            <i className="far fa-tools text-3xl opacity-80"></i>
-                        </div>
-                        <div className="stat-title text-amber-100">Equipment Active</div>
-                        <div className="stat-value">{dashboardData.stats.equipmentUtilization}%</div>
-                        <div className="stat-desc text-amber-200">{dashboardData.stats.totalEquipment} total units</div>
-                    </div>
-
-                    <div className="stat bg-gradient-to-br from-info/70 to-info/100 text-info-content rounded-lg shadow-lg">
-                        <div className="stat-figure">
-                            <i className="far fa-dollar-sign text-3xl opacity-80"></i>
-                        </div>
-                        <div className="stat-title text-green-100">Revenue</div>
-                        <div className="stat-value text-2xl">{formatCurrency(dashboardData.stats.totalRevenue)}</div>
-                        <div className="stat-desc text-green-200">{formatCurrency(dashboardData.stats.pendingRevenue)} pending</div>
-                    </div>
-                </div>
-            </ErrorBoundary>
-
-            {/* Charts Section */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load dashboard charts</h3>
-                        <div className="text-xs">Charts are temporarily unavailable. Please refresh the page.</div>
-                    </div>
-                </div>
-            )}>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-chart-pie text-primary mr-2"></i>
-                                Project Status
-                            </h2>
-                            <div className="h-64">
-                                <Doughnut data={projectStatusData} options={chartOptions} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-chart-bar text-primary mr-2"></i>
-                                Task Distribution
-                            </h2>
-                            <div className="h-64">
-                                <Bar data={taskStatusData} options={chartOptions} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-cogs text-primary mr-2"></i>
-                                Equipment Status
-                            </h2>
-                            <div className="h-64">
-                                <Doughnut data={equipmentData} options={chartOptions} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </ErrorBoundary>
-
-            {/* Financial Overview */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load financial overview</h3>
-                        <div className="text-xs">Financial data is temporarily unavailable.</div>
-                    </div>
-                </div>
-            )}>
-                <div className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                        <h2 className="card-title text-lg">
-                            <i className="far fa-chart-line text-primary mr-2"></i>
-                            Financial Overview
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div className="stat">
-                                <div className="stat-title">Total Revenue</div>
-                                <div className="stat-value text-success">{formatCurrency(dashboardData.financialOverview.totalRevenue)}</div>
-                            </div>
-                            <div className="stat">
-                                <div className="stat-title">Pending</div>
-                                <div className="stat-value text-warning">{formatCurrency(dashboardData.financialOverview.pendingRevenue)}</div>
-                            </div>
-                            <div className="stat">
-                                <div className="stat-title">Total Invoices</div>
-                                <div className="stat-value">{dashboardData.financialOverview.totalInvoices}</div>
-                            </div>
-                            <div className="stat">
-                                <div className="stat-title">Paid</div>
-                                <div className="stat-value text-success">{dashboardData.financialOverview.paidInvoices}</div>
-                            </div>
-                            <div className="stat">
-                                <div className="stat-title">Overdue</div>
-                                <div className="stat-value text-error">{dashboardData.financialOverview.overdueInvoices}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </ErrorBoundary>
-
-            {/* Compact Weather Forecast */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load weather forecast</h3>
-                        <div className="text-xs">Weather data is temporarily unavailable.</div>
-                    </div>
-                </div>
-            )}>
-                <CompactWeatherWidget
-                    location={{
-                        latitude: 40.7128,
-                        longitude: -74.0060,
-                        address: "Current Location"
+                <TimeTrackingModal
+                    isOpen={timeTrackingModal}
+                    onClose={() => setTimeTrackingModal(false)}
+                />
+                <ViewMyTasksModal
+                    isOpen={viewMyTasksModal}
+                    onClose={() => setViewMyTasksModal(false)}
+                    onCreateNewTask={() => {
+                        setViewMyTasksModal(false);
+                        setTaskModal(true);
                     }}
                 />
-            </ErrorBoundary>
 
-            {/* Daily Logs, AI Recommendations & Weather */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load analytics section</h3>
-                        <div className="text-xs">Daily logs, AI recommendations, and weather data are temporarily unavailable.</div>
+                {/* Key Performance Indicators */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load dashboard statistics</h3>
+                            <div className="text-xs">Please refresh the page to try again.</div>
+                        </div>
                     </div>
-                </div>
-            )}>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Daily Logs Trends */}
+                )}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="stat bg-gradient-to-br from-primary/70 to-primary/100 text-primary-content rounded-lg shadow-lg">
+                            <div className="stat-figure">
+                                <i className="far fa-screwdriver-wrench text-3xl opacity-80"></i>
+                            </div>
+                            <div className="stat-title text-blue-100">Active Projects</div>
+                            <div className="stat-value">{dashboardData.stats.activeProjects}</div>
+                            <div className="stat-desc text-blue-200">of {dashboardData.stats.totalProjects} total</div>
+                        </div>
+
+                        <div className="stat bg-gradient-to-br from-secondary/70 to-secondary/100 text-secondary-content rounded-lg shadow-lg">
+                            <div className="stat-figure">
+                                <i className="far fa-tasks text-3xl opacity-80"></i>
+                            </div>
+                            <div className="stat-title text-emerald-100">Pending Tasks</div>
+                            <div className="stat-value">{dashboardData.stats.pendingTasks}</div>
+                            <div className="stat-desc text-emerald-200">of {dashboardData.stats.totalTasks} total</div>
+                        </div>
+
+                        <div className="stat bg-gradient-to-br from-accent/70 to-accent/100 text-accent-content rounded-lg shadow-lg">
+                            <div className="stat-figure">
+                                <i className="far fa-tools text-3xl opacity-80"></i>
+                            </div>
+                            <div className="stat-title text-amber-100">Equipment Active</div>
+                            <div className="stat-value">{dashboardData.stats.equipmentUtilization}%</div>
+                            <div className="stat-desc text-amber-200">{dashboardData.stats.totalEquipment} total units</div>
+                        </div>
+
+                        <div className="stat bg-gradient-to-br from-info/70 to-info/100 text-info-content rounded-lg shadow-lg">
+                            <div className="stat-figure">
+                                <i className="far fa-dollar-sign text-3xl opacity-80"></i>
+                            </div>
+                            <div className="stat-title text-green-100">Revenue</div>
+                            <div className="stat-value text-2xl">{formatCurrency(dashboardData.stats.totalRevenue)}</div>
+                            <div className="stat-desc text-green-200">{formatCurrency(dashboardData.stats.pendingRevenue)} pending</div>
+                        </div>
+                    </div>
+                </ErrorBoundary>
+
+                {/* Charts Section */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load dashboard charts</h3>
+                            <div className="text-xs">Charts are temporarily unavailable. Please refresh the page.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-chart-pie text-primary mr-2"></i>
+                                    Project Status
+                                </h2>
+                                <div className="h-64">
+                                    <Doughnut data={projectStatusData} options={chartOptions} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-chart-bar text-primary mr-2"></i>
+                                    Task Distribution
+                                </h2>
+                                <div className="h-64">
+                                    <Bar data={taskStatusData} options={chartOptions} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-cogs text-primary mr-2"></i>
+                                    Equipment Status
+                                </h2>
+                                <div className="h-64">
+                                    <Doughnut data={equipmentData} options={chartOptions} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ErrorBoundary>
+
+                {/* Financial Overview */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load financial overview</h3>
+                            <div className="text-xs">Financial data is temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
                     <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
+                            <h2 className="card-title text-lg">
                                 <i className="far fa-chart-line text-primary mr-2"></i>
-                                Daily Logs Trends
+                                Financial Overview
                             </h2>
-                            <div className="h-64">
-                                {dashboardData.dailyLogsData.dates.length > 0 ? (
-                                    <Line data={dailyLogsData} options={lineChartOptions} />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-base-content/50">
-                                        <div className="text-center">
-                                            <i className="far fa-chart-line text-4xl mb-2"></i>
-                                            <p>No daily logs data yet</p>
-                                            <button
-                                                className="btn btn-primary btn-sm mt-2"
-                                                onClick={() => setDailyLogModal(true)}
-                                            >
-                                                Add Daily Log
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div className="stat">
+                                    <div className="stat-title">Total Revenue</div>
+                                    <div className="stat-value text-success">{formatCurrency(dashboardData.financialOverview.totalRevenue)}</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-title">Pending</div>
+                                    <div className="stat-value text-warning">{formatCurrency(dashboardData.financialOverview.pendingRevenue)}</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-title">Total Invoices</div>
+                                    <div className="stat-value">{dashboardData.financialOverview.totalInvoices}</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-title">Paid</div>
+                                    <div className="stat-value text-success">{dashboardData.financialOverview.paidInvoices}</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-title">Overdue</div>
+                                    <div className="stat-value text-error">{dashboardData.financialOverview.overdueInvoices}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    {/* AI Guidance */}
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-brain text-primary mr-2"></i>
-                                AI Insights
-                            </h2>
-                            <div className="min-h-32">
-                                {loadingRecommendations ? (
-                                    <div className="flex items-center justify-center py-8">
-                                        <div className="loading loading-spinner loading-lg"></div>
-                                        <span className="ml-2">Analyzing your data...</span>
-                                    </div>
-                                ) : aiGuidance ? (
-                                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border-l-4 border-primary">
-                                        <div
-                                            className="text-sm leading-relaxed text-base-content/90"
-                                            dangerouslySetInnerHTML={{
-                                                __html: aiGuidance.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                            }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-lightbulb text-4xl mb-2"></i>
-                                        <p>AI is analyzing your operations...</p>
-                                        <p className="text-xs">Insights will appear shortly</p>
-                                    </div>
-                                )}
+                </ErrorBoundary>
+
+                {/* Compact Weather Forecast */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load weather forecast</h3>
+                            <div className="text-xs">Weather data is temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
+                    <CompactWeatherWidget
+                        location={{
+                            latitude: 40.7128,
+                            longitude: -74.0060,
+                            address: "Current Location"
+                        }}
+                    />
+                </ErrorBoundary>
+
+                {/* Daily Logs, AI Recommendations & Weather */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load analytics section</h3>
+                            <div className="text-xs">Daily logs, AI recommendations, and weather data are temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Daily Logs Trends */}
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-chart-line text-primary mr-2"></i>
+                                    Daily Logs Trends
+                                </h2>
+                                <div className="h-64">
+                                    {dashboardData.dailyLogsData.dates.length > 0 ? (
+                                        <Line data={dailyLogsData} options={lineChartOptions} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-base-content/50">
+                                            <div className="text-center">
+                                                <i className="far fa-chart-line text-4xl mb-2"></i>
+                                                <p>No daily logs data yet</p>
+                                                <button
+                                                    className="btn btn-primary btn-sm mt-2"
+                                                    onClick={() => setDailyLogModal(true)}
+                                                >
+                                                    Add Daily Log
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-tools text-primary mr-2"></i>
-                                Equipment Utilization
-                            </h2>
-                            <div className="h-64">
-                                {dashboardData.dailyLogsData.dates.length > 0 ? (
-                                    <Line data={equipmentUtilizationData} options={lineChartOptions} />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-base-content/50">
-                                        <div className="text-center">
-                                            <i className="far fa-tools text-4xl mb-2"></i>
-                                            <p>No equipment data yet</p>
-                                            <Link href="/dashboard/equipment" className="btn btn-primary btn-sm mt-2">
-                                                Add Equipment
+                        {/* AI Guidance */}
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-brain text-primary mr-2"></i>
+                                    AI Insights
+                                </h2>
+                                <div className="min-h-32">
+                                    {loadingRecommendations ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <div className="loading loading-spinner loading-lg"></div>
+                                            <span className="ml-2">Analyzing your data...</span>
+                                        </div>
+                                    ) : aiGuidance ? (
+                                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border-l-4 border-primary">
+                                            <div
+                                                className="text-sm leading-relaxed text-base-content/90"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: aiGuidance.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 text-base-content/50">
+                                            <i className="far fa-lightbulb text-4xl mb-2"></i>
+                                            <p>AI is analyzing your operations...</p>
+                                            <p className="text-xs">Insights will appear shortly</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>                    <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-tools text-primary mr-2"></i>
+                                    Equipment Utilization
+                                </h2>
+                                <div className="h-64">
+                                    {dashboardData.dailyLogsData.dates.length > 0 ? (
+                                        <Line data={equipmentUtilizationData} options={lineChartOptions} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-base-content/50">
+                                            <div className="text-center">
+                                                <i className="far fa-tools text-4xl mb-2"></i>
+                                                <p>No equipment data yet</p>
+                                                <Link href="/dashboard/equipment" className="btn btn-primary btn-sm mt-2">
+                                                    Add Equipment
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ErrorBoundary>
+                {/* Project Progress & Critical Tasks */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load project status</h3>
+                            <div className="text-xs">Project and task data is temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-building text-primary mr-2"></i>
+                                    Active Projects
+                                </h2>
+                                <div className="space-y-3">
+                                    {dashboardData.projectsWithProgress.length > 0 ? (
+                                        dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
+                                            <div key={project.id} className="border border-base-300 rounded-lg p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <Link href={`/dashboard/projects/${project.id}`} className="hover:text-primary transition-colors">
+                                                            <h3 className="font-semibold hover:underline">{project.name}</h3>
+                                                        </Link>
+                                                        <p className="text-sm text-base-content/70">{project.clientName}</p>
+                                                    </div>
+                                                    <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                                                        {project.status}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm">Progress: {project.progress}%</span>
+                                                    <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
+                                                </div>
+                                                <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
+                                                <div className="text-xs text-base-content/50 mt-1">
+                                                    Crew: {project.crewName}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 text-base-content/50">
+                                            <i className="far fa-plus-circle text-4xl mb-2"></i>
+                                            <p>No active projects yet</p>
+                                            <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
+                                                Create Project
                                             </Link>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </ErrorBoundary>
-            {/* Project Progress & Critical Tasks */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load project status</h3>
-                        <div className="text-xs">Project and task data is temporarily unavailable.</div>
-                    </div>
-                </div>
-            )}>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-building text-primary mr-2"></i>
-                                Active Projects
-                            </h2>
-                            <div className="space-y-3">
-                                {dashboardData.projectsWithProgress.length > 0 ? (
-                                    dashboardData.projectsWithProgress.slice(0, 3).map((project) => (
-                                        <div key={project.id} className="border border-base-300 rounded-lg p-4">
+
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-exclamation-triangle text-warning mr-2"></i>
+                                    Critical Tasks
+                                </h2>
+                                <div className="space-y-3">                                {dashboardData.criticalTasks.length > 0 ? (
+                                    dashboardData.criticalTasks.slice(0, 3).map((task) => (
+                                        <div key={task.id} className={`border rounded-lg p-4 ${task.isOverdue ? 'border-error bg-error/5' : 'border-warning bg-warning/5'}`}>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <Link href={`/dashboard/projects/${project.id}`} className="hover:text-primary transition-colors">
-                                                        <h3 className="font-semibold hover:underline">{project.name}</h3>
+                                                    <Link href={`/dashboard/tasks/${task.id}`} className="hover:text-primary transition-colors">
+                                                        <h3 className="font-semibold hover:underline">{task.name}</h3>
                                                     </Link>
-                                                    <p className="text-sm text-base-content/70">{project.clientName}</p>
+                                                    <p className="text-sm text-base-content/70">{task.projectName}</p>
                                                 </div>
-                                                <span className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                                                    {project.status}
+                                                <span className={`badge ${task.isOverdue ? 'badge-error' : 'badge-warning'}`}>
+                                                    {task.isOverdue ? 'Overdue' : 'Due Soon'}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className="text-sm">Progress: {project.progress}%</span>
-                                                <span className="text-sm">{project.completedTasks}/{project.taskCount} tasks</span>
-                                            </div>
-                                            <progress className="progress progress-primary w-full" value={project.progress} max="100"></progress>
-                                            <div className="text-xs text-base-content/50 mt-1">
-                                                Crew: {project.crewName}
+                                            <div className="text-sm space-y-1">
+                                                <div>Due: {formatDate(task.dueDate)}</div>
+                                                <div>Assigned: {task.crewName}</div>
+                                                <div>Client: {task.clientName}</div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-plus-circle text-4xl mb-2"></i>
-                                        <p>No active projects yet</p>
-                                        <Link href="/dashboard/projects" className="btn btn-primary btn-sm mt-2">
-                                            Create Project
-                                        </Link>
+                                        <i className="far fa-check-circle text-4xl mb-2 text-success"></i>
+                                        <p>All tasks are on track!</p>
                                     </div>
                                 )}
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-exclamation-triangle text-warning mr-2"></i>
-                                Critical Tasks
-                            </h2>
-                            <div className="space-y-3">                                {dashboardData.criticalTasks.length > 0 ? (
-                                dashboardData.criticalTasks.slice(0, 3).map((task) => (
-                                    <div key={task.id} className={`border rounded-lg p-4 ${task.isOverdue ? 'border-error bg-error/5' : 'border-warning bg-warning/5'}`}>
-                                        <div className="flex justify-between items-start mb-2">
+                </ErrorBoundary>
+                {/* Team Performance & Recent Activity */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load team and activity data</h3>
+                            <div className="text-xs">Team performance and recent activity are temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-users text-primary mr-2"></i>
+                                    Team Performance
+                                </h2>
+                                <div className="space-y-3">                                {dashboardData.teamMetrics.length > 0 ? (
+                                    dashboardData.teamMetrics.slice(0, 3).map((team) => (
+                                        <div key={team.id} className="flex items-center justify-between p-3 border border-base-300 rounded-lg">
                                             <div>
-                                                <Link href={`/dashboard/tasks/${task.id}`} className="hover:text-primary transition-colors">
-                                                    <h3 className="font-semibold hover:underline">{task.name}</h3>
+                                                <Link href={`/dashboard/crews/${team.id}`} className="hover:text-primary transition-colors">
+                                                    <h3 className="font-semibold hover:underline">{team.name}</h3>
                                                 </Link>
-                                                <p className="text-sm text-base-content/70">{task.projectName}</p>
+                                                <p className="text-sm text-base-content/70">
+                                                    {team.activeTasks} active • {team.completedTasks} completed
+                                                </p>
                                             </div>
-                                            <span className={`badge ${task.isOverdue ? 'badge-error' : 'badge-warning'}`}>
-                                                {task.isOverdue ? 'Overdue' : 'Due Soon'}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm space-y-1">
-                                            <div>Due: {formatDate(task.dueDate)}</div>
-                                            <div>Assigned: {task.crewName}</div>
-                                            <div>Client: {task.clientName}</div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 text-base-content/50">
-                                    <i className="far fa-check-circle text-4xl mb-2 text-success"></i>
-                                    <p>All tasks are on track!</p>
-                                </div>
-                            )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </ErrorBoundary>
-            {/* Team Performance & Recent Activity */}
-            <ErrorBoundary fallback={(error) => (
-                <div className="alert alert-error">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h3 className="font-bold">Failed to load team and activity data</h3>
-                        <div className="text-xs">Team performance and recent activity are temporarily unavailable.</div>
-                    </div>
-                </div>
-            )}>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-users text-primary mr-2"></i>
-                                Team Performance
-                            </h2>
-                            <div className="space-y-3">                                {dashboardData.teamMetrics.length > 0 ? (
-                                dashboardData.teamMetrics.slice(0, 3).map((team) => (
-                                    <div key={team.id} className="flex items-center justify-between p-3 border border-base-300 rounded-lg">
-                                        <div>
-                                            <Link href={`/dashboard/crews/${team.id}`} className="hover:text-primary transition-colors">
-                                                <h3 className="font-semibold hover:underline">{team.name}</h3>
-                                            </Link>
-                                            <p className="text-sm text-base-content/70">
-                                                {team.activeTasks} active • {team.completedTasks} completed
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-bold">{team.productivity}%</div>
-                                            <div className="text-xs text-base-content/50">productivity</div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 text-base-content/50">
-                                    <i className="far fa-user-plus text-4xl mb-2"></i>
-                                    <p>No teams created yet</p>
-                                    <Link href="/dashboard/crews" className="btn btn-primary btn-sm mt-2">
-                                        Add Teams
-                                    </Link>
-                                </div>
-                            )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-lg mb-4">
-                                <i className="far fa-clock text-primary mr-2"></i>
-                                Recent Activity
-                            </h2>
-                            <div className="space-y-3">
-                                {dashboardData.recentActivity.length > 0 ? (
-                                    dashboardData.recentActivity.slice(0, 3).map((activity) => (
-                                        <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
-                                            {activity.type === 'daily_log' ? (
-                                                <Link href={`/dashboard/daily-logs/${activity.id}`} className="hover:text-primary transition-colors">
-                                                    <p className="font-medium text-sm hover:underline">{activity.message}</p>
-                                                </Link>
-                                            ) : (
-                                                <p className="font-medium text-sm">{activity.message}</p>
-                                            )}<div className="text-xs text-base-content/70 space-y-1">
-                                                <div>
-                                                    <Link href={`/dashboard/projects/${activity.projectId}`} className="hover:text-primary transition-colors hover:underline">
-                                                        {activity.projectName}
-                                                    </Link>
-                                                    {" • "}{activity.clientName}
-                                                </div>
-                                                <div>{formatDate(activity.timestamp)}</div>
-                                                {activity.weather && getWeatherDisplay(activity.weather) && (
-                                                    <div className="flex items-center gap-1">
-                                                        <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
-                                                        <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
-                                                    </div>
-                                                )}
+                                            <div className="text-right">
+                                                <div className="text-lg font-bold">{team.productivity}%</div>
+                                                <div className="text-xs text-base-content/50">productivity</div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-8 text-base-content/50">
-                                        <i className="far fa-clipboard-list text-4xl mb-2"></i>
-                                        <p>No recent activity</p>
-                                        <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
-                                            Add Daily Log
+                                        <i className="far fa-user-plus text-4xl mb-2"></i>
+                                        <p>No teams created yet</p>
+                                        <Link href="/dashboard/crews" className="btn btn-primary btn-sm mt-2">
+                                            Add Teams
                                         </Link>
                                     </div>
                                 )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <h2 className="card-title text-lg mb-4">
+                                    <i className="far fa-clock text-primary mr-2"></i>
+                                    Recent Activity
+                                </h2>
+                                <div className="space-y-3">
+                                    {dashboardData.recentActivity.length > 0 ? (
+                                        dashboardData.recentActivity.slice(0, 3).map((activity) => (
+                                            <div key={activity.id} className="border-l-4 border-primary pl-4 py-2">
+                                                {activity.type === 'daily_log' ? (
+                                                    <Link href={`/dashboard/daily-logs/${activity.id}`} className="hover:text-primary transition-colors">
+                                                        <p className="font-medium text-sm hover:underline">{activity.message}</p>
+                                                    </Link>
+                                                ) : (
+                                                    <p className="font-medium text-sm">{activity.message}</p>
+                                                )}<div className="text-xs text-base-content/70 space-y-1">
+                                                    <div>
+                                                        <Link href={`/dashboard/projects/${activity.projectId}`} className="hover:text-primary transition-colors hover:underline">
+                                                            {activity.projectName}
+                                                        </Link>
+                                                        {" • "}{activity.clientName}
+                                                    </div>
+                                                    <div>{formatDate(activity.timestamp)}</div>
+                                                    {activity.weather && getWeatherDisplay(activity.weather) && (
+                                                        <div className="flex items-center gap-1">
+                                                            <i className={`${getWeatherIcon(activity.weather)} text-xs`} />
+                                                            <span className="badge badge-outline badge-sm">{getWeatherDisplay(activity.weather)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 text-base-content/50">
+                                            <i className="far fa-clipboard-list text-4xl mb-2"></i>
+                                            <p>No recent activity</p>
+                                            <Link href="/dashboard/daily-logs" className="btn btn-primary btn-sm mt-2">
+                                                Add Daily Log
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </ErrorBoundary>
-        </div>
+                </ErrorBoundary>
+            </div>
+        </RoleBasedDashboard>
     )
 }

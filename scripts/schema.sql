@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS jobsight.organization_addresses (
 -- Users Table
 CREATE TABLE IF NOT EXISTS jobsight.users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  auth_id UUID UNIQUE,
+  auth_id VARCHAR(255) UNIQUE,
   organization_id UUID REFERENCES jobsight.organizations(id) ON DELETE SET NULL,
   first_name VARCHAR(100),
   last_name VARCHAR(100),
