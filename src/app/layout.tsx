@@ -18,7 +18,7 @@ export const metadata: Metadata = {
         "construction management, project management, field service, jobsite management, construction app",
     authors: [{ name: "JobSight Team" }],
     applicationName: "JobSight Pro",
-    manifest: "/manifest.json",
+    manifest: "/manifest.webmanifest",
     icons: {
         icon: [
             { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

@@ -65,31 +65,10 @@ const nextConfig = {
                 hostname: '**',
             },
         ],
-    },    // PWA Configuration - CSP DISABLED FOR CLERK OAUTH ROUTES
+    },
+    // Security and PWA headers
     async headers() {
         return [
-            {
-                source: '/sw.js',
-                headers: [
-                    {
-                        key: 'Cache-Control',
-                        value: 'public, max-age=0, must-revalidate',
-                    },
-                    {
-                        key: 'Service-Worker-Allowed',
-                        value: '/',
-                    },
-                ],
-            },
-            {
-                source: '/manifest.json',
-                headers: [
-                    {
-                        key: 'Cache-Control',
-                        value: 'public, max-age=31536000, immutable',
-                    },
-                ],
-            },
             // No CSP for Clerk OAuth routes
             {
                 source: '/(sign-in|sign-up|api/auth)/:path*',
@@ -160,15 +139,21 @@ const nextConfig = {
     },
 };
 
-module.exports = nextConfig;
-
-
-// Injected content via Sentry wizard below
-
+// Sentry configuration
 const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withSentryConfig(
-    module.exports,
+// Serwist configuration
+const withSerwist = require("@serwist/next").default({
+    swSrc: "src/app/sw.ts",
+    swDest: "public/sw.js",
+    cacheOnNavigation: true,
+    reloadOnOnline: true,
+    disable: process.env.NODE_ENV === "development",
+});
+
+// Chain configurations: Serwist wraps Sentry-configured Next.js config
+const sentryConfig = withSentryConfig(
+    nextConfig,
     {
         // For all available options, see:
         // https://www.npmjs.com/package/@sentry/webpack-plugin#options
@@ -201,3 +186,5 @@ module.exports = withSentryConfig(
         automaticVercelMonitors: true,
     }
 );
+
+module.exports = withSerwist(sentryConfig);
