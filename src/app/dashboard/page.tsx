@@ -229,7 +229,9 @@ export default function Dashboard() {
                     // Add daily logs chart data
                     dailyLogsData: processedDailyLogsData,
                     aiRecommendations: [] // Will be fetched separately
-                }; setDashboardData(data);
+                };
+
+                setDashboardData(data);
 
                 // Fetch AI recommendations after setting dashboard data
                 setTimeout(() => {
