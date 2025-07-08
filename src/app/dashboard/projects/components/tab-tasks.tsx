@@ -1,8 +1,23 @@
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { ProjectMilestone } from "@/types/project_milestones";
 import { progressBar } from "@/utils/progress";
-import { formatDate } from "date-fns";
+import { format as formatDate } from "date-fns";
 import ErrorBoundary from "@/components/error-boundary";
+
+// Helper function for safe date formatting
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatStr: string): string => {
+    if (!dateValue) return "Not set";
+
+    try {
+        const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+        // Check if date is valid
+        if (isNaN(date.getTime())) return "Invalid date";
+        return formatDate(date, formatStr);
+    } catch (error) {
+        console.error("Error formatting date:", error);
+        return "Invalid date";
+    }
+};
 
 export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDetails[], milestones?: ProjectMilestone[] }) {
     // Group tasks by milestone
@@ -69,7 +84,7 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                             <td>
                                                                 <div className="font-medium">{task.name}</div>
                                                                 <div className="text-xs text-base-content/70">
-                                                                    {formatDate(task.start_date || "", "MM/dd/yyyy")} - {formatDate(task.end_date || "", "MM/dd/yyyy")}
+                                                                    {task.start_date ? safeFormatDate(task.start_date, "MM/dd/yyyy") : "No start date"} - {task.end_date ? safeFormatDate(task.end_date, "MM/dd/yyyy") : "No end date"}
                                                                 </div>
                                                             </td>
                                                             <td>{task.crew_name}</td>
@@ -109,7 +124,7 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                         <td>
                                                             <div className="font-medium">{task.name}</div>
                                                             <div className="text-xs text-base-content/70">
-                                                                {formatDate(task.start_date || "", "MM/dd/yyyy")} - {formatDate(task.end_date || "", "MM/dd/yyyy")}
+                                                                {task.start_date ? safeFormatDate(task.start_date, "MM/dd/yyyy") : "No start date"} - {task.end_date ? safeFormatDate(task.end_date, "MM/dd/yyyy") : "No end date"}
                                                             </div>
                                                         </td>
                                                         <td>{task.crew_name}</td>
