@@ -3,7 +3,7 @@
 // Disable static generation for authenticated pages
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useBusiness } from "@/lib/business-context";
 // Updated to use offline-first client actions
 import { updateBusinessFromForm } from "@/app/actions/client/business";
@@ -34,6 +34,10 @@ export default function BusinessPage() {
     const [projectCount, setProjectCount] = useState(0);
     const [equipmentCount, setEquipmentCount] = useState(0);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const lastFetchTimeRef = useRef<number>(0);
+    const FETCH_DEBOUNCE_MS = 2000; // 2 seconds debounce
+    const needsRefreshRef = useRef<boolean>(false); // Track if a refresh is needed
     // Initialize usage data with real values - will be updated when data loads
     const [usageData, setUsageData] = useState({
         userCount: 0,
@@ -43,78 +47,124 @@ export default function BusinessPage() {
         projectsActive: 0,
         dailyLogsThisMonth: 0 // Will fetch real daily logs count
     });
+    // Use a stable reference for the fetch function
+    const fetchData = useCallback(async () => {
+        if (!businessId) return;
+
+        try {
+            const [usersRes, projectsRes, equipmentRes, businessSubscription, invoicesRes, dailyLogsRes] = await Promise.all([
+                getUsers(businessId),
+                getProjects(businessId),
+                getBusinessEquipment(businessId),
+                getCurrentSubscription(businessId),
+                getInvoices(),
+                getBusinessDailyLogs(businessId)
+            ]);
+
+            // Handle standardized response objects
+            const users = usersRes.success ? usersRes.data || [] : [];
+            const projects = Array.isArray(projectsRes) ? projectsRes : [];
+            const equipment = Array.isArray(equipmentRes) ? equipmentRes : [];
+
+            // Handle different response formats - some are arrays, some are response objects
+            const invoices = Array.isArray(invoicesRes) ? invoicesRes : [];
+            const dailyLogs = dailyLogsRes?.success ? (dailyLogsRes.data || []) :
+                (Array.isArray(dailyLogsRes) ? dailyLogsRes : []);
+
+            setUserCount(users.length);
+            setProjectCount(projects.length);
+            setEquipmentCount(equipment.length);
+            setSubscription(businessSubscription);
+
+            // Calculate current month data
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            const invoicesThisMonth = invoices.filter((invoice: any) => {
+                const invoiceDate = new Date(invoice.created_at || '');
+                return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+            }).length;
+
+            const dailyLogsThisMonth = dailyLogs.filter((log: any) => {
+                const logDate = new Date(log.created_at || '');
+                return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
+            }).length;
+
+            // Update usage data with real counts
+            setUsageData({
+                userCount: users.length,
+                storageUsedMB: 0, // TODO: Calculate actual storage usage from media uploads
+                invoicesThisMonth: invoicesThisMonth,
+                aiQueriesThisMonth: 0, // TODO: Track AI query usage in database
+                projectsActive: projects.filter((p: any) => p.status === 'active' || p.status === 'in-progress').length,
+                dailyLogsThisMonth: dailyLogsThisMonth
+            });
+
+            setDataLoaded(true);
+            needsRefreshRef.current = false; // Reset refresh flag after successful load
+        } catch (error) {
+            console.error("Error fetching analytics data:", error);
+            // Still set dataLoaded to true to prevent infinite retry loops
+            setDataLoaded(true);
+        } finally {
+            setIsFetching(false);
+        }
+    }, [businessId]);
+
+    // Debounced fetch function
+    const debouncedFetchData = useCallback(() => {
+        const now = Date.now();
+
+        // If already fetching or debounce period hasn't passed, mark for refresh later
+        if (isFetching || (now - lastFetchTimeRef.current < FETCH_DEBOUNCE_MS)) {
+            needsRefreshRef.current = true;
+            return;
+        }
+
+        lastFetchTimeRef.current = now;
+        setIsFetching(true);
+        fetchData();
+    }, [fetchData, isFetching, FETCH_DEBOUNCE_MS]);
+
+    // Effect for scheduling periodic refresh check if needed
     useEffect(() => {
-        if (businessId && !dataLoaded && !loading) {
-            async function fetchData() {
-                try {
-                    const [usersRes, projectsRes, equipmentRes, businessSubscription, invoicesRes, dailyLogsRes] = await Promise.all([
-                        getUsers(businessId),
-                        getProjects(businessId),
-                        getBusinessEquipment(businessId),
-                        getCurrentSubscription(businessId),
-                        getInvoices(),
-                        getBusinessDailyLogs(businessId)
-                    ]);
-
-                    // Handle standardized response objects
-                    const users = usersRes.success ? usersRes.data || [] : [];
-                    const projects = Array.isArray(projectsRes) ? projectsRes : [];
-                    const equipment = Array.isArray(equipmentRes) ? equipmentRes : [];
-
-                    // Handle different response formats - some are arrays, some are response objects
-                    const invoices = Array.isArray(invoicesRes) ? invoicesRes : [];
-                    const dailyLogs = dailyLogsRes?.success ? (dailyLogsRes.data || []) :
-                        (Array.isArray(dailyLogsRes) ? dailyLogsRes : []);
-
-                    setUserCount(users.length);
-                    setProjectCount(projects.length);
-                    setEquipmentCount(equipment.length);
-                    setSubscription(businessSubscription);
-
-                    // Calculate current month data
-                    const currentMonth = new Date().getMonth();
-                    const currentYear = new Date().getFullYear();
-
-                    const invoicesThisMonth = invoices.filter((invoice: any) => {
-                        const invoiceDate = new Date(invoice.created_at || '');
-                        return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
-                    }).length;
-
-                    const dailyLogsThisMonth = dailyLogs.filter((log: any) => {
-                        const logDate = new Date(log.created_at || '');
-                        return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
-                    }).length;
-
-                    // Update usage data with real counts
-                    setUsageData({
-                        userCount: users.length,
-                        storageUsedMB: 0, // TODO: Calculate actual storage usage from media uploads
-                        invoicesThisMonth: invoicesThisMonth,
-                        aiQueriesThisMonth: 0, // TODO: Track AI query usage in database
-                        projectsActive: projects.filter((p: any) => p.status === 'active' || p.status === 'in-progress').length,
-                        dailyLogsThisMonth: dailyLogsThisMonth
-                    });
-
-                    setDataLoaded(true);
-                } catch (error) {
-                    console.error("Error fetching analytics data:", error);
+        // If we're not fetching and a refresh is needed, schedule one
+        if (!isFetching && needsRefreshRef.current) {
+            const timer = setTimeout(() => {
+                if (needsRefreshRef.current && !isFetching) {
+                    debouncedFetchData();
                 }
-            }
-            fetchData();
-        }
+            }, FETCH_DEBOUNCE_MS);
 
-        if (!business) {
-            refreshBusiness();
+            return () => clearTimeout(timer);
         }
-    }, [businessId, business, loading, dataLoaded]);
+    }, [isFetching, debouncedFetchData]);
 
+    // Main data fetching effect - only runs on important state changes
     useEffect(() => {
-        if (business && !dataLoaded) {
+        // Only fetch data when we have a business ID, aren't already loading, and haven't loaded data yet
+        if (businessId && !dataLoaded && !loading) {
+            debouncedFetchData();
+        }
+    }, [businessId, loading, dataLoaded, debouncedFetchData]);
+
+    // Add a ref to track if we've attempted a refresh
+    const hasAttemptedRefreshRef = useRef<boolean>(false);
+
+    // Single useEffect to handle refreshing business if needed
+    useEffect(() => {
+        // Only refresh if business isn't loaded, we're not currently loading, 
+        // and we haven't already attempted a refresh
+        if (!business?.id && !loading && !hasAttemptedRefreshRef.current) {
+            hasAttemptedRefreshRef.current = true;
             refreshBusiness();
         }
-    }, [business, loading]);
+    }, [business?.id, loading, refreshBusiness]);
 
     const handleSaveChanges = async (formData: FormData) => {
+        // Prevent submission if already submitting
+        if (isSubmitting) return;
+
         setIsSubmitting(true);
         try {
             if (business?.id) {
@@ -124,7 +174,10 @@ export default function BusinessPage() {
             const result = await updateBusinessFromForm(formData);
 
             if (result.success) {
-                await refreshBusiness();
+                // Indicate data needs refresh but don't trigger immediate refresh
+                setDataLoaded(false);
+                needsRefreshRef.current = true;
+
                 toast.success("Business information updated successfully");
             } else {
                 toast.error("Failed to update business information");

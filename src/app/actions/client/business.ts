@@ -21,20 +21,41 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 // Global auth state for client actions
-let currentClerkUser: { id: string } | null = null;
-let authStateInitialized = false;
+// These are defined as global variables to be accessed across all client action files
+if (typeof global !== 'undefined') {
+    // Use hasOwnProperty to check if the property exists without triggering a "not defined" error
+    if (!Object.prototype.hasOwnProperty.call(global, 'currentClerkUser')) {
+        global.currentClerkUser = null;
+    }
+    
+    if (!Object.prototype.hasOwnProperty.call(global, 'authStateInitialized')) {
+        global.authStateInitialized = false;
+    }
+    
+    if (!Object.prototype.hasOwnProperty.call(global, 'currentBusinessId')) {
+        global.currentBusinessId = null;
+    }
+}
 
 // Initialize auth state (should be called from a React component that uses Clerk hooks)
 export function initializeAuthState(clerkUser: { id: string } | null) {
-    currentClerkUser = clerkUser;
-    authStateInitialized = true;
+    if (typeof global !== 'undefined') {
+        try {
+            global.currentClerkUser = clerkUser;
+            global.authStateInitialized = true;
+        } catch (e) {
+            console.error("Error initializing global auth state:", e);
+        }
+    }
 
     // Cache the auth_id for offline use
-    if (typeof window !== 'undefined' && clerkUser?.id) {
-        window.localStorage.setItem('cached_auth_id', clerkUser.id);
-    } else if (typeof window !== 'undefined' && !clerkUser) {
-        // Clear cached auth when user logs out
-        window.localStorage.removeItem('cached_auth_id');
+    if (typeof window !== 'undefined') {
+        if (clerkUser?.id) {
+            window.localStorage.setItem('cached_auth_id', clerkUser.id);
+        } else {
+            // Clear cached auth when user logs out
+            window.localStorage.removeItem('cached_auth_id');
+        }
     }
 }
 
@@ -45,17 +66,23 @@ function isOnline(): boolean {
 
 // Get current authenticated user ID (auth_id) from Clerk auth system
 async function getCurrentUserId(): Promise<string | null> {
-    // First priority: Use initialized Clerk user state (when online and available)tialized Clerk user state (when online and available)tialized Clerk user state (when online and available)
-    if (authStateInitialized && currentClerkUser?.id) {
-        return currentClerkUser.id;
-    }
-
-    // Second priority: Get from cached auth_id (for offline scenarios or when auth state not initialized)
-    if (typeof window !== 'undefined') {
-        const cachedAuthId = window.localStorage.getItem('cached_auth_id');
-        if (cachedAuthId) {
-            return cachedAuthId;
+    try {
+        // First priority: Use initialized Clerk user state (when online and available)
+        if (typeof global !== 'undefined' && 
+            global.authStateInitialized && 
+            global.currentClerkUser?.id) {
+            return global.currentClerkUser.id;
         }
+
+        // Second priority: Get from cached auth_id (for offline scenarios or when auth state not initialized)
+        if (typeof window !== 'undefined') {
+            const cachedAuthId = window.localStorage.getItem('cached_auth_id');
+            if (cachedAuthId) {
+                return cachedAuthId;
+            }
+        }
+    } catch (e) {
+        console.error("Error getting current user ID:", e);
     }
 
     // If no auth state available, return null (user needs to authenticate)
