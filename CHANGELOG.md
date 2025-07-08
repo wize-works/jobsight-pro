@@ -1,3 +1,12 @@
+# [1.118.0](https://github.com/wize-works/jobsight-pro/compare/v1.117.0...v1.118.0) (2025-07-08)
+
+
+### Features
+
+* Add InvoiceEditModal for editing invoice details and enhance modal handling ([8c10d0c](https://github.com/wize-works/jobsight-pro/commit/8c10d0ce6d4e8d9fc4a8f26547d40cab5039ea34))
+* Enhance user setup process with detailed business setup info and improved error handling ([6e4233a](https://github.com/wize-works/jobsight-pro/commit/6e4233a71146dffec953c759637d6a5ed161de18))
+* Implement setup completion functionality and enhance business update logic ([50f74c8](https://github.com/wize-works/jobsight-pro/commit/50f74c80ad7119de408daaeed97e455385c551cc))
+
 # [1.117.0](https://github.com/wize-works/jobsight-pro/compare/v1.116.1...v1.117.0) (2025-07-08)
 
 
