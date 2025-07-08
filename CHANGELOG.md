@@ -1,3 +1,10 @@
+# [1.116.0](https://github.com/wize-works/jobsight-pro/compare/v1.115.2...v1.116.0) (2025-07-08)
+
+
+### Features
+
+* add Next.js configuration with Sentry and Serwist integration ([9c2cb7c](https://github.com/wize-works/jobsight-pro/commit/9c2cb7cb11f804b1c5ce803ec22e581cdecdfe2a))
+
 ## [1.115.2](https://github.com/wize-works/jobsight-pro/compare/v1.115.1...v1.115.2) (2025-07-08)
 
 
