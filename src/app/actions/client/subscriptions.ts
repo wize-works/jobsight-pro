@@ -10,37 +10,8 @@
 
 import { BusinessSubscription, BusinessSubscriptionInsert, BusinessSubscriptionUpdate, SubscriptionPlan, BillingInterval } from "@/types/subscription";
 import { db } from "@/lib/offline/dexie-db";
-import { initializeAuthState } from "./business";
 import { v4 as uuidv4 } from "uuid";
-
-// Global auth state for client actions (imported from business actions)
-declare let currentClerkUser: { id: string } | null;
-declare let authStateInitialized: boolean;
-
-// Check if we're online
-function isOnline(): boolean {
-    return typeof navigator !== 'undefined' && navigator.onLine;
-}
-
-// Get current authenticated user ID (auth_id) from auth system
-async function getCurrentUserId(): Promise<string | null> {
-    // First priority: Use initialized Clerk user state (when online and available)
-    if (authStateInitialized && currentClerkUser?.id) {
-        return currentClerkUser.id;
-    }
-
-    // Second priority: Get from cached auth_id (for offline scenarios)
-    if (typeof window !== 'undefined') {
-        const cachedAuthId = window.localStorage.getItem('cached_auth_id');
-        if (cachedAuthId) {
-            return cachedAuthId;
-        }
-    }
-
-    // If no auth state available, return null (user needs to authenticate)
-    console.warn('No authenticated user found. Ensure initializeAuthState() is called from a React component.');
-    return null;
-}
+import { isOnline, getCurrentUserId } from "./auth-utils";
 
 // Validate that user has access to the specified business (using auth_id)
 async function validateUserBusinessAccess(userAuthId: string, businessId: string): Promise<boolean> {

@@ -10,37 +10,8 @@
 
 import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
 import { db } from "@/lib/offline/dexie-db";
-import { initializeAuthState } from "./business";
 import { v4 as uuidv4 } from "uuid";
-
-// Global auth state for client actions (imported from business actions)
-declare let currentClerkUser: { id: string } | null;
-declare let authStateInitialized: boolean;
-
-// Check if we're online
-function isOnline(): boolean {
-    return typeof navigator !== 'undefined' && navigator.onLine;
-}
-
-// Get current authenticated user ID (auth_id) from auth system
-async function getCurrentUserId(): Promise<string | null> {
-    // First priority: Use initialized Clerk user state (when online and available)
-    if (authStateInitialized && currentClerkUser?.id) {
-        return currentClerkUser.id;
-    }
-
-    // Second priority: Get from cached auth_id (for offline scenarios)
-    if (typeof window !== 'undefined') {
-        const cachedAuthId = window.localStorage.getItem('cached_auth_id');
-        if (cachedAuthId) {
-            return cachedAuthId;
-        }
-    }
-
-    // If no auth state available, return null (user needs to authenticate)
-    console.warn('No authenticated user found. Ensure initializeAuthState() is called from a React component.');
-    return null;
-}
+import { isOnline, getCurrentUserId } from "./auth-utils";
 
 // Validate that user has access to the specified business (using auth_id)
 async function validateUserBusinessAccess(userAuthId: string, businessId: string): Promise<boolean> {
@@ -286,6 +257,7 @@ export async function createTask(
             id: taskId,
             business_id: businessId,
             project_id: taskData.project_id,
+            milestone_id: taskData.milestone_id || null,
             name: taskData.name,
             description: taskData.description || null,
             status: taskData.status || 'not_started',
@@ -431,6 +403,7 @@ export async function updateTask(
         if (taskData.end_date !== undefined) updateData.end_date = taskData.end_date;
         if (taskData.assigned_to !== undefined) updateData.assigned_to = taskData.assigned_to;
         if (taskData.progress !== undefined) updateData.progress = taskData.progress;
+        if (taskData.milestone_id !== undefined) updateData.milestone_id = taskData.milestone_id;
 
         // Update locally first (optimistic update)
         const updatedTask = { ...currentTask, ...updateData };
