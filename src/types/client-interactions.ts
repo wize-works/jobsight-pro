@@ -15,3 +15,9 @@ export const clientInteractionTypeOptions = createOptions<ClientInteractionType>
     "task": { label: "Task", badge: "badge-warning" },
     "other": { label: "Other", badge: "badge-neutral" }
 });
+
+// Extended type for working with interactions that includes related data
+export interface ClientInteractionWithDetails extends ClientInteraction {
+    client_name?: string;
+    contact_name?: string;
+}

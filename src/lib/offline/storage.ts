@@ -1,15 +1,6 @@
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 
-// Extend ServiceWorkerRegistration type to include sync property
-declare global {
-    interface ServiceWorkerRegistration {
-        sync?: {
-            register(tag: string): Promise<void>;
-        };
-    }
-}
-
 // Define the offline database schema
 interface OfflineDB extends DBSchema {
     syncQueue: {
@@ -120,7 +111,7 @@ export async function addToSyncQueue(
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
         try {
             const registration = await navigator.serviceWorker.ready;
-            if (registration.sync) {
+            if ('sync' in registration && registration.sync) {
                 await registration.sync.register('background-sync');
             }
         } catch (error) {

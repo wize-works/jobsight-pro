@@ -5,19 +5,24 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { useBusiness } from "@/lib/business-context";
-import { updateBusinessFromForm } from "@/app/actions/business";
-import { getUsers, deleteUser } from "@/app/actions/users";
+// Updated to use offline-first client actions
+import { updateBusinessFromForm } from "@/app/actions/client/business";
+import { getUsers, deleteUser } from "@/app/actions/client/users";
 import { toast } from "@/hooks/use-toast";
-import { getProjects } from "@/app/actions/projects";
-import { getEquipments } from "@/app/actions/equipments";
-import { getInvoicesWithClient } from "@/app/actions/invoices";
-import { getDailyLogs } from "@/app/actions/daily-logs";
+import { getProjects } from "@/app/actions/client/projects";
+import { getBusinessEquipment } from "@/app/actions/client/equipment";
+import { getInvoices } from "@/app/actions/client/invoices";
+import { getBusinessDailyLogs } from "@/app/actions/client/daily-logs";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
-import { getCurrentSubscription } from "@/app/actions/subscriptions";
+import { getCurrentSubscription } from "@/app/actions/client/subscriptions";
 import { BusinessSubscription } from "@/types/subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
 import { formatDate } from "@/utils/formatters";
+// Advanced offline features
+import { AdvancedOfflineManager } from "@/lib/offline/advanced-offline-manager";
+import { OfflineStatusManager } from "@/lib/offline/status-manager";
+import { ConflictResolutionService } from "@/lib/offline/conflict-resolution";
 
 
 export default function BusinessPage() {
@@ -42,14 +47,24 @@ export default function BusinessPage() {
         if (businessId && !dataLoaded && !loading) {
             async function fetchData() {
                 try {
-                    const [users, projects, equipment, businessSubscription, invoices, dailyLogs] = await Promise.all([
+                    const [usersRes, projectsRes, equipmentRes, businessSubscription, invoicesRes, dailyLogsRes] = await Promise.all([
                         getUsers(businessId),
                         getProjects(businessId),
-                        getEquipments(businessId),
+                        getBusinessEquipment(businessId),
                         getCurrentSubscription(businessId),
-                        getInvoicesWithClient(businessId),
-                        getDailyLogs(businessId)
+                        getInvoices(),
+                        getBusinessDailyLogs(businessId)
                     ]);
+
+                    // Handle standardized response objects
+                    const users = usersRes.success ? usersRes.data || [] : [];
+                    const projects = Array.isArray(projectsRes) ? projectsRes : [];
+                    const equipment = Array.isArray(equipmentRes) ? equipmentRes : [];
+
+                    // Handle different response formats - some are arrays, some are response objects
+                    const invoices = Array.isArray(invoicesRes) ? invoicesRes : [];
+                    const dailyLogs = dailyLogsRes?.success ? (dailyLogsRes.data || []) :
+                        (Array.isArray(dailyLogsRes) ? dailyLogsRes : []);
 
                     setUserCount(users.length);
                     setProjectCount(projects.length);
@@ -60,12 +75,12 @@ export default function BusinessPage() {
                     const currentMonth = new Date().getMonth();
                     const currentYear = new Date().getFullYear();
 
-                    const invoicesThisMonth = invoices.filter(invoice => {
+                    const invoicesThisMonth = invoices.filter((invoice: any) => {
                         const invoiceDate = new Date(invoice.created_at || '');
                         return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
                     }).length;
 
-                    const dailyLogsThisMonth = dailyLogs.filter(log => {
+                    const dailyLogsThisMonth = dailyLogs.filter((log: any) => {
                         const logDate = new Date(log.created_at || '');
                         return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
                     }).length;
@@ -76,7 +91,7 @@ export default function BusinessPage() {
                         storageUsedMB: 0, // TODO: Calculate actual storage usage from media uploads
                         invoicesThisMonth: invoicesThisMonth,
                         aiQueriesThisMonth: 0, // TODO: Track AI query usage in database
-                        projectsActive: projects.filter(p => p.status === 'active' || p.status === 'in-progress').length,
+                        projectsActive: projects.filter((p: any) => p.status === 'active' || p.status === 'in-progress').length,
                         dailyLogsThisMonth: dailyLogsThisMonth
                     });
 
