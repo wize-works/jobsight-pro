@@ -1,3 +1,10 @@
+## [1.115.1](https://github.com/wize-works/jobsight-pro/compare/v1.115.0...v1.115.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* exclude 'docs' directory from TypeScript compilation ([65419e2](https://github.com/wize-works/jobsight-pro/commit/65419e2f263b954c32e9404fd9099ac84f650c98))
+
 # [1.115.0](https://github.com/wize-works/jobsight-pro/compare/v1.114.1...v1.115.0) (2025-07-08)
 
 
