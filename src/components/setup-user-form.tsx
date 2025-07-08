@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { toast } from '@/hooks/use-toast';
 
 interface SetupUserFormProps {
     onSetupComplete: () => void;
@@ -13,9 +14,11 @@ export default function SetupUserForm({ onSetupComplete }: SetupUserFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleSetup = async (useSeedData: boolean) => {
+    const handleSetup = async () => {
         setIsLoading(true);
         setError(null);
+
+        const useSeedData = selectedOption === 'seed';
 
         try {
             if (useSeedData) {
@@ -36,6 +39,9 @@ export default function SetupUserForm({ onSetupComplete }: SetupUserFormProps) {
                 if (!response.ok) {
                     throw new Error(result.error || 'Failed to setup account');
                 }
+            } else {
+                // For empty setup, we need to explicitly mark the setup as complete
+                await markSetupCompleted();
             }
 
             // Success! Call the completion callback
@@ -45,6 +51,41 @@ export default function SetupUserForm({ onSetupComplete }: SetupUserFormProps) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Create a function to mark setup as complete regardless of seed data
+    const markSetupCompleted = async () => {
+        try {
+            // If using seed data, the API call already handles marking setup complete
+            const useSeedData = selectedOption === 'seed';
+
+            if (useSeedData) {
+                return;
+            }
+
+            // If not using seed data, we need to make a separate API call to mark setup as complete
+            const response = await fetch('/api/mark-setup-complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                toast.error({
+                    title: 'Setup Error',
+                    description: result.error || 'Failed to mark setup as complete',
+                });
+                throw new Error(result.error || 'Failed to mark setup as complete');
+            }
+
+            console.log('[SetupUserForm] Setup marked as complete:', result);
+        } catch (error) {
+            console.error('[SetupUserForm] Error marking setup as complete:', error);
+            throw error; // Re-throw to be handled by the caller
         }
     };
 
@@ -143,7 +184,7 @@ export default function SetupUserForm({ onSetupComplete }: SetupUserFormProps) {
 
                     <div className="card-actions justify-center mt-6">
                         <button
-                            onClick={() => handleSetup(selectedOption === 'seed')}
+                            onClick={() => handleSetup()}
                             disabled={!selectedOption || isLoading}
                             className="btn btn-primary btn-wide"
                         >

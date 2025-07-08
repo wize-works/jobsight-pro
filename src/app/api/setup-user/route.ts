@@ -1,7 +1,7 @@
-    import { auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
     import { NextRequest, NextResponse } from 'next/server';
     import { seedFlintstonesData } from '@/lib/seed-data';
-    import { checkIfUserNeedsSetup } from '@/lib/user-setup';
+    import { checkIfUserNeedsSetup, getBusinessSetupInfo } from '@/lib/user-setup';
     import { createServerClient } from '@/lib/supabase';
 
     export async function POST(req: NextRequest) {
@@ -118,30 +118,31 @@
 
     export async function GET(req: NextRequest) {
     try {
-    const { userId } = await auth();
+        const { userId } = await auth();
+        console.log('[setup-user API] GET request for user:', userId);
 
-    if (!userId) {
-        return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-        );
-    }
+        if (!userId) {
+            console.log('[setup-user API] No userId found in auth');
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
 
-    const needsSetup = await checkIfUserNeedsSetup(userId);
+        // Call the modified function which now returns more information
+        const setupInfo = await getBusinessSetupInfo(userId);
+        console.log('[setup-user API] Setup info:', setupInfo);
 
-    return NextResponse.json({
-        needsSetup,
-        userId,
-    });
+        return NextResponse.json(setupInfo);
 
     } catch (error) {
-    console.error('Error checking user setup status:', error);
-    return NextResponse.json(
-        { 
-        error: 'Failed to check setup status',
-        details: error instanceof Error ? error.message : 'Unknown error'
-        },
-        { status: 500 }
-    );
+        console.error('[setup-user API] Error checking user setup status:', error);
+        return NextResponse.json(
+            { 
+                error: 'Failed to check setup status',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            },
+            { status: 500 }
+        );
     }
     }

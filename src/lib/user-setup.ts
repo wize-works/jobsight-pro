@@ -1,68 +1,89 @@
 import { createServerClient } from './supabase';
 
-export async function checkIfUserNeedsSetup(userId: string): Promise<boolean> {
+export interface BusinessSetupInfo {
+  needsSetup: boolean;
+  isBusinessOwner: boolean;
+  businessSetupPending: boolean;
+  userId: string;
+}
+
+export async function getBusinessSetupInfo(userId: string): Promise<BusinessSetupInfo> {
+  console.log('[getBusinessSetupInfo] Checking setup for user:', userId);
   const supabase = createServerClient();
-  if (!supabase) return true;
+  
+  const defaultResponse: BusinessSetupInfo = {
+    needsSetup: false,
+    isBusinessOwner: false,
+    businessSetupPending: false,
+    userId
+  };
+  
+  if (!supabase) {
+    console.log('[getBusinessSetupInfo] No Supabase client, returning default');
+    return defaultResponse;
+  }
 
   try {
+    console.log('[getBusinessSetupInfo] Querying user data');
     const { data: user, error } = await supabase
       .from('users')
       .select('business_id, businesses!users_business_id_fkey(*)')
       .eq('auth_id', userId)
       .single();
 
-    if (error || !user?.business_id) {
-      return true; // User needs setup if no business found
+    if (error) {
+      console.error('[getBusinessSetupInfo] Error fetching user:', error);
+      return defaultResponse;
+    }
+    
+    if (!user?.business_id) {
+      console.log('[getBusinessSetupInfo] No business_id found for user');
+      return defaultResponse;
     }
 
+    console.log('[getBusinessSetupInfo] User business_id:', user.business_id);
     const business = user.businesses as any;
     if (!business) {
-      return true; // No business data found
+      console.log('[getBusinessSetupInfo] No business data found');
+      return defaultResponse;
     }
 
+    // Check if user is the business owner
+    const isBusinessOwner = business.owner_id === userId;
+    console.log('[getBusinessSetupInfo] User is business owner:', isBusinessOwner);
+    
+    // Check if business setup is pending
+    // Make sure we're explicitly checking for true/false, not truthy/falsy
+    let businessSetupPending = true;
+    if (business.setup_completed === true) {
+      businessSetupPending = false;
+    } else {
+      // If it's explicitly false or null/undefined, consider setup pending
+      businessSetupPending = true;
+    }
+    
+    console.log('[getBusinessSetupInfo] Raw business.setup_completed:', business.setup_completed);
+    console.log('[getBusinessSetupInfo] Business setup pending:', businessSetupPending);
+    
     // Only business owners can complete setup
-    if (business.owner_id !== userId) {
-      return false; // Non-owners don't need setup (they can't do it anyway)
-    }
+    // If user is not owner, needsSetup is always false
+    const needsSetup = isBusinessOwner && businessSetupPending;
     
-    // If setup_completed is explicitly set, use that
-    if (business.setup_completed !== null) {
-      return !business.setup_completed;
-    }
-
-    // Fallback: Check if business has any projects, crews, or equipment (for existing users)
-    const { data: projects } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('business_id', user.business_id)
-      .limit(1);
-
-    const { data: crews } = await supabase
-      .from('crews')
-      .select('id')
-      .eq('business_id', user.business_id)
-      .limit(1);
-
-    const { data: crewMembers } = await supabase
-      .from('crew_members')
-      .select('id')
-      .eq('business_id', user.business_id)
-      .limit(1);
-
-    // If no projects, crews, or crew members, user needs setup
-    const hasData = projects?.length || crews?.length || crewMembers?.length;
+    return {
+      needsSetup,
+      isBusinessOwner,
+      businessSetupPending,
+      userId
+    };
     
-    // Auto-update setup_completed if we detect existing data
-    if (hasData) {
-      await supabase
-        .from('businesses')
-        .update({ setup_completed: true })
-        .eq('id', user.business_id);
-    }
-
-    return !hasData;
   } catch (error) {
-    console.error('Error checking user setup status:', error);
-    return true; // Default to needing setup if we can't check
+    console.error('[getBusinessSetupInfo] Error checking user setup status:', error);
+    return defaultResponse;
   }
+}
+
+// Keep the original function for backward compatibility
+export async function checkIfUserNeedsSetup(userId: string): Promise<boolean> {
+  const setupInfo = await getBusinessSetupInfo(userId);
+  return setupInfo.needsSetup;
 }
