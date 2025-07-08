@@ -36,7 +36,7 @@ import { auth } from '@clerk/nextjs/server';
     // Get the user's business (should already exist from sign-up)
     const { data: user, error: userError } = await supabase
         .from('users')
-        .select('business_id, businesses(*)')
+        .select('business_id, businesses!users_business_id_fkey(*)')
         .eq('auth_id', userId)
         .single();
 
