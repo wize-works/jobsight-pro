@@ -1,3 +1,10 @@
+## [1.115.2](https://github.com/wize-works/jobsight-pro/compare/v1.115.1...v1.115.2) (2025-07-08)
+
+
+### Bug Fixes
+
+* add '@serwist/next' to dependencies and remove duplicate 'serwist' entry ([12902f0](https://github.com/wize-works/jobsight-pro/commit/12902f05c81052ecad122d4b94fa40c4fc81b489))
+
 ## [1.115.1](https://github.com/wize-works/jobsight-pro/compare/v1.115.0...v1.115.1) (2025-07-08)
 
 
