@@ -16,4 +16,5 @@ export type CreateBusinessParams = {
     zipCode?: string
     country?: string
     email?: string
+    setupCompleted?: boolean
 }

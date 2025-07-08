@@ -77,11 +77,16 @@ export function useUserSetup() {
     };
 
     const markSetupComplete = () => {
-        console.log('[useUserSetup] Marking setup as complete');
         setSetupStatus(prev => ({
             ...prev,
             needsSetup: false,
+            businessSetupPending: false,
         }));
+        
+        // Force a re-check after a short delay to ensure the UI updates properly
+        setTimeout(() => {
+            checkSetupStatus();
+        }, 100);
     };
 
     useEffect(() => {

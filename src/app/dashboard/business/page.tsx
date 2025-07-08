@@ -91,13 +91,11 @@ export default function BusinessPage() {
         if (!business) {
             refreshBusiness();
         }
-    }, [businessId, business, loading, dataLoaded]);
 
-    useEffect(() => {
         if (business && !dataLoaded) {
             refreshBusiness();
         }
-    }, [business, loading]);
+    }, [businessId, business, loading, dataLoaded]);
 
     const handleSaveChanges = async (formData: FormData) => {
         setIsSubmitting(true);

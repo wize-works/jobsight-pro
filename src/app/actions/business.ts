@@ -201,6 +201,7 @@ export async function updateBusiness(businessId: string, userId: string, data: P
             email: data.email,
             updated_at: now,
             updated_by: userId,
+            setup_completed: data.setupCompleted || false,
         }
 
         // Remove undefined values
