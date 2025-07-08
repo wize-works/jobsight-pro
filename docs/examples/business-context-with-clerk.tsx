@@ -51,10 +51,10 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             // Use the offline-first client action instead of server action
             const businessData = await getUserBusiness(userAuthId);
 
-            if (businessData) {
-                setBusinessId(businessData.id);
-                setBusinessData(businessData);
-                localStorage.setItem("businessId", businessData.id);
+            if (businessData?.data) {
+                setBusinessId(businessData.data.id);
+                setBusinessData(businessData.data);
+                localStorage.setItem("businessId", businessData.data.id);
                 setLoading(false);
             } else {
                 setLoading(false);
