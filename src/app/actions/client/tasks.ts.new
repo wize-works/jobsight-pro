@@ -1,0 +1,36 @@
+"use client";
+
+/**
+ * Tasks Client Actions - Offline-First Implementation (Phase 4 - Priority 1)
+ * 
+ * IMPORTANT: Throughout this file, 'userId' parameters refer to the auth_id
+ * from your authentication provider (Clerk, Auth0, etc.), NOT the internal user.id.
+ * This ensures optimal performance by avoiding additional database queries.
+ */
+
+import { Task, TaskInsert, TaskUpdate, TaskWithDetails } from "@/types/tasks";
+import { db } from "@/lib/offline/dexie-db";
+import { v4 as uuidv4 } from "uuid";
+import { isOnline, getCurrentUserId } from "./auth-utils";
+
+// Validate that user has access to the specified business (using auth_id)
+async function validateUserBusinessAccess(userAuthId: string, businessId: string): Promise<boolean> {
+    try {
+        // Check if user has a mapping to this business (using auth_id)
+        const userBusinessId = await db.userBusinessMappings.get(userAuthId);
+        if (userBusinessId?.businessId === businessId) {
+            return true;
+        }
+
+        // Also check if user is the owner of the business (using auth_id)
+        const business = await db.businesses.get(businessId);
+        if (business && business.owner_id === userAuthId) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error("Error validating user business access:", error);
+        return false;
+    }
+}
