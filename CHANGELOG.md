@@ -1,3 +1,16 @@
+# [1.115.0](https://github.com/wize-works/jobsight-pro/compare/v1.114.1...v1.115.0) (2025-07-08)
+
+
+### Bug Fixes
+
+* update service worker sync registration check for compatibility ([f966eac](https://github.com/wize-works/jobsight-pro/commit/f966eacfb71f4ac602ac32cf52eeea9e54f4cbfc))
+
+
+### Features
+
+* Implement User Sync Service for offline user management ([e1266e2](https://github.com/wize-works/jobsight-pro/commit/e1266e2a8d1cbf61f305aef79513314dca986be9))
+* update web app manifest and service worker for improved caching and offline support ([32159b2](https://github.com/wize-works/jobsight-pro/commit/32159b24bc20cf13f15b391303b8c8770a49ebf1))
+
 ## [1.114.1](https://github.com/wize-works/jobsight-pro/compare/v1.114.0...v1.114.1) (2025-07-04)
 
 
