@@ -1,3 +1,10 @@
+# [1.119.0](https://github.com/wize-works/jobsight-pro/compare/v1.118.0...v1.119.0) (2025-07-08)
+
+
+### Features
+
+* Update date formatting in TasksTab component with safeFormatDate helper ([39b7ac5](https://github.com/wize-works/jobsight-pro/commit/39b7ac5c0f7ccd72ebda6c5fb6e01370d6847dee))
+
 # [1.118.0](https://github.com/wize-works/jobsight-pro/compare/v1.117.0...v1.118.0) (2025-07-08)
 
 
