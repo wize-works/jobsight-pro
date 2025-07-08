@@ -1,3 +1,11 @@
+import { withSentryConfig } from "@sentry/nextjs";
+import withSerwist from "@serwist/next";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     eslint: {
@@ -7,7 +15,7 @@ const nextConfig = {
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,
-            '@': require('path').resolve(__dirname, 'src'),
+            '@': path.resolve(__dirname, 'src'),
         };
 
         // Exclude server-only modules from client-side bundle
@@ -44,8 +52,8 @@ const nextConfig = {
 
         // Add specific optimizations for large libraries
         if (config.resolve.alias) {
-            // Tree shake date-fns by using ES modules
-            config.resolve.alias['date-fns'] = require.resolve('date-fns');
+            // Tree shake date-fns by using ES modules - simplified for ES module context
+            config.resolve.alias['date-fns'] = 'date-fns';
         }
 
         return config;
@@ -143,11 +151,8 @@ const nextConfig = {
     },
 };
 
-// Sentry configuration
-const { withSentryConfig } = require("@sentry/nextjs");
-
 // Serwist configuration
-const withSerwist = require("@serwist/next").default({
+const serwistWrappedConfig = withSerwist({
     swSrc: "src/app/sw.ts",
     swDest: "public/sw.js",
     cacheOnNavigation: true,
@@ -191,4 +196,4 @@ const sentryConfig = withSentryConfig(
     }
 );
 
-module.exports = withSerwist(sentryConfig);
+export default serwistWrappedConfig(sentryConfig);
