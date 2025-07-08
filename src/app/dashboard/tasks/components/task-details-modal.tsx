@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskWithDetails, TaskUpdate } from "@/types/tasks";
 import { Project } from "@/types/projects";
+import { ProjectMilestone } from "@/types/project_milestones";
 import { Crew } from "@/types/crews";
 import { updateTask, deleteTask, createTask } from "@/app/actions/tasks";
+import { getProjectMilestonesByProjectId } from "@/app/actions/project-milestones";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistance, formatDistanceToNow } from "date-fns";
@@ -38,8 +40,29 @@ export default function TaskDetailsModal({
     const [isEditing, setIsEditing] = useState(!task); // Auto-edit mode for new tasks
     const [isUpdating, setIsUpdating] = useState(false);
     const [formData, setFormData] = useState<Partial<TaskUpdate>>({});
+    const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
+    const [loadingMilestones, setLoadingMilestones] = useState(false);
 
     const isCreating = !task;
+
+    // Load milestones when project changes
+    const loadMilestones = async (projectId: string) => {
+        if (!projectId) {
+            setMilestones([]);
+            return;
+        }
+
+        try {
+            setLoadingMilestones(true);
+            const projectMilestones = await getProjectMilestonesByProjectId(businessId, projectId);
+            setMilestones(projectMilestones || []);
+        } catch (error) {
+            console.error("Error loading milestones:", error);
+            setMilestones([]);
+        } finally {
+            setLoadingMilestones(false);
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -53,9 +76,14 @@ export default function TaskDetailsModal({
                     start_date: task.start_date,
                     end_date: task.end_date,
                     progress: task.progress,
-                    project_id: task.project_id
+                    project_id: task.project_id,
+                    milestone_id: task.milestone_id
                 });
                 setIsEditing(false);
+                // Load milestones for the task's project
+                if (task.project_id) {
+                    loadMilestones(task.project_id);
+                }
             } else {
                 // Initialize with defaults for new task
                 setFormData({
@@ -67,9 +95,14 @@ export default function TaskDetailsModal({
                     start_date: '',
                     end_date: '',
                     progress: 0,
-                    project_id: project?.id || ''
+                    project_id: project?.id || '',
+                    milestone_id: null
                 });
                 setIsEditing(true);
+                // Load milestones for the selected project
+                if (project?.id) {
+                    loadMilestones(project.id);
+                }
             }
         }
     }, [task, isOpen, project]);
@@ -125,6 +158,13 @@ export default function TaskDetailsModal({
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+
+        // Load milestones when project changes
+        if (field === 'project_id' && value) {
+            loadMilestones(value);
+            // Reset milestone when project changes
+            setFormData(prev => ({ ...prev, milestone_id: null }));
+        }
     };
 
     if (!isOpen) return null;
@@ -221,6 +261,48 @@ export default function TaskDetailsModal({
                                                 </Link>
                                             ) : null}
                                         </div>
+                                    </div>
+
+                                    {/* Milestone field - Add after project selection */}
+                                    <div className="form-control mt-4">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Milestone</span>
+                                        </label>
+                                        {isEditing ? (
+                                            <div>
+                                                <select
+                                                    value={formData.milestone_id || ''}
+                                                    onChange={(e) => handleInputChange('milestone_id', e.target.value || null)}
+                                                    className="select select-bordered select-secondary w-full"
+                                                    disabled={isUpdating || loadingMilestones || !formData.project_id}
+                                                >
+                                                    <option value="">None (No milestone)</option>
+                                                    {loadingMilestones ? (
+                                                        <option disabled>Loading milestones...</option>
+                                                    ) : milestones.length === 0 ? (
+                                                        <option disabled>No milestones for this project</option>
+                                                    ) : (
+                                                        milestones.map((milestone) => (
+                                                            <option key={milestone.id} value={milestone.id}>
+                                                                {milestone.name}
+                                                            </option>
+                                                        ))
+                                                    )}
+                                                </select>
+                                                {!formData.project_id && (
+                                                    <div className="text-xs text-info mt-1">
+                                                        <i className="far fa-info-circle mr-1"></i>
+                                                        Select a project first to see available milestones
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : task?.milestone_id ? (
+                                            <div className="py-2 font-medium">
+                                                {milestones.find(m => m.id === task.milestone_id)?.name || "Loading milestone..."}
+                                            </div>
+                                        ) : (
+                                            <div className="py-2 text-base-content/70">No milestone assigned</div>
+                                        )}
                                     </div>
 
                                     <div className="form-control mt-4">

@@ -1,9 +1,25 @@
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
+import { ProjectMilestone } from "@/types/project_milestones";
 import { progressBar } from "@/utils/progress";
 import { formatDate } from "date-fns";
 import ErrorBoundary from "@/components/error-boundary";
 
-export default function TasksTab({ tasks }: { tasks: TaskWithDetails[] }) {
+export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDetails[], milestones?: ProjectMilestone[] }) {
+    // Group tasks by milestone
+    const tasksByMilestone = tasks.reduce((acc, task) => {
+        const milestoneId = task.milestone_id || 'none';
+        if (!acc[milestoneId]) {
+            acc[milestoneId] = [];
+        }
+        acc[milestoneId].push(task);
+        return acc;
+    }, {} as Record<string, TaskWithDetails[]>);
+
+    // Get milestone name by ID
+    const getMilestoneName = (milestoneId: string) => {
+        const milestone = milestones.find(m => m.id === milestoneId);
+        return milestone?.name || 'No Milestone';
+    };
 
     return (
         <ErrorBoundary fallback={(error) => (
@@ -24,42 +40,89 @@ export default function TasksTab({ tasks }: { tasks: TaskWithDetails[] }) {
                         </div>
                     </div>
                 ) : (
-                    <div className="card bg-base-100 shadow-md">
-                        <div className="card-body">
-                            <div className="overflow-x-auto">
-                                <table className="table table-zebra">
-                                    <thead>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>Assigned To</th>
-                                            <th>Status</th>
-                                            <th>Progress</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {tasks.length > 0 ? (
-                                            tasks.map((task) => (
-                                                <tr key={task.id}>
-                                                    <td>
-                                                        <div className="font-medium">{task.name}</div>
-                                                        <div className="text-xs text-base-content/70">
-                                                            {formatDate(task.start_date || "", "MM/dd/yyyy")} - {formatDate(task.end_date || "", "MM/dd/yyyy")}
-                                                        </div>
-                                                    </td>
-                                                    <td>{task.crew_name}</td>
-                                                    <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
-                                                    <td>{progressBar(task.progress, 100)}</td>
+                    <div className="space-y-6">
+                        {/* Tasks with milestones first */}
+                        {milestones.map(milestone => {
+                            const milestoneTasks = tasksByMilestone[milestone.id] || [];
+                            if (milestoneTasks.length === 0) return null;
+
+                            return (
+                                <div key={milestone.id} className="card bg-base-100 shadow-md">
+                                    <div className="card-body">
+                                        <h3 className="card-title text-lg text-primary">
+                                            <i className="far fa-flag mr-2"></i>
+                                            {milestone.name}
+                                        </h3>
+                                        <div className="overflow-x-auto">
+                                            <table className="table table-zebra">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Task</th>
+                                                        <th>Assigned To</th>
+                                                        <th>Status</th>
+                                                        <th>Progress</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {milestoneTasks.map((task) => (
+                                                        <tr key={task.id}>
+                                                            <td>
+                                                                <div className="font-medium">{task.name}</div>
+                                                                <div className="text-xs text-base-content/70">
+                                                                    {formatDate(task.start_date || "", "MM/dd/yyyy")} - {formatDate(task.end_date || "", "MM/dd/yyyy")}
+                                                                </div>
+                                                            </td>
+                                                            <td>{task.crew_name}</td>
+                                                            <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
+                                                            <td>{progressBar(task.progress, 100)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Tasks without milestones */}
+                        {(tasksByMilestone['none'] || []).length > 0 && (
+                            <div className="card bg-base-100 shadow-md">
+                                <div className="card-body">
+                                    <h3 className="card-title text-lg">
+                                        <i className="far fa-tasks mr-2"></i>
+                                        Tasks (No Milestone)
+                                    </h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="table table-zebra">
+                                            <thead>
+                                                <tr>
+                                                    <th>Task</th>
+                                                    <th>Assigned To</th>
+                                                    <th>Status</th>
+                                                    <th>Progress</th>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={4} className="text-center py-4">No tasks added yet</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                            </thead>
+                                            <tbody>
+                                                {(tasksByMilestone['none'] || []).map((task) => (
+                                                    <tr key={task.id}>
+                                                        <td>
+                                                            <div className="font-medium">{task.name}</div>
+                                                            <div className="text-xs text-base-content/70">
+                                                                {formatDate(task.start_date || "", "MM/dd/yyyy")} - {formatDate(task.end_date || "", "MM/dd/yyyy")}
+                                                            </div>
+                                                        </td>
+                                                        <td>{task.crew_name}</td>
+                                                        <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
+                                                        <td>{progressBar(task.progress, 100)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

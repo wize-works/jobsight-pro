@@ -20,9 +20,6 @@ export default async function PublicLayout({
                     <div className="hidden">{user?.id}</div>
                     {user ? (
                         <>
-                            <Link href="/dashboard" className="btn btn-primary">
-                                Dashboard
-                            </Link>
                             <SignOutButton>
                                 <button className="btn btn-outline btn-secondary">Logout</button>
                             </SignOutButton>

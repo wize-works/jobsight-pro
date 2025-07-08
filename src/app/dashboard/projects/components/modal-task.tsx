@@ -5,6 +5,8 @@ import { createTask, updateTask } from "@/app/actions/tasks";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
+import { getProjectMilestonesByProjectId } from "@/app/actions/project-milestones";
+import { ProjectMilestone } from "@/types/project_milestones";
 
 interface TaskModalProps {
     isOpen: boolean;
@@ -28,10 +30,38 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
         priority: "medium" as TaskPriority,
         progress: 0,
         assigned_to: "",
+        milestone_id: "",
     });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
+    const [loadingMilestones, setLoadingMilestones] = useState(false);
+
+    // Load milestones for the project
+    useEffect(() => {
+        if (projectId) {
+            loadMilestones(projectId);
+        }
+    }, [projectId]);
+
+    // Function to load milestones for a project
+    const loadMilestones = async (projectId: string) => {
+        if (!projectId) {
+            setMilestones([]);
+            return;
+        }
+
+        try {
+            setLoadingMilestones(true);
+            const projectMilestones = await getProjectMilestonesByProjectId(businessId, projectId);
+            setMilestones(projectMilestones || []);
+        } catch (error) {
+            console.error("Error loading milestones:", error);
+        } finally {
+            setLoadingMilestones(false);
+        }
+    };
 
     // Reset form values when task prop changes
     useEffect(() => {
@@ -45,6 +75,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 priority: (task.priority as TaskPriority) || "medium",
                 progress: task.progress || 0,
                 assigned_to: task.assigned_to || "",
+                milestone_id: task.milestone_id || "",
             });
         } else {
             setFormData({
@@ -56,6 +87,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 priority: "medium" as TaskPriority,
                 progress: 0,
                 assigned_to: "",
+                milestone_id: "",
             });
         }
     }, [task]);
@@ -104,6 +136,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 ...formData,
                 project_id: projectId,
                 assigned_to: formData.assigned_to || null,
+                milestone_id: formData.milestone_id || null,
             } as TaskInsert;
 
             if (isEditing && task) {
@@ -263,6 +296,33 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                                                     {crew.name}
                                                 </option>
                                             ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Milestone Selection */}
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Milestone</span>
+                                        </label>
+                                        <select
+                                            name="milestone_id"
+                                            className="select select-bordered select-secondary w-full"
+                                            value={formData.milestone_id}
+                                            onChange={handleInputChange}
+                                            disabled={loading || loadingMilestones}
+                                        >
+                                            <option value="">None (No milestone)</option>
+                                            {loadingMilestones ? (
+                                                <option disabled>Loading milestones...</option>
+                                            ) : milestones.length === 0 ? (
+                                                <option disabled>No milestones for this project</option>
+                                            ) : (
+                                                milestones.map((milestone) => (
+                                                    <option key={milestone.id} value={milestone.id}>
+                                                        {milestone.name}
+                                                    </option>
+                                                ))
+                                            )}
                                         </select>
                                     </div>
                                 </div>
