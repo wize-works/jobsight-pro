@@ -1,3 +1,15 @@
+# [1.117.0](https://github.com/wize-works/jobsight-pro/compare/v1.116.1...v1.117.0) (2025-07-08)
+
+
+### Bug Fixes
+
+* Refactor user and business actions for improved structure and performance ([ce45cd2](https://github.com/wize-works/jobsight-pro/commit/ce45cd2d1076f105885b1ca9f1b3b8332576528d))
+
+
+### Features
+
+* Add AuthStateInitializer component and integrate auth state initialization in DashboardClient ([319961e](https://github.com/wize-works/jobsight-pro/commit/319961e085accc502f039cf14790c2a0840ef0ac))
+
 ## [1.116.1](https://github.com/wize-works/jobsight-pro/compare/v1.116.0...v1.116.1) (2025-07-08)
 
 
