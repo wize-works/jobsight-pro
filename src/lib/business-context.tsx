@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import { useUser } from '@clerk/nextjs'
 import { useRouter, usePathname } from "next/navigation"
 import { getUserBusiness } from "@/app/actions/business"
@@ -36,11 +36,6 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname()
     const { toast } = useToast()
 
-    // Use refs to prevent excessive fetches
-    const isLoadingRef = useRef(false)
-    const lastFetchTimeRef = useRef(0)
-    const FETCH_THROTTLE_MS = 2000 // Minimum time between fetches (2 seconds)
-
     // Check if we're in a registration flow
     const isRegistrationFlow = pathname === '/sign-up'    // Function to fetch business data using server action
     const fetchBusinessData = async (userId: string) => {
@@ -49,7 +44,6 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
             if (!response) {
                 setLoading(false);
-                isLoadingRef.current = false;
                 // User is valid but has no business
                 if (!isRegistrationFlow) {
                     router.push('/sign-up')
@@ -59,11 +53,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     })
                 }
                 return
-            }
-
-            if ('success' in response && !response.success) {
+            } if ('success' in response && !response.success) {
+                console.log("❌ Business auth error:", response.error);
                 setLoading(false);
-                isLoadingRef.current = false;
                 // If there's an error with authentication
                 if (!isRegistrationFlow) {
                     toast.error({
@@ -74,28 +66,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     router.push(response.redirect)
                 }
                 return
-            }
-
-            if ('id' in response) {
+            } if ('id' in response) {
                 // Batch all state updates together
                 setBusinessId(response.id)
                 setBusinessData(response as Business)
                 if (typeof window !== 'undefined') {
                     localStorage.setItem("businessId", response.id)
-
-                    // Update global state for client actions
-                    if (typeof global !== 'undefined') {
-                        global.currentBusinessId = response.id;
-                    }
                 }
 
-                // Set loading to false
-                setLoading(false);
-                isLoadingRef.current = false;
+                // Use setTimeout to ensure state update happens after current call stack
+                setTimeout(() => {
+                    setLoading(false)
+                }, 0)
             } else {
                 console.log("❌ Response doesn't have ID, redirecting to register");
                 setLoading(false);
-                isLoadingRef.current = false;
                 router.push('/sign-up');
                 toast.warning({
                     title: "No Business Found",
@@ -117,49 +102,32 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
     // Function to load business data
     const loadBusinessData = async () => {
-        // Don't attempt to load if Clerk hasn't loaded yet
         if (!isLoaded) {
-            return;
+            return
         }
 
-        // Check if we're already loading or if we've fetched recently
-        const now = Date.now();
-        if (isLoadingRef.current || (now - lastFetchTimeRef.current < FETCH_THROTTLE_MS)) {
-            console.log("Skipping business fetch - throttled or already loading");
-            return;
-        }
-
-        // Set loading state and refs
-        setLoading(true);
-        isLoadingRef.current = true;
-        lastFetchTimeRef.current = now;
-        setError(null);
+        setLoading(true)
+        setError(null)
 
         try {
             // If no user and not in registration flow, finish loading
             if (!user) {
-                setLoading(false);
-                isLoadingRef.current = false;
-                return;
-            }
-
-            // Try to get from localStorage first (only on client side)
-            const storedBusinessId = typeof window !== 'undefined' ? localStorage.getItem("businessId") : null;
+                setLoading(false)
+                return
+            }            // Try to get from localStorage first (only on client side)
+            const storedBusinessId = typeof window !== 'undefined' ? localStorage.getItem("businessId") : null
 
             if (storedBusinessId && user) {
                 // Verify the stored business ID is still valid by fetching it
-                await fetchBusinessData(user.id);
-                return;
+                await fetchBusinessData(user.id)
+                return
             }
 
             // Fetch user's business using server action
-            await fetchBusinessData(user.id);
+            await fetchBusinessData(user.id)
         } catch (err) {
-            console.error("Error in loadBusinessData:", err);
-            setError(err instanceof Error ? err.message : "Unknown error loading business data");
-            setLoading(false); // Ensure loading is set to false on error
-        } finally {
-            isLoadingRef.current = false;
+            setError(err instanceof Error ? err.message : "Unknown error loading business data")
+            setLoading(false) // Only set loading false on error
         }
     }
 
@@ -171,11 +139,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        // Only attempt to load business data when Clerk has fully loaded the user
-        if (isLoaded) {
-            loadBusinessData();
-        }
-    }, [user?.id, isLoaded]);
+        loadBusinessData()
+    }, [user?.id, isLoaded, isRegistrationFlow])
 
     // Update business ID in storage
     const setBusinessIdWithStorage = (id: string) => {
@@ -185,23 +150,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         }
     }    // Function to manually refresh business data
     const refreshBusiness = useCallback(async () => {
-        // Apply throttling to refreshBusiness as well
-        const now = Date.now();
-        if (isLoadingRef.current || (now - lastFetchTimeRef.current < FETCH_THROTTLE_MS)) {
-            console.log("Skipping business refresh - throttled or already loading");
-            return;
-        }
-
         if (user) {
-            // Set refs for throttling
-            isLoadingRef.current = true;
-            lastFetchTimeRef.current = now;
-
-            try {
-                await fetchBusinessData(user.id);
-            } finally {
-                isLoadingRef.current = false;
-            }
+            await fetchBusinessData(user.id)
         }
     }, [user])
 

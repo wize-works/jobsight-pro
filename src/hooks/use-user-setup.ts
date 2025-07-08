@@ -7,6 +7,8 @@ export interface UserSetupStatus {
     needsSetup: boolean;
     isLoading: boolean;
     error: string | null;
+    isBusinessOwner: boolean;
+    businessSetupPending: boolean;
 }
 
 export function useUserSetup() {
@@ -15,48 +17,67 @@ export function useUserSetup() {
         needsSetup: false,
         isLoading: true,
         error: null,
+        isBusinessOwner: false,
+        businessSetupPending: false,
     });
 
     const checkSetupStatus = async () => {
         if (!isLoaded || !user) {
+            console.log('[useUserSetup] User not loaded yet, skipping check');
             setSetupStatus({
                 needsSetup: false,
                 isLoading: false,
                 error: null,
+                isBusinessOwner: false,
+                businessSetupPending: false,
             });
             return;
         }
 
         try {
+            console.log('[useUserSetup] Checking setup status for user:', user.id);
             setSetupStatus(prev => ({ ...prev, isLoading: true, error: null }));
 
-            const response = await fetch('/api/setup-user', {
+            // Add cache-busting query parameter
+            const cacheBuster = Date.now();
+            const response = await fetch(`/api/setup-user?t=${cacheBuster}`, {
                 method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
             });
-            console.log('Checking setup status for user:', response);
+            console.log('[useUserSetup] API response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
+            console.log('[useUserSetup] API result:', result);
 
             setSetupStatus({
                 needsSetup: result.needsSetup,
                 isLoading: false,
                 error: null,
+                isBusinessOwner: result.isBusinessOwner || false,
+                businessSetupPending: result.businessSetupPending || false,
             });
 
         } catch (error) {
-            console.error('Error checking setup status:', error);
+            console.error('[useUserSetup] Error checking setup status:', error);
             setSetupStatus({
                 needsSetup: false,
                 isLoading: false,
                 error: error instanceof Error ? error.message : 'Failed to check setup status',
+                isBusinessOwner: false,
+                businessSetupPending: false,
             });
         }
     };
 
     const markSetupComplete = () => {
+        console.log('[useUserSetup] Marking setup as complete');
         setSetupStatus(prev => ({
             ...prev,
             needsSetup: false,
@@ -64,6 +85,7 @@ export function useUserSetup() {
     };
 
     useEffect(() => {
+        console.log('[useUserSetup] Effect triggered, isLoaded:', isLoaded, 'user:', user?.id);
         checkSetupStatus();
     }, [isLoaded, user]);
 
