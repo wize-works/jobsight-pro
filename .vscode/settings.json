@@ -19,6 +19,6 @@
         "net"
     ],
     "[typescript]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
+        "editor.defaultFormatter": "denoland.vscode-deno"
     }
 }
