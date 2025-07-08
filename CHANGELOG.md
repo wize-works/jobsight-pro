@@ -1,3 +1,10 @@
+## [1.116.1](https://github.com/wize-works/jobsight-pro/compare/v1.116.0...v1.116.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* Refactor client actions to utilize shared auth utilities and improve offline handling ([c957a2f](https://github.com/wize-works/jobsight-pro/commit/c957a2f6145a16a1462b70d0eb6f3701182546e0))
+
 # [1.116.0](https://github.com/wize-works/jobsight-pro/compare/v1.115.2...v1.116.0) (2025-07-08)
 
 
