@@ -59,8 +59,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     })
                 }
                 return
-            } if ('success' in response && !response.success) {
-                console.log("❌ Business auth error:", response.error);
+            }
+
+            if ('success' in response && !response.success) {
                 setLoading(false);
                 isLoadingRef.current = false;
                 // If there's an error with authentication
@@ -73,7 +74,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
                     router.push(response.redirect)
                 }
                 return
-            } if ('id' in response) {
+            }
+
+            if ('id' in response) {
                 // Batch all state updates together
                 setBusinessId(response.id)
                 setBusinessData(response as Business)

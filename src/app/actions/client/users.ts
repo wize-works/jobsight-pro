@@ -24,6 +24,7 @@ import {
     createErrorResponse
 } from "@/types/client-actions";
 import { v4 as uuidv4 } from "uuid";
+import { getBusinessById, getUserBusiness } from "../business";
 
 // Validate that user has access to the specified business (using auth_id)
 async function validateUserBusinessAccess(userAuthId: string, businessId: string): Promise<boolean> {
@@ -199,6 +200,7 @@ export async function getUsers(businessId: string): Promise<ListResponse<User>> 
         if (isOnline()) {
             try {
                 const response = await fetch(`/api/users/business/${businessId}`);
+                console.log("Fetching users from server:", response);
                 if (response.ok) {
                     const users = await response.json();
                     if (users && Array.isArray(users)) {
