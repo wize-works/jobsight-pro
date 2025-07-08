@@ -570,6 +570,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                 <thead>
                                                     <tr>
                                                         <th>Task</th>
+                                                        <th>Milestone</th>
                                                         <th>Assigned To</th>
                                                         <th>Status</th>
                                                         <th>Progress</th>
@@ -584,6 +585,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                                 <div className="text-xs text-base-content/70">
                                                                     {formatDate(task.start_date || "")} - {formatDate(task.end_date || "")}
                                                                 </div>
+                                                            </td>
+                                                            <td>
+                                                                {task.milestone_id ? (
+                                                                    <div className="badge badge-outline badge-primary">
+                                                                        {milestones.find(m => m.id === task.milestone_id)?.name || "..."}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-xs text-base-content/50">No milestone</div>
+                                                                )}
                                                             </td>
                                                             <td>{task.crew_name || task.crew_name || "Unassigned"}</td>
                                                             <td>
@@ -617,7 +627,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         )}
 
                         {activeTab === "tasks" && (
-                            <TasksTab tasks={tasks} />
+                            <TasksTab tasks={tasks} milestones={milestones} />
                         )}                        {activeTab === "crew" && (
                             <CrewsTab projectId={project.id} crews={crews} onCrewsUpdated={handleCrewsUpdated} />
                         )}

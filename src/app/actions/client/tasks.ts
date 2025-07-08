@@ -286,6 +286,7 @@ export async function createTask(
             id: taskId,
             business_id: businessId,
             project_id: taskData.project_id,
+            milestone_id: taskData.milestone_id || null,
             name: taskData.name,
             description: taskData.description || null,
             status: taskData.status || 'not_started',
@@ -431,6 +432,7 @@ export async function updateTask(
         if (taskData.end_date !== undefined) updateData.end_date = taskData.end_date;
         if (taskData.assigned_to !== undefined) updateData.assigned_to = taskData.assigned_to;
         if (taskData.progress !== undefined) updateData.progress = taskData.progress;
+        if (taskData.milestone_id !== undefined) updateData.milestone_id = taskData.milestone_id;
 
         // Update locally first (optimistic update)
         const updatedTask = { ...currentTask, ...updateData };

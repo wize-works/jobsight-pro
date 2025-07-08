@@ -66,6 +66,7 @@ export interface Database {
                     phone: string | null
                     tax_id: string | null
                     owner_id: string | null
+                    setup_completed: boolean | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -86,6 +87,7 @@ export interface Database {
                     phone: string | null
                     tax_id: string | null
                     owner_id: string | null
+                    setup_completed?: boolean | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -106,6 +108,7 @@ export interface Database {
                     phone: string | null
                     tax_id: string | null
                     owner_id: string | null
+                    setup_completed?: boolean | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -1497,7 +1500,26 @@ export interface Database {
                     updated_by: string | null
                     updated_at: string | null
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "projects_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "projects_client_id_fkey"
+                        columns: ["client_id"]
+                        referencedRelation: "clients"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "projects_manager_id_fkey"
+                        columns: ["manager_id"]
+                        referencedRelation: "crew_members"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
             project_crews: {
                 Row: {
@@ -1643,6 +1665,7 @@ export interface Database {
                     id: string
                     business_id: string
                     project_id: string
+                    milestone_id: string | null
                     name: string
                     description: string | null
                     status: string | null
@@ -1660,6 +1683,7 @@ export interface Database {
                     id: string
                     business_id: string
                     project_id: string
+                    milestone_id?: string | null
                     name: string
                     description: string | null
                     status: string | null
@@ -1677,6 +1701,7 @@ export interface Database {
                     id: string
                     business_id: string
                     project_id: string
+                    milestone_id?: string | null
                     name: string
                     description: string | null
                     status: string | null
@@ -2028,6 +2053,31 @@ export interface Database {
                     created_at?: string | null
                     updated_at?: string | null
                 }
+                Relationships: []
+            }
+            feedback: {
+                Row: {
+                    id: number
+                    message_id: number
+                    feedback_type: string
+                    timestamp: string | null
+                    auth_id: string | null
+                }
+                Insert: {
+                    id?: number
+                    message_id: number
+                    feedback_type: string
+                    timestamp?: string | null
+                    auth_id?: string | null
+                }
+                Update: {
+                    id?: number
+                    message_id?: number
+                    feedback_type?: string
+                    timestamp?: string | null
+                    auth_id?: string | null
+                }
+                Relationships: []
             }
         }
         Views: {

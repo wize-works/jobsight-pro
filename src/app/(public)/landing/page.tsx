@@ -31,9 +31,14 @@ export default function Home() {
 
                     <div className="flex flex-col gap-3">
                         {isLoaded && userId ? (
-                            <SignOutButton>
-                                <button className="btn btn-outline">Sign Out</button>
-                            </SignOutButton>
+                            <div className="flex flex-col gap-6">
+                                <Link href="/dashboard" className="btn btn-primary">
+                                    Go to Dashboard
+                                </Link>
+                                <SignOutButton>
+                                    <button className="btn btn-outline">Sign Out</button>
+                                </SignOutButton>
+                            </div>
                         ) : (
                             <>
                                 <Link href={"/sign-in"} className="btn btn-primary">
