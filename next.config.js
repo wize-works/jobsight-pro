@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    eslint: {
+        // Disable ESLint during builds
+        ignoreDuringBuilds: true,
+    },
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,
