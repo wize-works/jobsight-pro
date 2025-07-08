@@ -21,6 +21,10 @@ const ModalPayment = dynamic(() => import("../components/modal-payment"), {
     loading: () => <ModalLoading message="Loading payment form..." />,
 });
 
+const InvoiceEditModal = dynamic(() => import("../components/modal-edit"), {
+    loading: () => <ModalLoading message="Loading edit form..." />,
+});
+
 export default function InvoiceDetailPage() {
     const params = useParams();
     const id = params.id as string;
@@ -30,6 +34,7 @@ export default function InvoiceDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [showSendModal, setShowSendModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
 
     useEffect(() => {
@@ -152,9 +157,12 @@ export default function InvoiceDetailPage() {
                         </div>
                         <div className="flex gap-2">
                             {invoice.status === "draft" || invoice.status === "pending" || invoice.status === "sent" ? (
-                                <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="btn btn-primary btn-sm">
+                                <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => setShowEditModal(true)}
+                                >
                                     <i className="far fa-edit mr-2"></i> Edit Invoice
-                                </Link>
+                                </button>
                             ) : (
                                 <></>
                             )}
@@ -348,6 +356,22 @@ export default function InvoiceDetailPage() {
                 {/* Record Payment Modal */}
                 {showPaymentModal && (
                     <ModalPayment isOpen={showPaymentModal} total={total} onClose={() => setShowPaymentModal(false)}
+                    />
+                )}
+
+                {/* Edit Invoice Modal */}
+                {invoice && invoice.client && (
+                    <InvoiceEditModal
+                        isOpen={showEditModal}
+                        onClose={() => setShowEditModal(false)}
+                        onSave={(updatedInvoice) => {
+                            setInvoice(prev => prev ? { ...prev, ...updatedInvoice } : null);
+                            setShowEditModal(false);
+                        }}
+                        invoice={{
+                            ...invoice,
+                            client: invoice.client
+                        }}
                     />
                 )}
             </div>

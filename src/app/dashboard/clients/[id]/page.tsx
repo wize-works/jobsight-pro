@@ -444,47 +444,38 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         }
     }
 
-    const handleUpdateClient = async (formData: any) => {
+    const handleUpdateClient = async (formData: any): Promise<void> => {
         try {
             const clientData = {
-                id: client.id,
-                business_id: client.business_id,
-                name: formData.name ?? client.name,
-                type: formData.type ?? client.type,
-                industry: formData.industry ?? client.industry,
-                contact_name: formData.contact ?? client.contact_name,
-                contact_email: formData.email ?? client.contact_email,
-                contact_phone: formData.phone ?? client.contact_phone,
-                website: formData.website ?? client.website,
-                address: formData.address ?? client.address,
-                city: formData.city ?? client.city,
-                state: formData.state ?? client.state,
-                zip: formData.zip ?? client.zip,
-                country: formData.country ?? client.country,
-                tax_id: formData.taxId ?? client.tax_id,
-                notes: formData.notes ?? client.notes,
-                logo_url: formData.logoUrl ?? client.logo_url,
-                status: formData.status ?? client.status,
-                created_at: client.created_at,
-                created_by: client.created_by,
+                ...client,
+                name: formData.name,
+                type: formData.type,
+                industry: formData.industry,
+                contact_name: formData.contact_name,
+                contact_email: formData.contact_email,
+                contact_phone: formData.contact_phone,
+                website: formData.website,
+                address: formData.address,
+                city: formData.city,
+                state: formData.state,
+                zip: formData.zip,
+                country: formData.country,
+                tax_id: formData.tax_id,
+                notes: formData.notes,
+                logo_url: formData.logo_url,
+                status: formData.status,
                 updated_at: new Date().toISOString(),
                 updated_by: user?.id || null
             };
 
-            await updateClient(businessId, client.id, clientData);
-            setShowEditClientModal(false);
-            toast.success({
-                title: "Client updated",
-                description: "Client information has been updated successfully.",
-                autoClose: true,
-            });
+            const updatedClient = await updateClient(businessId, client.id, clientData);
+            setClient(updatedClient);
+            toast.success("Client updated successfully");
             router.refresh();
         } catch (error) {
             console.error("Error updating client:", error);
-            toast.error({
-                title: "Error updating client",
-                description: "There was an error updating the client information.",
-            });
+            toast.error("Failed to update client");
+            throw error;
         }
     };
 
