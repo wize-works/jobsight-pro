@@ -6,7 +6,6 @@ import { useBusiness } from "@/lib/business-context";
 
 interface ModalEditProps {
     title: string;
-    loading: boolean;
     onClose: () => void;
     onSubmit: (formData: any) => Promise<{ success: boolean }>;
     initialCrew?: Crew;
@@ -29,9 +28,9 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setLoading(true);
         const loadData = async () => {
             try {
+                setLoading(true);
                 const fetchedMembers = await getCrewMembers(businessId);
                 setMembers(fetchedMembers || []);
             } catch (err) {
@@ -43,7 +42,7 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
         }
 
         loadData();
-    }, [loading]);
+    }, [businessId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -63,11 +62,20 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
             }
 
             const result = await onSubmit(formData);
+            console.log('Submission result:', result);
+
+            if (!result) {
+                throw new Error("No response received from server");
+            }
+
             if (result.success) {
                 onClose();
+            } else {
+                throw new Error("Failed to update crew. Please try again.");
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "An error occurred while updating the crew";
+            console.error("Submission error:", err);
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
