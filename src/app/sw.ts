@@ -281,4 +281,24 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
     }
 });
 
+// Clean up outdated caches during activation
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        // Get all cache keys
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    // Delete any outdated caches (you can add your own logic here)
+                    // For example, if your cache names include a version number:
+                    if (cacheName.startsWith('serwist-') && cacheName !== 'serwist-precache') {
+                        console.log('Service Worker: Deleting outdated cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                    return Promise.resolve();
+                })
+            );
+        })
+    );
+});
+
 serwist.addEventListeners();

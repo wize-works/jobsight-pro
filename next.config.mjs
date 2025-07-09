@@ -155,14 +155,7 @@ const nextConfig = {
 const serwistWrappedConfig = withSerwist({
     swSrc: "src/app/sw.ts",
     swDest: "public/sw.js",
-    cacheOnNavigation: true,
-    reloadOnOnline: true,
-    disable: process.env.NODE_ENV === "development",
-    swOptions: {
-        // Force clean slate on each build
-        disableDevLogs: process.env.NODE_ENV === 'production',
-        cleanupOutdatedCaches: true,
-    }
+    disable: process.env.NODE_ENV === "development"
 });
 
 // Chain configurations: Serwist wraps Sentry-configured Next.js config
