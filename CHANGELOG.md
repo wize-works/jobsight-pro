@@ -1,3 +1,10 @@
+## [1.123.1](https://github.com/wize-works/jobsight-pro/compare/v1.123.0...v1.123.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* Update default TypeScript formatter in VSCode settings; refactor seed data function for improved readability and consistency ([8f3ae29](https://github.com/wize-works/jobsight-pro/commit/8f3ae29ba768d4905e7e390bc40858654c0febe5))
+
 # [1.123.0](https://github.com/wize-works/jobsight-pro/compare/v1.122.1...v1.123.0) (2025-07-09)
 
 
