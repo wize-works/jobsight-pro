@@ -1,3 +1,10 @@
+# [1.121.0](https://github.com/wize-works/jobsight-pro/compare/v1.120.1...v1.121.0) (2025-07-09)
+
+
+### Features
+
+* Enhance sidebar navigation with active link highlighting based on current path ([fcb2c6d](https://github.com/wize-works/jobsight-pro/commit/fcb2c6d07411e9e730f902a20e3c2f35576da380))
+
 ## [1.120.1](https://github.com/wize-works/jobsight-pro/compare/v1.120.0...v1.120.1) (2025-07-09)
 
 
