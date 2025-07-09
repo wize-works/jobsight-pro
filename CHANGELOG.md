@@ -1,3 +1,10 @@
+# [1.123.0](https://github.com/wize-works/jobsight-pro/compare/v1.122.1...v1.123.0) (2025-07-09)
+
+
+### Features
+
+* Add Dockerfile for multi-stage build setup with environment variable configuration and health check ([d257fb6](https://github.com/wize-works/jobsight-pro/commit/d257fb624cf358f25875430176516e6076ce056e))
+
 ## [1.122.1](https://github.com/wize-works/jobsight-pro/compare/v1.122.0...v1.122.1) (2025-07-09)
 
 
