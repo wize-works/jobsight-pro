@@ -1,3 +1,10 @@
+## [1.122.1](https://github.com/wize-works/jobsight-pro/compare/v1.122.0...v1.122.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* Remove legacy test scripts for Flintstones Seed Data and Setup System ([fc74573](https://github.com/wize-works/jobsight-pro/commit/fc7457305839341d9b913a8effb7f3f823438ffe))
+
 # [1.122.0](https://github.com/wize-works/jobsight-pro/compare/v1.121.0...v1.122.0) (2025-07-09)
 
 
