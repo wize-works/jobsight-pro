@@ -38,9 +38,10 @@ export default function MapPage() {
                     longitude: position.coords.longitude,
                 });
             } else {
-                console.error("Error loading map data:", geoError);
+                console.log("Geolocation not available");
+                //console.error("Error loading map data:", geoError);
                 // Set default location if geolocation fails
-                setLocation({ latitude: 51.505, longitude: -0.09 }); // London coordinates as fallback
+                //setLocation({ latitude: 51.505, longitude: -0.09 }); // London coordinates as fallback
             }
             setIsLoaded(true);
         }
