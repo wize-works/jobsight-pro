@@ -296,7 +296,6 @@ export default function CrewsList() {
             {showAddCrewModal && (
                 <ModalEdit
                     title="Add New Crew"
-                    loading={isSubmitting}
                     onClose={() => setShowAddCrewModal(false)}
                     onSubmit={handleAddCrew}
                 />
