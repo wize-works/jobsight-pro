@@ -264,11 +264,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                     {isCapturing && cameraSupported && (
                         <div className="card bg-base-100 border border-base-300 shadow-sm">
                             <div className="card-body p-4">
-                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="far fa-camera text-primary"></i>
-                                    Camera View
-                                </h3>
-
                                 <div className="relative bg-black rounded-lg overflow-hidden">
                                     <video
                                         ref={videoRef}
@@ -287,25 +282,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                                             <i className="fas fa-camera text-xl"></i>
                                         </button>
                                     </div>
-                                </div>
-
-                                <div className="flex justify-center gap-3 mt-4">
-                                    <button
-                                        className="btn btn-outline gap-2"
-                                        onClick={stopCamera}
-                                        disabled={isLoading}
-                                    >
-                                        <i className="fas fa-times"></i>
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="btn btn-secondary gap-2"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isLoading}
-                                    >
-                                        <i className="fas fa-upload"></i>
-                                        Upload File Instead
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -345,6 +321,14 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 {/* Footer */}
                 <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     <div className="flex justify-end gap-3">
+                        <button
+                            className="btn btn-secondary gap-2"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isLoading}
+                        >
+                            <i className="fas fa-upload"></i>
+                            Upload File Instead
+                        </button>
                         <button
                             className="btn btn-outline"
                             onClick={handleClose}
