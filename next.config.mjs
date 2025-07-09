@@ -111,8 +111,8 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: "default-src 'self'; " +
                             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
-                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://q.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev https://clerk.jobsight.co; " +
-                            "img-src 'self' data: https: blob: https://www.clarity.ms https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
+                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://q.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
+                            "img-src 'self' data: https: blob: https://www.clarity.ms https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
                             "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
                             "font-src 'self' data: https://kit.fontawesome.com https://ka-p.fontawesome.com https://res-1.cdn.office.net https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
                             "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
@@ -158,6 +158,11 @@ const serwistWrappedConfig = withSerwist({
     cacheOnNavigation: true,
     reloadOnOnline: true,
     disable: process.env.NODE_ENV === "development",
+    swOptions: {
+        // Force clean slate on each build
+        disableDevLogs: process.env.NODE_ENV === 'production',
+        cleanupOutdatedCaches: true,
+    }
 });
 
 // Chain configurations: Serwist wraps Sentry-configured Next.js config

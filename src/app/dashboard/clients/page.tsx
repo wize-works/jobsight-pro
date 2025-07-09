@@ -31,7 +31,6 @@ export default function ClientsPage() {
         const fetchClients = async () => {
             try {
                 const data = await getClientsWithStats(businessId);
-                console.log("Fetched clients:", data);
                 setClients(data);
             } catch (error) {
                 console.error("Error fetching clients:", error);
