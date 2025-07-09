@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, NetworkFirst, CacheFirst, StaleWhileRevalidate } from "serwist";
+import { Serwist, NetworkFirst, CacheFirst, StaleWhileRevalidate, NetworkOnly } from "serwist";
 import { defaultCache } from "@serwist/next/worker";
 
 declare global {
@@ -12,12 +12,47 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+// List of domains that should use network-first strategy
+const NETWORK_FIRST_DOMAINS = [
+    'clarity.ms',
+    'tile.openstreetmap.org'
+];
+
+// List of APIs that should bypass service worker completely
+const BYPASS_APIS = [
+    'geolocation',
+    'notifications',
+    'push',
+];
+
+// Debug mode - turn off in production
+const DEBUG = false;
+
+// Log helper function
+const log = (...args: any[]) => {
+    if (DEBUG) {
+        console.log('[ServiceWorker]', ...args);
+    }
+};
+
 const serwist = new Serwist({
     precacheEntries: self.__SW_MANIFEST,
     skipWaiting: true,
     clientsClaim: true,
     navigationPreload: false,
     runtimeCaching: [
+        // Handle OpenStreetMap and Clarity with NetworkOnly strategy
+        {
+            matcher: ({ url }) => {
+                const result = NETWORK_FIRST_DOMAINS.some(domain => url.hostname.includes(domain));
+                if (result && DEBUG) {
+                    log('NetworkOnly match for:', url.toString());
+                }
+                return result;
+            },
+            handler: new NetworkOnly()
+        },
+        // Original rules follow
         ...defaultCache,
         {
             matcher: ({ request }) => request.url.startsWith('https://api.'),
@@ -47,6 +82,22 @@ const serwist = new Serwist({
         },
     ],
 });
+
+// Register a simple navigation error handler
+self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+    
+    // Debug navigation requests
+    if (event.request.mode === 'navigate') {
+        log('Navigation request:', event.request.url);
+    }
+    
+    // Bypass geolocation and other sensitive APIs
+    if (BYPASS_APIS.some(api => url.pathname.includes(api))) {
+        log('Bypassing service worker for API:', url.pathname);
+        return; // Let the browser handle these requests natively
+    }
+}, { capture: false });
 
 // Background sync for offline data
 self.addEventListener("sync", (event: SyncEvent) => {

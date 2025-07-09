@@ -18,12 +18,6 @@ export default function SetupWrapper({ children }: SetupWrapperProps) {
         checkSetupStatus
     } = useUserSetup();
 
-    console.log('[SetupWrapper] Render with needsSetup:', needsSetup,
-        'isLoading:', isLoading,
-        'error:', error,
-        'isBusinessOwner:', isBusinessOwner,
-        'businessSetupPending:', businessSetupPending);
-
     // Show loading state
     if (isLoading) {
         return (
@@ -64,7 +58,6 @@ export default function SetupWrapper({ children }: SetupWrapperProps) {
 
     // Show setup form if user needs setup and is the business owner
     if (needsSetup) {
-        console.log('[SetupWrapper] User needs setup, showing SetupUserForm');
         return <SetupUserForm onSetupComplete={markSetupComplete} />;
     }
 
@@ -87,8 +80,6 @@ export default function SetupWrapper({ children }: SetupWrapperProps) {
                         <div className="card-actions justify-center mt-4">
                             <button
                                 onClick={() => {
-                                    // Use the hook's checkSetupStatus directly instead of page reload
-                                    console.log('[SetupWrapper] Manually checking setup status');
                                     markSetupComplete(); // Reset UI immediately 
                                     checkSetupStatus(); // Then check the actual status
                                 }}

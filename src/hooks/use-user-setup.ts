@@ -23,7 +23,6 @@ export function useUserSetup() {
 
     const checkSetupStatus = async () => {
         if (!isLoaded || !user) {
-            console.log('[useUserSetup] User not loaded yet, skipping check');
             setSetupStatus({
                 needsSetup: false,
                 isLoading: false,
@@ -35,7 +34,6 @@ export function useUserSetup() {
         }
 
         try {
-            console.log('[useUserSetup] Checking setup status for user:', user.id);
             setSetupStatus(prev => ({ ...prev, isLoading: true, error: null }));
 
             // Add cache-busting query parameter
@@ -48,13 +46,12 @@ export function useUserSetup() {
                     'Pragma': 'no-cache'
                 }
             });
-            console.log('[useUserSetup] API response status:', response.status);
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
-            console.log('[useUserSetup] API result:', result);
 
             setSetupStatus({
                 needsSetup: result.needsSetup,
@@ -65,7 +62,6 @@ export function useUserSetup() {
             });
 
         } catch (error) {
-            console.error('[useUserSetup] Error checking setup status:', error);
             setSetupStatus({
                 needsSetup: false,
                 isLoading: false,
@@ -90,7 +86,6 @@ export function useUserSetup() {
     };
 
     useEffect(() => {
-        console.log('[useUserSetup] Effect triggered, isLoaded:', isLoaded, 'user:', user?.id);
         checkSetupStatus();
     }, [isLoaded, user]);
 
