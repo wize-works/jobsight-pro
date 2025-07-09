@@ -12,8 +12,8 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-// List of domains that should use network-first strategy
-const NETWORK_FIRST_DOMAINS = [
+// List of domains that should be excluded from service worker caching
+const NETWORK_ONLY_DOMAINS = [
     'clarity.ms',
     'tile.openstreetmap.org'
 ];
@@ -44,7 +44,7 @@ const serwist = new Serwist({
         // Handle OpenStreetMap and Clarity with NetworkOnly strategy
         {
             matcher: ({ url }) => {
-                const result = NETWORK_FIRST_DOMAINS.some(domain => url.hostname.includes(domain));
+                const result = NETWORK_ONLY_DOMAINS.some((domain: string) => url.hostname.includes(domain));
                 if (result && DEBUG) {
                     log('NetworkOnly match for:', url.toString());
                 }
@@ -95,6 +95,12 @@ self.addEventListener('fetch', event => {
     // Bypass geolocation and other sensitive APIs
     if (BYPASS_APIS.some(api => url.pathname.includes(api))) {
         log('Bypassing service worker for API:', url.pathname);
+        return; // Let the browser handle these requests natively
+    }
+    
+    // Bypass tracking and map tiles services
+    if (NETWORK_ONLY_DOMAINS.some((domain: string) => url.hostname.includes(domain))) {
+        log('Bypassing service worker for domain:', url.hostname);
         return; // Let the browser handle these requests natively
     }
 }, { capture: false });
