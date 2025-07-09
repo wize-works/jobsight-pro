@@ -1,3 +1,10 @@
+# [1.122.0](https://github.com/wize-works/jobsight-pro/compare/v1.121.0...v1.122.0) (2025-07-09)
+
+
+### Features
+
+* Implement crew update functionality in detail component; enhance modal edit handling and error logging ([584b5ed](https://github.com/wize-works/jobsight-pro/commit/584b5eddf55c212c24a6c380d9bc4a1e7bf2c60c))
+
 # [1.121.0](https://github.com/wize-works/jobsight-pro/compare/v1.120.1...v1.121.0) (2025-07-09)
 
 
