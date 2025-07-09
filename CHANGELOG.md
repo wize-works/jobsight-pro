@@ -1,3 +1,10 @@
+# [1.120.0](https://github.com/wize-works/jobsight-pro/compare/v1.119.0...v1.120.0) (2025-07-09)
+
+
+### Features
+
+* Enhance service worker with network-first strategy for specific domains and improve setup handling by removing debug logs ([f8c9ac3](https://github.com/wize-works/jobsight-pro/commit/f8c9ac38591917c87f70dba4991ffb67665e885c))
+
 # [1.119.0](https://github.com/wize-works/jobsight-pro/compare/v1.118.0...v1.119.0) (2025-07-08)
 
 
