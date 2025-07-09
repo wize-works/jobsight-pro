@@ -213,9 +213,9 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box w-11/12 max-w-3xl p-0">
+            <div className="modal-box w-11/12 max-w-3xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-xl font-bold">Take Photo</h2>
@@ -235,7 +235,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-6">
+                <div className="p-6 overflow-y-auto space-y-6" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     {!cameraSupported && !capturedPhoto && (
                         <div className="card bg-warning/10 border border-warning/20">
                             <div className="card-body p-4">
@@ -343,7 +343,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 </div>
 
                 {/* Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     <div className="flex justify-end gap-3">
                         <button
                             className="btn btn-outline"

@@ -173,9 +173,9 @@ export default function TaskDetailsModal({
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box w-11/12 max-w-5xl p-0 max-h-[90vh] overflow-hidden">
+            <div className="modal-box w-11/12 max-w-5xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-xl font-bold">
@@ -203,7 +203,7 @@ export default function TaskDetailsModal({
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main content */}
                         <div className="lg:col-span-2 space-y-6">
@@ -611,7 +611,7 @@ export default function TaskDetailsModal({
                 </div>
 
                 {/* Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     <div className="flex justify-end gap-3">
                         {!isCreating && !isEditing && (
                             <>

@@ -171,9 +171,9 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box w-11/12 max-w-5xl p-0">
+            <div className="modal-box w-11/12 max-w-5xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-xl font-bold">My Tasks</h2>
@@ -192,7 +192,7 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-6">
+                <div className="p-6 overflow-y-auto space-y-6" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     {/* Search and Filter Section */}
                     <div className="card bg-base-100 border border-base-300 shadow-sm">
                         <div className="card-body p-4">
@@ -292,8 +292,8 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
                                         <div
                                             key={task.id}
                                             className={`card border shadow-sm transition-colors ${isOverdue(task.end_date) && task.status !== 'completed'
-                                                    ? 'border-error bg-error/5'
-                                                    : 'border-base-300 bg-base-50'
+                                                ? 'border-error bg-error/5'
+                                                : 'border-base-300 bg-base-50'
                                                 }`}
                                         >
                                             <div className="card-body p-4">
@@ -384,7 +384,7 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
                 </div>
 
                 {/* Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div className="text-sm text-base-content/70">
                             <i className="far fa-info-circle mr-1"></i>

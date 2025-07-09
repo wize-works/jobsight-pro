@@ -6,7 +6,6 @@ import { useBusiness } from "@/lib/business-context";
 
 interface ModalEditProps {
     title: string;
-    loading: boolean;
     onClose: () => void;
     onSubmit: (formData: any) => Promise<{ success: boolean }>;
     initialCrew?: Crew;
@@ -29,9 +28,9 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setLoading(true);
         const loadData = async () => {
             try {
+                setLoading(true);
                 const fetchedMembers = await getCrewMembers(businessId);
                 setMembers(fetchedMembers || []);
             } catch (err) {
@@ -43,7 +42,7 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
         }
 
         loadData();
-    }, [loading]);
+    }, [businessId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -63,11 +62,20 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
             }
 
             const result = await onSubmit(formData);
+            console.log('Submission result:', result);
+
+            if (!result) {
+                throw new Error("No response received from server");
+            }
+
             if (result.success) {
                 onClose();
+            } else {
+                throw new Error("Failed to update crew. Please try again.");
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "An error occurred while updating the crew";
+            console.error("Submission error:", err);
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
@@ -81,9 +89,9 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box max-w-2xl max-h-[90vh] p-0 rounded-lg">
+            <div className="modal-box max-w-2xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Modal Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold">{title}</h2>
                         <button
@@ -98,7 +106,7 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="card bg-base-100 border border-base-300">
                             <div className="card-body p-4">
@@ -215,7 +223,7 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     {error && (
                         <div className="alert alert-error mb-4">
                             <i className="far fa-exclamation-triangle"></i>

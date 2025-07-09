@@ -9,7 +9,7 @@ import type { Crew, CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
 import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentUpdate, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { toast } from "@/hooks/use-toast";
-import { assignCrewLeader, updateCrewNotes } from "@/app/actions/crews";
+import { assignCrewLeader, updateCrewNotes, updateCrew } from "@/app/actions/crews";
 import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew, updateProjectCrew, deleteProjectCrew } from "@/app/actions/project-crews";
@@ -180,21 +180,20 @@ export default function CrewDetailComponent({
         setShowEditMemberModal(true);
     };
 
-    const handleUpdateMember = async () => {
-        if (!editingMember) return;
-
+    const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, editingMember.id, editingMember);
+            const result = await updateCrewMember(businessId, formData.id, formData);
 
             if (result) {
                 toast({
                     title: "Success",
-                    description: `Updated ${editingMember.name} successfully.`,
+                    description: `Updated ${formData.name} successfully.`,
                 });
 
                 setShowEditMemberModal(false);
                 setEditingMember(null);
                 router.refresh();
+                return { success: true };
             } else {
                 throw new Error("Failed to update crew member");
             }
@@ -203,8 +202,10 @@ export default function CrewDetailComponent({
                 title: "Error",
                 description: "Error updating crew member. Please try again.",
             });
+            return { success: false };
         }
-    };    // Add this handler for adding an assignment (mock for now)
+    };
+
     const handleAddAssignment = async (formData: any) => {
         console.log("Adding assignment for crew:", crew.id, "with data:", formData.projectId);
         const projectCrewInsert = {
@@ -337,7 +338,53 @@ export default function CrewDetailComponent({
                 description: "Failed to update crew notes. Please try again.",
             });
         }
-    }    // Equipment Handlers
+    }
+
+    const handleUpdateCrew = async (formData: any) => {
+        try {
+            console.log("Updating crew:", crew.id, "with data:", formData);
+
+            if (!formData.name.trim()) {
+                toast.error({
+                    title: "Validation Error",
+                    description: "Crew name is required",
+                });
+                return { success: false };
+            }
+
+            // Create a partial update with only the fields we want to change
+            const crewUpdate = {
+                name: formData.name,
+                status: formData.status,
+                leader_id: formData.leader_id || null,
+                specialty: formData.specialty || null,
+                notes: formData.notes || null
+            } as any; // Using any as a workaround for the type issues
+
+            const result = await updateCrew(businessId, crew.id, crewUpdate);
+
+            if (result) {
+                toast.success({
+                    title: "Crew Updated",
+                    description: `The crew "${result.name}" has been updated successfully.`,
+                });
+                setShowEditModal(false);
+                router.refresh();
+                return { success: true };
+            } else {
+                throw new Error("Failed to update crew");
+            }
+        } catch (error) {
+            console.error("Error updating crew:", error);
+            toast.error({
+                title: "Error",
+                description: "Failed to update crew. Please try again.",
+            });
+            return { success: false };
+        }
+    }
+
+    // Equipment Handlers
     const handleAddEquipmentAssignment = async (formData: any) => {
         const equipmentAssignment = {
             crew_id: crew.id,
@@ -695,7 +742,8 @@ export default function CrewDetailComponent({
                                             </div>
                                         ) : (
                                             <div className="text-center py-8">
-                                                <p className="mb-4">No crew members have been added yet</p>                                            <button
+                                                <p className="mb-4">No crew members have been added yet</p>
+                                                <button
                                                     className="btn btn-primary"
                                                     onClick={() => setShowAddMemberModal(true)}
                                                 >
@@ -754,17 +802,19 @@ export default function CrewDetailComponent({
                                                                 <td>{item.notes}</td>
                                                                 <td>{item.hours}</td>
                                                                 <td>
-                                                                    <div className="flex gap-2">                                                                    <button
-                                                                        className="btn btn-ghost btn-xs"
-                                                                        onClick={() => {
-                                                                            handleOpenEditAssignment(item);
-                                                                        }}
-                                                                    >
-                                                                        <i className="far fa-edit fa-xl"></i>
-                                                                    </button>                                                                    <button
-                                                                        className="btn btn-ghost btn-xs text-error"
-                                                                        onClick={() => handleDeleteAssignment(item)}
-                                                                    >
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs"
+                                                                            onClick={() => {
+                                                                                handleOpenEditAssignment(item);
+                                                                            }}
+                                                                        >
+                                                                            <i className="far fa-edit fa-xl"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            className="btn btn-ghost btn-xs text-error"
+                                                                            onClick={() => handleDeleteAssignment(item)}
+                                                                        >
                                                                             <i className="far fa-trash fa-xl"></i>
                                                                         </button>
                                                                     </div>
@@ -775,7 +825,8 @@ export default function CrewDetailComponent({
                                                 </table>
                                             </div>
                                         ) : (<div className="text-center py-8">
-                                            <p className="mb-4">No schedule items have been added yet</p>                                            <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
+                                            <p className="mb-4">No schedule items have been added yet</p>
+                                            <button className="btn btn-outline" onClick={() => setShowAddAssignmentModal(true)}>
                                                 <i className="far fa-plus mr-2"></i> Add First Assignment
                                             </button>
                                         </div>
@@ -800,7 +851,8 @@ export default function CrewDetailComponent({
                                 <div className="card bg-base-100 shadow-lg">
                                     <div className="card-body">
                                         <div className="flex justify-between items-center mb-4">
-                                            <h3 className="text-lg font-semibold">Assigned Equipment</h3>                                        <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
+                                            <h3 className="text-lg font-semibold">Assigned Equipment</h3>
+                                            <button className="btn btn-sm btn-outline" onClick={handleOpenAssignEquipmentModal}>
                                                 <i className="far fa-tools mr-2"></i> Assign Equipment
                                             </button>
                                         </div>
@@ -848,7 +900,8 @@ export default function CrewDetailComponent({
                                                 </table>
                                             </div>
                                         ) : (<div className="text-center py-8">
-                                            <p className="mb-4">No equipment has been assigned to this crew yet</p>                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
+                                            <p className="mb-4">No equipment has been assigned to this crew yet</p>
+                                            <button className="btn btn-outline" onClick={handleOpenAssignEquipmentModal}>
                                                 <i className="far fa-tools mr-2"></i> Assign First Equipment
                                             </button>
                                         </div>
@@ -969,107 +1022,29 @@ export default function CrewDetailComponent({
 
                     {/* Edit Member Modal */}
                     {showEditMemberModal && editingMember && (
-                        <div className="modal modal-open">
-                            <div className="modal-box">
-                                <h3 className="font-bold text-lg mb-4">Edit Crew Member</h3>
-                                <form className="space-y-6">
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Name</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered"
-                                            value={editingMember.name}
-                                            onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
-                                            placeholder="Enter full name"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Role</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered"
-                                            value={editingMember.role ?? ""}
-                                            onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}
-                                            placeholder="e.g. Foreman, Electrician, etc."
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Experience (years)</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            className="input input-bordered"
-                                            value={editingMember.experience ?? ""}
-                                            onChange={(e) => setEditingMember({ ...editingMember, experience: parseInt(e.target.value) || 0 })}
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Phone</span>
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            className="input input-bordered"
-                                            value={editingMember.phone ?? ""}
-                                            onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })}
-                                            placeholder="Phone number"
-                                        />
-                                    </div>
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text">Email</span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="input input-bordered"
-                                            value={editingMember.email ?? ""}
-                                            onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
-                                            placeholder="Email address"
-                                        />
-                                    </div>
-                                </form>
-                                <div className="modal-action">
-                                    <button className="btn btn-primary" onClick={handleUpdateMember}>
-                                        <i className="far fa-save mr-2"></i> Update Member
-                                    </button>
-                                    <button
-                                        className="btn"
-                                        onClick={() => {
-                                            setShowEditMemberModal(false);
-                                            setEditingMember(null);
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                            <form method="dialog" className="modal-backdrop">
-                                <button onClick={() => {
-                                    setShowEditMemberModal(false);
-                                    setEditingMember(null);
-                                }}>close</button>
-                            </form>
-                        </div>)}
+                        <ModalMember
+                            title="Edit Crew Member"
+                            loading={false}
+                            onClose={() => {
+                                setShowEditMemberModal(false);
+                                setEditingMember(null);
+                            }}
+                            onSubmit={handleUpdateMember}
+                            initialMember={editingMember}
+                        />
+                    )}
 
                     {showEditModal && (
                         <ModalEdit
                             title="Edit Crew"
-                            loading={false}
                             onClose={() => setShowEditModal(false)}
-                            onSubmit={async (formData) => {
-                                // Handle form submission logic here
-                                // Example: Simulate a successful submission
-                                return { success: true };
-                            }}
+                            onSubmit={handleUpdateCrew}
                             initialCrew={crew as Crew}
+                            initialMembers={allMembers}
                         />
-                    )}                    {/* Edit Assignment Modal */}
+                    )}
+
+                    {/* Edit Assignment Modal */}
                     {showEditAssignmentModal && editingAssignment && (
                         <ModalAssignment
                             title="Edit Assignment"
