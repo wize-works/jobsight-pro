@@ -141,9 +141,9 @@ export default function TimeTrackingModal({ isOpen, onClose }: TimeTrackingModal
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box w-11/12 max-w-2xl p-0">
+            <div className="modal-box w-11/12 max-w-2xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-xl font-bold">Time Tracking</h2>
@@ -162,7 +162,7 @@ export default function TimeTrackingModal({ isOpen, onClose }: TimeTrackingModal
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-6">
+                <div className="p-6 overflow-y-auto space-y-6" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     {/* Current Tracking Section */}
                     <div className="card bg-base-100 border border-base-300 shadow-sm">
                         <div className="card-body p-4">
@@ -276,7 +276,7 @@ export default function TimeTrackingModal({ isOpen, onClose }: TimeTrackingModal
                 </div>
 
                 {/* Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     <div className="flex justify-end gap-3">
                         <button
                             className="btn btn-outline"

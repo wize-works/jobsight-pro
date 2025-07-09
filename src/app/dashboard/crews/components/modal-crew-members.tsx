@@ -133,22 +133,23 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
     const handleEditMember = (member: CrewMember) => {
         setEditingMember(member);
         setShowEditMemberModal(true);
-    }; const handleUpdateMember = async () => {
-        if (!editingMember) return;
+    };
 
+    const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, editingMember.id, editingMember);
+            const result = await updateCrewMember(businessId, formData.id, formData);
 
             if (result) {
                 toast.success({
                     title: "Success",
-                    description: `Updated ${editingMember.name} successfully.`,
+                    description: `Updated ${formData.name} successfully.`,
                 });
 
                 setShowEditMemberModal(false);
                 setEditingMember(null);
                 onRefresh?.();
                 loadData();
+                return { success: true };
             } else {
                 throw new Error("Failed to update crew member");
             }
@@ -157,6 +158,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
                 title: "Error",
                 description: "Error updating crew member. Please try again.",
             });
+            return { success: false };
         }
     }; const handleRemoveMember = async (memberId: string, memberName: string) => {
         if (!window.confirm(`Are you sure you want to remove ${memberName} from the crew?`)) {
@@ -192,9 +194,9 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
     return (
         <>
             <div className="modal modal-open">
-                <div className="modal-box max-w-4xl max-h-[90vh] p-0 rounded-lg">
+                <div className="modal-box max-w-4xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                     {/* Modal Header */}
-                    <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                    <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                         <div className="flex justify-between items-center">
                             <div>
                                 <h2 className="text-xl font-bold">Manage Crew Members</h2>
@@ -211,7 +213,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
                     </div>
 
                     {/* Modal Body */}
-                    <div className="p-6 overflow-y-auto max-h-[75vh]">
+                    <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 145px)" }}>
                         {loading ? (
                             <div className="flex justify-center items-center py-12">
                                 <span className="loading loading-spinner loading-lg"></span>
@@ -349,8 +351,8 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
                     </div>
 
                     {/* Modal Footer */}
-                    <div className="bg-base-200 p-4 rounded-b-lg border-t border-base-300">
-                        <div className="flex justify-end">
+                    <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
+                        <div className="flex justify-end gap-3">
                             <button className="btn btn-outline" onClick={onClose}>
                                 <i className="far fa-times mr-2"></i> Close
                             </button>
@@ -384,94 +386,16 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
 
             {/* Edit Member Modal */}
             {showEditMemberModal && editingMember && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg mb-4">Edit Crew Member</h3>
-                        <form className="space-y-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={editingMember.name}
-                                    onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
-                                    placeholder="Enter full name"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Role</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={editingMember.role ?? ""}
-                                    onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}
-                                    placeholder="e.g. Foreman, Electrician, etc."
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Experience (years)</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    className="input input-bordered"
-                                    value={editingMember.experience ?? ""}
-                                    onChange={(e) => setEditingMember({ ...editingMember, experience: parseInt(e.target.value) || 0 })}
-                                    placeholder="Years of experience"
-                                    min="0"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Phone</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    className="input input-bordered"
-                                    value={editingMember.phone ?? ""}
-                                    onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })}
-                                    placeholder="Phone number"
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Email</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    className="input input-bordered"
-                                    value={editingMember.email ?? ""}
-                                    onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
-                                    placeholder="Email address"
-                                />
-                            </div>
-                        </form>
-                        <div className="modal-action">
-                            <button className="btn btn-primary" onClick={handleUpdateMember}>
-                                <i className="far fa-save mr-2"></i> Update Member
-                            </button>
-                            <button
-                                className="btn"
-                                onClick={() => {
-                                    setShowEditMemberModal(false);
-                                    setEditingMember(null);
-                                }}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                    <form method="dialog" className="modal-backdrop">
-                        <button onClick={() => {
-                            setShowEditMemberModal(false);
-                            setEditingMember(null);
-                        }}>close</button>
-                    </form>
-                </div>
+                <ModalMember
+                    title="Edit Crew Member"
+                    loading={false}
+                    onClose={() => {
+                        setShowEditMemberModal(false);
+                        setEditingMember(null);
+                    }}
+                    onSubmit={handleUpdateMember}
+                    initialMember={editingMember}
+                />
             )}
         </>
     );

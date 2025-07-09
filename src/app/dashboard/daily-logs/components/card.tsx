@@ -113,8 +113,21 @@ export const DailyLogCard = ({
         // Try to parse as JSON first
         try {
             const weatherData = JSON.parse(weather);
+
+            // Handle the existing format with current property
             if (weatherData.current) {
                 const condition = weatherData.current.condition.toLowerCase();
+                if (condition.includes('rain') || condition.includes('drizzle')) return "fas fa-cloud-rain";
+                if (condition.includes('sun') || condition.includes('clear')) return "fas fa-sun";
+                if (condition.includes('cloud')) return "fas fa-cloud";
+                if (condition.includes('snow')) return "fas fa-snowflake";
+                if (condition.includes('thunderstorm') || condition.includes('storm')) return "fas fa-bolt";
+                return "fas fa-cloud-sun";
+            }
+
+            // Handle the new format with condition directly
+            if (weatherData.condition) {
+                const condition = weatherData.condition.toLowerCase();
                 if (condition.includes('rain') || condition.includes('drizzle')) return "fas fa-cloud-rain";
                 if (condition.includes('sun') || condition.includes('clear')) return "fas fa-sun";
                 if (condition.includes('cloud')) return "fas fa-cloud";
@@ -139,6 +152,13 @@ export const DailyLogCard = ({
 
         try {
             const weatherData = JSON.parse(weather);
+
+            // Handle the new format with temperature, condition, humidity, wind
+            if (weatherData.temperature && weatherData.condition) {
+                return `${weatherData.temperature}°F`;
+            }
+
+            // Handle the existing format with current property
             if (weatherData.current) {
                 return `${weatherData.current.description}, ${weatherData.current.temperature}°F`;
             }

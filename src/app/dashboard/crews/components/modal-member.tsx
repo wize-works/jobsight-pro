@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CrewMember, CrewMemberRole, crewMemberRoleOptions } from "@/types/crew-members";
 
 interface ModalMemberProps {
@@ -6,9 +6,12 @@ interface ModalMemberProps {
     loading: boolean;
     onClose: () => void;
     onSubmit: (formData: any) => Promise<{ success: boolean }>;
+    initialMember?: CrewMember; // Add optional initialMember prop for editing mode
 }
 
-const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSubmit }) => {
+const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSubmit, initialMember }) => {
+    const isEditMode = !!initialMember;
+
     const [formData, setFormData] = useState({
         name: "",
         role: "laborer" as CrewMemberRole,
@@ -19,6 +22,20 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Populate form data with initialMember values if available
+    useEffect(() => {
+        if (initialMember) {
+            setFormData({
+                name: initialMember.name,
+                role: (initialMember.role as CrewMemberRole) || "laborer",
+                experience: initialMember.experience || 0,
+                phone: initialMember.phone || "",
+                email: initialMember.email || "",
+                avatar_url: initialMember.avatar_url || "",
+            });
+        }
+    }, [initialMember]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -48,12 +65,15 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 throw new Error("Member role is required");
             }
 
-            const result = await onSubmit(formData);
+            // If we're in edit mode, include the ID in the submission
+            const submissionData = isEditMode ? { ...formData, id: initialMember?.id } : formData;
+
+            const result = await onSubmit(submissionData);
             if (result.success) {
                 onClose();
             }
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "An error occurred while adding the crew member";
+            const errorMessage = err instanceof Error ? err.message : `An error occurred while ${isEditMode ? 'updating' : 'adding'} the crew member`;
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
@@ -67,9 +87,9 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box max-w-2xl max-h-[90vh] p-0 rounded-lg">
+            <div className="modal-box max-w-2xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Modal Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold">{title}</h2>
                         <button
@@ -84,7 +104,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Information */}
                         <div className="card bg-base-100 border border-base-300">
@@ -210,7 +230,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     {error && (
                         <div className="alert alert-error mb-4">
                             <i className="far fa-exclamation-triangle"></i>
@@ -235,12 +255,12 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                             {isSubmitting ? (
                                 <>
                                     <span className="loading loading-spinner loading-sm"></span>
-                                    Adding...
+                                    {isEditMode ? "Updating..." : "Adding..."}
                                 </>
                             ) : (
                                 <>
-                                    <i className="far fa-user-plus"></i>
-                                    Add Member
+                                    <i className={`far ${isEditMode ? "fa-save" : "fa-user-plus"}`}></i>
+                                    {isEditMode ? "Update Member" : "Add Member"}
                                 </>
                             )}
                         </button>

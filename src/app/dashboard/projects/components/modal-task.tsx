@@ -182,9 +182,9 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
 
     return (
         <div className="modal modal-open">
-            <div className="modal-box max-w-4xl max-h-[90vh] p-0 rounded-lg">
+            <div className="modal-box max-w-4xl p-0 rounded-lg flex flex-col" style={{ maxHeight: "90vh", height: "auto" }}>
                 {/* Modal Header */}
-                <div className="bg-primary text-primary-content p-6 rounded-t-lg">
+                <div className="bg-primary text-primary-content p-6 rounded-t-lg flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold">
                             {isEditing ? 'Edit Task' : 'Add New Task'}
@@ -200,7 +200,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 145px)" }}>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Task Details */}
                         <div className="card bg-base-100 border border-base-300">
@@ -409,7 +409,7 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 </div>
 
                 {/* Modal Footer */}
-                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300">
+                <div className="bg-base-200 p-6 rounded-b-lg border-t border-base-300 flex-shrink-0">
                     {error && (
                         <div className="alert alert-error mb-4">
                             <i className="far fa-exclamation-triangle"></i>
