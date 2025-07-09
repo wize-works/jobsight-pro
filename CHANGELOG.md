@@ -1,3 +1,10 @@
+## [1.120.1](https://github.com/wize-works/jobsight-pro/compare/v1.120.0...v1.120.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* Refactor service worker caching strategy: rename NETWORK_FIRST_DOMAINS to NETWORK_ONLY_DOMAINS and update logic to bypass caching for specified domains ([c269b0a](https://github.com/wize-works/jobsight-pro/commit/c269b0a879ad23f24af8147f5c7d11e18b30f9e1))
+
 # [1.120.0](https://github.com/wize-works/jobsight-pro/compare/v1.119.0...v1.120.0) (2025-07-09)
 
 
