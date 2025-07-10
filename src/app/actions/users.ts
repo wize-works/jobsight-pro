@@ -60,6 +60,31 @@ export const getUserById = async (businessId: string, id: string): Promise<User 
     }
 };
 
+export const getUserByUserId = async (businessId: string, id: string): Promise<User | null> => {
+    try {
+
+
+        const { data, error } = await fetchByBusiness("users", businessId, "*", {
+            filter: { id: id },  // this should be moved to the correct field in the future, but for now we use auth_id
+        }
+        );
+
+        if (error) {
+            console.error("Error fetching user by ID:", error, id, businessId);
+            return null;
+        }
+
+        if (data && data[0]) {
+            return data[0] as unknown as User;
+        }
+
+        return null;
+    } catch (err) {
+        console.error("Error in getUserById:", err);
+        return null;
+    }
+};
+
 export const getUserByAuthId = async (businessId: string, authId: string): Promise<User | null> => {
     try {
 
@@ -273,6 +298,7 @@ export const updateUserAsAdmin = async (
     }
 ): Promise<{ success: boolean; user?: User; error?: string }> => {
     try {
+        console.log("Updating user as admin:", businessId, targetUserId, updates);
         const { userId } = await withBusinessServer();
 
         // Get the current user to check if they're an admin
@@ -287,7 +313,7 @@ export const updateUserAsAdmin = async (
         }
 
         // Get the target user to ensure they exist
-        const targetUser = await getUserById(businessId, targetUserId);
+        const targetUser = await getUserByUserId(businessId, targetUserId);
         if (!targetUser) {
             return { success: false, error: "Target user not found" };
         }
@@ -295,7 +321,9 @@ export const updateUserAsAdmin = async (
         // Prevent admins from removing their own admin status
         if (targetUser.auth_id === userId && updates.role && updates.role !== 'admin') {
             return { success: false, error: "You cannot remove your own admin privileges" };
-        }        // Prepare the update data
+        }
+
+        // Prepare the update data
         const userUpdate: Partial<UserUpdate> = {
             updated_at: new Date().toISOString()
         };
