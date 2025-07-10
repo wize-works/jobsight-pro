@@ -1,3 +1,10 @@
+# [1.127.0](https://github.com/wize-works/jobsight-pro/compare/v1.126.0...v1.127.0) (2025-07-10)
+
+
+### Features
+
+* Enhance AI guidance generation with user role context and improve response formatting ([4d666a2](https://github.com/wize-works/jobsight-pro/commit/4d666a236718ea3dd3d14c39ff9f5621e207a81d))
+
 # [1.126.0](https://github.com/wize-works/jobsight-pro/compare/v1.125.0...v1.126.0) (2025-07-10)
 
 
