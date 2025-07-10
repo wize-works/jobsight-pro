@@ -185,6 +185,17 @@ export default function UsersPermissionsTab() {
 
         setUpdatingUser(true);
         try {
+            console.log("Updating user:", {
+                businessId,
+                userId: editingUser.id,
+                data: {
+                    first_name: editFormData.first_name,
+                    last_name: editFormData.last_name,
+                    email: editFormData.email,
+                    role: editFormData.role,
+                    status: editFormData.status
+                }
+            });
             const result = await updateUserAsAdmin(businessId, editingUser.id, {
                 first_name: editFormData.first_name,
                 last_name: editFormData.last_name,
@@ -309,24 +320,23 @@ export default function UsersPermissionsTab() {
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">                                {user && user.email && user.status === 'invited' && (
-                                                <button
-                                                    className="btn btn-sm btn-ghost text-primary"
-                                                    onClick={() => handleResendInvitation(user.id, user.email)}
-                                                    title="Resend invitation"
-                                                >
-                                                    <i className="far fa-paper-plane"></i>
-                                                </button>
-                                            )}
-                                                {isCurrentUserAdmin && user.auth_id !== currentUser?.id && (
+                                            <div className="flex gap-2">
+                                                {user && user.email && user.status === 'invited' && (
                                                     <button
-                                                        className="btn btn-sm btn-ghost text-info"
-                                                        onClick={() => handleEditUser(user)}
-                                                        title="Edit user"
+                                                        className="btn btn-sm btn-ghost text-primary"
+                                                        onClick={() => handleResendInvitation(user.id, user.email)}
+                                                        title="Resend invitation"
                                                     >
-                                                        <i className="far fa-edit"></i>
+                                                        <i className="far fa-paper-plane"></i>
                                                     </button>
                                                 )}
+                                                <button
+                                                    className="btn btn-sm btn-ghost text-info"
+                                                    onClick={() => handleEditUser(user)}
+                                                    title="Edit user"
+                                                >
+                                                    <i className="far fa-edit"></i>
+                                                </button>
                                                 {user.auth_id !== currentUser?.id && (
                                                     <button
                                                         className="btn btn-sm btn-ghost text-error"
