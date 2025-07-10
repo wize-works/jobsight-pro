@@ -7,6 +7,7 @@ import { Client } from "@/types/clients";
 import { createNotificationWithEmail } from "@/app/actions/notifications";
 import { getUsers } from "@/app/actions/users";
 import type { NotificationInsert } from "@/types/notifications";
+import { CrewWithMemberInfo } from "@/types/crews";
 import { AIContextCache } from "@/lib/ai/cache";
 
 
@@ -269,7 +270,8 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
     project: Project;
     milestones: any[];
     tasks: any[];
-    crews: any[];
+    crews: CrewWithMemberInfo[];
+    projectCrews: any[];
     issues: any[];
     client: any | null;
     contacts: any[];
@@ -366,8 +368,52 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
         // Extract related data
         const milestones = projectData.project_milestones || [];
         const tasks = projectData.tasks || [];
-        const crews = projectData.project_crews || [];
+        const projectCrews = projectData.project_crews || [];
         const issues = projectData.project_issues || [];
+
+        // Get full crew data for assigned crews
+        let crews: CrewWithMemberInfo[] = [];
+        if (projectCrews.length > 0) {
+            const crewIds = projectCrews.map((pc: any) => pc.crew_id).filter(Boolean);
+            if (crewIds.length > 0) {
+                try {
+                    const { data: crewData } = await fetchByBusiness("crews", businessId, "*", {
+                        filter: { id: { in: crewIds } }
+                    });
+
+                    if (crewData && crewData.length > 0) {
+                        // Get leader information for each crew
+                        const leaderIds = crewData.map((crew: any) => crew.leader_id).filter(Boolean);
+                        let leaders: any[] = [];
+                        if (leaderIds.length > 0) {
+                            const { data: leaderData } = await fetchByBusiness("crew_members", businessId, "*", {
+                                filter: { id: { in: leaderIds } }
+                            });
+                            leaders = leaderData || [];
+                        }
+
+                        // Get member counts for each crew
+                        const { data: crewMembersData } = await fetchByBusiness("crew_member_assignments", businessId, ["id", "crew_id", "crew_member_id"], {
+                            filter: { crew_id: { in: crewIds } }
+                        });
+
+                        // Transform crew data to match CrewWithMemberInfo structure
+                        crews = crewData.map((crew: any) => {
+                            const memberCount = crewMembersData?.filter((member: any) => member.crew_id === crew.id).length || 0;
+                            const leader = leaders.find((leader: any) => leader.id === crew.leader_id);
+
+                            return {
+                                ...crew,
+                                member_count: memberCount,
+                                leader_name: leader?.name || "No Assigned Leader"
+                            };
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error fetching crew data:", error);
+                }
+            }
+        }
 
         // Get client data if client_id exists
         let client = null;
@@ -426,6 +472,7 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
             milestones,
             tasks,
             crews,
+            projectCrews,
             issues,
             client,
             contacts,
