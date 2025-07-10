@@ -198,7 +198,7 @@ function formatActionLabel(action: string): string {
         viewMyTasks: 'My Tasks',
         reportSafety: 'Report Safety',
         createProject: 'New Project',
-        assignTask: 'Assign Task',
+        assignTask: 'Create Task',
         reviewProgress: 'Review Progress',
         approveTimesheet: 'Approve Time',
         viewReports: 'View Reports',

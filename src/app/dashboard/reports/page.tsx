@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProjectProfitabilityDashboard from '@/components/analytics/ProjectProfitabilityDashboard';
 import ResourceUtilizationDashboard from '@/components/analytics/ResourceUtilizationDashboard';
 
 type ActiveReportType = 'profitability' | 'resources' | 'financial' | 'compliance';
 
 export default function ReportsPage() {
-    const [activeReport, setActiveReport] = useState<ActiveReportType>('profitability');
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab') as ActiveReportType | null;
+    const [activeReport, setActiveReport] = useState<ActiveReportType>(
+        tabParam && ['profitability', 'resources', 'financial', 'compliance'].includes(tabParam)
+            ? tabParam
+            : 'profitability'
+    );
+
+    // Update activeReport when URL parameter changes
+    useEffect(() => {
+        if (tabParam && ['profitability', 'resources', 'financial', 'compliance'].includes(tabParam)) {
+            setActiveReport(tabParam);
+        }
+    }, [tabParam]);
 
     const reportTabs = [
         {

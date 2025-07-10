@@ -4,6 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
     Chart as ChartJS,
     ArcElement,
@@ -130,6 +131,7 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
+    const router = useRouter();
     const { businessId, loading } = useBusiness();
     const { userRole, loading: roleLoading } = useUserRole();
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
@@ -403,6 +405,15 @@ export default function Dashboard() {
             case 'assignTask':
                 setTaskModal(true);
                 break;
+            case 'reviewProgress':
+                router.push('/dashboard/projects');
+                break;
+            case 'approveTimesheet':
+                router.push('/dashboard/daily-logs');
+                break;
+            case 'viewReports':
+                router.push('/dashboard/reports');
+                break;
             case 'viewMyTasks':
                 setViewMyTasksModal(true);
                 break;
@@ -416,16 +427,13 @@ export default function Dashboard() {
                 setDailyLogModal(true);
                 break;
             case 'manageUsers':
-                // TODO: Navigate to user management
-                console.log('Navigate to user management');
+                router.push('/dashboard/business?tab=users');
                 break;
             case 'viewFinancials':
-                // TODO: Navigate to financials
-                console.log('Navigate to financials');
+                router.push('/dashboard/reports?tab=financial');
                 break;
             case 'systemSettings':
-                // TODO: Navigate to system settings
-                console.log('Navigate to system settings');
+                router.push('/dashboard/business?tab=profile');
                 break;
             default:
                 console.log(`Quick action: ${action}`);
