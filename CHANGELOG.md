@@ -1,3 +1,10 @@
+# [1.128.0](https://github.com/wize-works/jobsight-pro/compare/v1.127.0...v1.128.0) (2025-07-10)
+
+
+### Features
+
+* Enhance project details fetching by integrating crew data and improving structure; remove unused debug page ([4391a89](https://github.com/wize-works/jobsight-pro/commit/4391a899cda726d6a8643026797005e88e69eebf))
+
 # [1.127.0](https://github.com/wize-works/jobsight-pro/compare/v1.126.0...v1.127.0) (2025-07-10)
 
 
