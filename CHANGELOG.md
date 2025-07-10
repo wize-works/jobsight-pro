@@ -1,3 +1,10 @@
+# [1.126.0](https://github.com/wize-works/jobsight-pro/compare/v1.125.0...v1.126.0) (2025-07-10)
+
+
+### Features
+
+* Enhance dashboard navigation and report handling ([eb5e3f9](https://github.com/wize-works/jobsight-pro/commit/eb5e3f98e7ba32f4bc7c5480a7fb87ea32d31061))
+
 # [1.125.0](https://github.com/wize-works/jobsight-pro/compare/v1.124.0...v1.125.0) (2025-07-10)
 
 
