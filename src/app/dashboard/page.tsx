@@ -336,59 +336,181 @@ export default function Dashboard() {
         }); return { dates, delays, issues, safetyReports };
     };
 
-    // Function to generate AI guidance based on dashboard data
-    const generateConstructionGuidance = (data: DashboardData): string => {
-        if (!data || !data.dailyLogsData) {
-            return '📊 **Data Analysis**: Your dashboard is being analyzed to provide personalized insights. Check back in a moment for specific guidance based on your current operations.';
-        }
-        const safetyIssues = data.dailyLogsData.safetyReports.reduce((a: number, b: number) => a + b, 0);
-        const totalDelays = data.dailyLogsData.delays.reduce((a: number, b: number) => a + b, 0);
-        const equipmentUtil = data.stats.equipmentUtilization;
-        const overdueInvoices = data.financialOverview.overdueInvoices;
-        const lowProductivityCrews = data.teamMetrics.filter((team: any) => team.productivity < 80).length;
-
-        // Priority-based guidance generation
-        if (safetyIssues > 2) {
-            return `⚠️ **Safety Alert**: ${safetyIssues} safety incidents this week require immediate attention. Schedule safety meetings and review protocols with your crews. Consider implementing daily safety check-ins until incidents decrease.`;
+    // Function to generate AI guidance based on dashboard data and user role
+    const generateConstructionGuidance = async (data: DashboardData, userRole: string): Promise<string> => {
+        if (!data || !businessId) {
+            return '📊 **Analyzing Operations**: Dashboard insights are being generated based on your current project data.';
         }
 
-        if (overdueInvoices > 2) {
-            return `💰 **Cash Flow Priority**: ${overdueInvoices} overdue invoices are impacting your cash flow. Focus on following up with clients today and consider implementing progress billing for ongoing projects to maintain steady revenue.`;
+        try {
+            // Build role-specific context for AI analysis
+            const roleContext = getRoleSpecificContext(userRole as any);
+            const dataContext = buildDataContextForAI(data);
+
+            // Create role-specific prompt for AI guidance
+            const prompt = `As an AI construction management advisor, analyze the dashboard data and provide ONE focused insight for a ${userRole}.
+
+${roleContext}
+
+CURRENT DASHBOARD DATA:
+${dataContext}
+
+IMPORTANT INSTRUCTIONS:
+- Provide ONLY ONE key insight or recommendation (maximum 2-3 sentences)
+- Start with an appropriate emoji
+- Focus on the most critical issue or opportunity
+- Be specific and actionable
+- Use simple, clear language
+- Do NOT list multiple points or use numbered lists
+- Keep response under 150 words
+
+Example format: "🚨 **Safety Priority**: With 3 safety incidents this week, schedule immediate crew safety meetings and implement daily safety check-ins until incidents decrease."
+
+Your single most important recommendation:`;            // Call your existing AI system
+            const aiResult = await processAIQuery(businessId, prompt, [], '');
+
+            // Clean and format the AI response
+            let cleanResponse = aiResult.response || getFailbackGuidance(data, userRole as any);
+
+            // Limit response length and clean formatting
+            cleanResponse = cleanAndFormatResponse(cleanResponse);
+
+            return cleanResponse;
+        } catch (error) {
+            console.error('Error generating AI guidance:', error);
+            return getFailbackGuidance(data, userRole as any);
+        }
+    };
+
+    // Helper function to get role-specific context
+    const getRoleSpecificContext = (role: 'admin' | 'manager' | 'member'): string => {
+        const roleContexts = {
+            admin: `ROLE CONTEXT: You are providing guidance to a business ADMIN/OWNER who focuses on:
+- Strategic business decisions and financial performance
+- Overall business growth and profitability
+- Resource allocation across multiple projects
+- Business process optimization and efficiency
+- Long-term planning and risk management
+- Financial metrics, cash flow, and business KPIs`,
+
+            manager: `ROLE CONTEXT: You are providing guidance to a PROJECT MANAGER who focuses on:
+- Day-to-day project coordination and execution
+- Team performance and productivity management
+- Resource allocation and scheduling optimization
+- Quality control and timeline management
+- Client communication and project delivery
+- Crew coordination and task assignment`,
+
+            member: `ROLE CONTEXT: You are providing guidance to a FIELD MEMBER/WORKER who focuses on:
+- Daily task execution and completion
+- Safety compliance and reporting
+- Quality of work and productivity
+- Equipment operation and maintenance
+- Communication with supervisors and team
+- Time tracking and daily log completion`
+        };
+
+        return roleContexts[role];
+    };
+
+    // Helper function to build data context for AI
+    const buildDataContextForAI = (data: DashboardData): string => {
+        const safetyIssues = data.dailyLogsData?.safetyReports?.reduce((a: number, b: number) => a + b, 0) || 0;
+        const totalDelays = data.dailyLogsData?.delays?.reduce((a: number, b: number) => a + b, 0) || 0;
+        const issues = data.dailyLogsData?.issues?.reduce((a: number, b: number) => a + b, 0) || 0;
+
+        return `
+PROJECT METRICS:
+- Active Projects: ${data.stats?.activeProjects || 0}
+- Total Projects: ${data.stats?.totalProjects || 0}
+- Pending Tasks: ${data.stats?.pendingTasks || 0}
+- Total Tasks: ${data.stats?.totalTasks || 0}
+- Equipment Utilization: ${data.stats?.equipmentUtilization || 0}%
+
+FINANCIAL OVERVIEW:
+- Total Revenue: $${data.financialOverview?.totalRevenue?.toLocaleString() || '0'}
+- Pending Revenue: $${data.financialOverview?.pendingRevenue?.toLocaleString() || '0'}
+- Total Invoices: ${data.financialOverview?.totalInvoices || 0}
+- Paid Invoices: ${data.financialOverview?.paidInvoices || 0}
+- Overdue Invoices: ${data.financialOverview?.overdueInvoices || 0}
+
+RECENT ACTIVITY (Last 7 Days):
+- Safety Reports: ${safetyIssues}
+- Project Delays: ${totalDelays}
+- Issues Reported: ${issues}
+
+TEAM PERFORMANCE:
+- Number of Teams: ${data.teamMetrics?.length || 0}
+- Low Productivity Teams (< 80%): ${data.teamMetrics?.filter((team: any) => team.productivity < 80).length || 0}
+
+EQUIPMENT STATUS:
+- Available: ${data.equipmentStatus?.available || 0}
+- In Use: ${data.equipmentStatus?.inUse || 0}
+- Under Maintenance: ${data.equipmentStatus?.maintenance || 0}
+        `.trim();
+    };
+
+    // Fallback function for when AI is unavailable
+    const getFailbackGuidance = (data: DashboardData, role: 'admin' | 'manager' | 'member'): string => {
+        const safetyIssues = data.dailyLogsData?.safetyReports?.reduce((a: number, b: number) => a + b, 0) || 0;
+        const totalDelays = data.dailyLogsData?.delays?.reduce((a: number, b: number) => a + b, 0) || 0;
+        const equipmentUtil = data.stats?.equipmentUtilization || 0;
+        const overdueInvoices = data.financialOverview?.overdueInvoices || 0;
+        const lowProductivityCrews = data.teamMetrics?.filter((team: any) => team.productivity < 80).length || 0;
+
+        // Role-based priority guidance (keep it short and focused)
+        if (role === 'admin') {
+            if (overdueInvoices > 2) {
+                return `💰 **Cash Flow Alert**: ${overdueInvoices} overdue invoices detected. Follow up with clients today and consider progress billing.`;
+            }
+            if (equipmentUtil < 60) {
+                return `🔧 **Equipment Optimization**: ${equipmentUtil}% utilization suggests rental strategy review for better ROI.`;
+            }
+        } else if (role === 'manager') {
+            if (safetyIssues > 2) {
+                return `⚠️ **Safety Priority**: ${safetyIssues} incidents this week require immediate crew safety meetings.`;
+            }
+            if (totalDelays > 3) {
+                return `⏰ **Schedule Alert**: ${totalDelays} delays detected. Review material delivery and add buffer time.`;
+            }
+            if (lowProductivityCrews > 0) {
+                return `👥 **Team Support**: ${lowProductivityCrews} crew(s) need productivity assistance and training check-ins.`;
+            }
+        } else { // member
+            if (safetyIssues > 0) {
+                return `🦺 **Safety Focus**: Stay alert to protocols and report hazards immediately to supervisors.`;
+            }
+            if (totalDelays > 0) {
+                return `📋 **Task Focus**: Complete assigned tasks efficiently and communicate obstacles promptly.`;
+            }
         }
 
-        if (totalDelays > 3) {
-            return `⏰ **Schedule Management**: ${totalDelays} project delays this week suggest timeline challenges. Review material delivery schedules, check weather dependencies, and consider building buffer time into upcoming project phases.`;
+        // Default positive guidance based on role (shorter versions)
+        const activeProjects = data.stats?.activeProjects || 0;
+        const completionRate = data.stats?.totalTasks ? Math.round(((data.stats.totalTasks - data.stats.pendingTasks) / data.stats.totalTasks) * 100) : 0;
+
+        if (role === 'admin') {
+            return `✅ **Strong Performance**: ${activeProjects} active projects running smoothly. Continue monitoring KPIs.`;
+        } else if (role === 'manager') {
+            return `✅ **Operations On Track**: ${completionRate}% task completion with ${activeProjects} projects progressing well.`;
+        } else {
+            return `✅ **Good Work**: Contributing to ${activeProjects} active projects. Keep following safety protocols.`;
         }
-
-        if (equipmentUtil < 60) {
-            return `🔧 **Equipment Optimization**: Equipment utilization at ${equipmentUtil}% indicates potential cost savings. Review your equipment schedules to identify gaps and consider adjusting rental strategies for seasonal equipment.`;
-        }
-
-        if (lowProductivityCrews > 0) {
-            return `👥 **Team Support**: ${lowProductivityCrews} crew(s) showing lower productivity may need additional support. Schedule one-on-one check-ins to identify training needs or resource gaps that could help improve performance.`;
-        }
-
-        // Default positive guidance when no issues detected
-        const activeProjects = data.stats.activeProjects;
-        const completionRate = Math.round((data.stats.totalTasks - data.stats.pendingTasks) / data.stats.totalTasks * 100);
-
-        return `✅ **Operations Running Smoothly**: With ${activeProjects} active projects and ${completionRate}% task completion rate, your operations are on track. Focus on maintaining current safety standards and consider planning for upcoming weather conditions to stay ahead of potential delays.`;
     };
 
     // Function to fetch AI guidance
-    const fetchAIRecommendations = () => {
-        if (!businessId) return;
+    const fetchAIRecommendations = async () => {
+        if (!businessId || !dashboardData) return;
 
         setLoadingRecommendations(true);
         try {
-
-            // Generate realistic guidance based on actual data patterns
-            const guidance = generateConstructionGuidance(dashboardData!);
+            // Generate AI-powered guidance based on actual data patterns and user role
+            const guidance = await generateConstructionGuidance(dashboardData, userRole || 'member');
             setAiGuidance(guidance);
         } catch (error) {
             console.error("Error generating AI guidance:", error);
             // Fallback guidance
-            setAiGuidance('📊 **Data Analysis**: Your dashboard is being analyzed to provide personalized insights. Check back in a moment for specific guidance based on your current operations.');
+            setAiGuidance('📊 **Analyzing Operations**: Dashboard insights are being generated based on your current project data.');
         } finally {
             setLoadingRecommendations(false);
         }
@@ -593,6 +715,52 @@ export default function Dashboard() {
             }
         }
     }
+
+    // Helper function to clean and format AI responses
+    const cleanAndFormatResponse = (response: string): string => {
+        if (!response) return '';
+
+        // Remove excessive whitespace and line breaks
+        let cleaned = response.trim();
+
+        // Limit length to prevent overwhelming display (approximately 2-3 lines)
+        const maxLength = 200;
+        if (cleaned.length > maxLength) {
+            // Try to cut at a sentence end
+            const sentences = cleaned.split('. ');
+            cleaned = sentences[0];
+            if (cleaned.length < 50 && sentences.length > 1) {
+                cleaned += '. ' + sentences[1];
+            }
+            if (!cleaned.endsWith('.') && !cleaned.endsWith('!') && !cleaned.endsWith('?')) {
+                cleaned += '.';
+            }
+        }
+
+        // Remove any markdown artifacts that might display poorly
+        cleaned = cleaned.replace(/#{1,6}\s*/g, ''); // Remove # headers
+        cleaned = cleaned.replace(/\*{3,}/g, '**'); // Reduce multiple asterisks
+        cleaned = cleaned.replace(/\n{2,}/g, ' '); // Replace multiple newlines with space
+        cleaned = cleaned.replace(/\s{2,}/g, ' '); // Replace multiple spaces with single space
+
+        // Ensure we start with an emoji if it doesn't have one
+        if (!cleaned.match(/^[\u{1F300}-\u{1F9FF}]|^[\u{2600}-\u{26FF}]/u)) {
+            // Add a default emoji based on content
+            if (cleaned.toLowerCase().includes('safety') || cleaned.toLowerCase().includes('incident')) {
+                cleaned = '⚠️ ' + cleaned;
+            } else if (cleaned.toLowerCase().includes('financial') || cleaned.toLowerCase().includes('revenue')) {
+                cleaned = '💰 ' + cleaned;
+            } else if (cleaned.toLowerCase().includes('equipment')) {
+                cleaned = '🔧 ' + cleaned;
+            } else if (cleaned.toLowerCase().includes('team') || cleaned.toLowerCase().includes('crew')) {
+                cleaned = '👥 ' + cleaned;
+            } else {
+                cleaned = '📊 ' + cleaned;
+            }
+        }
+
+        return cleaned;
+    };
 
     return (
         <RoleBasedDashboard fallbackRole="member" onQuickAction={handleQuickAction}>
@@ -890,11 +1058,11 @@ export default function Dashboard() {
                                             <span className="ml-2">Analyzing your data...</span>
                                         </div>
                                     ) : aiGuidance ? (
-                                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border-l-4 border-primary">
+                                        <div className="bg-base-200/50 rounded-lg p-4 border-l-4 border-primary">
                                             <div
                                                 className="text-sm leading-relaxed text-base-content/90"
                                                 dangerouslySetInnerHTML={{
-                                                    __html: aiGuidance.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                    __html: aiGuidance.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary font-semibold">$1</strong>')
                                                 }}
                                             />
                                         </div>
