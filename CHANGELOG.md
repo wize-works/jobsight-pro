@@ -1,3 +1,10 @@
+# [1.125.0](https://github.com/wize-works/jobsight-pro/compare/v1.124.0...v1.125.0) (2025-07-10)
+
+
+### Features
+
+* Add geolocation support to Dashboard and improve photo upload modal layout ([4b34787](https://github.com/wize-works/jobsight-pro/commit/4b347877f944d0d27fb30649cbbdd8a19d24ab54))
+
 # [1.124.0](https://github.com/wize-works/jobsight-pro/compare/v1.123.1...v1.124.0) (2025-07-10)
 
 
