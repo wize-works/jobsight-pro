@@ -140,7 +140,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             return;
         }
 
-        console.log("Fetching data for", fetchKey);
         currentFetchKey.current = fetchKey;
         hasFetched.current = true;
         const fetchData = async () => {
@@ -155,12 +154,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         milestones,
                         tasks,
                         crews,
+                        projectCrews,
                         issues,
                         client,
                         contacts,
                         manager,
                         stats
-                    } = projectDetails; setProject(project);
+                    } = projectDetails;
+
+                    setProject(project);
                     setProgress(project.progress || 0);
                     setMilestones(milestones);
                     setTasks(tasks);
@@ -169,21 +171,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     setClient(client);
                     setContacts(contacts);
                     setManager(manager);
-                    // Can also use stats for dashboard metrics
                 }
-
-                if (project && project.client_id) {
-                    const clientData = await getClientById(businessId, project.client_id);
-                    const contactsData = await getClientContactsByClientId(businessId, project.client_id);
-                    setClient(clientData);
-                    setContacts(contactsData);
-                }
-
-                if (project && project.manager_id) {
-                    const managerData = await getCrewMemberById(businessId, project.manager_id);
-                    setManager(managerData);
-                }
-
             } catch (error) {
                 console.error("Error fetching project:", error);
                 toast.error("Failed to load project details.");
