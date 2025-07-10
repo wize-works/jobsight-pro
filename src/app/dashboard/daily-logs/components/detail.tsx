@@ -427,6 +427,18 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                         }
 
                                         const { current } = weatherData;
+
+                                        // Check if current exists and has the required properties
+                                        if (!current) {
+                                            return (
+                                                <div className="text-center py-8">
+                                                    <i className="fas fa-exclamation-triangle text-4xl text-warning mb-2"></i>
+                                                    <p className="text-base-content/70">Invalid weather data format</p>
+                                                    <p className="text-sm text-base-content/50">Weather data exists but is malformed</p>
+                                                </div>
+                                            );
+                                        }
+
                                         const windDirection = current.windDirection ?
                                             ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(current.windDirection / 22.5) % 16] : '';
 
@@ -436,31 +448,36 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                                     <div className="flex items-center gap-6">
                                                         <div className="text-center">
                                                             <i className={`${getWeatherIcon(current.condition, current.description)} text-4xl text-primary`}></i>
-                                                            <p className="font-medium mt-1 capitalize">{current.description}</p>
+                                                            <p className="font-medium mt-1 capitalize">{current.description || 'Unknown'}</p>
                                                         </div>
                                                         <div className="text-center">
                                                             <i className="fas fa-thermometer-half text-3xl text-red-500"></i>
-                                                            <p className="font-bold text-xl">{current.temperature}°F</p>
-                                                            <p className="text-sm text-base-content/60">Feels {current.feelsLike}°F</p>
+                                                            <p className="font-bold text-xl">{current.temperature || 'N/A'}°F</p>
+                                                            <p className="text-sm text-base-content/60">Feels {current.feelsLike || 'N/A'}°F</p>
                                                         </div>
                                                         <div className="text-center">
                                                             <i className="fas fa-wind text-2xl text-blue-500"></i>
-                                                            <p className="font-medium">{current.windSpeed} mph</p>
+                                                            <p className="font-medium">{current.windSpeed || 'N/A'} mph</p>
                                                             <p className="text-sm text-base-content/60">{windDirection}</p>
-                                                        </div>
-                                                        <div className="text-center">
+                                                        </div>                                        <div className="text-center">
                                                             <i className="fas fa-tint text-2xl text-blue-600"></i>
-                                                            <p className="font-medium">{current.humidity}%</p>
+                                                            <p className="font-medium">{current.humidity || 'N/A'}%</p>
                                                             <p className="text-sm text-base-content/60">Humidity</p>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-base-content/70 text-sm">
-                                                            Captured at {new Date(weatherData.location.timestamp).toLocaleTimeString()}
-                                                        </p>
-                                                        <p className="text-base-content/50 text-xs">
-                                                            {weatherData.location.latitude.toFixed(4)}, {weatherData.location.longitude.toFixed(4)}
-                                                        </p>
+                                                        {weatherData.location ? (
+                                                            <>
+                                                                <p className="text-base-content/70 text-sm">
+                                                                    Captured at {weatherData.location.timestamp ? new Date(weatherData.location.timestamp).toLocaleTimeString() : 'Unknown time'}
+                                                                </p>
+                                                                <p className="text-base-content/50 text-xs">
+                                                                    {weatherData.location.latitude ? weatherData.location.latitude.toFixed(4) : 'N/A'}, {weatherData.location.longitude ? weatherData.location.longitude.toFixed(4) : 'N/A'}
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="text-base-content/70 text-sm">Location data unavailable</p>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -468,19 +485,19 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-base-300">
                                                     <div className="text-center">
                                                         <p className="text-sm font-medium">Pressure</p>
-                                                        <p className="text-lg">{current.pressure} hPa</p>
+                                                        <p className="text-lg">{current.pressure || 'N/A'} hPa</p>
                                                     </div>
                                                     <div className="text-center">
                                                         <p className="text-sm font-medium">UV Index</p>
-                                                        <p className="text-lg">{current.uvIndex}</p>
+                                                        <p className="text-lg">{current.uvIndex || 'N/A'}</p>
                                                     </div>
                                                     <div className="text-center">
                                                         <p className="text-sm font-medium">Cloud Cover</p>
-                                                        <p className="text-lg">{current.cloudCover}%</p>
+                                                        <p className="text-lg">{current.cloudCover || 'N/A'}%</p>
                                                     </div>
                                                     <div className="text-center">
                                                         <p className="text-sm font-medium">Visibility</p>
-                                                        <p className="text-lg">{Math.round(current.visibility / 1000)} km</p>
+                                                        <p className="text-lg">{current.visibility ? Math.round(current.visibility / 1000) : 'N/A'} km</p>
                                                     </div>
                                                 </div>
                                             </div>
