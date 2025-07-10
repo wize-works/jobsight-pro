@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAIQuery } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
+import { submitFeedback, getFeedbackForMessage } from '@/app/actions/feedback';
 import { useBusiness } from '@/lib/business-context';
 import { useUser } from '@clerk/nextjs';
 import ErrorBoundary from '@/components/error-boundary';
@@ -23,6 +24,7 @@ interface AIAssistantPanelProps {
 }
 
 interface ConversationMessage {
+    id: string;
     type: "user" | "assistant";
     content: string;
     timestamp: Date;
@@ -37,6 +39,8 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
     const [conversation, setConversation] = useState<ConversationMessage[]>([]);
     const [error, setError] = useState("");
     const [sessionState, setSessionState] = useState<{ lastProjectId?: string, lastProjectName?: string }>({});
+    const [messageFeedback, setMessageFeedback] = useState<Record<string, 'thumbs_up' | 'thumbs_down'>>({});
+    const [feedbackLoading, setFeedbackLoading] = useState<Record<string, boolean>>({});
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -89,8 +93,15 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         }
     }, [conversation, user?.id, businessId]);
 
+    useEffect(() => {
+        if (conversation.length > 0) {
+            loadFeedbackForMessages();
+        }
+    }, [conversation.length, user?.id, businessId]);
+
     const addToConversation = (type: "user" | "assistant", content: string) => {
         setConversation(prev => [...prev, {
+            id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type,
             content,
             timestamp: new Date()
@@ -99,10 +110,62 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
 
     const clearConversation = () => {
         setConversation([]);
+        setMessageFeedback({});
+        setFeedbackLoading({});
         const conversationKey = getConversationKey();
         if (conversationKey) {
             localStorage.removeItem(conversationKey);
         }
+    };
+
+    const handleFeedback = async (messageId: string, feedbackType: 'thumbs_up' | 'thumbs_down') => {
+        if (!user?.id || !businessId) return;
+
+        setFeedbackLoading(prev => ({ ...prev, [messageId]: true }));
+
+        try {
+            // Create a numeric hash of the message ID for database storage
+            const messageIdHash = messageId.split('').reduce((hash, char) => {
+                return ((hash << 5) - hash) + char.charCodeAt(0);
+            }, 0);
+
+            const result = await submitFeedback(businessId, {
+                messageId: Math.abs(messageIdHash), // Ensure positive number
+                feedbackType,
+                authId: user.id
+            });
+
+            if (result.success) {
+                setMessageFeedback(prev => ({ ...prev, [messageId]: feedbackType }));
+            } else {
+                console.error('Failed to submit feedback:', result.error);
+            }
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+        } finally {
+            setFeedbackLoading(prev => ({ ...prev, [messageId]: false }));
+        }
+    };
+
+    const loadFeedbackForMessages = async () => {
+        if (!user?.id || !businessId) return;
+
+        const feedback: Record<string, 'thumbs_up' | 'thumbs_down'> = {};
+
+        for (const message of conversation) {
+            if (message.type === 'assistant') {
+                const messageIdHash = message.id.split('').reduce((hash, char) => {
+                    return ((hash << 5) - hash) + char.charCodeAt(0);
+                }, 0);
+
+                const result = await getFeedbackForMessage(Math.abs(messageIdHash), user.id);
+                if (result.feedbackType) {
+                    feedback[message.id] = result.feedbackType;
+                }
+            }
+        }
+
+        setMessageFeedback(feedback);
     };
 
     const handleClose = () => {
@@ -404,8 +467,8 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                                     <p>"Show me tasks that are behind schedule"</p>
                                                 </div>
                                             </div>
-                                        )}                        {conversation.map((msg, index) => (
-                                            <div key={index} className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}>
+                                        )}                                        {conversation.map((msg) => (
+                                            <div key={msg.id} className={`chat ${msg.type === 'user' ? 'chat-end' : 'chat-start'}`}>
                                                 <div className="chat-image avatar">
                                                     <div className={`w-8 h-8 rounded-full ${msg.type === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
                                                         <div className="w-full h-full flex items-center justify-center">
@@ -426,12 +489,40 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                                     <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
                                                 </div>
                                                 <div className="chat-footer opacity-50">
-                                                    {msg.type === 'assistant' && (
-                                                        <span className="text-xs">AI Response</span>
-                                                    )}
+                                                    {msg.type === 'assistant' ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs">AI Response</span>
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    onClick={() => handleFeedback(msg.id, 'thumbs_up')}
+                                                                    disabled={feedbackLoading[msg.id]}
+                                                                    className={`btn btn-xs btn-ghost ${messageFeedback[msg.id] === 'thumbs_up'
+                                                                            ? 'text-success'
+                                                                            : 'text-base-content/50 hover:text-success'
+                                                                        }`}
+                                                                    title="This was helpful"
+                                                                >
+                                                                    <i className={`far fa-thumbs-up ${messageFeedback[msg.id] === 'thumbs_up' ? 'fas' : 'far'
+                                                                        }`}></i>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleFeedback(msg.id, 'thumbs_down')}
+                                                                    disabled={feedbackLoading[msg.id]}
+                                                                    className={`btn btn-xs btn-ghost ${messageFeedback[msg.id] === 'thumbs_down'
+                                                                            ? 'text-error'
+                                                                            : 'text-base-content/50 hover:text-error'
+                                                                        }`}
+                                                                    title="This was not helpful"
+                                                                >
+                                                                    <i className={`far fa-thumbs-down ${messageFeedback[msg.id] === 'thumbs_down' ? 'fas' : 'far'
+                                                                        }`}></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
                                                 </div>
                                             </div>
-                                        ))}                        {isProcessing && (
+                                        ))}{isProcessing && (
                                             <div className="chat chat-start">
                                                 <div className="chat-image avatar">
                                                     <div className="w-8 h-8 rounded-full bg-secondary">
