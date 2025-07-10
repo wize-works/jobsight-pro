@@ -143,6 +143,13 @@ export default function Dashboard() {
     const [aiRecommendations, setAiRecommendations] = useState<DashboardData['aiRecommendations']>([]);
     const [aiGuidance, setAiGuidance] = useState<string>('');
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+    // Add state for user's current location
+    const [userLocation, setUserLocation] = useState<null | {
+        latitude: number;
+        longitude: number;
+        address: string;
+    }>(null);
+    const [locationError, setLocationError] = useState<string | null>(null);
 
     // Weather helper functions (similar to daily log card component)
     const getWeatherIcon = (weather: string | null) => {
@@ -248,7 +255,46 @@ export default function Dashboard() {
         if (dashboardData && !loadingRecommendations && !aiGuidance) {
             fetchAIRecommendations();
         }
-    }, [dashboardData]);
+    }, [dashboardData]);    // Get user's geolocation
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log("Got user location:", position.coords.latitude, position.coords.longitude);
+                    setUserLocation({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        address: "Current Location"
+                    });
+                    setLocationError(null);
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    setUserLocation(null);
+
+                    // Set a user-friendly error message based on the error code
+                    if (error.code === 1) {
+                        setLocationError("Location access was denied. Please enable location services to see weather information.");
+                    } else if (error.code === 2) {
+                        setLocationError("Your location could not be determined. Please check your device settings.");
+                    } else if (error.code === 3) {
+                        setLocationError("Location request timed out. Please try again later.");
+                    } else {
+                        setLocationError("An error occurred while accessing your location.");
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            console.warn("Geolocation is not supported by this browser");
+            setUserLocation(null);
+            setLocationError("Your browser doesn't support geolocation. Weather information is not available.");
+        }
+    }, []);
 
     // Function to process daily logs for chart data
     const processDailyLogsForChart = (recentActivity: any[]) => {
@@ -290,6 +336,9 @@ export default function Dashboard() {
 
     // Function to generate AI guidance based on dashboard data
     const generateConstructionGuidance = (data: DashboardData): string => {
+        if (!data || !data.dailyLogsData) {
+            return '📊 **Data Analysis**: Your dashboard is being analyzed to provide personalized insights. Check back in a moment for specific guidance based on your current operations.';
+        }
         const safetyIssues = data.dailyLogsData.safetyReports.reduce((a: number, b: number) => a + b, 0);
         const totalDelays = data.dailyLogsData.delays.reduce((a: number, b: number) => a + b, 0);
         const equipmentUtil = data.stats.equipmentUtilization;
@@ -330,16 +379,9 @@ export default function Dashboard() {
 
         setLoadingRecommendations(true);
         try {
-            // Use current dashboardData state or create fallback data
-            const currentData = dashboardData || {
-                dailyLogsData: { delays: [1, 0, 2, 1, 0, 1, 0], issues: [0, 1, 1, 0, 2, 0, 1], safetyReports: [0, 0, 1, 0, 0, 0, 0] },
-                stats: { equipmentUtilization: 65, activeProjects: 3, totalTasks: 20, pendingTasks: 8 },
-                financialOverview: { overdueInvoices: 2 },
-                teamMetrics: [{ productivity: 72 }, { productivity: 88 }, { productivity: 65 }]
-            } as DashboardData;
 
             // Generate realistic guidance based on actual data patterns
-            const guidance = generateConstructionGuidance(currentData);
+            const guidance = generateConstructionGuidance(dashboardData!);
             setAiGuidance(guidance);
         } catch (error) {
             console.error("Error generating AI guidance:", error);
@@ -736,18 +778,56 @@ export default function Dashboard() {
                     <div className="alert alert-error">
                         <i className="fas fa-exclamation-triangle"></i>
                         <div>
-                            <h3 className="font-bold">Failed to load weather forecast</h3>
-                            <div className="text-xs">Weather data is temporarily unavailable.</div>
+                            <h3 className="font-bold">Weather Service Error</h3>
+                            <div className="text-xs">There was a problem connecting to the weather service. Please try again later.</div>
                         </div>
                     </div>
                 )}>
-                    <CompactWeatherWidget
-                        location={{
-                            latitude: 40.7128,
-                            longitude: -74.0060,
-                            address: "Current Location"
-                        }}
-                    />
+                    {userLocation ? (
+                        <CompactWeatherWidget
+                            location={userLocation}
+                        />
+                    ) : (
+                        <div className="card bg-base-100 shadow-lg">
+                            <div className="card-body">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <i className="far fa-map-marker-exclamation text-warning"></i>
+                                    <h2 className="card-title text-lg">Location Required</h2>
+                                </div>
+                                <p className="text-sm text-base-content/80">
+                                    {locationError || "Weather information requires access to your location. Please enable location services to see local weather conditions."}
+                                </p>
+                                <div className="card-actions justify-end mt-4">
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => {
+                                            // Attempt to get location again
+                                            if (navigator.geolocation) {
+                                                navigator.geolocation.getCurrentPosition(
+                                                    (position) => {
+                                                        setUserLocation({
+                                                            latitude: position.coords.latitude,
+                                                            longitude: position.coords.longitude,
+                                                            address: "Current Location"
+                                                        });
+                                                        setLocationError(null);
+                                                    },
+                                                    (error) => {
+                                                        console.error("Error getting location:", error);
+                                                        if (error.code === 1) {
+                                                            setLocationError("Location access was denied. Please enable location services in your browser settings.");
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        <i className="far fa-location mr-1"></i> Enable Location
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </ErrorBoundary>
 
                 {/* Daily Logs, AI Recommendations & Weather */}
