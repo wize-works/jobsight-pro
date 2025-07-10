@@ -1,3 +1,10 @@
+# [1.124.0](https://github.com/wize-works/jobsight-pro/compare/v1.123.1...v1.124.0) (2025-07-10)
+
+
+### Features
+
+* Enhance user fetching and updating functionality; improve modal layout for better user experience ([f766129](https://github.com/wize-works/jobsight-pro/commit/f766129bbbc9633b3468bea311a4a4918a815224))
+
 ## [1.123.1](https://github.com/wize-works/jobsight-pro/compare/v1.123.0...v1.123.1) (2025-07-09)
 
 
