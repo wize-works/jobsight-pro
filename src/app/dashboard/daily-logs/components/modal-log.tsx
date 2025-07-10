@@ -643,7 +643,7 @@ export default function DailyLogModal({
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[75vh]">
+                <div className="p-6 overflow-y-auto max-h-[75vh] grow-1">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Tabs */}
                         <div className="tabs tabs-box p-1">
@@ -680,565 +680,566 @@ export default function DailyLogModal({
                                 <span className="hidden md:inline">Notes</span>
                             </button>
                         </div>
-
-                        {/* General Tab */}
-                        {activeTab === "general" && (
-                            <div className="space-y-6">
-                                {/* Basic Information */}
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="far fa-info-circle text-primary"></i>
-                                            Basic Information
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Date *</span>
-                                                </label>
-                                                <input
-                                                    type="date"
-                                                    name="date"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.date}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Project *</span>
-                                                </label>
-                                                <select
-                                                    name="project_id"
-                                                    className="select select-bordered select-secondary w-full"
-                                                    value={formData.project_id}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    disabled={loading}
-                                                >
-                                                    <option value="">Select a project</option>
-                                                    {projects.map(project => (
-                                                        <option key={project.id} value={project.id}>
-                                                            {project.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Crew</span>
-                                                </label>
-                                                <select
-                                                    name="crew_id"
-                                                    className="select select-bordered select-secondary w-full"
-                                                    value={formData.crew_id}
-                                                    onChange={handleInputChange}
-                                                    disabled={loading}
-                                                >
-                                                    <option value="">No crew assigned</option>
-                                                    {crews.map(crew => (
-                                                        <option key={crew.id} value={crew.id}>
-                                                            {crew.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Weather</span>
-                                                </label>
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-secondary gap-2"
-                                                        onClick={captureCurrentWeather}
-                                                        disabled={loading || weatherLoading}
-                                                    >
-                                                        {weatherLoading ? (
-                                                            <>
-                                                                <span className="loading loading-spinner loading-sm"></span>
-                                                                Capturing...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <i className="far fa-map-marker-alt"></i>
-                                                                Capture Current Weather
-                                                            </>
-                                                        )}
-                                                    </button>
-
-                                                    {formData.weather && (
-                                                        <div className="flex items-center gap-2 text-sm text-success">
-                                                            <i className="far fa-check-circle"></i>
-                                                            Weather data captured
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {formData.weather && (() => {
-                                            try {
-                                                const weatherInfo = JSON.parse(formData.weather);
-                                                return (
-                                                    <div className="alert alert-info">
-                                                        <i className="far fa-info-circle"></i>
-                                                        <div>
-                                                            <div className="font-medium">Current Conditions</div>
-                                                            <div className="text-sm">
-                                                                {weatherInfo.current.description} • {weatherInfo.current.temperature}°F
-                                                                (feels like {weatherInfo.current.feelsLike}°F) •
-                                                                Wind: {weatherInfo.current.windSpeed} mph •
-                                                                Humidity: {weatherInfo.current.humidity}%
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            } catch {
-                                                return (
-                                                    <div className="text-sm text-base-content/60">
-                                                        Weather data: {formData.weather.substring(0, 100)}...
-                                                    </div>
-                                                );
-                                            }
-                                        })()}
-                                    </div>
-                                </div>
-
-                                {/* Schedule & Hours */}
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="far fa-clock text-primary"></i>
-                                            Schedule & Hours
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Start Time</span>
-                                                </label>
-                                                <input
-                                                    type="time"
-                                                    name="start_time"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.start_time}
-                                                    onChange={handleTimeChange}
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">End Time</span>
-                                                </label>
-                                                <input
-                                                    type="time"
-                                                    name="end_time"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.end_time}
-                                                    onChange={handleTimeChange}
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Hours Worked</span>
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="hours_worked"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.hours_worked}
-                                                    onChange={handleNumberInputChange}
-                                                    min="0"
-                                                    step="0.5"
-                                                    placeholder="8.0"
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Overtime Hours</span>
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="overtime"
-                                                    className="input input-bordered input-secondary w-full"
-                                                    value={formData.overtime}
-                                                    onChange={handleNumberInputChange}
-                                                    min="0"
-                                                    step="0.5"
-                                                    placeholder="0.0"
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Work Details */}
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="far fa-cogs text-primary"></i>
-                                            Work Details
-                                        </h3>
-                                        <div className="space-y-4">
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Work Completed *</span>
-                                                </label>
-                                                <textarea
-                                                    name="work_completed"
-                                                    className="textarea textarea-bordered textarea-secondary w-full"
-                                                    value={formData.work_completed}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Describe the work completed today..."
-                                                    rows={4}
-                                                    required
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Work Planned for Next Day</span>
-                                                </label>
-                                                <textarea
-                                                    name="work_planned"
-                                                    className="textarea textarea-bordered textarea-secondary w-full"
-                                                    value={formData.work_planned}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Describe work planned for the next day..."
-                                                    rows={3}
-                                                    disabled={loading}
-                                                />
-                                            </div>
+                        <div className="flex flex-col min-h-[60vh]">
+                            {/* General Tab */}
+                            {activeTab === "general" && (
+                                <div className="space-y-6 flex-1">
+                                    {/* Basic Information */}
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                                <i className="far fa-info-circle text-primary"></i>
+                                                Basic Information
+                                            </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="form-control">
                                                     <label className="label">
-                                                        <span className="label-text font-medium">Safety Concerns</span>
+                                                        <span className="label-text font-medium">Date *</span>
                                                     </label>
-                                                    <textarea
-                                                        name="safety"
-                                                        className="textarea textarea-bordered textarea-secondary w-full"
-                                                        value={formData.safety}
+                                                    <input
+                                                        type="date"
+                                                        name="date"
+                                                        className="input input-bordered input-secondary w-full"
+                                                        value={formData.date}
                                                         onChange={handleInputChange}
-                                                        placeholder="Any safety concerns or incidents..."
-                                                        rows={3}
+                                                        required
                                                         disabled={loading}
                                                     />
                                                 </div>
                                                 <div className="form-control">
                                                     <label className="label">
-                                                        <span className="label-text font-medium">Quality Assessment</span>
+                                                        <span className="label-text font-medium">Project *</span>
                                                     </label>
-                                                    <textarea
-                                                        name="quality"
-                                                        className="textarea textarea-bordered textarea-secondary w-full"
-                                                        value={formData.quality}
+                                                    <select
+                                                        name="project_id"
+                                                        className="select select-bordered select-secondary w-full"
+                                                        value={formData.project_id}
                                                         onChange={handleInputChange}
-                                                        placeholder="Quality assessment notes..."
-                                                        rows={3}
+                                                        required
+                                                        disabled={loading}
+                                                    >
+                                                        <option value="">Select a project</option>
+                                                        {projects.map(project => (
+                                                            <option key={project.id} value={project.id}>
+                                                                {project.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Crew</span>
+                                                    </label>
+                                                    <select
+                                                        name="crew_id"
+                                                        className="select select-bordered select-secondary w-full"
+                                                        value={formData.crew_id}
+                                                        onChange={handleInputChange}
+                                                        disabled={loading}
+                                                    >
+                                                        <option value="">No crew assigned</option>
+                                                        {crews.map(crew => (
+                                                            <option key={crew.id} value={crew.id}>
+                                                                {crew.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Weather</span>
+                                                    </label>
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary gap-2"
+                                                            onClick={captureCurrentWeather}
+                                                            disabled={loading || weatherLoading}
+                                                        >
+                                                            {weatherLoading ? (
+                                                                <>
+                                                                    <span className="loading loading-spinner loading-sm"></span>
+                                                                    Capturing...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <i className="far fa-map-marker-alt"></i>
+                                                                    Capture Current Weather
+                                                                </>
+                                                            )}
+                                                        </button>
+
+                                                        {formData.weather && (
+                                                            <div className="flex items-center gap-2 text-sm text-success">
+                                                                <i className="far fa-check-circle"></i>
+                                                                Weather data captured
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {formData.weather && (() => {
+                                                try {
+                                                    const weatherInfo = JSON.parse(formData.weather);
+                                                    return (
+                                                        <div className="alert alert-info">
+                                                            <i className="far fa-info-circle"></i>
+                                                            <div>
+                                                                <div className="font-medium">Current Conditions</div>
+                                                                <div className="text-sm">
+                                                                    {weatherInfo.current.description} • {weatherInfo.current.temperature}°F
+                                                                    (feels like {weatherInfo.current.feelsLike}°F) •
+                                                                    Wind: {weatherInfo.current.windSpeed} mph •
+                                                                    Humidity: {weatherInfo.current.humidity}%
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                } catch {
+                                                    return (
+                                                        <div className="text-sm text-base-content/60">
+                                                            Weather data: {formData.weather.substring(0, 100)}...
+                                                        </div>
+                                                    );
+                                                }
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {/* Schedule & Hours */}
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                                <i className="far fa-clock text-primary"></i>
+                                                Schedule & Hours
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Start Time</span>
+                                                    </label>
+                                                    <input
+                                                        type="time"
+                                                        name="start_time"
+                                                        className="input input-bordered input-secondary w-full"
+                                                        value={formData.start_time}
+                                                        onChange={handleTimeChange}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">End Time</span>
+                                                    </label>
+                                                    <input
+                                                        type="time"
+                                                        name="end_time"
+                                                        className="input input-bordered input-secondary w-full"
+                                                        value={formData.end_time}
+                                                        onChange={handleTimeChange}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Hours Worked</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        name="hours_worked"
+                                                        className="input input-bordered input-secondary w-full"
+                                                        value={formData.hours_worked}
+                                                        onChange={handleNumberInputChange}
+                                                        min="0"
+                                                        step="0.5"
+                                                        placeholder="8.0"
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Overtime Hours</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        name="overtime"
+                                                        className="input input-bordered input-secondary w-full"
+                                                        value={formData.overtime}
+                                                        onChange={handleNumberInputChange}
+                                                        min="0"
+                                                        step="0.5"
+                                                        placeholder="0.0"
                                                         disabled={loading}
                                                     />
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Work Details */}
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                                <i className="far fa-cogs text-primary"></i>
+                                                Work Details
+                                            </h3>
+                                            <div className="space-y-4">
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Work Completed *</span>
+                                                    </label>
+                                                    <textarea
+                                                        name="work_completed"
+                                                        className="textarea textarea-bordered textarea-secondary w-full"
+                                                        value={formData.work_completed}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Describe the work completed today..."
+                                                        rows={4}
+                                                        required
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Work Planned for Next Day</span>
+                                                    </label>
+                                                    <textarea
+                                                        name="work_planned"
+                                                        className="textarea textarea-bordered textarea-secondary w-full"
+                                                        value={formData.work_planned}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Describe work planned for the next day..."
+                                                        rows={3}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="form-control">
+                                                        <label className="label">
+                                                            <span className="label-text font-medium">Safety Concerns</span>
+                                                        </label>
+                                                        <textarea
+                                                            name="safety"
+                                                            className="textarea textarea-bordered textarea-secondary w-full"
+                                                            value={formData.safety}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Any safety concerns or incidents..."
+                                                            rows={3}
+                                                            disabled={loading}
+                                                        />
+                                                    </div>
+                                                    <div className="form-control">
+                                                        <label className="label">
+                                                            <span className="label-text font-medium">Quality Assessment</span>
+                                                        </label>
+                                                        <textarea
+                                                            name="quality"
+                                                            className="textarea textarea-bordered textarea-secondary w-full"
+                                                            value={formData.quality}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Quality assessment notes..."
+                                                            rows={3}
+                                                            disabled={loading}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label">
+                                                        <span className="label-text font-medium">Delays</span>
+                                                    </label>
+                                                    <textarea
+                                                        name="delays"
+                                                        className="textarea textarea-bordered textarea-secondary w-full"
+                                                        value={formData.delays}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Any delays or setbacks..."
+                                                        rows={3}
+                                                        disabled={loading} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Materials Tab */}
+                            {activeTab === "materials" && (
+                                <div className="space-y-6 flex-1">
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                                    <i className="far fa-boxes text-primary"></i>
+                                                    Materials Used
+                                                </h3>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary btn-sm gap-2"
+                                                    onClick={addMaterial}
+                                                    disabled={loading}
+                                                >
+                                                    <i className="far fa-plus"></i>
+                                                    Add Material
+                                                </button>
+                                            </div>
+
+                                            {materials.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <i className="far fa-boxes text-4xl text-base-content/30 mb-2"></i>
+                                                    <p className="text-base-content/70">No materials added yet</p>
+                                                    <p className="text-sm text-base-content/50">Click "Add Material" to track materials used</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {materials.map((material, index) => (
+                                                        <div key={material.id} className="border border-base-300 rounded-lg p-4 bg-base-50">
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <h4 className="font-medium">Material #{index + 1}</h4>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
+                                                                    onClick={() => removeMaterial(index)}
+                                                                    disabled={loading}
+                                                                >
+                                                                    <i className="far fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Material Name *</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={material.name || ""}
+                                                                        onChange={(e) => handleMaterialChange(index, "name", e.target.value)}
+                                                                        placeholder="e.g., Concrete, Lumber, Rebar..."
+                                                                        required
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Quantity</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="number"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={material.quantityValue}
+                                                                        onChange={(e) => handleMaterialChange(index, "quantityValue", e.target.value)}
+                                                                        placeholder="0"
+                                                                        min="0"
+                                                                        step="0.01"
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Cost ($)</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="number"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={material.cost || ""}
+                                                                        onChange={(e) => handleMaterialChange(index, "cost", e.target.value)}
+                                                                        placeholder="0.00"
+                                                                        step="0.01"
+                                                                        min="0"
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Supplier</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={material.supplier || ""}
+                                                                        onChange={(e) => handleMaterialChange(index, "supplier", e.target.value)}
+                                                                        placeholder="Supplier name or company"
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Equipment Tab */}
+                            {activeTab === "equipment" && (
+                                <div className="space-y-6 flex-1">
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                                    <i className="far fa-truck text-primary"></i>
+                                                    Equipment Used
+                                                </h3>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary btn-sm gap-2"
+                                                    onClick={addEquipment}
+                                                    disabled={loading}
+                                                >
+                                                    <i className="far fa-plus"></i>
+                                                    Add Equipment
+                                                </button>
+                                            </div>
+
+                                            {equipment.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <i className="far fa-truck text-4xl text-base-content/30 mb-2"></i>
+                                                    <p className="text-base-content/70">No equipment added yet</p>
+                                                    <p className="text-sm text-base-content/50">Click "Add Equipment" to track equipment used</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {equipment.map((equip, index) => (
+                                                        <div key={equip.id} className="border border-base-300 rounded-lg p-4 bg-base-50">
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <h4 className="font-medium">Equipment #{index + 1}</h4>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
+                                                                    onClick={() => removeEquipment(index)}
+                                                                    disabled={loading}
+                                                                >
+                                                                    <i className="far fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Equipment</span>
+                                                                    </label>
+                                                                    <select className="select select-bordered select-secondary w-full"
+                                                                        value={equip.id || ""}
+                                                                        onChange={(e) => handleEquipmentChange(index, "id", e.target.value)}
+                                                                        disabled={loading}
+                                                                    >
+                                                                        <option value="">Select Equipment</option>
+                                                                        {equipments.map((eq) => (
+                                                                            <option key={eq.id} value={eq.id}>
+                                                                                {eq.name}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Equipment Name*</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={equip.name || ""}
+                                                                        onChange={(e) => handleEquipmentChange(index, "name", e.target.value)}
+                                                                        placeholder="e.g., Excavator, Bulldozer, Crane..."
+                                                                        required
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Crew Member</span>
+                                                                    </label>
+                                                                    <select className="select select-bordered select-secondary w-full"
+                                                                        value={equip.crewMemberId || ""}
+                                                                        onChange={(e) => handleEquipmentChange(index, "crew_member", e.target.value)}
+                                                                        disabled={loading}
+                                                                    >
+                                                                        <option value="">Select Crew Member</option>
+                                                                        {crewMembers.map((member) => (
+                                                                            <option key={member.id} value={member.id}>
+                                                                                {member.name}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Operator</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={equip.operator || ""}
+                                                                        onChange={(e) => handleEquipmentChange(index, "operator", e.target.value)}
+                                                                        placeholder="Operator name"
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Hours Used</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="number"
+                                                                        className="input input-bordered input-secondary w-full"
+                                                                        value={equip.hours || ""}
+                                                                        onChange={(e) => handleEquipmentChange(index, "hours", e.target.value)}
+                                                                        placeholder="0.0"
+                                                                        min="0"
+                                                                        step="0.5"
+                                                                        disabled={loading}
+                                                                    />
+                                                                </div>
+                                                                <div className="form-control">
+                                                                    <label className="label">
+                                                                        <span className="label-text font-medium">Condition</span>
+                                                                    </label>
+                                                                    {equipmentConditionOptions.select(
+                                                                        equip.condition as EquipmentCondition,
+                                                                        (value) => handleEquipmentChange(index, "condition", value),
+                                                                        "select-secondary w-full"
+
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Notes Tab */}
+                            {activeTab === "notes" && (
+                                <div className="space-y-6 flex-1">
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                                <i className="far fa-sticky-note text-primary"></i>
+                                                Additional Notes
+                                            </h3>
                                             <div className="form-control">
                                                 <label className="label">
-                                                    <span className="label-text font-medium">Delays</span>
+                                                    <span className="label-text font-medium">Notes</span>
                                                 </label>
                                                 <textarea
-                                                    name="delays"
+                                                    name="notes"
                                                     className="textarea textarea-bordered textarea-secondary w-full"
-                                                    value={formData.delays}
+                                                    value={formData.notes}
                                                     onChange={handleInputChange}
-                                                    placeholder="Any delays or setbacks..."
-                                                    rows={3}
-                                                    disabled={loading} />
+                                                    placeholder="Any additional notes, observations, or important details about today's work..."
+                                                    rows={10}
+                                                    disabled={loading}
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {/* Materials Tab */}
-                        {activeTab === "materials" && (
-                            <div className="space-y-6">
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                <i className="far fa-boxes text-primary"></i>
-                                                Materials Used
-                                            </h3>
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary btn-sm gap-2"
-                                                onClick={addMaterial}
-                                                disabled={loading}
-                                            >
-                                                <i className="far fa-plus"></i>
-                                                Add Material
-                                            </button>
-                                        </div>
-
-                                        {materials.length === 0 ? (
-                                            <div className="text-center py-8">
-                                                <i className="far fa-boxes text-4xl text-base-content/30 mb-2"></i>
-                                                <p className="text-base-content/70">No materials added yet</p>
-                                                <p className="text-sm text-base-content/50">Click "Add Material" to track materials used</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {materials.map((material, index) => (
-                                                    <div key={material.id} className="border border-base-300 rounded-lg p-4 bg-base-50">
-                                                        <div className="flex justify-between items-center mb-3">
-                                                            <h4 className="font-medium">Material #{index + 1}</h4>
-                                                            <button
-                                                                type="button"
-                                                                className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
-                                                                onClick={() => removeMaterial(index)}
-                                                                disabled={loading}
-                                                            >
-                                                                <i className="far fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Material Name *</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={material.name || ""}
-                                                                    onChange={(e) => handleMaterialChange(index, "name", e.target.value)}
-                                                                    placeholder="e.g., Concrete, Lumber, Rebar..."
-                                                                    required
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Quantity</span>
-                                                                </label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={material.quantityValue}
-                                                                    onChange={(e) => handleMaterialChange(index, "quantityValue", e.target.value)}
-                                                                    placeholder="0"
-                                                                    min="0"
-                                                                    step="0.01"
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Cost ($)</span>
-                                                                </label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={material.cost || ""}
-                                                                    onChange={(e) => handleMaterialChange(index, "cost", e.target.value)}
-                                                                    placeholder="0.00"
-                                                                    step="0.01"
-                                                                    min="0"
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Supplier</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={material.supplier || ""}
-                                                                    onChange={(e) => handleMaterialChange(index, "supplier", e.target.value)}
-                                                                    placeholder="Supplier name or company"
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Equipment Tab */}
-                        {activeTab === "equipment" && (
-                            <div className="space-y-6">
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                <i className="far fa-truck text-primary"></i>
-                                                Equipment Used
-                                            </h3>
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary btn-sm gap-2"
-                                                onClick={addEquipment}
-                                                disabled={loading}
-                                            >
-                                                <i className="far fa-plus"></i>
-                                                Add Equipment
-                                            </button>
-                                        </div>
-
-                                        {equipment.length === 0 ? (
-                                            <div className="text-center py-8">
-                                                <i className="far fa-truck text-4xl text-base-content/30 mb-2"></i>
-                                                <p className="text-base-content/70">No equipment added yet</p>
-                                                <p className="text-sm text-base-content/50">Click "Add Equipment" to track equipment used</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {equipment.map((equip, index) => (
-                                                    <div key={equip.id} className="border border-base-300 rounded-lg p-4 bg-base-50">
-                                                        <div className="flex justify-between items-center mb-3">
-                                                            <h4 className="font-medium">Equipment #{index + 1}</h4>
-                                                            <button
-                                                                type="button"
-                                                                className="btn btn-sm btn-square btn-ghost text-error hover:bg-error hover:text-error-content"
-                                                                onClick={() => removeEquipment(index)}
-                                                                disabled={loading}
-                                                            >
-                                                                <i className="far fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Equipment</span>
-                                                                </label>
-                                                                <select className="select select-bordered select-secondary w-full"
-                                                                    value={equip.id || ""}
-                                                                    onChange={(e) => handleEquipmentChange(index, "id", e.target.value)}
-                                                                    disabled={loading}
-                                                                >
-                                                                    <option value="">Select Equipment</option>
-                                                                    {equipments.map((eq) => (
-                                                                        <option key={eq.id} value={eq.id}>
-                                                                            {eq.name}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Equipment Name*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={equip.name || ""}
-                                                                    onChange={(e) => handleEquipmentChange(index, "name", e.target.value)}
-                                                                    placeholder="e.g., Excavator, Bulldozer, Crane..."
-                                                                    required
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Crew Member</span>
-                                                                </label>
-                                                                <select className="select select-bordered select-secondary w-full"
-                                                                    value={equip.crewMemberId || ""}
-                                                                    onChange={(e) => handleEquipmentChange(index, "crew_member", e.target.value)}
-                                                                    disabled={loading}
-                                                                >
-                                                                    <option value="">Select Crew Member</option>
-                                                                    {crewMembers.map((member) => (
-                                                                        <option key={member.id} value={member.id}>
-                                                                            {member.name}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Operator</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={equip.operator || ""}
-                                                                    onChange={(e) => handleEquipmentChange(index, "operator", e.target.value)}
-                                                                    placeholder="Operator name"
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Hours Used</span>
-                                                                </label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="input input-bordered input-secondary w-full"
-                                                                    value={equip.hours || ""}
-                                                                    onChange={(e) => handleEquipmentChange(index, "hours", e.target.value)}
-                                                                    placeholder="0.0"
-                                                                    min="0"
-                                                                    step="0.5"
-                                                                    disabled={loading}
-                                                                />
-                                                            </div>
-                                                            <div className="form-control">
-                                                                <label className="label">
-                                                                    <span className="label-text font-medium">Condition</span>
-                                                                </label>
-                                                                {equipmentConditionOptions.select(
-                                                                    equip.condition as EquipmentCondition,
-                                                                    (value) => handleEquipmentChange(index, "condition", value),
-                                                                    "select-secondary w-full"
-
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Notes Tab */}
-                        {activeTab === "notes" && (
-                            <div className="space-y-6">
-                                <div className="card bg-base-100 border border-base-300">
-                                    <div className="card-body p-4">
-                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                            <i className="far fa-sticky-note text-primary"></i>
-                                            Additional Notes
-                                        </h3>
-                                        <div className="form-control">
-                                            <label className="label">
-                                                <span className="label-text font-medium">Notes</span>
-                                            </label>
-                                            <textarea
-                                                name="notes"
-                                                className="textarea textarea-bordered textarea-secondary w-full"
-                                                value={formData.notes}
-                                                onChange={handleInputChange}
-                                                placeholder="Any additional notes, observations, or important details about today's work..."
-                                                rows={10}
-                                                disabled={loading}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </form>
                 </div>
 

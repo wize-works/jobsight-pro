@@ -235,78 +235,9 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto space-y-6 h-full" style={{ maxHeight: "calc(90vh - 145px)" }}>
-                    {!cameraSupported && !capturedPhoto && (
-                        <div className="card bg-warning/10 border border-warning/20">
-                            <div className="card-body p-4">
-                                <div className="alert alert-warning shadow-sm">
-                                    <i className="fas fa-exclamation-triangle text-warning"></i>
-                                    <div>
-                                        <h4 className="font-semibold">Camera Not Available</h4>
-                                        <p className="text-sm opacity-80">Camera not supported or not available on this device. You can upload a file instead.</p>
-                                    </div>
-                                </div>
+                <div className="p-6 space-y-6 h-full " style={{ maxHeight: "calc(90vh - 145px)" }}>
 
-                                <div className="mt-4">
-                                    <button
-                                        className="btn btn-primary btn-lg w-full gap-2"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isLoading}
-                                    >
-                                        <i className="fas fa-upload"></i>
-                                        Choose File Instead
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {isCapturing && cameraSupported && (
-                        <div className="card bg-base-100 border border-base-300 shadow-sm">
-                            <div className="card-body p-4">
-                                <div className="relative bg-black rounded-lg overflow-hidden">
-                                    <video
-                                        ref={videoRef}
-                                        className="w-full h-80 object-cover"
-                                        autoPlay
-                                        muted
-                                        playsInline
-                                    />
-                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                                        <button
-                                            className="btn btn-circle btn-primary btn-lg shadow-xl hover:scale-105 transition-transform"
-                                            onClick={capturePhoto}
-                                            disabled={isLoading}
-                                            aria-label="Capture photo"
-                                        >
-                                            <i className="fas fa-camera text-xl"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {capturedPhoto && (
-                        <div className="card bg-base-100 border border-base-300 shadow-sm">
-                            <div className="card-body p-4">
-                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <i className="far fa-image text-primary"></i>
-                                    Photo Preview
-                                </h3>
-
-                                <div className="text-center">
-                                    <img
-                                        src={capturedPhoto}
-                                        alt="Captured photo preview"
-                                        className="max-w-full h-80 object-cover rounded-lg mx-auto border shadow-sm"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {isLoading && (
+                    {isLoading ? (
                         <div className="flex justify-center py-8">
                             <div className="text-center">
                                 <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -314,6 +245,78 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                                     {isCapturing ? 'Starting camera...' : 'Saving photo...'}
                                 </p>
                             </div>
+                        </div>
+                    ) : (
+                        <div>
+                            {!cameraSupported && !capturedPhoto && (
+                                <div className="card bg-warning/10 border border-warning/20">
+                                    <div className="card-body p-4">
+                                        <div className="alert alert-warning shadow-sm">
+                                            <i className="fas fa-exclamation-triangle text-warning"></i>
+                                            <div>
+                                                <h4 className="font-semibold">Camera Not Available</h4>
+                                                <p className="text-sm opacity-80">Camera not supported or not available on this device. You can upload a file instead.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <button
+                                                className="btn btn-primary btn-lg w-full gap-2"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isLoading}
+                                            >
+                                                <i className="fas fa-upload"></i>
+                                                Choose File Instead
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isCapturing && cameraSupported && (
+                                <div className="card  border border-base-300 shadow-sm h-full">
+                                    <div className="card-body p-4 h-full overflow-hidden">
+                                        <div className="relative rounded-lg h-full bg-black">
+                                            <video
+                                                ref={videoRef}
+                                                className="w-full h-full object-cover"
+                                                autoPlay
+                                                muted
+                                                playsInline
+                                            />
+                                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                                                <button
+                                                    className="btn btn-circle btn-primary btn-lg shadow-xl hover:scale-105 transition-transform"
+                                                    onClick={capturePhoto}
+                                                    disabled={isLoading}
+                                                    aria-label="Capture photo"
+                                                >
+                                                    <i className="fas fa-camera text-xl"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {capturedPhoto && (
+                                <div className="card bg-base-100 border border-base-300 shadow-sm">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-image text-primary"></i>
+                                            Photo Preview
+                                        </h3>
+
+                                        <div className="text-center">
+                                            <img
+                                                src={capturedPhoto}
+                                                alt="Captured photo preview"
+                                                className="max-w-full h-80 object-cover rounded-lg mx-auto border shadow-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
