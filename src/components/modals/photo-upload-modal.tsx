@@ -26,6 +26,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
 
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    console.log('Camera API not supported');
                     setCameraSupported(false);
                     return;
                 }
@@ -33,13 +34,16 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 // Check if any video input devices are available
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                console.log('Available video devices:', videoDevices.length);
 
                 if (videoDevices.length === 0) {
+                    console.log('No video input devices found');
                     setCameraSupported(false);
                     return;
                 }
 
                 // Auto-start camera
+                console.log('Initializing camera...');
                 await startCamera();
             } catch (error) {
                 console.error('Error checking camera support:', error);
@@ -51,6 +55,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
             initializeCamera();
         } else {
             // Clean up when modal closes
+            console.log('Modal closed, cleaning up camera');
             stopCamera();
             setCapturedPhoto(null);
             setUploadMethod(null);
@@ -79,27 +84,68 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                 // Permission API not supported, proceed with camera request
             }
 
-            // Request camera access with fallback options
+            // Request camera access with mobile-optimized settings
             let stream: MediaStream;
             try {
-                // Try with back camera first
+                // Try with back camera first with specific constraints for mobile
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: 'environment' // Prefer back camera for better quality
+                        facingMode: 'environment', // Prefer back camera
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 },
+                        frameRate: { ideal: 30, max: 30 }
                     }
                 });
             } catch (backCameraError) {
-                // Fallback to any available camera
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: true
-                });
+                console.log('Back camera not available, trying front camera');
+                try {
+                    // Try front camera
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user',
+                            width: { ideal: 1920, max: 1920 },
+                            height: { ideal: 1080, max: 1080 },
+                            frameRate: { ideal: 30, max: 30 }
+                        }
+                    });
+                } catch (frontCameraError) {
+                    // Fallback to any available camera with basic constraints
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 640, max: 1920 },
+                            height: { ideal: 480, max: 1080 }
+                        }
+                    });
+                }
             }
 
             streamRef.current = stream;
 
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+
+                // Wait for video to load metadata
+                await new Promise((resolve, reject) => {
+                    const video = videoRef.current!;
+
+                    const handleLoadedMetadata = () => {
+                        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                        video.removeEventListener('error', handleError);
+                        resolve(void 0);
+                    };
+
+                    const handleError = (error: Event) => {
+                        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                        video.removeEventListener('error', handleError);
+                        reject(error);
+                    };
+
+                    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+                    video.addEventListener('error', handleError);
+                });
+
                 await videoRef.current.play();
+                console.log('Camera started successfully');
             }
         } catch (error) {
             console.error('Error accessing camera:', error);
@@ -138,19 +184,52 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
             const canvas = canvasRef.current;
             const context = canvas.getContext('2d');
 
+            if (!context) {
+                console.error('Could not get canvas context');
+                return;
+            }
+
             // Set canvas dimensions to video dimensions
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth || video.clientWidth;
+            canvas.height = video.videoHeight || video.clientHeight;
 
-            // Draw the video frame to canvas
-            context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Ensure we have valid dimensions
+            if (canvas.width === 0 || canvas.height === 0) {
+                console.error('Invalid video dimensions');
+                return;
+            }
 
-            // Convert to data URL
-            const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            setCapturedPhoto(photoDataUrl);
+            try {
+                // Clear canvas first
+                context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Stop the camera stream
-            stopCamera();
+                // Draw the video frame to canvas (flip horizontally to match the mirrored video)
+                context.save();
+                context.scale(-1, 1);
+                context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                context.restore();
+
+                // Convert to data URL with high quality
+                const photoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+                // Validate that we got a valid image
+                if (photoDataUrl === 'data:,') {
+                    console.error('Failed to capture photo data');
+                    alert('Failed to capture photo. Please try again.');
+                    return;
+                }
+
+                setCapturedPhoto(photoDataUrl);
+                console.log('Photo captured successfully');
+
+                // Stop the camera stream
+                stopCamera();
+            } catch (error) {
+                console.error('Error capturing photo:', error);
+                alert('Error capturing photo. Please try again.');
+            }
+        } else {
+            console.error('Video or canvas reference not available');
         }
     };
 
@@ -274,17 +353,31 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                             )}
 
                             {isCapturing && cameraSupported && (
-                                <div className="card  border border-base-300 shadow-sm h-full">
-                                    <div className="card-body p-4 h-full overflow-hidden">
-                                        <div className="relative rounded-lg h-full bg-black">
+                                <div className="card border border-base-300 shadow-sm">
+                                    <div className="card-body p-4">
+                                        <div className="relative rounded-lg bg-black min-h-[400px] flex items-center justify-center overflow-hidden">
                                             <video
                                                 ref={videoRef}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full min-h-[400px] object-cover rounded-lg"
                                                 autoPlay
                                                 muted
                                                 playsInline
+                                                style={{
+                                                    transform: 'scaleX(-1)', // Mirror the video for better UX
+                                                    minHeight: '400px',
+                                                    maxHeight: '600px'
+                                                }}
                                             />
-                                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                                            {/* Loading overlay while camera initializes */}
+                                            {isLoading && (
+                                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                                                    <div className="text-center text-white">
+                                                        <span className="loading loading-spinner loading-lg"></span>
+                                                        <p className="mt-2 text-sm">Starting camera...</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
                                                 <button
                                                     className="btn btn-circle btn-primary btn-lg shadow-xl hover:scale-105 transition-transform"
                                                     onClick={capturePhoto}
@@ -308,11 +401,27 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                                         </h3>
 
                                         <div className="text-center">
-                                            <img
-                                                src={capturedPhoto}
-                                                alt="Captured photo preview"
-                                                className="max-w-full h-80 object-cover rounded-lg mx-auto border shadow-sm"
-                                            />
+                                            <div className="relative inline-block">
+                                                <img
+                                                    src={capturedPhoto}
+                                                    alt="Captured photo preview"
+                                                    className="max-w-full max-h-80 object-contain rounded-lg mx-auto border shadow-sm"
+                                                    style={{ minHeight: '200px' }}
+                                                    onLoad={() => console.log('Photo preview loaded successfully')}
+                                                    onError={(e) => {
+                                                        console.error('Error loading photo preview:', e);
+                                                        // Fallback display
+                                                        e.currentTarget.style.display = 'none';
+                                                    }}
+                                                />
+                                                {/* Fallback for when image fails to load */}
+                                                <div className="absolute inset-0 flex items-center justify-center bg-base-200 rounded-lg" style={{ display: 'none' }}>
+                                                    <div className="text-center">
+                                                        <i className="far fa-image text-4xl text-base-content/50 mb-2"></i>
+                                                        <p className="text-sm text-base-content/70">Photo preview unavailable</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAIQuery } from '@/app/actions/ai';
+import { processAIQuery, clearAICache } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
 import { submitFeedback, getFeedbackForMessage } from '@/app/actions/feedback';
 import { useBusiness } from '@/lib/business-context';
@@ -124,13 +124,13 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         setFeedbackLoading(prev => ({ ...prev, [messageId]: true }));
 
         try {
-            // Create a numeric hash of the message ID for database storage
-            const messageIdHash = messageId.split('').reduce((hash, char) => {
+            // Create a shorter numeric hash to avoid integer overflow
+            const messageIdHash = Math.abs(messageId.split('').reduce((hash, char) => {
                 return ((hash << 5) - hash) + char.charCodeAt(0);
-            }, 0);
+            }, 0)) % 2147483647; // Max 32-bit signed integer
 
             const result = await submitFeedback(businessId, {
-                messageId: Math.abs(messageIdHash), // Ensure positive number
+                messageId: messageIdHash,
                 feedbackType,
                 authId: user.id
             });
@@ -154,11 +154,11 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
 
         for (const message of conversation) {
             if (message.type === 'assistant') {
-                const messageIdHash = message.id.split('').reduce((hash, char) => {
+                const messageIdHash = Math.abs(message.id.split('').reduce((hash, char) => {
                     return ((hash << 5) - hash) + char.charCodeAt(0);
-                }, 0);
+                }, 0)) % 2147483647; // Max 32-bit signed integer
 
-                const result = await getFeedbackForMessage(Math.abs(messageIdHash), user.id);
+                const result = await getFeedbackForMessage(messageIdHash, user.id);
                 if (result.feedbackType) {
                     feedback[message.id] = result.feedbackType;
                 }
@@ -424,6 +424,19 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                             </button>
                                         )}
                                         <button
+                                            className="btn btn-xs btn-ghost"
+                                            onClick={async () => {
+                                                if (businessId) {
+                                                    const result = await clearAICache(businessId);
+                                                    addToConversation("assistant", `Debug: ${result.message}`);
+                                                }
+                                            }}
+                                            disabled={isProcessing}
+                                            title="Clear AI cache (debug)"
+                                        >
+                                            <i className="far fa-refresh text-xs"></i>
+                                        </button>
+                                        <button
                                             onClick={handleClose}
                                             className="btn btn-sm btn-circle btn-ghost"
                                             disabled={isProcessing}
@@ -497,8 +510,8 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                                                     onClick={() => handleFeedback(msg.id, 'thumbs_up')}
                                                                     disabled={feedbackLoading[msg.id]}
                                                                     className={`btn btn-xs btn-ghost ${messageFeedback[msg.id] === 'thumbs_up'
-                                                                            ? 'text-success'
-                                                                            : 'text-base-content/50 hover:text-success'
+                                                                        ? 'text-success'
+                                                                        : 'text-base-content/50 hover:text-success'
                                                                         }`}
                                                                     title="This was helpful"
                                                                 >
@@ -509,8 +522,8 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                                                     onClick={() => handleFeedback(msg.id, 'thumbs_down')}
                                                                     disabled={feedbackLoading[msg.id]}
                                                                     className={`btn btn-xs btn-ghost ${messageFeedback[msg.id] === 'thumbs_down'
-                                                                            ? 'text-error'
-                                                                            : 'text-base-content/50 hover:text-error'
+                                                                        ? 'text-error'
+                                                                        : 'text-base-content/50 hover:text-error'
                                                                         }`}
                                                                     title="This was not helpful"
                                                                 >
