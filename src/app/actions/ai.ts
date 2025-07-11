@@ -21,12 +21,30 @@ interface ConversationMessage {
 // Enhanced AI context data function with caching
 export const getAIContextData = async (businessId: string) => {
     try {
+        console.log(`AI Context - Starting data fetch for business: ${businessId}`);
+
         // Check cache first
         const cachedData = AIContextCache.getAIContext(businessId);
         if (cachedData) {
             CacheMetrics.recordHit();
             console.log('AI Context: Cache hit for business', businessId);
-            return cachedData.data;
+            console.log('AI Context: Cached data summary:', {
+                projects: cachedData.data.projects?.length || 0,
+                clients: cachedData.data.clients?.length || 0,
+                crews: cachedData.data.crews?.length || 0,
+                dailyLogs: cachedData.data.dailyLogs?.length || 0,
+                tasks: cachedData.data.tasks?.length || 0,
+                equipment: cachedData.data.equipment?.length || 0,
+                cacheAge: Date.now() - cachedData.timestamp
+            });
+
+            // If cached data shows no crews but we expect some, invalidate cache
+            if (cachedData.data.crews?.length === 0) {
+                console.log('AI Context: Cache has no crews data, invalidating cache to fetch fresh data');
+                AIContextCache.invalidateBusinessCache(businessId);
+            } else {
+                return cachedData.data;
+            }
         }
 
         CacheMetrics.recordMiss();
@@ -56,7 +74,7 @@ export const getAIContextData = async (businessId: string) => {
         });
 
         // Get clients with project and financial analytics
-        const { data: clients, error: clientsError } = await fetchByBusinessWithQuery(businessId, {
+        let { data: clients, error: clientsError } = await fetchByBusinessWithQuery(businessId, {
             from: "clients",
             select: ["id", "name", "type", "industry", "contact_email", "phone", "address"],
             aggregates: [
@@ -70,8 +88,27 @@ export const getAIContextData = async (businessId: string) => {
             orderBy: { column: "name", ascending: true }
         });
 
+        // Debug logging for client query
+        if (clientsError) {
+            console.error("AI Context - Client query error:", clientsError);
+            // Try a simpler query as fallback
+            console.log("AI Context - Attempting fallback client query...");
+            const { data: fallbackClients, error: fallbackError } = await fetchByBusiness("clients", businessId, "*", {
+                orderBy: { column: "name", ascending: true }
+            });
+            if (fallbackError) {
+                console.error("AI Context - Fallback client query also failed:", fallbackError);
+            } else {
+                console.log(`AI Context - Fallback found ${fallbackClients?.length || 0} clients`);
+                // Use the fallback data
+                clients = fallbackClients;
+            }
+        } else {
+            console.log(`AI Context - Found ${clients?.length || 0} clients for business ${businessId}`);
+        }
+
         // Get crews with assignment and productivity data
-        const { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
+        let { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
             from: "crews",
             select: ["id", "name", "type", "size", "status", "location"],
             aggregates: [
@@ -87,6 +124,25 @@ export const getAIContextData = async (businessId: string) => {
             ],
             orderBy: { column: "name", ascending: true }
         });
+
+        // Debug logging for crew query
+        if (crewsError) {
+            console.error("AI Context - Crew query error:", crewsError);
+            // Try a simpler query as fallback
+            console.log("AI Context - Attempting fallback crew query...");
+            const { data: fallbackCrews, error: fallbackError } = await fetchByBusiness("crews", businessId, "*", {
+                orderBy: { column: "name", ascending: true }
+            });
+            if (fallbackError) {
+                console.error("AI Context - Fallback crew query also failed:", fallbackError);
+            } else {
+                console.log(`AI Context - Fallback found ${fallbackCrews?.length || 0} crews`);
+                // Use the fallback data
+                crews = fallbackCrews;
+            }
+        } else {
+            console.log(`AI Context - Found ${crews?.length || 0} crews for business ${businessId}`);
+        }
 
         // Get recent daily logs with rich context (last 30 days)
         const thirtyDaysAgo = new Date();
@@ -291,11 +347,28 @@ export async function processAIQuery(
             const productivity = c.avg_productivity || 0;
             const logEntries = c.log_entries || 0;
 
+            // For fallback data (basic crew info), provide a simpler summary
+            if (members === 0 && assignments === 0 && totalHours === 0) {
+                return `${c.name}:
+  - ID: ${c.id}
+  - Status: ${c.status || 'Active'}
+  - Size: ${c.size || 'Unknown'}
+  - Location: ${c.location || 'Various'}
+  - Type: ${c.type || 'General'}`;
+            }
+
             return `${c.name} (${c.type || 'General'}, ${members} members):
   - Active Assignments: ${assignments}, Total Hours: ${totalHours}
   - Productivity: ${Math.round(productivity)} avg hours/day, ${logEntries} log entries
   - Status: ${c.status || 'Active'}, Location: ${c.location || 'Various'}`;
         }).join('\n\n');
+
+        // Debug logging for crew data
+        console.log('Crew Summary Debug:', {
+            crewCount: filteredData.crews.length,
+            crewNames: filteredData.crews.map((c: any) => c.name),
+            crewSummary: crewSummary
+        });
 
         const recentActivity = filteredData.dailyLogs.slice(0, 8).map((log: any) => {
             const project = log.project?.name || 'Unknown Project';
@@ -346,7 +419,9 @@ export async function processAIQuery(
         const urgentTasks = filteredData.tasks.filter((t: any) => t.priority === 'high' || t.priority === 'urgent').length;
         const recentLogs = filteredData.dailyLogs.length;
         const totalEquipment = filteredData.equipment.length;
-        const activeEquipment = filteredData.equipment.filter((e: any) => e.status === 'active').length;        // Build comprehensive system prompt with rich context
+        const activeEquipment = filteredData.equipment.filter((e: any) => e.status === 'active').length;
+        const totalCrews = filteredData.crews.length;
+        const activeCrews = filteredData.crews.filter((c: any) => c.status === 'active' || !c.status).length;        // Build comprehensive system prompt with rich context
         const querySpecificContext = queryContext.projectNames.length > 0
             ? `\n\nQUERY CONTEXT: User is asking specifically about: ${queryContext.projectNames.join(', ')}${queryContext.requestedData.length > 0 ? ` (focusing on: ${queryContext.requestedData.join(', ')})` : ''}${queryContext.limit ? ` (limited to ${queryContext.limit} items)` : ''}`
             : '';
@@ -360,6 +435,7 @@ IMPORTANT: You DO have access to all the project data listed below. This is real
 BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
 - Projects: ${activeProjects}/${totalProjects} active${queryContext.projectNames.length > 0 ? ` (filtered for: ${queryContext.projectNames.join(', ')})` : ''}
 - Tasks: ${totalTasks} total (${urgentTasks} urgent/high priority)
+- Crews: ${activeCrews}/${totalCrews} available
 - Recent Activity: ${recentLogs} daily logs${queryContext.timeframe ? ` (${queryContext.timeframe})` : ' (last 30 days)'}
 - Equipment: ${activeEquipment}/${totalEquipment} active units
 - Data Coverage: ${contextData.metadata?.dataRange}${querySpecificContext}
@@ -591,35 +667,27 @@ Format as a professional project summary.`;
                     };
                 }
             }
-        }        // Emergency debugging: Direct response for summary requests
-        if (message.toLowerCase().includes('summarize') &&
-            (message.toLowerCase().includes('daily logs') || message.toLowerCase().includes('daily log'))) {
+        }        // Emergency debugging: Direct response for crew-related requests
+        if (message.toLowerCase().includes('crew') || message.toLowerCase().includes('crews')) {
+            console.log('AI Query: Crew-related request detected, clearing cache for fresh data');
+            AIContextCache.invalidateBusinessCache(businessId);
 
-            const limit = queryContext.limit || 3;
-            const recentLogs = filteredData.dailyLogs.slice(0, limit);
+            // Fetch fresh context data
+            const freshContextData = await getAIContextData(businessId);
 
-            console.log(`Direct debug response: Found ${recentLogs.length} logs out of ${contextData.dailyLogs.length} total`);
+            console.log('Fresh context data for crew query:', {
+                crews: freshContextData.crews?.length || 0,
+                crewNames: freshContextData.crews?.map((c: any) => c.name) || [],
+                projects: freshContextData.projects?.length || 0,
+                clients: freshContextData.clients?.length || 0
+            });
 
-            if (recentLogs.length === 0) {
+            if (freshContextData.crews?.length === 0) {
                 return {
-                    response: `DEBUG: No daily logs found. Total logs in database: ${contextData.dailyLogs.length}, After filtering: ${filteredData.dailyLogs.length}. Query context: ${JSON.stringify(queryContext)}`,
-                    action: "debug_no_data"
+                    response: `DEBUG: No crews found in database. I've cleared the cache and fetched fresh data. Total entities found: ${freshContextData.projects?.length || 0} projects, ${freshContextData.clients?.length || 0} clients, ${freshContextData.crews?.length || 0} crews.`,
+                    action: "debug_no_crews"
                 };
             }
-
-            // Direct response with actual data
-            const directSummary = recentLogs.map((log: any, index: number) => {
-                return `${index + 1}. Daily Log - ${log.date}:
-   Project: ${log.project?.name || 'Unknown'}
-   Work: ${log.work_completed || 'No work details'}
-   Hours: ${log.hours_worked || 0}
-   Crew: ${log.crew?.name || 'Unknown'}`;
-            }).join('\n\n');
-
-            return {
-                response: `Here are the ${limit} most recent daily logs from your actual database:\n\n${directSummary}\n\nDEBUG INFO: This is real data from ${recentLogs.length} actual logs.`,
-                action: "direct_summary"
-            };
         }
 
         // Check if this is a daily log creation request (moved after summary handling)
@@ -1093,4 +1161,37 @@ function filterContextData(contextData: any, queryContext: QueryContext) {
     }
 
     return filtered;
+}
+
+// Manual AI cache clearing function for debugging
+export async function clearAICache(businessId: string): Promise<{ success: boolean; message: string }> {
+    try {
+        console.log(`Manually clearing AI cache for business: ${businessId}`);
+
+        // Clear the cache
+        AIContextCache.invalidateBusinessCache(businessId);
+
+        // Get fresh data to verify cache clearing
+        const freshData = await getAIContextData(businessId);
+
+        console.log('Fresh data after cache clear:', {
+            projects: freshData.projects?.length || 0,
+            clients: freshData.clients?.length || 0,
+            crews: freshData.crews?.length || 0,
+            dailyLogs: freshData.dailyLogs?.length || 0,
+            tasks: freshData.tasks?.length || 0,
+            equipment: freshData.equipment?.length || 0
+        });
+
+        return {
+            success: true,
+            message: `Cache cleared successfully. Found: ${freshData.projects?.length || 0} projects, ${freshData.clients?.length || 0} clients, ${freshData.crews?.length || 0} crews, ${freshData.dailyLogs?.length || 0} daily logs, ${freshData.tasks?.length || 0} tasks, ${freshData.equipment?.length || 0} equipment.`
+        };
+    } catch (error) {
+        console.error('Error clearing AI cache:', error);
+        return {
+            success: false,
+            message: `Failed to clear cache: ${error instanceof Error ? error.message : 'Unknown error'}`
+        };
+    }
 }
