@@ -1,3 +1,10 @@
+# [1.130.0](https://github.com/wize-works/jobsight-pro/compare/v1.129.0...v1.130.0) (2025-07-11)
+
+
+### Features
+
+* Improve camera support handling in photo upload modal; enhance error logging and user feedback ([887d62a](https://github.com/wize-works/jobsight-pro/commit/887d62a15cb39b44a797cc5a69c986a345728c18))
+
 # [1.129.0](https://github.com/wize-works/jobsight-pro/compare/v1.128.0...v1.129.0) (2025-07-11)
 
 
