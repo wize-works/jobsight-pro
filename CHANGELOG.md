@@ -1,3 +1,10 @@
+# [1.131.0](https://github.com/wize-works/jobsight-pro/compare/v1.130.0...v1.131.0) (2025-07-11)
+
+
+### Features
+
+* Implement comprehensive photo upload functionality with context-aware linking ([fcdc22c](https://github.com/wize-works/jobsight-pro/commit/fcdc22c5ec3396a92de82e51f23d8a48db182eeb))
+
 # [1.130.0](https://github.com/wize-works/jobsight-pro/compare/v1.129.0...v1.130.0) (2025-07-11)
 
 
