@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAIQuery, clearAICache } from '@/app/actions/ai';
+import { processAIQuery } from '@/app/actions/ai';
 import { transcribeAudio } from '@/app/actions/ai';
 import { submitFeedback, getFeedbackForMessage } from '@/app/actions/feedback';
 import { useBusiness } from '@/lib/business-context';
@@ -423,19 +423,6 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                                                 <i className="far fa-trash text-xs"></i>
                                             </button>
                                         )}
-                                        <button
-                                            className="btn btn-xs btn-ghost"
-                                            onClick={async () => {
-                                                if (businessId) {
-                                                    const result = await clearAICache(businessId);
-                                                    addToConversation("assistant", `Debug: ${result.message}`);
-                                                }
-                                            }}
-                                            disabled={isProcessing}
-                                            title="Clear AI cache (debug)"
-                                        >
-                                            <i className="far fa-refresh text-xs"></i>
-                                        </button>
                                         <button
                                             onClick={handleClose}
                                             className="btn btn-sm btn-circle btn-ghost"
