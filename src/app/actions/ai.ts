@@ -4,7 +4,6 @@ import { openai, AI_MODELS } from "@/lib/ai/client";
 import { createDailyLog } from "./daily-logs";
 import { DailyLogInsert } from "@/types/daily-logs";
 import { fetchByBusiness, deleteWithBusinessCheck, updateWithBusinessCheck, insertWithBusiness, fetchByBusinessWithQuery } from "@/lib/db";
-import { AIContextCache, CacheMetrics } from "@/lib/ai/cache";
 
 interface AIQueryResult {
     response: string;
@@ -18,37 +17,9 @@ interface ConversationMessage {
     content: string;
 }
 
-// Enhanced AI context data function with caching
+// AI context data function - always fetches fresh data for accuracy
 export const getAIContextData = async (businessId: string) => {
     try {
-        console.log(`AI Context - Starting data fetch for business: ${businessId}`);
-
-        // Check cache first
-        const cachedData = AIContextCache.getAIContext(businessId);
-        if (cachedData) {
-            CacheMetrics.recordHit();
-            console.log('AI Context: Cache hit for business', businessId);
-            console.log('AI Context: Cached data summary:', {
-                projects: cachedData.data.projects?.length || 0,
-                clients: cachedData.data.clients?.length || 0,
-                crews: cachedData.data.crews?.length || 0,
-                dailyLogs: cachedData.data.dailyLogs?.length || 0,
-                tasks: cachedData.data.tasks?.length || 0,
-                equipment: cachedData.data.equipment?.length || 0,
-                cacheAge: Date.now() - cachedData.timestamp
-            });
-
-            // If cached data shows no crews but we expect some, invalidate cache
-            if (cachedData.data.crews?.length === 0) {
-                console.log('AI Context: Cache has no crews data, invalidating cache to fetch fresh data');
-                AIContextCache.invalidateBusinessCache(businessId);
-            } else {
-                return cachedData.data;
-            }
-        }
-
-        CacheMetrics.recordMiss();
-        console.log('AI Context: Cache miss for business', businessId, '- fetching fresh data');
 
         // Get projects with enhanced relational data and analytics
         const { data: projects, error: projectsError } = await fetchByBusinessWithQuery(businessId, {
@@ -58,7 +29,7 @@ export const getAIContextData = async (businessId: string) => {
                 {
                     table: "clients",
                     select: ["id", "name", "type", "industry"],
-                    alias: "client"
+                    alias: "clients"
                 }
             ],
             aggregates: [
@@ -76,7 +47,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get clients with project and financial analytics
         let { data: clients, error: clientsError } = await fetchByBusinessWithQuery(businessId, {
             from: "clients",
-            select: ["id", "name", "type", "industry", "contact_email", "phone", "address"],
+            select: ["id", "name", "type", "industry", "contact_email", "address"],
             aggregates: [
                 { function: "count", table: "projects", alias: "total_projects" },
                 { function: "count", table: "projects", alias: "active_projects", where: { status: { in: ["active", "planning"] } } },
@@ -110,7 +81,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get crews with assignment and productivity data
         let { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
             from: "crews",
-            select: ["id", "name", "type", "size", "status", "location"],
+            select: ["id", "name", "status", "location"],
             aggregates: [
                 { function: "count", table: "crew_members", alias: "member_count" },
                 { function: "count", table: "project_crews", alias: "total_assignments" },
@@ -234,22 +205,8 @@ export const getAIContextData = async (businessId: string) => {
                     tasks: tasks?.length || 0,
                     equipment: equipment?.length || 0
                 }
-            },
-            errors: {
-                projects: projectsError,
-                clients: clientsError,
-                crews: crewsError,
-                dailyLogs: dailyLogsError,
-                tasks: tasksError,
-                equipment: equipmentError
             }
         };
-
-        // Store in cache
-        AIContextCache.setAIContext(businessId, contextData);
-
-        // Warm up additional cache data for better performance
-        await AIContextCache.warmupCache(businessId, contextData);
 
         return contextData;
     } catch (error) {
@@ -263,9 +220,16 @@ export const getAIContextData = async (businessId: string) => {
             equipment: [],
             metadata: {
                 contextDate: new Date().toISOString(),
-                error: "Failed to fetch comprehensive context"
-            },
-            errors: { general: error }
+                dataRange: "Error occurred - no data available",
+                totalRecords: {
+                    projects: 0,
+                    clients: 0,
+                    crews: 0,
+                    dailyLogs: 0,
+                    tasks: 0,
+                    equipment: 0
+                }
+            }
         };
     }
 };
@@ -277,41 +241,41 @@ export async function processAIQuery(
     userId?: string
 ): Promise<AIQueryResult> {
     try {
-        // Check for conversation context in cache if userId provided
-        let enhancedHistory = conversationHistory;
-        if (userId) {
-            const cachedContext = AIContextCache.getConversationContext(businessId, userId);
-            if (cachedContext && cachedContext.conversationHistory) {
-                // Merge cached conversation history with current history
-                enhancedHistory = [...cachedContext.conversationHistory, ...conversationHistory];
-                console.log('AI Query: Using cached conversation context');
-            }
+        // Get fresh context data for the most accurate AI responses
+        const contextData = await getAIContextData(businessId);
+
+        // EMERGENCY DEBUG: Simple test to check what data is being fetched
+        if (message.toLowerCase().includes('debug data')) {
+            // Add extra debug info for active projects
+            const activeProjectsList = contextData.projects?.filter((p: any) => p.status?.toLowerCase() === 'active') || [];
+            const activeProjectNames = activeProjectsList.map((p: any) => p.name);
+
+            return {
+                response: `DEBUG DATA DUMP:
+Projects: ${contextData.projects?.length || 0}
+Project Names: ${contextData.projects?.map((p: any) => `${p.name} (${p.status})`).join(', ') || 'None'}
+Active Projects Count: ${activeProjectsList.length}
+Active Project Names: ${activeProjectNames.join(', ') || 'None'}
+Active Projects Details: ${JSON.stringify(activeProjectsList.map((p: any) => ({ name: p.name, status: p.status })), null, 2)}
+Clients: ${contextData.clients?.length || 0}
+Client Names: ${contextData.clients?.map((c: any) => c.name).join(', ') || 'None'}
+Crews: ${contextData.crews?.length || 0}
+Daily Logs: ${contextData.dailyLogs?.length || 0}
+Tasks: ${contextData.tasks?.length || 0}
+Equipment: ${contextData.equipment?.length || 0}`,
+                action: "debug"
+            };
         }
 
-        // Get comprehensive context data using the new relational query
-        const contextData = await getAIContextData(businessId);// Analyze the query to understand what the user is asking for
+        // Analyze the query to understand what the user is asking for
         const queryContext = analyzeQuery(message, contextData);
-
-        // Add debugging info
-        console.log('Query Analysis Debug:', {
-            originalQuery: message,
-            intent: queryContext.intent,
-            requestedData: queryContext.requestedData,
-            projectNames: queryContext.projectNames,
-            limit: queryContext.limit,
-            timeframe: queryContext.timeframe
-        });
 
         // Filter context data based on the query
         const filteredData = filterContextData(contextData, queryContext);
 
-        console.log('Filtered Data Debug:', {
-            totalDailyLogs: filteredData.dailyLogs.length,
-            recentLogDates: filteredData.dailyLogs.slice(0, 3).map((log: any) => log.date),
-            totalProjects: filteredData.projects.length
-        });// Build rich context summary for AI with comprehensive analytics
+        // Build rich context summary for AI with comprehensive analytics
         const projectSummary = filteredData.projects.map((p: any) => {
-            const client = p.client?.name || 'Unknown Client';
+            const client = p.clients?.name || 'Unknown Client';
             const progress = p.progress || 0;
             const activeTasks = p.active_tasks || 0;
             const completedTasks = p.completed_tasks || 0;
@@ -352,23 +316,14 @@ export async function processAIQuery(
                 return `${c.name}:
   - ID: ${c.id}
   - Status: ${c.status || 'Active'}
-  - Size: ${c.size || 'Unknown'}
-  - Location: ${c.location || 'Various'}
-  - Type: ${c.type || 'General'}`;
+  - Location: ${c.location || 'Various'}`;
             }
 
-            return `${c.name} (${c.type || 'General'}, ${members} members):
+            return `${c.name} (${members} members):
   - Active Assignments: ${assignments}, Total Hours: ${totalHours}
   - Productivity: ${Math.round(productivity)} avg hours/day, ${logEntries} log entries
   - Status: ${c.status || 'Active'}, Location: ${c.location || 'Various'}`;
         }).join('\n\n');
-
-        // Debug logging for crew data
-        console.log('Crew Summary Debug:', {
-            crewCount: filteredData.crews.length,
-            crewNames: filteredData.crews.map((c: any) => c.name),
-            crewSummary: crewSummary
-        });
 
         const recentActivity = filteredData.dailyLogs.slice(0, 8).map((log: any) => {
             const project = log.project?.name || 'Unknown Project';
@@ -408,20 +363,21 @@ export async function processAIQuery(
             const utilization = e.utilization_rate || 0;
             const lastUsed = e.last_used || 'Never';
 
-            return `${e.name} (${e.type}, ${e.model || 'N/A'}):
+            return `${e.name} (${e.model || 'N/A'}):
   - Status: ${e.status}, Location: ${e.location || 'Unknown'}
   - Usage: ${totalHours}h total, ${Math.round(utilization)}h avg/use, ${assignments} active assignments
   - Maintenance: $${maintenanceCost.toLocaleString()}, Last used: ${lastUsed}`;
         }).join('\n\n');        // Calculate business-wide analytics
         const totalProjects = filteredData.projects.length;
-        const activeProjects = filteredData.projects.filter((p: any) => p.status === 'active').length;
+        const activeProjects = filteredData.projects.filter((p: any) => p.status?.toLowerCase() === 'active').length;
+
         const totalTasks = filteredData.tasks.length;
         const urgentTasks = filteredData.tasks.filter((t: any) => t.priority === 'high' || t.priority === 'urgent').length;
         const recentLogs = filteredData.dailyLogs.length;
         const totalEquipment = filteredData.equipment.length;
-        const activeEquipment = filteredData.equipment.filter((e: any) => e.status === 'active').length;
+        const activeEquipment = filteredData.equipment.filter((e: any) => e.status?.toLowerCase() === 'active').length;
         const totalCrews = filteredData.crews.length;
-        const activeCrews = filteredData.crews.filter((c: any) => c.status === 'active' || !c.status).length;        // Build comprehensive system prompt with rich context
+        const activeCrews = filteredData.crews.filter((c: any) => c.status?.toLowerCase() === 'active' || !c.status).length;        // Build comprehensive system prompt with rich context
         const querySpecificContext = queryContext.projectNames.length > 0
             ? `\n\nQUERY CONTEXT: User is asking specifically about: ${queryContext.projectNames.join(', ')}${queryContext.requestedData.length > 0 ? ` (focusing on: ${queryContext.requestedData.join(', ')})` : ''}${queryContext.limit ? ` (limited to ${queryContext.limit} items)` : ''}`
             : '';
@@ -432,6 +388,7 @@ export async function processAIQuery(
             : `\n\nDATA AVAILABILITY: ${filteredData.dailyLogs.length} daily logs available for analysis.`; const systemPrompt = `You are an advanced construction project management AI assistant with DIRECT ACCESS to real-time business data and analytics.
 
 IMPORTANT: You DO have access to all the project data listed below. This is real, current data from the user's business database. You should analyze and reference this data directly in your responses.${debugInfo}
+
 BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
 - Projects: ${activeProjects}/${totalProjects} active${queryContext.projectNames.length > 0 ? ` (filtered for: ${queryContext.projectNames.join(', ')})` : ''}
 - Tasks: ${totalTasks} total (${urgentTasks} urgent/high priority)
@@ -439,6 +396,11 @@ BUSINESS OVERVIEW (${contextData.metadata?.contextDate?.split('T')[0]}):
 - Recent Activity: ${recentLogs} daily logs${queryContext.timeframe ? ` (${queryContext.timeframe})` : ' (last 30 days)'}
 - Equipment: ${activeEquipment}/${totalEquipment} active units
 - Data Coverage: ${contextData.metadata?.dataRange}${querySpecificContext}
+
+🔥 CRITICAL STATUS INFORMATION - READ CAREFULLY:
+${activeProjects > 0 ? `✅ ACTIVE PROJECTS CONFIRMED: ${activeProjects} project(s) with status "active" - YOU MUST ACKNOWLEDGE THESE ACTIVE PROJECTS IN YOUR RESPONSE` : '❌ NO ACTIVE PROJECTS: All projects are either completed, planning, or other statuses'}
+
+🚨 MANDATORY ACTIVE PROJECT COUNT: When asked about active projects, you MUST report that there are ${activeProjects} active projects based on the data provided above.
 
 DETAILED CONTEXT:
 
@@ -478,29 +440,40 @@ CONTEXT INTELLIGENCE:
 - Historical work patterns, productivity trends, and seasonal variations
 - Financial performance, budget adherence, and profitability analysis
 
-CRITICAL INSTRUCTIONS:
-- You HAVE DIRECT ACCESS to all the project data shown above - this is REAL, CURRENT business data
-- When asked about specific projects, analyze the provided project data and respond with actual details
-- For daily log summaries, use the ACTUAL daily log entries provided in the RECENT WORK ACTIVITY section
-- Always reference specific data points, dates, hours, and metrics from the provided context
-- If asked about projects not in the filtered data, state that you don't see that project in the current data set
-- Provide concrete, data-driven insights using the actual numbers and details provided
-- NEVER create fictional or sample data - use only what is explicitly provided
-- If no data is available for a request, clearly state that no data was found
-- Always mention actual dates, project names, and figures from the provided data
+CRITICAL INSTRUCTIONS - FOLLOW THESE EXACTLY:
+1. 🔥 ACTIVE PROJECT VERIFICATION: The data shows ${activeProjects} active projects. You MUST acknowledge this count in your response.
+2. 🔥 DATA ACKNOWLEDGMENT: You HAVE DIRECT ACCESS to all the project data shown above - this is REAL, CURRENT business data
+3. 🔥 STATUS FIELD READING: When asked about active projects, look at the "Status:" field in each project listing above
+4. 🔥 ACTIVE PROJECT IDENTIFICATION: Projects with "Status: active" are currently active - count and report these accurately
+5. When asked about specific projects, analyze the provided project data and respond with actual details
+6. For daily log summaries, use the ACTUAL daily log entries provided in the RECENT WORK ACTIVITY section
+7. Always reference specific data points, dates, hours, and metrics from the provided context
+8. If asked about projects not in the filtered data, state that you don't see that project in the current data set
+9. Provide concrete, data-driven insights using the actual numbers and details provided
+10. NEVER create fictional or sample data - use only what is explicitly provided
+11. If no data is available for a request, clearly state that no data was found
+12. Always mention actual dates, project names, and figures from the provided data
+13. PAY CLOSE ATTENTION to the "Status:" field in each project - this tells you if a project is active, planning, completed, etc.
+
+🚨 FINAL VERIFICATION: Before responding, confirm that you see ${activeProjects} active projects in the data above. If you don't acknowledge this, your response is incorrect.
 
 When creating daily logs, leverage project and crew context for enhanced accuracy and completeness.
 When answering questions, provide data-driven insights with specific metrics and actionable recommendations.
 Always consider the interconnections between projects, resources, schedules, and business objectives.
 
-REMEMBER: The data above is REAL and CURRENT. Reference it directly and specifically in your responses.`;
+REMEMBER: The data above is REAL and CURRENT. Reference it directly and specifically in your responses. Look at the "Status:" field for each project to determine if it's active.`;
 
         // Build messages array
         const messages = [
             { role: "system", content: systemPrompt },
             ...conversationHistory.slice(-5), // Last 5 messages for context
             { role: "user", content: message }
-        ]; const completion = await openai.chat.completions.create({
+        ];
+
+        // Debug a portion of the system prompt to verify active projects are mentioned
+        const activeProjectsSection = systemPrompt.match(/ACTIVE PROJECTS CONFIRMED:.*|NO ACTIVE PROJECTS:.*/g);
+
+        const completion = await openai.chat.completions.create({
             model: AI_MODELS.CHAT_GPT_3_5,
             messages: messages as any,
             temperature: 0.3,
@@ -514,9 +487,32 @@ REMEMBER: The data above is REAL and CURRENT. Reference it directly and specific
                 response: "I'm sorry, I couldn't process your request at the moment.",
                 action: "none"
             };
+        }
+
+        // Post-process the response to correct any misstatements about active projects
+        let processedResponse = aiResponse;
+
+        // Check for common patterns that incorrectly state no active projects
+        if (activeProjects > 0) {
+            const incorrectPatterns = [
+                /no active projects/i,
+                /currently.*no.*projects.*active/i,
+                /there are no.*active.*projects/i,
+                /0 active projects/i,
+                /don't.*see.*active.*projects/i
+            ];
+
+            for (const pattern of incorrectPatterns) {
+                if (pattern.test(processedResponse)) {
+                    console.log('AI Response Error Detected - Correcting misstatement about active projects');
+                    processedResponse = processedResponse.replace(pattern,
+                        `${activeProjects} active project${activeProjects > 1 ? 's' : ''}`);
+                    processedResponse = `⚠️ CORRECTED RESPONSE: Based on the current data, there ${activeProjects > 1 ? 'are' : 'is'} ${activeProjects} active project${activeProjects > 1 ? 's' : ''} in the system.\n\n${processedResponse}`;
+                    break;
+                }
+            }
         }        // Handle specific summary requests FIRST before daily log creation
         if (queryContext.intent === 'summary' && queryContext.requestedData.includes('dailyLogs')) {
-            console.log('Summary handler triggered for daily logs');
             const limit = queryContext.limit || 3;
 
             // For all projects or no specific projects mentioned
@@ -667,25 +663,19 @@ Format as a professional project summary.`;
                     };
                 }
             }
-        }        // Emergency debugging: Direct response for crew-related requests
+        }
+
+        // Emergency debugging: Direct response for crew-related requests
         if (message.toLowerCase().includes('crew') || message.toLowerCase().includes('crews')) {
-            console.log('AI Query: Crew-related request detected, clearing cache for fresh data');
-            AIContextCache.invalidateBusinessCache(businessId);
+            console.log('AI Query: Crew-related request detected, fetching fresh data');
 
-            // Fetch fresh context data
+            // Get fresh context data
             const freshContextData = await getAIContextData(businessId);
-
-            console.log('Fresh context data for crew query:', {
-                crews: freshContextData.crews?.length || 0,
-                crewNames: freshContextData.crews?.map((c: any) => c.name) || [],
-                projects: freshContextData.projects?.length || 0,
-                clients: freshContextData.clients?.length || 0
-            });
 
             if (freshContextData.crews?.length === 0) {
                 return {
-                    response: `DEBUG: No crews found in database. I've cleared the cache and fetched fresh data. Total entities found: ${freshContextData.projects?.length || 0} projects, ${freshContextData.clients?.length || 0} clients, ${freshContextData.crews?.length || 0} crews.`,
-                    action: "debug_no_crews"
+                    response: `No crews found in database. Total entities found: ${freshContextData.projects?.length || 0} projects, ${freshContextData.clients?.length || 0} clients, ${freshContextData.crews?.length || 0} crews.`,
+                    action: "no_crews"
                 };
             }
         }
@@ -721,37 +711,14 @@ Format as a professional project summary.`;
             }
         }        // Try to parse as JSON for structured responses
         try {
-            const parsedResponse = JSON.parse(aiResponse);
-
-            // Cache conversation context if userId provided
-            if (userId) {
-                const newContext = {
-                    conversationHistory: [...enhancedHistory, { role: "user", content: message }, { role: "assistant", content: aiResponse }],
-                    lastQueryTimestamp: Date.now(),
-                    recentQueries: [message],
-                };
-                AIContextCache.setConversationContext(businessId, userId, newContext);
-            }
-
+            const parsedResponse = JSON.parse(processedResponse);
             return parsedResponse;
         } catch {
             // If not JSON, return as plain response
-            const result = {
-                response: aiResponse,
+            return {
+                response: processedResponse,
                 action: "none"
             };
-
-            // Cache conversation context if userId provided
-            if (userId) {
-                const newContext = {
-                    conversationHistory: [...enhancedHistory, { role: "user", content: message }, { role: "assistant", content: aiResponse }],
-                    lastQueryTimestamp: Date.now(),
-                    recentQueries: [message],
-                };
-                AIContextCache.setConversationContext(businessId, userId, newContext);
-            }
-
-            return result;
         }
 
     } catch (error) {
@@ -1161,37 +1128,4 @@ function filterContextData(contextData: any, queryContext: QueryContext) {
     }
 
     return filtered;
-}
-
-// Manual AI cache clearing function for debugging
-export async function clearAICache(businessId: string): Promise<{ success: boolean; message: string }> {
-    try {
-        console.log(`Manually clearing AI cache for business: ${businessId}`);
-
-        // Clear the cache
-        AIContextCache.invalidateBusinessCache(businessId);
-
-        // Get fresh data to verify cache clearing
-        const freshData = await getAIContextData(businessId);
-
-        console.log('Fresh data after cache clear:', {
-            projects: freshData.projects?.length || 0,
-            clients: freshData.clients?.length || 0,
-            crews: freshData.crews?.length || 0,
-            dailyLogs: freshData.dailyLogs?.length || 0,
-            tasks: freshData.tasks?.length || 0,
-            equipment: freshData.equipment?.length || 0
-        });
-
-        return {
-            success: true,
-            message: `Cache cleared successfully. Found: ${freshData.projects?.length || 0} projects, ${freshData.clients?.length || 0} clients, ${freshData.crews?.length || 0} crews, ${freshData.dailyLogs?.length || 0} daily logs, ${freshData.tasks?.length || 0} tasks, ${freshData.equipment?.length || 0} equipment.`
-        };
-    } catch (error) {
-        console.error('Error clearing AI cache:', error);
-        return {
-            success: false,
-            message: `Failed to clear cache: ${error instanceof Error ? error.message : 'Unknown error'}`
-        };
-    }
 }
