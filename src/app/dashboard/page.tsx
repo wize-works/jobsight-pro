@@ -19,6 +19,7 @@ import {
 } from "chart.js"
 import { Doughnut, Bar, Line } from "react-chartjs-2"
 import { getDashboardData } from "@/app/actions/dashboard"
+import { uploadGeneralPhoto, uploadPhotoWithContext } from "@/app/actions/media"
 import { formatCurrency, formatDate } from "@/utils/formatters"
 import { useEffect, useState } from "react"
 import ProjectModal from "./projects/components/modal-project"
@@ -790,10 +791,67 @@ EQUIPMENT STATUS:
                 <PhotoUploadModal
                     isOpen={photoUploadModal}
                     onClose={() => setPhotoUploadModal(false)}
-                    onPhotoCapture={(photoData) => {
-                        console.log('Photo captured:', photoData);
-                        // TODO: Implement photo upload to backend
-                        setPhotoUploadModal(false);
+                    onPhotoCapture={async (photoData) => {
+                        try {
+                            console.log('Photo captured:', photoData);
+
+                            // Show loading state
+                            setPhotoUploadModal(false);
+
+                            // Simple notification (could be enhanced with proper toast system)
+                            const startTime = Date.now();
+                            console.log('⏳ Uploading photo...');
+
+                            // Get current location if available
+                            let location: { latitude: number; longitude: number; address?: string } | undefined = undefined;
+                            if (userLocation) {
+                                location = {
+                                    latitude: userLocation.latitude,
+                                    longitude: userLocation.longitude,
+                                    address: userLocation.address
+                                };
+                            }
+
+                            // Upload photo with metadata using context-aware function
+                            const result = await uploadPhotoWithContext(
+                                businessId,
+                                photoData.file,
+                                photoData.context || { type: 'general' },
+                                {
+                                    description: photoData.description,
+                                    location,
+                                    timestamp: new Date().toISOString(),
+                                    tags: ["dashboard", photoData.context?.type || "general"]
+                                }
+                            );
+
+                            const uploadTime = Date.now() - startTime;
+
+                            if (result.success) {
+                                console.log('✅ Photo uploaded successfully:', result.media);
+                                console.log(`📸 Upload completed in ${uploadTime}ms`);
+
+                                // Simple success notification
+                                alert(`Photo uploaded successfully! (${uploadTime}ms)`);
+
+                                // Refresh dashboard data if needed
+                                // Could implement a partial refresh of media-related data
+
+                                // Log success details
+                                console.log('📊 Photo details:', {
+                                    id: result.media?.id,
+                                    url: result.media?.url,
+                                    size: result.media?.size,
+                                    hasLocation: !!location
+                                });
+                            } else {
+                                console.error('❌ Photo upload failed:', result.error);
+                                alert(`Upload failed: ${result.error}`);
+                            }
+                        } catch (error) {
+                            console.error('💥 Error handling photo capture:', error);
+                            alert(`Error uploading photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        }
                     }}
                 />
                 <TimeTrackingModal
