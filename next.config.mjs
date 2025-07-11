@@ -81,10 +81,23 @@ const nextConfig = {
     // Security and PWA headers
     async headers() {
         return [
-            // No CSP for Clerk OAuth routes
+            // CSP for authentication routes with Cloudflare Turnstile support
             {
                 source: '/(sign-in|sign-up|api/auth)/:path*',
                 headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "default-src 'self'; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://challenges.cloudflare.com; " +
+                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://q.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org https://challenges.cloudflare.com; " +
+                            "img-src 'self' data: https: blob: https://www.clarity.ms https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
+                            "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
+                            "font-src 'self' data: https://kit.fontawesome.com https://ka-p.fontawesome.com https://res-1.cdn.office.net https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
+                            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://challenges.cloudflare.com; " +
+                            "object-src 'none'; " +
+                            "base-uri 'self'; " +
+                            "worker-src 'self' blob:;"
+                    },
                     {
                         key: 'X-Frame-Options',
                         value: 'DENY'
@@ -110,12 +123,12 @@ const nextConfig = {
                     {
                         key: 'Content-Security-Policy',
                         value: "default-src 'self'; " +
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
-                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://q.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.clarity.ms https://c.clarity.ms https://kit.fontawesome.com https://browser.sentry-cdn.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://challenges.cloudflare.com; " +
+                            "connect-src 'self' https://www.clarity.ms https://c.clarity.ms https://dc.clarity.ms https://y.clarity.ms https://q.clarity.ms https://sentry.io https://*.sentry.io https://*.stwwmediaprodwu301.blob.core.windows.net https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://api.clerk.dev https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org https://challenges.cloudflare.com; " +
                             "img-src 'self' data: https: blob: https://www.clarity.ms https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
                             "style-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
                             "font-src 'self' data: https://kit.fontawesome.com https://ka-p.fontawesome.com https://res-1.cdn.office.net https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
-                            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co; " +
+                            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.jobsight.co https://challenges.cloudflare.com; " +
                             "object-src 'none'; " +
                             "base-uri 'self'; " +
                             "worker-src 'self' blob:;"
