@@ -1242,3 +1242,303 @@ export async function uploadPdfBuffer(
         };
     }
 }
+
+// General photo upload function for dashboard and other general use cases
+export const uploadGeneralPhoto = async (
+    businessId: string,
+    file: File,
+    metadata: {
+        description?: string;
+        location?: {
+            latitude: number;
+            longitude: number;
+            address?: string;
+        };
+        timestamp?: string;
+        tags?: string[];
+    } = {}
+): Promise<{ success: boolean; media?: Media; error?: string }> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            return { success: false, error: 'Please select an image file' };
+        }
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl("images", file.name);
+        if (!uploadData) {
+            return { success: false, error: 'Failed to generate upload URL' };
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            return { success: false, error: `Upload failed: ${uploadResponse.statusText}` };
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: metadata.description || `Photo uploaded from dashboard`,
+            type: "image",
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: null,
+            uploaded_by: userId,
+            uploaded_at: metadata.timestamp || new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            return { success: false, error: 'Failed to create media record' };
+        }
+
+        // Add metadata if provided
+        if (metadata.location || metadata.tags) {
+            const metadataPromises = [];
+
+            if (metadata.location) {
+                // Store location as separate metadata entries
+                metadataPromises.push(
+                    insertWithBusiness('media_metadata', {
+                        id: `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        media_id: media.id,
+                        business_id: businessId,
+                        key: 'location',
+                        value: JSON.stringify(metadata.location),
+                        created_by: userId,
+                        created_at: new Date().toISOString()
+                    }, businessId)
+                );
+            }
+
+            if (metadata.tags && metadata.tags.length > 0) {
+                // Store tags as metadata
+                metadataPromises.push(
+                    insertWithBusiness('media_metadata', {
+                        id: `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        media_id: media.id,
+                        business_id: businessId,
+                        key: 'tags',
+                        value: JSON.stringify(metadata.tags),
+                        created_by: userId,
+                        created_at: new Date().toISOString()
+                    }, businessId)
+                );
+            }
+
+            // Store metadata in media_metadata table
+            try {
+                await Promise.all(metadataPromises);
+            } catch (metadataError) {
+                console.error('Error storing media metadata:', metadataError);
+                // Don't fail the upload if metadata storage fails
+            }
+        }
+
+        return { success: true, media };
+    } catch (error) {
+        console.error("Error uploading general photo:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
+    }
+};
+
+// Context-aware photo upload function
+export const uploadPhotoWithContext = async (
+    businessId: string,
+    file: File,
+    context: {
+        type: 'project' | 'client' | 'equipment' | 'dailylog' | 'general';
+        id?: string;
+        name?: string;
+    },
+    metadata: {
+        description?: string;
+        location?: {
+            latitude: number;
+            longitude: number;
+            address?: string;
+        };
+        timestamp?: string;
+        tags?: string[];
+    } = {}
+): Promise<{ success: boolean; media?: Media; error?: string }> => {
+    try {
+        const { business, userId } = await withBusinessServer();
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            return { success: false, error: 'Please select an image file' };
+        }
+
+        // Generate upload URL
+        const uploadData = await generateUploadUrl("images", file.name);
+        if (!uploadData) {
+            return { success: false, error: 'Failed to generate upload URL' };
+        }
+
+        // Upload file to Azure Blob Storage
+        const uploadResponse = await fetch(uploadData.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            return { success: false, error: `Upload failed: ${uploadResponse.statusText}` };
+        }
+
+        // Create contextual description
+        let contextDescription = metadata.description || '';
+        if (!contextDescription) {
+            switch (context.type) {
+                case 'project':
+                    contextDescription = `Photo for project${context.name ? ` ${context.name}` : ''}`;
+                    break;
+                case 'client':
+                    contextDescription = `Photo for client${context.name ? ` ${context.name}` : ''}`;
+                    break;
+                case 'equipment':
+                    contextDescription = `Photo for equipment${context.name ? ` ${context.name}` : ''}`;
+                    break;
+                case 'dailylog':
+                    contextDescription = `Photo for daily log${context.name ? ` ${context.name}` : ''}`;
+                    break;
+                default:
+                    contextDescription = 'Photo uploaded from dashboard';
+            }
+        }
+
+        // Create media record
+        const mediaData: MediaInsert = {
+            name: file.name,
+            description: contextDescription,
+            type: "image",
+            url: uploadData.fileUrl,
+            size: file.size,
+            id: "",
+            business_id: businessId,
+            project_id: context.type === 'project' ? (context.id || null) : null,
+            uploaded_by: userId,
+            uploaded_at: metadata.timestamp || new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            created_by: userId,
+            updated_at: new Date().toISOString(),
+            updated_by: userId
+        };
+
+        const media = await createMedia(businessId, mediaData);
+        if (!media) {
+            return { success: false, error: 'Failed to create media record' };
+        }
+
+        // Link media to the appropriate entity
+        if (context.id) {
+            try {
+                switch (context.type) {
+                    case 'project':
+                        await linkMediaToProject(businessId, media.id, context.id);
+                        break;
+                    case 'client':
+                        await linkMediaToClient(businessId, media.id, context.id);
+                        break;
+                    case 'equipment':
+                        await linkMediaToEquipment(businessId, media.id, context.id);
+                        break;
+                    case 'dailylog':
+                        await linkMediaToDailyLog(businessId, media.id, context.id);
+                        break;
+                    // general type doesn't need linking
+                }
+            } catch (linkError) {
+                console.error('Error linking media to entity:', linkError);
+                // Don't fail the upload if linking fails
+            }
+        }
+
+        // Add metadata if provided
+        if (metadata.location || metadata.tags) {
+            const metadataPromises = [];
+
+            if (metadata.location) {
+                metadataPromises.push(
+                    insertWithBusiness('media_metadata', {
+                        id: `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        media_id: media.id,
+                        business_id: businessId,
+                        key: 'location',
+                        value: JSON.stringify(metadata.location),
+                        created_by: userId,
+                        created_at: new Date().toISOString()
+                    }, businessId)
+                );
+            }
+
+            if (metadata.tags && metadata.tags.length > 0) {
+                metadataPromises.push(
+                    insertWithBusiness('media_metadata', {
+                        id: `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        media_id: media.id,
+                        business_id: businessId,
+                        key: 'tags',
+                        value: JSON.stringify(metadata.tags),
+                        created_by: userId,
+                        created_at: new Date().toISOString()
+                    }, businessId)
+                );
+            }
+
+            // Store context information
+            if (context.type !== 'general') {
+                metadataPromises.push(
+                    insertWithBusiness('media_metadata', {
+                        id: `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        media_id: media.id,
+                        business_id: businessId,
+                        key: 'context',
+                        value: JSON.stringify(context),
+                        created_by: userId,
+                        created_at: new Date().toISOString()
+                    }, businessId)
+                );
+            }
+
+            try {
+                await Promise.all(metadataPromises);
+            } catch (metadataError) {
+                console.error('Error storing media metadata:', metadataError);
+                // Don't fail the upload if metadata storage fails
+            }
+        }
+
+        return { success: true, media };
+    } catch (error) {
+        console.error("Error uploading photo with context:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
+    }
+};

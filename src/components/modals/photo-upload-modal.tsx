@@ -5,15 +5,31 @@ import { useState, useRef, useEffect } from 'react';
 interface PhotoUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onPhotoCapture?: (photoData: { file: File; preview: string }) => void;
+    onPhotoCapture?: (photoData: {
+        file: File;
+        preview: string;
+        description?: string;
+        context?: {
+            type: 'project' | 'client' | 'equipment' | 'dailylog' | 'general';
+            id?: string;
+            name?: string;
+        };
+    }) => void;
+    // Optional context for automatic linking
+    context?: {
+        type: 'project' | 'client' | 'equipment' | 'dailylog' | 'general';
+        id?: string;
+        name?: string;
+    };
 }
 
-export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: PhotoUploadModalProps) {
+export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, context }: PhotoUploadModalProps) {
     const [isCapturing, setIsCapturing] = useState(false);
     const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
     const [uploadMethod, setUploadMethod] = useState<'camera' | 'file' | null>(null);
     const [cameraSupported, setCameraSupported] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const [photoDescription, setPhotoDescription] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -314,15 +330,32 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
         if (capturedPhoto) {
             try {
                 setIsLoading(true);
+                console.log('💾 Starting photo save process...');
+
                 // Convert data URL to File object
                 const response = await fetch(capturedPhoto);
                 const blob = await response.blob();
                 const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-                onPhotoCapture?.({ file, preview: capturedPhoto });
+
+                console.log('📸 Photo prepared for upload:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+
+                // Call the parent callback with the file data
+                onPhotoCapture?.({
+                    file,
+                    preview: capturedPhoto,
+                    description: photoDescription.trim() || undefined,
+                    context: context || { type: 'general' }
+                });
+
+                // Close modal - parent will handle the upload
                 handleClose();
             } catch (error) {
                 console.error('Error saving photo:', error);
-                alert('Error saving photo. Please try again.');
+                alert('Error preparing photo for upload. Please try again.');
             } finally {
                 setIsLoading(false);
             }
@@ -333,6 +366,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
         stopCamera();
         setCapturedPhoto(null);
         setUploadMethod(null);
+        setPhotoDescription('');
         onClose();
     };
 
@@ -356,7 +390,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                         <div>
                             <h2 className="text-xl font-bold">Take Photo</h2>
                             <p className="text-primary-content/80 text-sm mt-1">
-                                Capture or upload a photo for your project
+                                {context?.name ? `Capture a photo for ${context.name}` : "Capture or upload a photo for your project"}
                             </p>
                         </div>
                         <button
@@ -487,7 +521,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                                             <i className="far fa-image text-primary"></i>
                                             Photo Preview
                                         </h3>
-                                        <div className="bg-black rounded-lg p-4 text-center">
+                                        <div className="bg-black rounded-lg p-4 text-center mb-4">
                                             <img
                                                 src={capturedPhoto}
                                                 alt="Captured photo preview"
@@ -497,6 +531,26 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture }: Ph
                                                     console.error('Error loading photo preview:', e);
                                                 }}
                                             />
+                                        </div>
+
+                                        {/* Photo description input */}
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-base-content">
+                                                <i className="far fa-edit mr-2"></i>
+                                                Photo Description (Optional)
+                                            </label>
+                                            <textarea
+                                                value={photoDescription}
+                                                onChange={(e) => setPhotoDescription(e.target.value)}
+                                                className="textarea textarea-bordered w-full"
+                                                placeholder="Add a description for this photo..."
+                                                rows={3}
+                                                maxLength={500}
+                                                disabled={isLoading}
+                                            />
+                                            <div className="text-xs text-base-content/60 text-right">
+                                                {photoDescription.length}/500 characters
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
