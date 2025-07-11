@@ -1,3 +1,11 @@
+# [1.129.0](https://github.com/wize-works/jobsight-pro/compare/v1.128.0...v1.129.0) (2025-07-11)
+
+
+### Features
+
+* Enhance AI context data retrieval with caching, improved error handling, and debugging features; add cache clearing functionality ([0bd0abd](https://github.com/wize-works/jobsight-pro/commit/0bd0abd642413e04095b8509e7dc6cabd3ca7098))
+* Implement feedback submission and retrieval for AI assistant messages ([5c2ab85](https://github.com/wize-works/jobsight-pro/commit/5c2ab85dfb426d4e83c85bee9684f10f84b453c3))
+
 # [1.128.0](https://github.com/wize-works/jobsight-pro/compare/v1.127.0...v1.128.0) (2025-07-10)
 
 
