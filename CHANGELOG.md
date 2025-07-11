@@ -1,3 +1,10 @@
+## [1.131.1](https://github.com/wize-works/jobsight-pro/compare/v1.131.0...v1.131.1) (2025-07-11)
+
+
+### Bug Fixes
+
+* Replace Clerk captcha div with structured Clerk.Field component for improved error handling and styling in SignUpPage. ([0eb784c](https://github.com/wize-works/jobsight-pro/commit/0eb784c10439231f767b42bc583e57f490ea4203))
+
 # [1.131.0](https://github.com/wize-works/jobsight-pro/compare/v1.130.0...v1.131.0) (2025-07-11)
 
 
