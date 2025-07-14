@@ -51,6 +51,17 @@ export default function SignInPage() {
                             {(isGlobalLoading) => (
                                 <>
                                     <SignIn.Step name="start" className='space-y-6'>
+                                        {/* Global Errors */}
+                                        <Clerk.GlobalError>
+                                            {({ message }) => (
+                                                <div className="alert alert-error">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>{message}</span>
+                                                </div>
+                                            )}
+                                        </Clerk.GlobalError>
                                         {/* Social Sign In */}
                                         <div className="grid grid-cols-3 gap-3">
                                             <Clerk.Connection
@@ -88,8 +99,12 @@ export default function SignInPage() {
                                                 className="input input-bordered w-full"
                                                 placeholder="Enter your email"
                                             />
-                                            <Clerk.FieldError className="label">
-                                                <span className="label-text-alt text-error"></span>
+                                            <Clerk.FieldError>
+                                                {({ message }) => (
+                                                    <div className="label">
+                                                        <span className="label-text-alt text-error pt-4">{message}</span>
+                                                    </div>
+                                                )}
                                             </Clerk.FieldError>
                                         </Clerk.Field>
 
@@ -103,11 +118,16 @@ export default function SignInPage() {
                                                 className="input input-bordered w-full"
                                                 placeholder="Enter your password"
                                             />
-                                            <Clerk.FieldError className="label">
-                                                <span className="label-text-alt text-error"></span>
+                                            <Clerk.FieldError>
+                                                {({ message }) => (
+                                                    <div className="label">
+                                                        <span className="label-text-alt text-error pt-4">{message}</span>
+                                                    </div>
+                                                )}
                                             </Clerk.FieldError>
                                         </Clerk.Field>
 
+                                        <div id="clerk-captcha"></div>
                                         {/* Forgot Password Link */}
                                         <div className="text-right">
                                             <SignIn.Action navigate="forgot-password" asChild>
@@ -133,6 +153,16 @@ export default function SignInPage() {
                                     </SignIn.Step>
 
                                     <SignIn.Step name="choose-strategy">
+                                        <Clerk.GlobalError>
+                                            {({ message }) => (
+                                                <div className="alert alert-error mb-4">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>{message}</span>
+                                                </div>
+                                            )}
+                                        </Clerk.GlobalError>
                                         <div className="space-y-4">
                                             <div className="text-center">
                                                 <h3 className="text-lg font-medium text-base-content">Choose verification method</h3>
@@ -166,6 +196,16 @@ export default function SignInPage() {
                                     </SignIn.Step>
 
                                     <SignIn.Step name="verifications">
+                                        <Clerk.GlobalError>
+                                            {({ message }) => (
+                                                <div className="alert alert-error mb-4">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>{message}</span>
+                                                </div>
+                                            )}
+                                        </Clerk.GlobalError>
                                         <SignIn.Strategy name="email_code">
                                             <div className="space-y-4">
                                                 <div className="text-center">
@@ -182,8 +222,12 @@ export default function SignInPage() {
                                                         className="input input-bordered w-full text-center text-lg tracking-widest"
                                                         placeholder="000000"
                                                     />
-                                                    <Clerk.FieldError className="label">
-                                                        <span className="label-text-alt text-error"></span>
+                                                    <Clerk.FieldError>
+                                                        {({ message }) => (
+                                                            <div className="label">
+                                                                <span className="label-text-alt text-error pt-4">{message}</span>
+                                                            </div>
+                                                        )}
                                                     </Clerk.FieldError>
                                                 </Clerk.Field>
 
@@ -232,8 +276,12 @@ export default function SignInPage() {
                                                         className="input input-bordered w-full"
                                                         placeholder="Enter your password"
                                                     />
-                                                    <Clerk.FieldError className="label">
-                                                        <span className="label-text-alt text-error"></span>
+                                                    <Clerk.FieldError>
+                                                        {({ message }) => (
+                                                            <div className="label">
+                                                                <span className="label-text-alt text-error pt-4">{message}</span>
+                                                            </div>
+                                                        )}
                                                     </Clerk.FieldError>
                                                 </Clerk.Field>
 
@@ -260,6 +308,16 @@ export default function SignInPage() {
                                     </SignIn.Step>
 
                                     <SignIn.Step name="forgot-password">
+                                        <Clerk.GlobalError>
+                                            {({ message }) => (
+                                                <div className="alert alert-error mb-4">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>{message}</span>
+                                                </div>
+                                            )}
+                                        </Clerk.GlobalError>
                                         <div className="space-y-4">
                                             <div className="text-center">
                                                 <h3 className="text-lg font-medium text-base-content">Reset your password</h3>
@@ -275,8 +333,12 @@ export default function SignInPage() {
                                                     className="input input-bordered w-full"
                                                     placeholder="Enter your email"
                                                 />
-                                                <Clerk.FieldError className="label">
-                                                    <span className="label-text-alt text-error"></span>
+                                                <Clerk.FieldError>
+                                                    {({ message }) => (
+                                                        <div className="label">
+                                                            <span className="label-text-alt text-error pt-4">{message}</span>
+                                                        </div>
+                                                    )}
                                                 </Clerk.FieldError>
                                             </Clerk.Field>
 

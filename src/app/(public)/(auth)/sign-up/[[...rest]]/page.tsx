@@ -766,7 +766,16 @@ export default function SignUpPage() {
                     <SignUp.Root>
                         {/* Start Step */}
                         <SignUp.Step name="start" className="space-y-6">
-                            <Clerk.GlobalError className="block text-sm text-error" />
+                            <Clerk.GlobalError>
+                                {({ message }) => (
+                                    <div className="alert alert-error mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{message}</span>
+                                    </div>
+                                )}
+                            </Clerk.GlobalError>
                             {/* Social Sign Up */}
                             <div className="grid grid-cols-3 gap-3">
                                 <Clerk.Connection
@@ -802,8 +811,12 @@ export default function SignUpPage() {
                                             <span className="label-text">First name</span>
                                         </Clerk.Label>
                                         <Clerk.Input className="input input-bordered w-full" />
-                                        <Clerk.FieldError className="label">
-                                            <span className="label-text-alt text-error" />
+                                        <Clerk.FieldError>
+                                            {({ message }) => (
+                                                <div className="label">
+                                                    <span className="label-text-alt text-error">{message}</span>
+                                                </div>
+                                            )}
                                         </Clerk.FieldError>
                                     </Clerk.Field>
 
@@ -812,8 +825,12 @@ export default function SignUpPage() {
                                             <span className="label-text">Last name</span>
                                         </Clerk.Label>
                                         <Clerk.Input className="input input-bordered w-full" />
-                                        <Clerk.FieldError className="label">
-                                            <span className="label-text-alt text-error" />
+                                        <Clerk.FieldError>
+                                            {({ message }) => (
+                                                <div className="label">
+                                                    <span className="label-text-alt text-error">{message}</span>
+                                                </div>
+                                            )}
                                         </Clerk.FieldError>
                                     </Clerk.Field>
                                 </div>
@@ -823,8 +840,12 @@ export default function SignUpPage() {
                                         <span className="label-text">Email address</span>
                                     </Clerk.Label>
                                     <Clerk.Input className="input input-bordered w-full" />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
+                                    <Clerk.FieldError>
+                                        {({ message }) => (
+                                            <div className="label">
+                                                <span className="label-text-alt text-error">{message}</span>
+                                            </div>
+                                        )}
                                     </Clerk.FieldError>
                                 </Clerk.Field>
 
@@ -832,8 +853,12 @@ export default function SignUpPage() {
 
                                 <Clerk.Field name="captcha" className="form-control">
                                     <Clerk.Input />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
+                                    <Clerk.FieldError>
+                                        {({ message }) => (
+                                            <div className="label">
+                                                <span className="label-text-alt text-error">{message}</span>
+                                            </div>
+                                        )}
                                     </Clerk.FieldError>
                                 </Clerk.Field>
 
@@ -854,7 +879,16 @@ export default function SignUpPage() {
 
                         {/* Verifications Step */}
                         <SignUp.Step name="verifications" className="space-y-6">
-                            <Clerk.GlobalError className="block text-sm text-error" />
+                            <Clerk.GlobalError>
+                                {({ message }) => (
+                                    <div className="alert alert-error mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{message}</span>
+                                    </div>
+                                )}
+                            </Clerk.GlobalError>
                             <div className="text-center">
                                 <h2 className="text-xl font-semibold mb-2">Verify your email</h2>
                                 <p className="text-base-content/70 mb-6">
@@ -868,8 +902,12 @@ export default function SignUpPage() {
                                         <span className="label-text">Verification code</span>
                                     </Clerk.Label>
                                     <Clerk.Input className="input input-bordered w-full text-center" />
-                                    <Clerk.FieldError className="label">
-                                        <span className="label-text-alt text-error" />
+                                    <Clerk.FieldError>
+                                        {({ message }) => (
+                                            <div className="label">
+                                                <span className="label-text-alt text-error">{message}</span>
+                                            </div>
+                                        )}
                                     </Clerk.FieldError>
                                 </Clerk.Field>
 
@@ -885,7 +923,16 @@ export default function SignUpPage() {
 
                         {/* Continue Step */}
                         <SignUp.Step name="continue" className="space-y-6">
-                            <Clerk.GlobalError className="block text-sm text-error" />
+                            <Clerk.GlobalError>
+                                {({ message }) => (
+                                    <div className="alert alert-error mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{message}</span>
+                                    </div>
+                                )}
+                            </Clerk.GlobalError>
                             <div className="text-center">
                                 <h2 className="text-xl font-semibold mb-2">Almost done!</h2>
                                 <p className="text-base-content/70 mb-6">
