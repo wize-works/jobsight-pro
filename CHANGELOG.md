@@ -1,3 +1,10 @@
+## [1.132.1](https://github.com/wize-works/jobsight-pro/compare/v1.132.0...v1.132.1) (2025-07-15)
+
+
+### Bug Fixes
+
+* fixed issues with login, and forgot password. ([b120d78](https://github.com/wize-works/jobsight-pro/commit/b120d7803f8af8bd4f16a7f33250678b84392c32))
+
 # [1.132.0](https://github.com/wize-works/jobsight-pro/compare/v1.131.1...v1.132.0) (2025-07-15)
 
 
