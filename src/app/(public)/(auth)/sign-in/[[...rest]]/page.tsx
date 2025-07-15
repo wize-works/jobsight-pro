@@ -127,15 +127,8 @@ export default function SignInPage() {
                                             </Clerk.FieldError>
                                         </Clerk.Field>
 
-                                        <div id="clerk-captcha"></div>
-                                        {/* Forgot Password Link */}
-                                        <div className="text-right">
-                                            <SignIn.Action navigate="forgot-password" asChild>
-                                                <button className="link link-primary text-sm">
-                                                    Forgot your password?
-                                                </button>
-                                            </SignIn.Action>
-                                        </div>
+                                        {/* CAPTCHA - Clerk will inject this automatically when enabled */}
+                                        <div id="clerk-captcha" className="flex justify-center"></div>
 
                                         {/* Submit Button */}
                                         <SignIn.Action submit asChild>
@@ -298,6 +291,70 @@ export default function SignInPage() {
                                                     </button>
                                                 </SignIn.Action>
 
+                                                <div className="text-center">
+                                                    <SignIn.Action navigate="forgot-password" asChild>
+                                                        <button type="button" className="link link-primary text-sm">
+                                                            Forgot your password?
+                                                        </button>
+                                                    </SignIn.Action>
+                                                </div>
+
+                                                <SignIn.Action navigate="previous" asChild>
+                                                    <button className="btn btn-ghost btn-block">
+                                                        ← Back
+                                                    </button>
+                                                </SignIn.Action>
+                                            </div>
+                                        </SignIn.Strategy>
+
+                                        <SignIn.Strategy name="reset_password_email_code">
+                                            <div className="space-y-4">
+                                                <div className="text-center">
+                                                    <h3 className="text-lg font-medium text-base-content">Check your email</h3>
+                                                    <p className="text-sm text-base-content/70 mt-1">
+                                                        We sent a code to <SignIn.SafeIdentifier />
+                                                    </p>
+                                                </div>
+
+                                                <Clerk.Field name="code" className="form-control">
+                                                    <Clerk.Label className="label">
+                                                        <span className="label-text">Verification code</span>
+                                                    </Clerk.Label>
+                                                    <Clerk.Input
+                                                        type="text"
+                                                        className="input input-bordered w-full text-center text-lg tracking-widest"
+                                                        placeholder="000000"
+                                                    />
+                                                    <Clerk.FieldError>
+                                                        {({ message }) => (
+                                                            <div className="label">
+                                                                <span className="label-text-alt text-error pt-4">{message}</span>
+                                                            </div>
+                                                        )}
+                                                    </Clerk.FieldError>
+                                                </Clerk.Field>
+
+                                                <SignIn.Action submit asChild>
+                                                    <button className="btn btn-primary btn-block" disabled={isGlobalLoading}>
+                                                        {isGlobalLoading ? (
+                                                            <>
+                                                                <span className="loading loading-spinner loading-sm"></span>
+                                                                Verifying...
+                                                            </>
+                                                        ) : (
+                                                            "Verify"
+                                                        )}
+                                                    </button>
+                                                </SignIn.Action>
+
+                                                <div className="text-center">
+                                                    <SignIn.Action resend asChild>
+                                                        <button className="link link-primary text-sm">
+                                                            Resend code
+                                                        </button>
+                                                    </SignIn.Action>
+                                                </div>
+
                                                 <SignIn.Action navigate="previous" asChild>
                                                     <button className="btn btn-ghost btn-block">
                                                         ← Back
@@ -306,7 +363,6 @@ export default function SignInPage() {
                                             </div>
                                         </SignIn.Strategy>
                                     </SignIn.Step>
-
                                     <SignIn.Step name="forgot-password">
                                         <Clerk.GlobalError>
                                             {({ message }) => (
@@ -318,20 +374,74 @@ export default function SignInPage() {
                                                 </div>
                                             )}
                                         </Clerk.GlobalError>
+
+                                        <div className="space-y-4">
+                                            <div className="text-center">
+                                                <h3 className="text-lg font-medium text-base-content">Forgot your password?</h3>
+                                                <p className="text-sm text-base-content/70 mt-1">We'll send you a reset code via email</p>
+                                            </div>
+
+                                            <SignIn.SupportedStrategy name="reset_password_email_code" asChild>
+                                                <button className="btn btn-primary btn-block">
+                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                    </svg>
+                                                    Reset password via email
+                                                </button>
+                                            </SignIn.SupportedStrategy>
+
+                                            <SignIn.Action navigate="previous" asChild>
+                                                <button className="btn btn-ghost btn-block">
+                                                    ← Go back
+                                                </button>
+                                            </SignIn.Action>
+                                        </div>
+                                    </SignIn.Step>
+
+                                    <SignIn.Step name="reset-password">
+                                        <Clerk.GlobalError>
+                                            {({ message }) => (
+                                                <div className="alert alert-error mb-4">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>{message}</span>
+                                                </div>
+                                            )}
+                                        </Clerk.GlobalError>
+
                                         <div className="space-y-4">
                                             <div className="text-center">
                                                 <h3 className="text-lg font-medium text-base-content">Reset your password</h3>
-                                                <p className="text-sm text-base-content/70 mt-1">Enter your email to receive a reset link</p>
+                                                <p className="text-sm text-base-content/70 mt-1">Enter your new password below</p>
                                             </div>
 
-                                            <Clerk.Field name="identifier" className="form-control">
+                                            <Clerk.Field name="password" className="form-control">
                                                 <Clerk.Label className="label">
-                                                    <span className="label-text">Email address</span>
+                                                    <span className="label-text">New password</span>
                                                 </Clerk.Label>
                                                 <Clerk.Input
-                                                    type="email"
+                                                    type="password"
                                                     className="input input-bordered w-full"
-                                                    placeholder="Enter your email"
+                                                    placeholder="Enter your new password"
+                                                />
+                                                <Clerk.FieldError>
+                                                    {({ message }) => (
+                                                        <div className="label">
+                                                            <span className="label-text-alt text-error pt-4">{message}</span>
+                                                        </div>
+                                                    )}
+                                                </Clerk.FieldError>
+                                            </Clerk.Field>
+
+                                            <Clerk.Field name="confirmPassword" className="form-control">
+                                                <Clerk.Label className="label">
+                                                    <span className="label-text">Confirm password</span>
+                                                </Clerk.Label>
+                                                <Clerk.Input
+                                                    type="password"
+                                                    className="input input-bordered w-full"
+                                                    placeholder="Confirm your new password"
                                                 />
                                                 <Clerk.FieldError>
                                                     {({ message }) => (
@@ -347,17 +457,11 @@ export default function SignInPage() {
                                                     {isGlobalLoading ? (
                                                         <>
                                                             <span className="loading loading-spinner loading-sm"></span>
-                                                            Sending...
+                                                            Resetting...
                                                         </>
                                                     ) : (
-                                                        "Send reset link"
+                                                        "Reset password"
                                                     )}
-                                                </button>
-                                            </SignIn.Action>
-
-                                            <SignIn.Action navigate="previous" asChild>
-                                                <button className="btn btn-ghost btn-block">
-                                                    ← Back to sign in
                                                 </button>
                                             </SignIn.Action>
                                         </div>
