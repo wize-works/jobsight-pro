@@ -862,6 +862,9 @@ export default function SignUpPage() {
                                     </Clerk.FieldError>
                                 </Clerk.Field>
 
+                                {/* CAPTCHA - Clerk will inject this automatically when enabled */}
+                                <div id="clerk-captcha" className="flex justify-center"></div>
+
                                 <SignUp.Action submit className="btn btn-primary w-full">
                                     Create Account
                                 </SignUp.Action>

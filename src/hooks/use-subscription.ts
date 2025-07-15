@@ -50,11 +50,11 @@ export const useSubscription = () => {
     };
 
     const isPlanActive = (planId: string): boolean => {
-        return currentSubscription?.plan_id === planId && currentSubscription?.status === 'active';
+        return currentSubscription?.plan_id === planId && (currentSubscription?.status === 'active' || currentSubscription?.status === 'trialing');
     };
 
     const hasActiveSubscription = (): boolean => {
-        return currentSubscription?.status === 'active';
+        return (currentSubscription?.status === 'active' || currentSubscription?.status === 'trialing');
     };
 
     return {
