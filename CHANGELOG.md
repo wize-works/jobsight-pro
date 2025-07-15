@@ -1,3 +1,10 @@
+# [1.132.0](https://github.com/wize-works/jobsight-pro/compare/v1.131.1...v1.132.0) (2025-07-15)
+
+
+### Features
+
+* Enhance error handling in SignIn and SignUp pages with global error messages ([c13d2b8](https://github.com/wize-works/jobsight-pro/commit/c13d2b8089fc9e373ac54cb4ee0852118b6f073d))
+
 ## [1.131.1](https://github.com/wize-works/jobsight-pro/compare/v1.131.0...v1.131.1) (2025-07-11)
 
 
