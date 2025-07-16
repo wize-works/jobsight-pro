@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS public.businesses (
   updated_by TEXT,
   business_type VARCHAR(100),
   owner_id TEXT,
-  setup_completed BOOLEAN DEFAULT FALSE
+  setup_completed BOOLEAN DEFAULT FALSE,
+  referral_code VARCHAR(20) UNIQUE
 );
 
 -- Users Table
@@ -687,6 +688,37 @@ CREATE TABLE IF NOT EXISTS public.stripe_payment_events (
   created_at TIMESTAMP WITH TIME ZONE
 );
 
+-- Referrals Table
+CREATE TABLE IF NOT EXISTS public.referrals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  referrer_business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  referee_business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  referee_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  plan_type VARCHAR(50) NOT NULL CHECK (plan_type IN ('starter', 'pro', 'business')),
+  subscription_id UUID REFERENCES public.business_subscriptions(id) ON DELETE SET NULL,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  confirmed_at TIMESTAMP WITH TIME ZONE,
+  created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  UNIQUE(referrer_business_id, referee_business_id)
+);
+
+-- Sweepstake Entries Table
+CREATE TABLE IF NOT EXISTS public.sweepstake_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  entry_type VARCHAR(50) NOT NULL CHECK (entry_type IN ('business_signup', 'referral', 'bonus')),
+  referral_id UUID REFERENCES public.referrals(id) ON DELETE SET NULL,
+  plan_type VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_by UUID REFERENCES public.users(id) ON DELETE SET NULL
+);
+
 -- AI Logs Table
 CREATE TABLE IF NOT EXISTS public.ai_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -735,6 +767,14 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_i
 CREATE INDEX IF NOT EXISTS idx_notifications_business ON public.notifications(business_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_unread ON public.notifications(user_id, business_id) WHERE (read = false);
 CREATE INDEX IF NOT EXISTS idx_notifications_type ON public.notifications(type);
+
+-- Referral system indexes
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer_business ON public.referrals(referrer_business_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referee_business ON public.referrals(referee_business_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_status ON public.referrals(status);
+CREATE INDEX IF NOT EXISTS idx_sweepstake_entries_business ON public.sweepstake_entries(business_id);
+CREATE INDEX IF NOT EXISTS idx_sweepstake_entries_type ON public.sweepstake_entries(entry_type);
+CREATE INDEX IF NOT EXISTS idx_businesses_referral_code ON public.businesses(referral_code);
 
 -- Specialized indexes
 CREATE INDEX IF NOT EXISTS no_overlapping_assignments ON public.project_crews USING GIST (project_id, crew_id, active_range);
@@ -1126,6 +1166,22 @@ BEGIN
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'daily_logs_updated_by_fkey') THEN
         ALTER TABLE public.daily_logs ADD CONSTRAINT daily_logs_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(auth_id) ON DELETE SET NULL;
+    END IF;
+    
+    -- referrals audit constraints
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referrals_created_by_fkey') THEN
+        ALTER TABLE public.referrals ADD CONSTRAINT referrals_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referrals_updated_by_fkey') THEN
+        ALTER TABLE public.referrals ADD CONSTRAINT referrals_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
+    END IF;
+    
+    -- sweepstake_entries audit constraints
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sweepstake_entries_created_by_fkey') THEN
+        ALTER TABLE public.sweepstake_entries ADD CONSTRAINT sweepstake_entries_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sweepstake_entries_updated_by_fkey') THEN
+        ALTER TABLE public.sweepstake_entries ADD CONSTRAINT sweepstake_entries_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
     END IF;
 END $$;
 

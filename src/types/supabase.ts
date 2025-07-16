@@ -67,6 +67,7 @@ export interface Database {
                     tax_id: string | null
                     owner_id: string | null
                     setup_completed: boolean | null
+                    referral_code: string | null
                     updated_at: string | null
                     updated_by: string | null
                     created_at: string
@@ -172,6 +173,137 @@ export interface Database {
                     },
                 ]
             }
+
+            referrals: {
+                Row: {
+                    id: string
+                    referrer_business_id: string
+                    referee_business_id: string
+                    referee_user_id: string
+                    plan_type: 'starter' | 'pro' | 'business'
+                    subscription_id: string | null
+                    status: 'pending' | 'confirmed' | 'cancelled'
+                    created_at: string
+                    confirmed_at: string | null
+                    created_by: string | null
+                    updated_at: string
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    referrer_business_id: string
+                    referee_business_id: string
+                    referee_user_id: string
+                    plan_type: 'starter' | 'pro' | 'business'
+                    subscription_id?: string | null
+                    status?: 'pending' | 'confirmed' | 'cancelled'
+                    created_at?: string
+                    confirmed_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string
+                    updated_by?: string | null
+                }
+                Update: {
+                    id?: string
+                    referrer_business_id?: string
+                    referee_business_id?: string
+                    referee_user_id?: string
+                    plan_type?: 'starter' | 'pro' | 'business'
+                    subscription_id?: string | null
+                    status?: 'pending' | 'confirmed' | 'cancelled'
+                    created_at?: string
+                    confirmed_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string
+                    updated_by?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "referrals_referrer_business_id_fkey"
+                        columns: ["referrer_business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "referrals_referee_business_id_fkey"
+                        columns: ["referee_business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "referrals_referee_user_id_fkey"
+                        columns: ["referee_user_id"]
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "referrals_subscription_id_fkey"
+                        columns: ["subscription_id"]
+                        referencedRelation: "business_subscriptions"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+
+            sweepstake_entries: {
+                Row: {
+                    id: string
+                    business_id: string
+                    user_id: string
+                    entry_type: 'business_signup' | 'referral' | 'bonus'
+                    referral_id: string | null
+                    plan_type: string | null
+                    created_at: string
+                    created_by: string | null
+                    updated_at: string
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    business_id: string
+                    user_id: string
+                    entry_type: 'business_signup' | 'referral' | 'bonus'
+                    referral_id?: string | null
+                    plan_type?: string | null
+                    created_at?: string
+                    created_by?: string | null
+                    updated_at?: string
+                    updated_by?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    user_id?: string
+                    entry_type?: 'business_signup' | 'referral' | 'bonus'
+                    referral_id?: string | null
+                    plan_type?: string | null
+                    created_at?: string
+                    created_by?: string | null
+                    updated_at?: string
+                    updated_by?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "sweepstake_entries_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "sweepstake_entries_user_id_fkey"
+                        columns: ["user_id"]
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "sweepstake_entries_referral_id_fkey"
+                        columns: ["referral_id"]
+                        referencedRelation: "referrals"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+
             stripe_customers: {
                 Row: {
                     id: string

@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createServerClient } from '@/lib/supabase';
@@ -6,6 +5,33 @@ import type { StripeSubscriptionInsert } from '@/types/stripe-subscriptions';
 import type { StripeInvoiceInsert } from '@/types/stripe-invoices';
 import type { StripePaymentEventInsert } from '@/types/stripe-payment-events';
 import Stripe from 'stripe';
+
+// Helper function to confirm pending referrals after successful payment
+async function confirmPendingReferrals(businessId: string, subscriptionId: string) {
+    try {
+        // Use the same API endpoint that handles referral confirmations
+        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/referrals/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                business_id: businessId,
+                subscription_id: subscriptionId,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to confirm referrals: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('Referrals confirmed:', result);
+    } catch (error) {
+        console.error('Error confirming referrals:', error);
+        throw error;
+    }
+}
 
 export async function POST(request: NextRequest) {
     const body = await request.text();
@@ -192,6 +218,16 @@ export async function POST(request: NextRequest) {
                     })
                     .eq('stripe_subscription_id', subscription.id)
                     .eq('business_id', businessId);
+
+                // Handle referral confirmation for successful payments
+                if (event.type === 'invoice.payment_succeeded') {
+                    try {
+                        await confirmPendingReferrals(businessId, subscription.id);
+                    } catch (error) {
+                        console.error('Error confirming referrals:', error);
+                        // Don't fail the webhook if referral confirmation fails
+                    }
+                }
 
                 break;
             }

@@ -50,7 +50,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                 // Check if any video input devices are available
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                console.log('Available video devices:', videoDevices.length);
 
                 if (videoDevices.length === 0) {
                     console.log('No video input devices found');
@@ -59,7 +58,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                 }
 
                 setCameraSupported(true);
-                console.log('Camera support confirmed');
             } catch (error) {
                 console.error('Error checking camera support:', error);
                 setCameraSupported(false);
@@ -70,7 +68,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
             checkCameraSupport();
         } else {
             // Clean up when modal closes
-            console.log('Modal closed, cleaning up camera');
             stopCamera();
             setCapturedPhoto(null);
             setUploadMethod(null);
@@ -98,9 +95,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                     },
                     audio: false
                 });
-                console.log('Back camera stream obtained');
             } catch (backCameraError) {
-                console.log('Back camera failed, trying front camera:', backCameraError);
                 try {
                     // Try front camera
                     stream = await navigator.mediaDevices.getUserMedia({
@@ -111,7 +106,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                         },
                         audio: false
                     });
-                    console.log('Front camera stream obtained');
                 } catch (frontCameraError) {
                     console.log('Front camera failed, trying any camera:', frontCameraError);
                     // Fallback to any available camera
@@ -125,67 +119,21 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
 
             // Log stream details
             const videoTrack = stream.getVideoTracks()[0];
-            if (videoTrack) {
-                console.log('Video track details:', {
-                    label: videoTrack.label,
-                    kind: videoTrack.kind,
-                    enabled: videoTrack.enabled,
-                    readyState: videoTrack.readyState,
-                    settings: videoTrack.getSettings?.()
-                });
-            }
 
             streamRef.current = stream;
 
             if (videoRef.current) {
-                console.log('Setting stream to video element');
                 videoRef.current.srcObject = stream;
-
-                // Add event listeners for debugging
-                videoRef.current.onloadedmetadata = () => {
-                    console.log('Video metadata loaded:', {
-                        videoWidth: videoRef.current?.videoWidth,
-                        videoHeight: videoRef.current?.videoHeight,
-                        duration: videoRef.current?.duration
-                    });
-                };
-
-                videoRef.current.onloadeddata = () => {
-                    console.log('Video data loaded');
-                };
-
-                videoRef.current.oncanplay = () => {
-                    console.log('Video can play');
-                };
-
-                videoRef.current.onplaying = () => {
-                    console.log('Video is playing');
-                };
-
-                videoRef.current.onerror = (error) => {
-                    console.error('Video element error:', error);
-                };
 
                 // Wait for video to be ready and play
                 await new Promise<void>((resolve, reject) => {
                     const video = videoRef.current!;
 
                     const handleCanPlay = () => {
-                        console.log('Video can play, starting playback');
-                        console.log('Video element dimensions:', {
-                            videoWidth: video.videoWidth,
-                            videoHeight: video.videoHeight,
-                            clientWidth: video.clientWidth,
-                            clientHeight: video.clientHeight,
-                            offsetWidth: video.offsetWidth,
-                            offsetHeight: video.offsetHeight
-                        });
                         video.removeEventListener('canplay', handleCanPlay);
                         video.removeEventListener('error', handleError);
 
                         video.play().then(() => {
-                            console.log('Video playback started successfully');
-                            // Force a style update to ensure video is visible
                             video.style.opacity = '1';
                             resolve();
                         }).catch((playError) => {
@@ -217,8 +165,6 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                         reject(new Error('Video loading timeout'));
                     }, 10000);
                 });
-
-                console.log('Camera started successfully');
             }
         } catch (error) {
             console.error('Error accessing camera:', error);
@@ -330,18 +276,11 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
         if (capturedPhoto) {
             try {
                 setIsLoading(true);
-                console.log('💾 Starting photo save process...');
 
                 // Convert data URL to File object
                 const response = await fetch(capturedPhoto);
                 const blob = await response.blob();
                 const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-
-                console.log('📸 Photo prepared for upload:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
 
                 // Call the parent callback with the file data
                 onPhotoCapture?.({
