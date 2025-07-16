@@ -745,6 +745,99 @@ CREATE TABLE IF NOT EXISTS public.feedback (
   auth_id TEXT
 );
 
+-- Add billing rates for crew members
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'hourly_rate') THEN
+        ALTER TABLE public.crew_members ADD COLUMN hourly_rate DECIMAL(10,2) DEFAULT 0.00;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'overtime_rate') THEN
+        ALTER TABLE public.crew_members ADD COLUMN overtime_rate DECIMAL(10,2) DEFAULT 0.00;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'is_billable') THEN
+        ALTER TABLE public.crew_members ADD COLUMN is_billable BOOLEAN DEFAULT true;
+    END IF;
+END $$;
+
+-- Add billing rates for equipment
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipment' AND column_name = 'hourly_rate') THEN
+        ALTER TABLE public.equipment ADD COLUMN hourly_rate DECIMAL(10,2) DEFAULT 0.00;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipment' AND column_name = 'is_billable') THEN
+        ALTER TABLE public.equipment ADD COLUMN is_billable BOOLEAN DEFAULT true;
+    END IF;
+END $$;
+
+-- Add invoice automation rules table
+CREATE TABLE IF NOT EXISTS public.invoice_automation_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+    client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+    rule_type VARCHAR(50) NOT NULL CHECK (rule_type IN ('time_based', 'milestone', 'retainer')),
+    frequency VARCHAR(20) CHECK (frequency IN ('daily', 'weekly', 'monthly', 'project_completion')),
+    auto_generate BOOLEAN DEFAULT false,
+    require_approval BOOLEAN DEFAULT true,
+    minimum_hours DECIMAL(5,2) DEFAULT 0.00,
+    rounding_rule VARCHAR(20) DEFAULT 'nearest_quarter',
+    config JSONB,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_by UUID REFERENCES public.users(id),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_by UUID REFERENCES public.users(id)
+);
+
+-- Add invoice approval workflow columns
+DO $$
+BEGIN
+    -- Update existing status column to have proper constraints
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'status') THEN
+        ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
+        ALTER TABLE public.invoices ADD CONSTRAINT invoices_status_check 
+            CHECK (status IN ('draft', 'pending_approval', 'approved', 'sent', 'paid', 'cancelled'));
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'approved_by') THEN
+        ALTER TABLE public.invoices ADD COLUMN approved_by UUID REFERENCES public.users(id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'approved_at') THEN
+        ALTER TABLE public.invoices ADD COLUMN approved_at TIMESTAMP WITH TIME ZONE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'auto_generated') THEN
+        ALTER TABLE public.invoices ADD COLUMN auto_generated BOOLEAN DEFAULT false;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'source_rule_id') THEN
+        ALTER TABLE public.invoices ADD COLUMN source_rule_id UUID REFERENCES public.invoice_automation_rules(id);
+    END IF;
+END $$;
+
+-- Track daily log to invoice item relationships
+CREATE TABLE IF NOT EXISTS public.daily_log_invoice_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    daily_log_id UUID NOT NULL REFERENCES public.daily_logs(id) ON DELETE CASCADE,
+    invoice_item_id UUID NOT NULL REFERENCES public.invoice_items(id) ON DELETE CASCADE,
+    item_type VARCHAR(20) NOT NULL CHECK (item_type IN ('labor', 'equipment', 'material')),
+    source_id UUID, -- references daily_log_equipment.id, daily_log_materials.id, or crew_member_id for labor
+    quantity DECIMAL(10,2),
+    rate DECIMAL(10,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_invoice_automation_rules_business_client 
+    ON public.invoice_automation_rules(business_id, client_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_automation_rules_project 
+    ON public.invoice_automation_rules(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_daily_log_invoice_items_daily_log 
+    ON public.daily_log_invoice_items(daily_log_id);
+CREATE INDEX IF NOT EXISTS idx_daily_log_invoice_items_invoice_item 
+    ON public.daily_log_invoice_items(invoice_item_id);
+CREATE INDEX IF NOT EXISTS idx_daily_log_invoice_items_source 
+    ON public.daily_log_invoice_items(source_id, item_type);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_businesses_owner_id ON public.businesses(owner_id);
 CREATE INDEX IF NOT EXISTS idx_users_business_id ON public.users(business_id);

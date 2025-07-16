@@ -290,6 +290,8 @@ export async function createEquipment(
             next_maintenance: equipmentData.next_maintenance || null,
             description: equipmentData.description || null,
             image_url: equipmentData.image_url || null,
+            hourly_rate: equipmentData.hourly_rate || null,
+            is_billable: equipmentData.is_billable !== undefined ? equipmentData.is_billable : true,
             created_at: now,
             created_by: currentUserAuthId,
             updated_at: now,
@@ -433,6 +435,10 @@ export async function updateEquipment(
         if (equipmentData.next_maintenance !== undefined) updateData.next_maintenance = equipmentData.next_maintenance;
         if (equipmentData.description !== undefined) updateData.description = equipmentData.description;
         if (equipmentData.image_url !== undefined) updateData.image_url = equipmentData.image_url;
+        if (equipmentData.hourly_rate !== undefined) updateData.hourly_rate = equipmentData.hourly_rate;
+        if (equipmentData.is_billable !== undefined) updateData.is_billable = equipmentData.is_billable;
+        if (equipmentData.hourly_rate !== undefined) updateData.hourly_rate = equipmentData.hourly_rate;
+        if (equipmentData.is_billable !== undefined) updateData.is_billable = equipmentData.is_billable;
 
         // Update locally first (optimistic update)
         const updatedEquipment = { ...currentEquipment, ...updateData };

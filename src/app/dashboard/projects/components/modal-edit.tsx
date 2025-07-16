@@ -6,7 +6,7 @@ import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectTyp
 import { User } from "@/types/users";
 import { updateProject } from "@/app/actions/projects";
 import { formatDateForInput } from "@/utils/date";
-import { getCrewMembers } from "@/app/actions/crew-members";
+import { useBusinessData } from "@/hooks/useBusinessData";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
@@ -40,6 +40,9 @@ export default function ProjectEditModal({
     const [loading, setLoading] = useState(false);
     const [managers, setManagers] = useState<CrewMember[]>([]);
     const [error, setError] = useState("");
+
+    // Use the new business data hook
+    const { getCrewMembers } = useBusinessData();
 
     useEffect(() => {        // Reset form when project changes
         setFormData({

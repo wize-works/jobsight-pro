@@ -1,6 +1,6 @@
 "use client";
 
-import { getCrewMembers } from "@/app/actions/crew-members";
+import { useBusinessData } from "@/hooks/useBusinessData";
 import { createProjectIssue, updateProjectIssue } from "@/app/actions/projects-issues";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
@@ -32,6 +32,9 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState("");
+
+    // Use the new business data hook
+    const { getCrewMembers } = useBusinessData();
 
     useEffect(() => {
         const fetchCrewMembers = async () => {

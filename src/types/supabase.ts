@@ -700,6 +700,9 @@ export interface Database {
                     experience: number | null
                     status: string | null
                     notes: string | null
+                    hourly_rate: number | null
+                    overtime_rate: number | null
+                    is_billable: boolean | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null
@@ -716,6 +719,9 @@ export interface Database {
                     experience: number | null
                     status: string | null
                     notes: string | null
+                    hourly_rate?: number | null
+                    overtime_rate?: number | null
+                    is_billable?: boolean | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null
@@ -732,6 +738,9 @@ export interface Database {
                     experience: number | null
                     status: string | null
                     notes: string | null
+                    hourly_rate?: number | null
+                    overtime_rate?: number | null
+                    is_billable?: boolean | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null
@@ -1065,6 +1074,8 @@ export interface Database {
                     next_maintenance: string | null
                     description: string | null
                     image_url: string | null
+                    hourly_rate: number | null
+                    is_billable: boolean | null
                     created_at: string
                     created_by: string
                     updated_at: string
@@ -1086,6 +1097,8 @@ export interface Database {
                     next_maintenance: string | null
                     description: string | null
                     image_url: string | null
+                    hourly_rate?: number | null
+                    is_billable?: boolean | null
                     created_at: string
                     created_by: string
                     updated_at: string
@@ -1108,6 +1121,8 @@ export interface Database {
                     next_maintenance: string | null
                     description: string | null
                     image_url: string | null
+                    hourly_rate?: number | null
+                    is_billable?: boolean | null
                     created_at: string
                     created_by: string
                     updated_at: string
@@ -1318,6 +1333,10 @@ export interface Database {
                     paid_date: string | null
                     payment_method: string | null
                     notes: string | null
+                    approved_by: string | null
+                    approved_at: string | null
+                    auto_generated: boolean | null
+                    source_rule_id: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1337,6 +1356,10 @@ export interface Database {
                     paid_date: string | null
                     payment_method: string | null
                     notes: string | null
+                    approved_by?: string | null
+                    approved_at?: string | null
+                    auto_generated?: boolean | null
+                    source_rule_id?: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
@@ -1356,12 +1379,29 @@ export interface Database {
                     paid_date: string | null
                     payment_method: string | null
                     notes: string | null
+                    approved_by?: string | null
+                    approved_at?: string | null
+                    auto_generated?: boolean | null
+                    source_rule_id?: string | null
                     created_at: string
                     created_by: string | null
                     updated_at: string | null
                     updated_by: string | null
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "invoices_approved_by_fkey"
+                        columns: ["approved_by"]
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "invoices_source_rule_id_fkey"
+                        columns: ["source_rule_id"]
+                        referencedRelation: "invoice_automation_rules"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
 
             invoice_items: {
@@ -2210,6 +2250,140 @@ export interface Database {
                     auth_id?: string | null
                 }
                 Relationships: []
+            }
+            invoice_automation_rules: {
+                Row: {
+                    id: string
+                    business_id: string
+                    client_id: string
+                    project_id: string | null
+                    rule_type: string
+                    frequency: string | null
+                    auto_generate: boolean | null
+                    require_approval: boolean | null
+                    minimum_hours: number | null
+                    rounding_rule: string | null
+                    config: Json | null
+                    is_active: boolean | null
+                    created_at: string | null
+                    created_by: string | null
+                    updated_at: string | null
+                    updated_by: string | null
+                }
+                Insert: {
+                    id?: string
+                    business_id: string
+                    client_id: string
+                    project_id?: string | null
+                    rule_type: string
+                    frequency?: string | null
+                    auto_generate?: boolean | null
+                    require_approval?: boolean | null
+                    minimum_hours?: number | null
+                    rounding_rule?: string | null
+                    config?: Json | null
+                    is_active?: boolean | null
+                    created_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string | null
+                    updated_by?: string | null
+                }
+                Update: {
+                    id?: string
+                    business_id?: string
+                    client_id?: string
+                    project_id?: string | null
+                    rule_type?: string
+                    frequency?: string | null
+                    auto_generate?: boolean | null
+                    require_approval?: boolean | null
+                    minimum_hours?: number | null
+                    rounding_rule?: string | null
+                    config?: Json | null
+                    is_active?: boolean | null
+                    created_at?: string | null
+                    created_by?: string | null
+                    updated_at?: string | null
+                    updated_by?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "invoice_automation_rules_business_id_fkey"
+                        columns: ["business_id"]
+                        referencedRelation: "businesses"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "invoice_automation_rules_client_id_fkey"
+                        columns: ["client_id"]
+                        referencedRelation: "clients"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "invoice_automation_rules_project_id_fkey"
+                        columns: ["project_id"]
+                        referencedRelation: "projects"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "invoice_automation_rules_created_by_fkey"
+                        columns: ["created_by"]
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "invoice_automation_rules_updated_by_fkey"
+                        columns: ["updated_by"]
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            daily_log_invoice_items: {
+                Row: {
+                    id: string
+                    daily_log_id: string
+                    invoice_item_id: string
+                    item_type: string
+                    source_id: string | null
+                    quantity: number | null
+                    rate: number | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    daily_log_id: string
+                    invoice_item_id: string
+                    item_type: string
+                    source_id?: string | null
+                    quantity?: number | null
+                    rate?: number | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    daily_log_id?: string
+                    invoice_item_id?: string
+                    item_type?: string
+                    source_id?: string | null
+                    quantity?: number | null
+                    rate?: number | null
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "daily_log_invoice_items_daily_log_id_fkey"
+                        columns: ["daily_log_id"]
+                        referencedRelation: "daily_logs"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "daily_log_invoice_items_invoice_item_id_fkey"
+                        columns: ["invoice_item_id"]
+                        referencedRelation: "invoice_items"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
         }
         Views: {

@@ -117,7 +117,7 @@ export function useFeatureGate() {
     };
     const isSubscriptionActive = (): boolean => {
         if (!currentSubscription) return false;
-        return currentSubscription.status === 'active' || currentSubscription.status === 'past_due';
+        return currentSubscription.status === 'active' || currentSubscription.status === 'trialing' || currentSubscription.status === 'past_due';
     };
 
     const isInGracePeriod = (): boolean => {
