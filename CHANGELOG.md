@@ -1,3 +1,15 @@
+# [1.134.0](https://github.com/wize-works/jobsight-pro/compare/v1.133.1...v1.134.0) (2025-07-16)
+
+
+### Bug Fixes
+
+* Refactor API routes for client interactions and user management ([60f95d4](https://github.com/wize-works/jobsight-pro/commit/60f95d4cd95d1f5f07dee8031cc23f7e0583e510))
+
+
+### Features
+
+* Implement Users API Client Library with CRUD operations and utility functions ([4be2f8d](https://github.com/wize-works/jobsight-pro/commit/4be2f8daeef1b4c4987bab6d420c503cca4e6011))
+
 ## [1.133.1](https://github.com/wize-works/jobsight-pro/compare/v1.133.0...v1.133.1) (2025-07-16)
 
 
