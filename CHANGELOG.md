@@ -1,3 +1,10 @@
+## [1.133.1](https://github.com/wize-works/jobsight-pro/compare/v1.133.0...v1.133.1) (2025-07-16)
+
+
+### Bug Fixes
+
+* Remove unused referral validation route file ([e7267b8](https://github.com/wize-works/jobsight-pro/commit/e7267b8fe9b8a476377823372d79024f1f7c9ad0))
+
 # [1.133.0](https://github.com/wize-works/jobsight-pro/compare/v1.132.1...v1.133.0) (2025-07-16)
 
 
