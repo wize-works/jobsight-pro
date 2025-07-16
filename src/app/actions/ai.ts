@@ -81,7 +81,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get crews with assignment and productivity data
         let { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
             from: "crews",
-            select: ["id", "name", "status", "location"],
+            select: ["id", "name", "status", "specialty"],
             aggregates: [
                 { function: "count", table: "crew_members", alias: "member_count" },
                 { function: "count", table: "project_crews", alias: "total_assignments" },

@@ -37,6 +37,7 @@ import CompactWeatherWidget from "@/components/compact-weather-widget"
 import { processAIQuery } from "@/app/actions/ai"
 import { RoleBasedDashboard } from "@/components/role-based-dashboard"
 import { useUserRole } from "@/hooks/use-user-role"
+import { BusinessSweepstakeDashboard } from "@/components/referral/BusinessSweepstakeDashboard"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -1007,7 +1008,28 @@ EQUIPMENT STATUS:
                     </div>
                 </ErrorBoundary>
 
-                {/* Compact Weather Forecast */}
+                {/* Sweepstake Campaign Dashboard */}
+                <ErrorBoundary fallback={(error) => (
+                    <div className="alert alert-error">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3 className="font-bold">Failed to load sweepstake campaign</h3>
+                            <div className="text-xs">Sweepstake data is temporarily unavailable.</div>
+                        </div>
+                    </div>
+                )}>
+                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <h2 className="card-title text-lg mb-4">
+                                <i className="far fa-trophy text-primary mr-2"></i>
+                                Sweepstake Campaign
+                            </h2>
+                            <BusinessSweepstakeDashboard businessId={businessId} />
+                        </div>
+                    </div>
+                </ErrorBoundary>
+
+                {/* Weather widget */}
                 <ErrorBoundary fallback={(error) => (
                     <div className="alert alert-error">
                         <i className="fas fa-exclamation-triangle"></i>

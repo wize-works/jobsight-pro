@@ -13,6 +13,7 @@ import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscrip
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { createBusiness, getUserBusiness } from "@/app/actions/business";
 import { createSelf, getSelfByAuthId } from "@/app/actions/users";
+import { BusinessReferralInput } from "@/components/referral/BusinessReferralInput";
 import type { SubscriptionPlan } from "@/types/subscription";
 import type { UserInsert } from "@/types/users";
 
@@ -173,6 +174,11 @@ export default function SignUpPage() {
         country: "United States",
     });
 
+    // Referral state
+    const [referralCode, setReferralCode] = useState<string>('');
+    const [referralApplied, setReferralApplied] = useState(false);
+    const [referrerBusinessName, setReferrerBusinessName] = useState<string>('');
+
     useEffect(() => {
         setMounted(true);
 
@@ -192,7 +198,25 @@ export default function SignUpPage() {
         if (planParam) {
             setSelectedPlan(planParam);
         }
+
+        // Check for referral code from URL
+        const refParam = searchParams.get("ref");
+        if (refParam) {
+            setReferralCode(refParam);
+        }
     }, [searchParams]);
+
+    // Handle referral submission
+    const handleReferralSubmit = async (code: string, referrerName: string) => {
+        setReferralCode(code);
+        setReferrerBusinessName(referrerName);
+        setReferralApplied(true);
+
+        toast.success({
+            title: "Referral Applied",
+            description: `You'll be referred by ${referrerName}`,
+        });
+    };
 
     // Handle user authentication state and flow progression
     useEffect(() => {
@@ -313,6 +337,7 @@ export default function SignUpPage() {
                     created_by: user.id,
                     updated_by: user.id,
                     status: "active",
+                    role: "admin",
                 } as UserInsert);
             }
 
@@ -332,6 +357,40 @@ export default function SignUpPage() {
 
             if (!businessResult.success) {
                 throw new Error(businessResult.error || "Failed to create business");
+            }
+
+            // Handle referral if one was provided
+            if (referralCode.trim() && businessResult.businessId) {
+                try {
+                    // Check if plan is eligible for referrals (starter, pro, business)
+                    const eligiblePlans = ['starter', 'pro', 'business'];
+                    if (eligiblePlans.includes(planId)) {
+                        const referralResponse = await fetch('/api/referrals/business', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                referrer_code: referralCode.trim().toUpperCase(),
+                                business_id: businessResult.businessId,
+                                plan_type: planId,
+                            }),
+                        });
+
+                        if (referralResponse.ok) {
+                            const referralData = await referralResponse.json();
+                            if (referralData.success) {
+                                toast.success({
+                                    title: "Referral Applied",
+                                    description: `You'll be referred by ${referralData.referrer_business}`,
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to process referral:', error);
+                    // Don't fail the signup if referral fails
+                }
             }
 
             // Handle subscription based on plan type
@@ -544,6 +603,24 @@ export default function SignUpPage() {
                                 </div>
                             </div>
 
+                            {/* Referral Code - Optional field for referral system */}
+                            <div className="space-y-2">
+                                <label className="label">
+                                    <span className="label-text">Referral Code (Optional)</span>
+                                </label>
+                                <input
+                                    className="input input-bordered w-full"
+                                    placeholder="Enter referral code if you have one"
+                                    value={referralCode}
+                                    onChange={(e) => setReferralCode(e.target.value)}
+                                />
+                                {referralApplied && (
+                                    <div className="text-sm text-success">
+                                        ✓ Referral from {referrerBusinessName} will be applied
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
@@ -578,7 +655,7 @@ export default function SignUpPage() {
                             <div className="flex items-start gap-4">
                                 <div className="bg-white rounded-full p-2 mt-1 flex-shrink-0">
                                     <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0116 0zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>
                                 </div>
                                 <div>
@@ -851,19 +928,7 @@ export default function SignUpPage() {
 
                                 <PasswordField />
 
-                                <Clerk.Field name="captcha" className="form-control">
-                                    <Clerk.Input />
-                                    <Clerk.FieldError>
-                                        {({ message }) => (
-                                            <div className="label">
-                                                <span className="label-text-alt text-error">{message}</span>
-                                            </div>
-                                        )}
-                                    </Clerk.FieldError>
-                                </Clerk.Field>
-
-                                {/* CAPTCHA - Clerk will inject this automatically when enabled */}
-                                <div id="clerk-captcha" className="flex justify-center"></div>
+                                <SignUp.Captcha className='empty:hidden flex justify-center' />
 
                                 <SignUp.Action submit className="btn btn-primary w-full">
                                     Create Account

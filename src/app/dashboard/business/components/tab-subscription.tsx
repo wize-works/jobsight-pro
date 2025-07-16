@@ -38,7 +38,6 @@ export const TabSubscription = () => {
             try {
                 isLoadingRef.current = true;
                 setIsLoading(true);
-                console.log("Loading subscription data for businessId:", businessId);
 
                 const [subscription, subscriptionPlans] = await Promise.all([
                     getCurrentSubscription(businessId),
@@ -47,7 +46,6 @@ export const TabSubscription = () => {
 
                 setCurrentSubscription(subscription);
                 setPlans(subscriptionPlans);
-                console.log("Subscription data loaded:", subscription);
             } catch (error) {
                 console.error("Error loading subscription data:", error);
             } finally {
@@ -66,7 +64,6 @@ export const TabSubscription = () => {
         try {
             isLoadingRef.current = true;
             setIsLoading(true);
-            console.log("Reloading subscription data for businessId:", businessId);
 
             const [subscription, subscriptionPlans] = await Promise.all([
                 getCurrentSubscription(businessId),
@@ -75,7 +72,6 @@ export const TabSubscription = () => {
 
             setCurrentSubscription(subscription);
             setPlans(subscriptionPlans);
-            console.log("Subscription data reloaded:", subscription);
         } catch (error) {
             console.error("Error reloading subscription data:", error);
         } finally {

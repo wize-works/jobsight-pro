@@ -18,6 +18,7 @@ import { TabSubscription } from "./components/tab-subscription";
 import { getCurrentSubscription } from "@/app/actions/subscriptions";
 import { BusinessSubscription } from "@/types/subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
+import { ReferralCodeGenerator } from "@/components/referral/ReferralCodeGenerator";
 import { formatDate } from "@/utils/formatters";
 
 
@@ -211,6 +212,12 @@ export default function BusinessPage() {
                     onClick={() => setActiveTab("analytics")}
                 >
                     Analytics
+                </a>
+                <a
+                    className={`tab ${activeTab === "referral" ? "tab-active" : ""}`}
+                    onClick={() => setActiveTab("referral")}
+                >
+                    Referral Program
                 </a>
             </div>{activeTab === "profile" && (
                 <form action={handleSaveChanges}>
@@ -422,6 +429,38 @@ export default function BusinessPage() {
                                 </div>
                             </div>
                             <SubscriptionAnalyticsDashboard usageData={usageData} />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {activeTab === "referral" && (
+                <div className="space-y-6">
+                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <h2 className="card-title text-xl mb-4">
+                                <i className="far fa-users mr-2"></i>
+                                Referral Program
+                            </h2>
+                            <p className="text-base-content/70 mb-4">
+                                Share your referral code with other businesses and earn sweepstake entries for each successful referral.
+                            </p>
+                            <div className="alert alert-info mb-6">
+                                <i className="far fa-info-circle"></i>
+                                <div>
+                                    <h3 className="font-bold">How it works</h3>
+                                    <div className="text-xs">
+                                        • Share your unique referral code with other businesses<br />
+                                        • When they sign up and subscribe to a paid plan, you both earn sweepstake entries<br />
+                                        • The more referrals you make, the more entries you earn
+                                    </div>
+                                </div>
+                            </div>
+                            <ReferralCodeGenerator
+                                businessId={businessId || ''}
+                                onCodeGenerated={(code) => {
+                                    toast.success("Referral code generated successfully!");
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
