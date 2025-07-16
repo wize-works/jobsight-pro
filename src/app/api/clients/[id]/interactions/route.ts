@@ -7,12 +7,14 @@ import { ClientInteractionInsert, ClientInteractionUpdate } from '@/types/client
  * GET /api/clients/[id]/interactions
  * Get all interactions for a specific client
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await currentUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        const { id } = await params;
 
         const { searchParams } = new URL(request.url);
         const limit = searchParams.get('limit');
@@ -41,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('id')
-            .eq('id', params.id)
+            .eq('id', id)
             .eq('business_id', businessId)
             .single();
 
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         let query = supabase
             .from('client_interactions')
             .select('*')
-            .eq('client_id', params.id)
+            .eq('client_id', id)
             .eq('business_id', businessId);
 
         // Apply type filter
@@ -91,12 +93,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  * POST /api/clients/[id]/interactions
  * Create a new interaction for a specific client
  */
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = await currentUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        const { id } = await params;
 
         const body = await request.json();
         const interactionData: ClientInteractionInsert = body;
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('id')
-            .eq('id', params.id)
+            .eq('id', id)
             .eq('business_id', businessId)
             .single();
 
@@ -138,7 +142,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
             .from('client_interactions')
             .insert({
                 ...interactionData,
-                client_id: params.id,
+                client_id: id,
                 business_id: businessId,
                 created_at: now,
                 updated_at: now,
