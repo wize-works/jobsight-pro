@@ -1,10 +1,9 @@
 import { DailyLogWithDetails } from "@/types/daily-logs";
 import { formatDate } from "@/utils/date";
 import Link from "next/link";
-import { useState } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
-import { generateDailyLogHTML } from "@/app/actions/generate-html";
+import { useDailyLogPdf } from "@/hooks/usePdfGeneration";
 import LocationDisplay from "@/components/location-display";
 
 export const DailyLogCard = ({
@@ -16,8 +15,8 @@ export const DailyLogCard = ({
     isSelected?: boolean;
     onSelect?: (log: DailyLogWithDetails) => void;
 }) => {
-    const [isDownloading, setIsDownloading] = useState(false);
     const { businessId } = useBusiness();
+    const { generateDailyLogDownload, isGenerating, error } = useDailyLogPdf();
 
     const handleDownloadPDF = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -31,35 +30,11 @@ export const DailyLogCard = ({
             return;
         }
 
-        setIsDownloading(true); try {
-            // Generate HTML using server action
-            const html = await generateDailyLogHTML(businessId, log.id);
+        try {
             const filename = `daily-log-${log.project?.name || 'unknown'}-${formatDate(log.date)}.pdf`;
 
-            // Generate PDF
-            const pdfResponse = await fetch('/api/generate-pdf-gotenberg', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ html, filename }),
-            });
-
-            if (!pdfResponse.ok) {
-                throw new Error('Failed to generate PDF');
-            }
-
-            // Download the PDF
-            const blob = await pdfResponse.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `daily-log-${log.project?.name || 'unknown'}-${formatDate(log.date)}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            // Use the new PDF generation hook
+            await generateDailyLogDownload(log.id, filename);
 
             toast({
                 title: "Success",
@@ -72,8 +47,6 @@ export const DailyLogCard = ({
                 description: "Failed to download daily log PDF. Please try again.",
                 variant: "error",
             });
-        } finally {
-            setIsDownloading(false);
         }
     };
     const formatCurrency = (amount: number | undefined) => {
@@ -366,9 +339,9 @@ export const DailyLogCard = ({
                             className="btn btn-ghost btn-sm btn-circle"
                             title="Export log"
                             onClick={handleDownloadPDF}
-                            disabled={isDownloading}
+                            disabled={isGenerating}
                         >
-                            {isDownloading ? (
+                            {isGenerating ? (
                                 <i className="fas fa-spinner fa-spin text-sm" />
                             ) : (
                                 <i className="fas fa-download text-sm" />

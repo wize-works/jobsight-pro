@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBusiness } from "@/lib/business-context";
-import { updateBusinessFromForm } from "@/app/actions/business";
+import { useBusiness as useBusinessApi } from "@/hooks/useBusiness";
 import { getUsers, deleteUser } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
 import { getProjects } from "@/app/actions/projects";
@@ -27,6 +27,7 @@ export default function BusinessPage() {
     const tabParam = searchParams.get('tab');
     const [activeTab, setActiveTab] = useState(tabParam || "profile");
     const { business, businessId, loading, error, refreshBusiness } = useBusiness();
+    const { updateBusinessFromForm } = useBusinessApi();
     const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userCount, setUserCount] = useState(0);
@@ -118,7 +119,7 @@ export default function BusinessPage() {
 
             const result = await updateBusinessFromForm(formData);
 
-            if (result.success) {
+            if (result) {
                 await refreshBusiness();
                 toast.success("Business information updated successfully");
             } else {

@@ -29,6 +29,7 @@ import { Invoice, InvoiceInsert, InvoiceUpdate } from '@/types/invoices';
 import { InvoiceItem, InvoiceItemInsert, InvoiceItemUpdate } from '@/types/invoice-items';
 import { StripeInvoice, StripeInvoiceInsert, StripeInvoiceUpdate } from '@/types/stripe-invoices';
 import { StripePaymentEvent, StripePaymentEventInsert, StripePaymentEventUpdate } from '@/types/stripe-payment-events';
+import { InvoiceAutomationRule } from '@/types/invoice-automation';
 import { Media, MediaLink, MediaMetadata, MediaTag, MediaUploadQueueItem } from '@/types/media';
 import { Document, DocumentInsert, DocumentUpdate } from '@/types/documents';
 
@@ -91,6 +92,7 @@ export interface OfflineDB extends Dexie {
     // Financial System entities (Phase 5)
     invoices: Table<Invoice>;
     invoiceItems: Table<InvoiceItem>;
+    invoiceAutomationRules: Table<InvoiceAutomationRule>;
     stripeInvoices: Table<StripeInvoice>;
     stripePaymentEvents: Table<StripePaymentEvent>;
 
@@ -168,6 +170,7 @@ class JobSightOfflineDB extends Dexie implements OfflineDB {
     equipmentUsage!: Table<EquipmentUsage>;
     invoices!: Table<Invoice>;
     invoiceItems!: Table<InvoiceItem>;
+    invoiceAutomationRules!: Table<InvoiceAutomationRule>;
     stripeInvoices!: Table<StripeInvoice>;
     stripePaymentEvents!: Table<StripePaymentEvent>;
     media!: Table<Media>;
@@ -522,6 +525,50 @@ class JobSightOfflineDB extends Dexie implements OfflineDB {
             equipmentUsage: 'id, business_id, equipment_id, project_id, crew_id, start_date, end_date, hours_used, created_at',
             invoices: 'id, business_id, project_id, client_id, invoice_number, status, due_date, total_amount, created_at',
             invoiceItems: 'id, business_id, invoice_id, description, quantity, rate, amount, created_at',
+            stripeInvoices: 'id, business_id, stripe_invoice_id, status, created_at',
+            stripePaymentEvents: 'id, business_id, stripe_event_id, event_type, created_at',
+            media: 'id, business_id, project_id, name, type, size, uploaded_by, uploaded_at, created_at',
+            mediaLinks: 'id, business_id, media_id, linked_id, linked_type, created_at',
+            mediaMetadata: 'id, business_id, media_id, key, value, created_at',
+            mediaTags: 'id, business_id, media_id, tag, created_at',
+            mediaUploadQueue: 'id, businessId, uploadStatus, createdAt, [uploadStatus+createdAt]',
+            documents: 'id, business_id, project_id, name, type, url, media_id, size, created_at, [business_id+project_id], [business_id+type], [business_id+name]',
+            syncQueue: 'id, table, businessId, timestamp, [synced+timestamp]',
+            syncMetadata: 'id, businessId, table, lastSync',
+            userBusinessMappings: 'userId, businessId'
+        });
+
+        // Version 15 - Add invoice automation rules
+        this.version(15).stores({
+            businesses: 'id, name, owner_id, business_type, created_at',
+            users: 'id, auth_id, business_id, email, first_name, last_name, role, status',
+            businessSubscriptions: 'id, business_id, plan_id, status, created_at',
+            projects: 'id, business_id, client_id, name, type, status, start_date, end_date, manager_id, created_at',
+            clients: 'id, business_id, name, type, status, contact_email, contact_name, created_at',
+            equipment: 'id, business_id, name, type, status, condition, location, serial_number, created_at',
+            tasks: 'id, business_id, project_id, name, status, priority, assigned_to, start_date, end_date, created_at',
+            subtasks: 'id, business_id, task_id, name, status, priority, assigned_to, created_at',
+            taskNotes: 'id, business_id, task_id, author_id, content, date, created_at',
+            taskDependencies: 'id, business_id, task_id, dependency_on_task_id, dependency_type, created_at',
+            dailyLogs: 'id, business_id, project_id, crew_id, author_id, date, start_time, end_time, created_at',
+            dailyLogEquipment: 'id, business_id, daily_log_id, equipment_id, crew_member_id, hours, created_at',
+            dailyLogMaterials: 'id, business_id, daily_log_id, name, quantity, cost, created_at',
+            dailyLogImages: 'id, business_id, daily_log_id, media_id, url, created_at',
+            crews: 'id, business_id, leader_id, name, specialty, status, created_at',
+            crewMembers: 'id, business_id, name, role, status, experience, created_at',
+            crewMemberAssignments: 'id, business_id, crew_id, crew_member_id, created_at',
+            projectCrews: 'id, business_id, crew_id, project_id, start_date, end_date, created_at',
+            clientContacts: 'id, business_id, client_id, name, email, phone, is_primary, created_at',
+            clientInteractions: 'id, business_id, client_id, date, type, staff, follow_up_date, created_at',
+            projectMilestones: 'id, business_id, project_id, name, due_date, status, created_at',
+            projectIssues: 'id, business_id, project_id, title, status, priority, reported_date, assigned_to, created_at',
+            equipmentAssignments: 'id, business_id, equipment_id, crew_id, project_id, start_date, end_date, status, created_at',
+            equipmentMaintenance: 'id, business_id, equipment_id, maintenance_date, maintenance_type, maintenance_status, created_at',
+            equipmentSpecifications: 'id, business_id, equipment_id, name, value, created_at',
+            equipmentUsage: 'id, business_id, equipment_id, project_id, crew_id, start_date, end_date, hours_used, created_at',
+            invoices: 'id, business_id, project_id, client_id, invoice_number, status, due_date, total_amount, created_at',
+            invoiceItems: 'id, business_id, invoice_id, description, quantity, rate, amount, created_at',
+            invoiceAutomationRules: 'id, businessId, clientId, projectId, ruleType, isActive, createdAt',
             stripeInvoices: 'id, business_id, stripe_invoice_id, status, created_at',
             stripePaymentEvents: 'id, business_id, stripe_event_id, event_type, created_at',
             media: 'id, business_id, project_id, name, type, size, uploaded_by, uploaded_at, created_at',

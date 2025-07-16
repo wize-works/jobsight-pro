@@ -16,7 +16,8 @@ import React, { useEffect, useState } from "react";
 import { getProjects, setProjectLocation } from "@/app/actions/projects";
 import { toast } from "@/hooks/use-toast";
 import { set } from "zod";
-import { getEquipments, setEquipmentLocation } from "@/app/actions/equipments";
+import { setEquipmentLocation } from "@/app/actions/equipments";
+import { useBusinessData } from "@/hooks/useBusinessData";
 import { useBusiness } from "@/lib/business-context";
 import { useRouter } from "next/navigation";
 
@@ -58,9 +59,12 @@ export default function MapComponent({ location }: MapComponentProps) {
         string | null
     >(null);
 
+    // Use the new business data hook
+    const { getEquipment } = useBusinessData();
+
     useEffect(() => {
         const fetchEquipment = async () => {
-            const fetchedEquipment = await getEquipments(businessId);
+            const fetchedEquipment = await getEquipment(businessId);
             setEquipments(fetchedEquipment);
         };
         const fetchProjects = async () => {
@@ -69,7 +73,7 @@ export default function MapComponent({ location }: MapComponentProps) {
         };
         fetchEquipment();
         fetchProjects();
-    }, [businessId]);
+    }, [businessId, getEquipment]);
 
     function ClickHandler({
         onMapClick,
@@ -200,7 +204,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 disabled={
                                                     !selectedProjectId ||
                                                     selectedProjectId ===
-                                                        "select"
+                                                    "select"
                                                 }
                                             >
                                                 <i className="far fa-check"></i>
@@ -240,7 +244,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                     setEquipments((prev) =>
                                                         prev.map((p) =>
                                                             p.id ===
-                                                            equipment.id
+                                                                equipment.id
                                                                 ? equipment
                                                                 : p,
                                                         ),
@@ -292,7 +296,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                 disabled={
                                                     !selectedEquipmentId ||
                                                     selectedEquipmentId ===
-                                                        "select"
+                                                    "select"
                                                 }
                                             >
                                                 <i className="far fa-check"></i>
@@ -414,13 +418,12 @@ export default function MapComponent({ location }: MapComponentProps) {
                                     <div className="flex items-center gap-2">
                                         <i className="far fa-circle text-secondary w-4"></i>
                                         <span
-                                            className={`badge badge-sm ${
-                                                item.status === "available"
+                                            className={`badge badge-sm ${item.status === "available"
                                                     ? "badge-success"
                                                     : item.status === "in_use"
-                                                      ? "badge-warning"
-                                                      : "badge-error"
-                                            }`}
+                                                        ? "badge-warning"
+                                                        : "badge-error"
+                                                }`}
                                         >
                                             {item.status?.replace("_", " ")}
                                         </span>

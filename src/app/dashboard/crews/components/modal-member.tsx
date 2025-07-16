@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { CrewMember, CrewMemberRole, crewMemberRoleOptions } from "@/types/crew-members";
+import { BillingRate } from "@/types/invoice-automation";
+import { useRateManagement } from "@/hooks/useRateManagement";
+import { useBusiness } from "@/lib/business-context";
 
 interface ModalMemberProps {
     title: string;
     loading: boolean;
     onClose: () => void;
     onSubmit: (formData: any) => Promise<{ success: boolean }>;
+
     initialMember?: CrewMember; // Add optional initialMember prop for editing mode
 }
 
 const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSubmit, initialMember }) => {
     const isEditMode = !!initialMember;
+    const { businessId } = useBusiness();
+
+    // Use the new rate management hook
+    const { updateCrewMemberRate, getCrewMemberRate } = useRateManagement();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -19,9 +27,16 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
         phone: "",
         email: "",
         avatar_url: "",
+        // Rate fields
+        isBillable: true,
+        regularRate: 0,
+        overtimeRate: 0,
+        doubleTimeRate: 0,
+        effectiveDate: new Date().toISOString().split('T')[0],
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [loadingRates, setLoadingRates] = useState(false);
 
     // Populate form data with initialMember values if available
     useEffect(() => {
@@ -33,21 +48,59 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 phone: initialMember.phone || "",
                 email: initialMember.email || "",
                 avatar_url: initialMember.avatar_url || "",
+                // Default rate values
+                isBillable: true,
+                regularRate: 0,
+                overtimeRate: 0,
+                doubleTimeRate: 0,
+                effectiveDate: new Date().toISOString().split('T')[0],
             });
+
+            // Load existing rates if in edit mode
+            loadExistingRates();
         }
     }, [initialMember]);
+
+    const loadExistingRates = async () => {
+        if (!initialMember?.id) return;
+
+        setLoadingRates(true);
+        try {
+            const currentRate = await getCrewMemberRate(initialMember.id, businessId);
+            if (currentRate) {
+                setFormData(prev => ({
+                    ...prev,
+                    isBillable: true, // Default to billable if rate exists
+                    regularRate: currentRate.hourlyRate,
+                    overtimeRate: currentRate.overtimeRate || 0,
+                    doubleTimeRate: 0, // Not in current BillingRate type
+                    effectiveDate: currentRate.effectiveDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading existing rates:', error);
+        } finally {
+            setLoadingRates(false);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "experience" ? Number(value) : value
+            [name]: name === "experience" || name === "regularRate" || name === "overtimeRate" || name === "doubleTimeRate"
+                ? Number(value) : value
         }));
         setError(null); // Clear error when user makes changes
     };
 
     const handleRoleChange = (role: CrewMemberRole) => {
         setFormData((prev) => ({ ...prev, role }));
+        setError(null);
+    };
+
+    const handleBillableChange = (isBillable: boolean) => {
+        setFormData((prev) => ({ ...prev, isBillable }));
         setError(null);
     };
 
@@ -64,12 +117,19 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
             if (!formData.role) {
                 throw new Error("Member role is required");
             }
+            if (formData.isBillable && formData.regularRate <= 0) {
+                throw new Error("Regular rate must be greater than 0 for billable members");
+            }
 
             // If we're in edit mode, include the ID in the submission
             const submissionData = isEditMode ? { ...formData, id: initialMember?.id } : formData;
 
             const result = await onSubmit(submissionData);
             if (result.success) {
+                // If successful and member is billable, save the rate
+                if (formData.isBillable) {
+                    await saveRateData(submissionData);
+                }
                 onClose();
             }
         } catch (err) {
@@ -77,6 +137,22 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
             setError(errorMessage);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const saveRateData = async (memberData: any) => {
+        try {
+            const memberId = memberData.id || memberData.name; // Use ID if available, fallback to name for new members
+
+            await updateCrewMemberRate({
+                crewMemberId: memberId,
+                businessId,
+                hourlyRate: formData.regularRate,
+                overtimeRate: formData.overtimeRate || undefined,
+            });
+        } catch (error) {
+            console.error('Error saving rate data:', error);
+            // Don't fail the whole operation if rate saving fails
         }
     };
 
@@ -226,6 +302,116 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                                 </div>
                             </div>
                         </div>
+
+                        {/* Billing Rate Information */}
+                        <div className="card bg-base-100 border border-base-300">
+                            <div className="card-body p-4">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <i className="far fa-dollar-sign text-primary"></i>
+                                    Billing Rate Information
+                                </h3>
+
+                                {/* Billable Toggle */}
+                                <div className="form-control mb-4">
+                                    <label className="label cursor-pointer justify-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-secondary"
+                                            checked={formData.isBillable}
+                                            onChange={(e) => handleBillableChange(e.target.checked)}
+                                            disabled={isSubmitting}
+                                        />
+                                        <span className="label-text font-medium">This member is billable to clients</span>
+                                    </label>
+                                </div>
+
+                                {/* Rate Fields - Only show if billable */}
+                                {formData.isBillable && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Regular Rate ($/hour) *</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="regularRate"
+                                                className="input input-bordered input-secondary"
+                                                value={formData.regularRate}
+                                                onChange={handleChange}
+                                                disabled={isSubmitting || loadingRates}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                required={formData.isBillable}
+                                            />
+                                        </div>
+
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Overtime Rate ($/hour)</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="overtimeRate"
+                                                className="input input-bordered input-secondary"
+                                                value={formData.overtimeRate}
+                                                onChange={handleChange}
+                                                disabled={isSubmitting || loadingRates}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Double Time Rate ($/hour)</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="doubleTimeRate"
+                                                className="input input-bordered input-secondary"
+                                                value={formData.doubleTimeRate}
+                                                onChange={handleChange}
+                                                disabled={isSubmitting || loadingRates}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Effective Date</span>
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="effectiveDate"
+                                                className="input input-bordered input-secondary"
+                                                value={formData.effectiveDate}
+                                                onChange={handleChange}
+                                                disabled={isSubmitting || loadingRates}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Loading indicator for rates */}
+                                {loadingRates && (
+                                    <div className="flex items-center gap-2 text-sm text-base-content mt-2">
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                        Loading existing rates...
+                                    </div>
+                                )}
+
+                                {/* Help text */}
+                                <div className="text-sm text-base-content/70 mt-4">
+                                    <p>💡 <strong>Tip:</strong> Rates are used for invoice automation and cost calculations.</p>
+                                    <p>• Leave overtime/double-time rates empty to use regular rate × multiplier</p>
+                                    <p>• Effective date determines when this rate becomes active</p>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -250,7 +436,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                             type="submit"
                             className="btn btn-primary gap-2"
                             onClick={handleSubmit}
-                            disabled={isSubmitting || !formData.name.trim() || !formData.role}
+                            disabled={isSubmitting || !formData.name.trim() || !formData.role || (formData.isBillable && formData.regularRate <= 0)}
                         >
                             {isSubmitting ? (
                                 <>

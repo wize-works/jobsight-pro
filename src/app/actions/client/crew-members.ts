@@ -284,6 +284,9 @@ export async function createCrewMember(
             experience: crewMemberData.experience || null,
             status: crewMemberData.status || 'active',
             notes: crewMemberData.notes || null,
+            hourly_rate: crewMemberData.hourly_rate || null,
+            overtime_rate: crewMemberData.overtime_rate || null,
+            is_billable: crewMemberData.is_billable !== undefined ? crewMemberData.is_billable : true,
             created_at: now,
             created_by: currentUserAuthId,
             updated_at: now,
@@ -421,6 +424,9 @@ export async function updateCrewMember(
         if (crewMemberData.experience !== undefined) updateData.experience = crewMemberData.experience;
         if (crewMemberData.status !== undefined) updateData.status = crewMemberData.status;
         if (crewMemberData.notes !== undefined) updateData.notes = crewMemberData.notes;
+        if (crewMemberData.hourly_rate !== undefined) updateData.hourly_rate = crewMemberData.hourly_rate;
+        if (crewMemberData.overtime_rate !== undefined) updateData.overtime_rate = crewMemberData.overtime_rate;
+        if (crewMemberData.is_billable !== undefined) updateData.is_billable = crewMemberData.is_billable;
 
         // Update locally first (optimistic update)
         const updatedCrewMember = { ...currentCrewMember, ...updateData };

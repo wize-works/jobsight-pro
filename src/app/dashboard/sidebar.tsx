@@ -121,6 +121,18 @@ export const Sidebar = ({ sidebarCollapsed }: SidebarProps) => {
                             {!sidebarCollapsed && <span>Invoices</span>}
                         </Link>
                     </li>
+                    <li className={isActive("/dashboard/invoice-automation") ? "active" : ""}>
+                        <Link href="/dashboard/invoice-automation" className={`flex items-center min-h-8 p-1 ${isActive("/dashboard/invoice-automation") ? "bg-primary/10 text-primary font-medium" : ""}`}>
+                            <i className={`far fa-robot fa-fw fa-lg ${isActive("/dashboard/invoice-automation") ? "text-primary" : ""}`}></i>
+                            {!sidebarCollapsed && <span>Invoice Automation</span>}
+                        </Link>
+                    </li>
+                    <li className={isActive("/dashboard/rate-management") ? "active" : ""}>
+                        <Link href="/dashboard/rate-management" className={`flex items-center min-h-8 p-1 ${isActive("/dashboard/rate-management") ? "bg-primary/10 text-primary font-medium" : ""}`}>
+                            <i className={`far fa-money-bill-wave fa-fw fa-lg ${isActive("/dashboard/rate-management") ? "text-primary" : ""}`}></i>
+                            {!sidebarCollapsed && <span>Rate Management</span>}
+                        </Link>
+                    </li>
                     <li className={isActive("/dashboard/reports") ? "active" : ""}>
                         <Link href="/dashboard/reports" className={`flex items-center min-h-8 p-1 ${isActive("/dashboard/reports") ? "bg-primary/10 text-primary font-medium" : ""}`}>
                             <i className={`far fa-chart-bar fa-fw fa-lg ${isActive("/dashboard/reports") ? "text-primary" : ""}`}></i>

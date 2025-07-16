@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEquipment } from "@/app/actions/equipments";
+import { setEquipmentRate } from "@/app/actions/client/rate-management";
+import { useRateManagement } from "@/hooks/useRateManagement";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentInsert, EquipmentStatus, EquipmentType, EquipmentCondition } from "@/types/equipment";
+import type { BillingRate } from "@/types/invoice-automation";
 import { equipmentStatusOptions, equipmentTypeOptions, equipmentConditionOptions } from "@/types/equipment";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
@@ -19,6 +22,9 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
     const router = useRouter();
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
+
+    // Use the new rate management hook
+    const { updateEquipmentRate } = useRateManagement();
 
     // Form state
     const [formData, setFormData] = useState({
@@ -37,6 +43,9 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
         location: "",
         next_maintenance: "",
         image_url: "",
+        // Rate management fields
+        is_billable: false,
+        hourly_rate: 0,
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -67,11 +76,23 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                 location: formData.location || null,
                 next_maintenance: formData.next_maintenance || null,
                 image_url: formData.image_url || null,
+                is_billable: formData.is_billable,
+                hourly_rate: formData.is_billable ? formData.hourly_rate : 0,
             } as EquipmentInsert;
 
             const newEquipment = await createEquipment(businessId, equipmentData);
 
             if (newEquipment) {
+                // Set equipment rate if billable
+                if (formData.is_billable && formData.hourly_rate > 0) {
+                    await updateEquipmentRate({
+                        equipmentId: newEquipment.id,
+                        businessId,
+                        hourlyRate: formData.hourly_rate,
+                        overtimeRate: undefined
+                    });
+                }
+
                 toast.success({
                     title: "Success",
                     description: "Equipment created successfully"
@@ -405,6 +426,51 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                                         />
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Rate Management */}
+                        <div className="card bg-base-100 border border-base-300">
+                            <div className="card-body p-4">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <i className="far fa-money-bill-wave text-primary"></i>
+                                    Rate Management
+                                </h3>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-medium">Is Billable?</span>
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="is_billable"
+                                            className="toggle toggle-secondary"
+                                            checked={formData.is_billable}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, is_billable: e.target.checked }))}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+                                {formData.is_billable && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Hourly Rate</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="hourly_rate"
+                                                className="input input-bordered input-secondary w-full"
+                                                value={formData.hourly_rate}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                min={0}
+                                                step="0.01"
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </form>

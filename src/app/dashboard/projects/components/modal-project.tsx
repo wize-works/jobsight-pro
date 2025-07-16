@@ -5,7 +5,7 @@ import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectTyp
 import { Client } from "@/types/clients";
 import { CrewMember } from "@/types/crew-members";
 import { getClients } from "@/app/actions/clients";
-import { getCrewMembers } from "@/app/actions/crew-members";
+import { useBusinessData } from "@/hooks/useBusinessData";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
@@ -40,6 +40,9 @@ export default function ProjectModal({
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState("");
+
+    // Use the new business data hook
+    const { getCrewMembers } = useBusinessData();
 
     useEffect(() => {
         const fetchData = async () => {

@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateEquipment } from "@/app/actions/equipments";
 import { createEquipmentSpecification, updateEquipmentSpecification, deleteEquipmentSpecification } from "@/app/actions/equipment-specifications";
+import { setEquipmentRate, getEquipmentRate } from "@/app/actions/client/rate-management";
+import { useRateManagement } from "@/hooks/useRateManagement";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentWithDetails, EquipmentUpdate, EquipmentStatus, EquipmentType } from "@/types/equipment";
 import type { EquipmentSpecification, EquipmentSpecificationUpdate } from "@/types/equipment-specifications";
+import type { BillingRate } from "@/types/invoice-automation";
 import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
@@ -22,7 +25,12 @@ interface EquipmentEditModalProps {
 export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment, specifications }: EquipmentEditModalProps) {
     const router = useRouter();
     const { businessId } = useBusiness();
-    const [loading, setLoading] = useState(false);    // Form state
+    const [loading, setLoading] = useState(false);
+
+    // Use the new rate management hook
+    const { updateEquipmentRate, getEquipmentRate } = useRateManagement();
+
+    // Form state
     const [formData, setFormData] = useState({
         name: "",
         type: "other" as EquipmentType,
@@ -38,15 +46,34 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         location: "",
         next_maintenance: "",
         image_url: "",
+        // Rate management fields
+        is_billable: false,
+        hourly_rate: 0,
     });
 
     const [equipmentSpecs, setEquipmentSpecs] = useState<EquipmentSpecification[]>([]);
+
+    // Load existing equipment rates
+    const loadExistingRates = async (equipmentId: string) => {
+        try {
+            const rateResult = await getEquipmentRate(equipmentId, businessId);
+            if (rateResult && typeof rateResult === 'object' && 'hourlyRate' in rateResult) {
+                setFormData(prev => ({
+                    ...prev,
+                    hourly_rate: rateResult.hourlyRate || 0,
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading equipment rates:', error);
+        }
+    };
 
     // Initialize form data when equipment changes
     useEffect(() => {
         if (equipment) {
             setFormData({
-                name: equipment.name || "", type: equipment.type as EquipmentType || "other",
+                name: equipment.name || "",
+                type: equipment.type as EquipmentType || "other",
                 status: equipment.status as EquipmentStatus || "available",
                 description: equipment.description || "",
                 serial_number: equipment.serial_number || "",
@@ -59,8 +86,13 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                 location: equipment.location || "",
                 next_maintenance: equipment.next_maintenance || "",
                 image_url: equipment.image_url || "",
+                is_billable: equipment.is_billable || false,
+                hourly_rate: equipment.hourly_rate || 0,
             });
             setEquipmentSpecs(specifications || []);
+
+            // Load existing rates
+            loadExistingRates(equipment.id);
         }
     }, [equipment, specifications]);
 
@@ -193,11 +225,25 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                 location: formData.location || null,
                 next_maintenance: formData.next_maintenance || null,
                 image_url: formData.image_url || null,
+                is_billable: formData.is_billable,
+                hourly_rate: formData.is_billable ? formData.hourly_rate : 0,
             } as EquipmentUpdate;
 
             const updatedEquipment = await updateEquipment(businessId, equipment.id, equipmentData);
 
             if (updatedEquipment) {
+                // Update equipment rates
+                const rateData: BillingRate = {
+                    hourlyRate: formData.is_billable ? formData.hourly_rate : 0,
+                };
+
+                await updateEquipmentRate({
+                    equipmentId: equipment.id,
+                    businessId,
+                    hourlyRate: rateData.hourlyRate,
+                    overtimeRate: rateData.overtimeRate
+                });
+
                 toast.success({
                     title: "Success",
                     description: "Equipment updated successfully"
@@ -523,6 +569,53 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Rate Management */}
+                                <div className="card bg-base-100 border border-base-300 mt-6">
+                                    <div className="card-body p-4">
+                                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                            <i className="far fa-money-bill-wave text-primary"></i>
+                                            Rate Management
+                                        </h3>
+                                        <div className="form-control">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Is Billable?</span>
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    name="is_billable"
+                                                    className="toggle toggle-secondary"
+                                                    checked={formData.is_billable}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, is_billable: e.target.checked }))
+                                                    }
+                                                    disabled={loading}
+                                                />
+                                                <span className="text-sm text-base-content/70">
+                                                    {formData.is_billable ? "Billable" : "Non-billable"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {formData.is_billable && (
+                                            <div className="form-control mt-4">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Hourly Rate</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="hourly_rate"
+                                                    className="input input-bordered input-secondary w-full"
+                                                    value={formData.hourly_rate}
+                                                    onChange={handleInputChange}
+                                                    placeholder="0.00"
+                                                    min={0}
+                                                    step="0.01"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </form>
