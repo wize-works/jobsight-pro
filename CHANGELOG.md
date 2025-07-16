@@ -1,3 +1,10 @@
+# [1.133.0](https://github.com/wize-works/jobsight-pro/compare/v1.132.1...v1.133.0) (2025-07-16)
+
+
+### Features
+
+* **referral:** Implement business referral input and sweepstake dashboard components ([150866d](https://github.com/wize-works/jobsight-pro/commit/150866d11071d932f6e6df3c218e1e5d87837e49))
+
 ## [1.132.1](https://github.com/wize-works/jobsight-pro/compare/v1.132.0...v1.132.1) (2025-07-15)
 
 
