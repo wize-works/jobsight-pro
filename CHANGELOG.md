@@ -1,3 +1,10 @@
+# [1.135.0](https://github.com/wize-works/jobsight-pro/compare/v1.134.0...v1.135.0) (2025-07-18)
+
+
+### Features
+
+* Implement TaskCard component for task management with drag-and-drop functionality ([6d3b34f](https://github.com/wize-works/jobsight-pro/commit/6d3b34f63f0d8839c75ca00ae1c5ad45f4a06e78))
+
 # [1.134.0](https://github.com/wize-works/jobsight-pro/compare/v1.133.1...v1.134.0) (2025-07-16)
 
 
