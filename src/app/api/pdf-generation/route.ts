@@ -35,12 +35,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = profile.business_id;
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         // Validate required fields
         if (!type || !filename) {
             return NextResponse.json({
+                success: false,
                 error: 'Type and filename are required'
             }, { status: 400 });
         }
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
             case 'client':
                 if (!clientId) {
                     return NextResponse.json({
+                        success: false,
                         error: 'Client ID is required for client PDF generation'
                     }, { status: 400 });
                 }
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
             case 'invoice':
                 if (!invoiceId) {
                     return NextResponse.json({
+                        success: false,
                         error: 'Invoice ID is required for invoice PDF generation'
                     }, { status: 400 });
                 }
@@ -104,6 +107,7 @@ export async function POST(request: NextRequest) {
             case 'daily-log':
                 if (!logId) {
                     return NextResponse.json({
+                        success: false,
                         error: 'Log ID is required for daily log PDF generation'
                     }, { status: 400 });
                 }
@@ -113,6 +117,7 @@ export async function POST(request: NextRequest) {
             case 'project':
                 if (!projectId) {
                     return NextResponse.json({
+                        success: false,
                         error: 'Project ID is required for project PDF generation'
                     }, { status: 400 });
                 }
@@ -126,6 +131,7 @@ export async function POST(request: NextRequest) {
 
             default:
                 return NextResponse.json({
+                    success: false,
                     error: 'Invalid PDF generation type'
                 }, { status: 400 });
         }
@@ -133,6 +139,7 @@ export async function POST(request: NextRequest) {
         // Validate that we have either HTML or URL
         if (!finalHtml && !finalUrl) {
             return NextResponse.json({
+                success: false,
                 error: 'Either HTML or URL must be provided'
             }, { status: 400 });
         }
@@ -152,6 +159,7 @@ export async function POST(request: NextRequest) {
 
         if (!result.success) {
             return NextResponse.json({
+                success: false,
                 error: result.error || 'Failed to generate PDF'
             }, { status: 500 });
         }
@@ -169,11 +177,12 @@ export async function POST(request: NextRequest) {
             size: result.size
         };
 
-        return NextResponse.json(response);
+        return NextResponse.json({ success: true, data: response }, { status: 200 });
 
     } catch (error) {
         console.error('Error in PDF generation API:', error);
         return NextResponse.json({
+            success: false,
             error: 'Internal server error',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });

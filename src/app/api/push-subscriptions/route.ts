@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         const userId = searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 });
         }
 
         const { data, error } = await fetchByBusiness("push_subscriptions", business.id, "*", {
@@ -22,13 +22,13 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Error fetching push subscriptions:", error);
-            return NextResponse.json({ error: "Failed to fetch push subscriptions" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch push subscriptions" }, { status: 500 });
         }
 
-        return NextResponse.json(data || []);
+        return NextResponse.json({ success: true, data: data || [] }, { status: 200 });
     } catch (error) {
         console.error("Error in GET /api/push-subscriptions:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }
 
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest) {
 
             if (error) {
                 console.error("Error updating existing push subscription:", error);
-                return NextResponse.json({ error: "Failed to update push subscription" }, { status: 500 });
+                return NextResponse.json({ success: false, error: "Failed to update push subscription" }, { status: 500 });
             }
 
-            return NextResponse.json(data);
+            return NextResponse.json({ success: true, data }, { status: 200 });
         }
 
         // Create new subscription
@@ -78,12 +78,12 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Error creating push subscription:", error);
-            return NextResponse.json({ error: "Failed to create push subscription" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create push subscription" }, { status: 500 });
         }
 
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 201 });
     } catch (error) {
         console.error("Error in POST /api/push-subscriptions:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }

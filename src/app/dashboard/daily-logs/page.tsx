@@ -1,12 +1,12 @@
 "use client";
 
-import { getDailyLogsWithDetails } from "@/app/actions/daily-logs";
-import { getCrews } from "@/app/actions/crews";
-import { getProjects } from "@/app/actions/projects";
+import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { useCrews } from "@/hooks/useCrews";
+import { useProjects } from "@/hooks/useProjects";
 
 import DailyLogsList from "./components/list";
 import { useBusiness } from "@/lib/business-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DailyLog, DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
@@ -16,38 +16,56 @@ import ErrorBoundary from "@/components/error-boundary";
 
 
 export default function DailyLogs() {
-    const [loading, setLoading] = useState(true);
     const { businessId } = useBusiness();
-    const [logs, setLogs] = useState<DailyLogWithDetails[]>([]);
-    const [crews, setCrews] = useState<Crew[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
+    const crewsFetchedRef = useRef(false);
+    const dailyLogsFetchedRef = useRef(false);
 
+    // Use daily logs hook - now matches crews pattern
+    const { dailyLogs, loading: logsLoading, error: logsError, fetchDailyLogs } = useDailyLogs();
+
+    // Use crews hook
+    const { crews, loading: crewsLoading, error: crewsError, fetchCrews } = useCrews();
+
+    // Use projects hook
+    const { projects, loading: projectsLoading, error: projectsError } = useProjects();
+
+    // Overall loading state
+    const loading = logsLoading || crewsLoading || projectsLoading;
+    const error = logsError || crewsError || projectsError;
+
+    // Fetch data when business ID changes (manual fetching like crews)
     useEffect(() => {
-        const fetchData = async () => {
-            if (!businessId) {
-                return;
+        if (businessId) {
+            if (!crewsFetchedRef.current) {
+                fetchCrews();
+                crewsFetchedRef.current = true;
             }
-            // Fetch data on the server
-            const [logs, crews, projects] = await Promise.all([
-                getDailyLogsWithDetails(businessId),
-                getCrews(businessId),
-                getProjects(businessId),
-            ]);
+            if (!dailyLogsFetchedRef.current) {
+                fetchDailyLogs({ include: "project,crew,materials,equipment" });
+                dailyLogsFetchedRef.current = true;
+            }
+        }
+    }, [businessId, fetchCrews, fetchDailyLogs]);
 
-            setLogs(logs);
-            setCrews(crews);
-            setProjects(projects);
-            setLoading(false);
-        };
-
-        fetchData().catch((error) => {
-            console.error("Error fetching daily logs:", error);
-        });
-    }, [businessId]); if (loading) {
+    if (loading) {
         return (
             <DailyLogsListLoading />
         );
-    } return (
+    }
+
+    if (error) {
+        return (
+            <div className="alert alert-error">
+                <i className="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h3 className="font-bold">Failed to load daily logs</h3>
+                    <div className="text-xs">{error}</div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
         <div className="container mx-auto">
             <ErrorBoundary fallback={(error) => (
                 <div className="alert alert-error">
@@ -58,7 +76,7 @@ export default function DailyLogs() {
                     </div>
                 </div>
             )}>
-                <DailyLogsList logs={logs} crews={crews} projects={projects} />
+                <DailyLogsList logs={dailyLogs as DailyLogWithDetails[]} crews={crews} projects={projects} />
             </ErrorBoundary>
         </div>
     );

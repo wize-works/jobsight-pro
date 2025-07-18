@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { generateUploadUrl, createMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { generateUploadUrl } from "@/app/actions/media"
+import { useMediaMutations } from "@/hooks/useMedia"
+import { useProjects } from "@/hooks/useProjects"
 import { Project } from "@/types/projects"
 import { MediaInsert, MediaType } from "@/types/media"
 import { toast } from "@/hooks/use-toast"
@@ -24,25 +25,18 @@ export default function MediaUpload() {
     const router = useRouter();
     const { businessId } = useBusiness();
     const [files, setFiles] = useState<FileUpload[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
     const [selectedProject, setSelectedProject] = useState("");
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [currentStorageUsedMB, setCurrentStorageUsedMB] = useState(0);
 
+    // Use hooks for data fetching and mutations
+    const { projects } = useProjects();
+    const { createMedia } = useMediaMutations();
+
     useEffect(() => {
-        loadProjects()
         loadStorageUsage()
     }, [])
-
-    const loadProjects = async () => {
-        try {
-            const projectsData = await getProjects(businessId);
-            setProjects(projectsData)
-        } catch (error) {
-            console.error("Error loading projects:", error)
-        }
-    }
 
     const loadStorageUsage = async () => {
         try {
@@ -148,13 +142,13 @@ export default function MediaUpload() {
                     if (xhr.status === 201) {
                         // File uploaded successfully, now create media record
                         try {
-                            const mediaRecord = await createMedia(businessId, {
+                            const mediaRecord = await createMedia({
                                 name: fileUpload.file.name,
                                 type: mediaType,
                                 size: fileUpload.file.size,
                                 url: uploadData.fileUrl,
-                                project_id: selectedProject || null,
-                            } as MediaInsert)
+                                project_id: selectedProject || undefined,
+                            })
 
                             if (mediaRecord) {
                                 setFiles(prev => prev.map(f =>

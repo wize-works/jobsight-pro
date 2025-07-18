@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
         if (!userId) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { success: false, error: 'Unauthorized' },
                 { status: 401 }
             );
         }
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
         if (!needsSetup) {
             return NextResponse.json(
-                { error: 'User already has been set up' },
+                { success: false, error: 'User already has been set up' },
                 { status: 400 }
             );
         }
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
         if (userError || !user?.business_id) {
             return NextResponse.json(
-                { error: 'Business not found. Please contact support.' },
+                { success: false, error: 'Business not found. Please contact support.' },
                 { status: 404 }
             );
         }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         // Only business owners can complete setup
         if (business?.owner_id !== userId) {
             return NextResponse.json(
-                { error: 'Only business owners can complete setup' },
+                { success: false, error: 'Only business owners can complete setup' },
                 { status: 403 }
             );
         }
@@ -102,12 +102,13 @@ export async function POST(req: NextRequest) {
                 : 'Account set up successfully!',
             seedData: seedData,
             seedStats: seedResult?.data || null,
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error('Error in setup-user API:', error);
         return NextResponse.json(
             {
+                success: false,
                 error: 'Failed to setup user',
                 details: error instanceof Error ? error.message : 'Unknown error'
             },
@@ -123,7 +124,7 @@ export async function GET(req: NextRequest) {
         if (!userId) {
             console.log('[setup-user API] No userId found in auth');
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { success: false, error: 'Unauthorized' },
                 { status: 401 }
             );
         }
@@ -137,6 +138,7 @@ export async function GET(req: NextRequest) {
         console.error('[setup-user API] Error checking user setup status:', error);
         return NextResponse.json(
             {
+                success: false,
                 error: 'Failed to check setup status',
                 details: error instanceof Error ? error.message : 'Unknown error'
             },

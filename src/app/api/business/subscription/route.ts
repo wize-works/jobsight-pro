@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
 
         if (!businessId || !subscriptionId) {
             return NextResponse.json({
+                success: false,
                 error: 'Business ID and subscription ID are required'
             }, { status: 400 });
         }
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Verify user has access to this business
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (userError || userData?.business_id !== businessId) {
-            return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
         }
 
         const now = new Date().toISOString();
@@ -55,14 +56,15 @@ export async function POST(request: NextRequest) {
         if (error) {
             console.error('Error assigning subscription to business:', error);
             return NextResponse.json({
+                success: false,
                 error: `Failed to assign subscription: ${error.message}`
             }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 201 });
 
     } catch (error) {
         console.error('Error in business subscription API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

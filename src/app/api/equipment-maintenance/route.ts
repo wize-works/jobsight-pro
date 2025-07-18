@@ -42,12 +42,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Equipment maintenance fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch maintenance records" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch maintenance records" }, { status: 500 });
         }
 
         // Handle includes
@@ -195,14 +195,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: maintenance,
             count: maintenance?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment maintenance API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch maintenance records" },
+            { success: false, error: "Failed to fetch maintenance records" },
             { status: 500 }
         );
     }
@@ -213,12 +214,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -229,7 +230,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -245,7 +246,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!equipment) {
-            return NextResponse.json({ error: "Equipment not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Equipment not found" }, { status: 404 });
         }
 
         // Validate performer if provided
@@ -258,7 +259,7 @@ export async function POST(request: NextRequest) {
                 .single();
 
             if (!performer) {
-                return NextResponse.json({ error: "Performer not found" }, { status: 404 });
+                return NextResponse.json({ success: false, error: "Performer not found" }, { status: 404 });
             }
         }
 
@@ -275,18 +276,19 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Equipment maintenance creation error:", error);
-            return NextResponse.json({ error: "Failed to create maintenance record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create maintenance record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: maintenance,
             message: "Maintenance record created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Equipment maintenance creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create maintenance record" },
+            { success: false, error: "Failed to create maintenance record" },
             { status: 500 }
         );
     }
@@ -297,12 +299,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -313,7 +315,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -321,7 +323,7 @@ export async function PUT(request: NextRequest) {
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: "Maintenance ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Maintenance ID is required" }, { status: 400 });
         }
 
         const maintenanceData = MaintenanceUpdateSchema.parse(updateData);
@@ -335,7 +337,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!existingMaintenance) {
-            return NextResponse.json({ error: "Maintenance record not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Maintenance record not found" }, { status: 404 });
         }
 
         const { data: maintenance, error } = await supabase
@@ -352,18 +354,19 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Equipment maintenance update error:", error);
-            return NextResponse.json({ error: "Failed to update maintenance record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update maintenance record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: maintenance,
             message: "Maintenance record updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment maintenance update error:", error);
         return NextResponse.json(
-            { error: "Failed to update maintenance record" },
+            { success: false, error: "Failed to update maintenance record" },
             { status: 500 }
         );
     }
@@ -374,12 +377,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -390,7 +393,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -398,7 +401,7 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) {
-            return NextResponse.json({ error: "Maintenance ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Maintenance ID is required" }, { status: 400 });
         }
 
         // Validate maintenance record exists and belongs to business
@@ -410,7 +413,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!existingMaintenance) {
-            return NextResponse.json({ error: "Maintenance record not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Maintenance record not found" }, { status: 404 });
         }
 
         const { error } = await supabase
@@ -421,17 +424,18 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Equipment maintenance deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete maintenance record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete maintenance record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: "Maintenance record deleted successfully"
-        });
+        }, { status: 204 });
 
     } catch (error) {
         console.error("Equipment maintenance deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete maintenance record" },
+            { success: false, error: "Failed to delete maintenance record" },
             { status: 500 }
         );
     }

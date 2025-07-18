@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatters';
 import { useBusiness } from '@/lib/business-context';
+// TODO: Create project profitability hooks to replace server actions
+// import { useProjectProfitability } from '@/hooks/useProjectProfitability';
 import {
     getProjectProfitabilityData,
     ProjectProfitabilityData,
@@ -336,8 +338,8 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                                         </div>
                                         <progress
                                             className={`progress w-full ${project.budgetUtilization > 90 ? 'progress-error' :
-                                                    project.budgetUtilization > 75 ? 'progress-warning' :
-                                                        'progress-success'
+                                                project.budgetUtilization > 75 ? 'progress-warning' :
+                                                    'progress-success'
                                                 }`}
                                             value={project.budgetUtilization}
                                             max="100"

@@ -78,7 +78,7 @@ async function getCurrentSubscription(businessId: string) {
             return NextResponse.json({ success: false, error: error.message }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, subscription: data });
+        return NextResponse.json({ success: true, subscription: data }, { status: 200 });
     } catch (error) {
         console.error("Error fetching current subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to fetch subscription" }, { status: 500 });
@@ -99,7 +99,7 @@ async function getSubscriptionPlans() {
         const fileContent = fs.readFileSync(filePath, "utf8");
         const plans = JSON.parse(fileContent);
 
-        return NextResponse.json({ success: true, plans });
+        return NextResponse.json({ success: true, plans }, { status: 200 });
     } catch (error) {
         console.error("Error loading subscription plans:", error);
         return NextResponse.json({ success: false, error: "Failed to load subscription plans" }, { status: 500 });
@@ -179,7 +179,7 @@ async function createSubscription(
         }
 
         revalidatePath("/dashboard/business");
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error creating subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to create subscription" }, { status: 500 });
@@ -225,7 +225,7 @@ async function cancelSubscription(businessId: string) {
         }
 
         revalidatePath("/dashboard/business");
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error canceling subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to cancel subscription" }, { status: 500 });

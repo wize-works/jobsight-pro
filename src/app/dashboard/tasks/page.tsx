@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { getTasksWithDetails } from "@/app/actions/tasks";
-import { getProjects } from "@/app/actions/projects";
-import { getCrews } from "@/app/actions/crews";
+import { useTasksWithDetails } from "@/hooks/useTasks";
+import { useProjects } from "@/hooks/useProjects";
+import { useCrews } from "@/hooks/useCrews";
 import { TaskWithDetails, Task } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
@@ -16,40 +16,17 @@ import toast from "react-hot-toast";
 
 export default function TasksPage() {
     const { businessId } = useBusiness();
-    const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [crews, setCrews] = useState<Crew[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
-    useEffect(() => {
-        fetchData();
-    }, [businessId]);
+    // Use hooks for data fetching
+    const { tasks, loading: tasksLoading, error: tasksError, refetch: refetchTasks } = useTasksWithDetails();
+    const { projects, loading: projectsLoading } = useProjects();
+    const { crews, loading: crewsLoading } = useCrews();
 
-    const fetchData = async () => {
-        if (!businessId) return;
+    const loading = tasksLoading || projectsLoading || crewsLoading;
+    const error = tasksError;
 
-        try {
-            setLoading(true);
-            setError(null);
-
-            const [tasksData, projectsData, crewsData] = await Promise.all([
-                getTasksWithDetails(businessId),
-                getProjects(businessId),
-                getCrews(businessId)
-            ]);
-
-            setTasks(tasksData);
-            setProjects(projectsData);
-            setCrews(crewsData);
-        } catch (err) {
-            console.error("Error fetching data:", err);
-            setError("Failed to load tasks. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }; const handleTaskCreated = (newTask: Task) => {
+    const handleTaskCreated = (newTask: Task) => {
         // Convert Task to TaskWithDetails format for the display
         const taskWithDetails: TaskWithDetails = {
             ...newTask,
@@ -57,7 +34,8 @@ export default function TasksPage() {
             client_name: '',
             crew_name: crews.find(c => c.id === newTask.assigned_to)?.name || ''
         };
-        setTasks(prev => [taskWithDetails, ...prev]);
+        // Refresh tasks data
+        refetchTasks();
         setShowAddTaskModal(false);
         toast.success("Task created successfully!");
     };
@@ -76,7 +54,7 @@ export default function TasksPage() {
             <div className="alert alert-error">
                 <i className="far fa-exclamation-triangle mr-2"></i>
                 {error}
-                <button onClick={fetchData} className="btn btn-sm btn-outline ml-4">
+                <button onClick={() => refetchTasks()} className="btn btn-sm btn-outline ml-4">
                     Retry
                 </button>
             </div>

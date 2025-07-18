@@ -5,6 +5,8 @@ import { Media, MediaType } from "@/types/media"
 import { useBusiness } from "@/lib/business-context"
 import ErrorBoundary from "@/components/error-boundary"
 import UniversalMediaManager from "@/components/universal-media-manager"
+// TODO: Migrate to media hooks for project media operations
+// import { useMedia } from "@/hooks/useMedia";
 import {
     getMediaByProjectId,
     uploadProjectMedia,

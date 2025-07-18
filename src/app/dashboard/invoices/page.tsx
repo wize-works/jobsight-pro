@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient, InvoiceWithDetails } from "@/types/invoices";
-import { getInvoicesWithClient, getInvoiceWitDetailsById } from '@/app/actions/invoices';
 import { formatCurrency } from "@/utils/formatters";
 import InvoiceCard from './components/card';
 import { useBusiness } from '@/lib/business-context';
+import { useInvoices, useInvoiceWithDetails } from '@/hooks/useInvoices';
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
 import InvoicesListLoading from "./loading";
@@ -30,9 +30,17 @@ const InvoiceSendModal = dynamic(() => import("./components/modal-send"), {
 
 export default function InvoicesPage() {
     const { businessId, business } = useBusiness();
-    const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
-    const [initialInvoices, setInitialInvoices] = useState<InvoiceWithClient[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    // Use the invoices hook with client data
+    const {
+        invoices: hookInvoices,
+        loading: invoicesLoading,
+        error: invoicesError,
+        refetch: refetchInvoices
+    } = useInvoices({ include: 'client' });
+
+    const [filteredInvoices, setFilteredInvoices] = useState<any[]>([]);
+    const [initialInvoices, setInitialInvoices] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [invoiceStatus, setInvoiceStatus] = useState<InvoiceStatus>();
     const [viewType, setViewType] = useState<"grid" | "list">(
@@ -44,25 +52,24 @@ export default function InvoicesPage() {
     const [selectedInvoice, setSelectedInvoice] = useState<InvoiceWithClient | null>(null);
     const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState<InvoiceWithDetails | null>(null);
 
+    // Sync hook data with local state for filtering
+    useEffect(() => {
+        if (hookInvoices) {
+            setFilteredInvoices(hookInvoices);
+            setInitialInvoices(hookInvoices);
+        }
+        if (invoicesError) {
+            setError(invoicesError);
+        }
+    }, [hookInvoices, invoicesError]);
+
     useEffect(() => {
         async function fetchInvoices() {
-            if (!businessId) return;
-
-            try {
-                setLoading(true);
-                setError(null);
-                const invoicesData = await getInvoicesWithClient(businessId);
-                setInvoices(invoicesData);
-                setInitialInvoices(invoicesData);
-            } catch (err) {
-                console.error('Error fetching invoices:', err);
-                setError("Failed to load invoices.");
-            } finally {
-                setLoading(false);
-            }
+            // This effect is no longer needed since we're using the hook
+            // The hook handles fetching automatically
         }
 
-        fetchInvoices();
+        // fetchInvoices(); // Commented out since hook handles this
     }, [businessId]);
 
     const updateViewType = (type: "grid" | "list") => {
@@ -85,11 +92,13 @@ export default function InvoicesPage() {
         if (!businessId) return;
 
         try {
-            // Fetch the full invoice details needed for the send modal
-            const invoiceDetails = await getInvoiceWitDetailsById(businessId, invoice.id);
+            // We need to fetch invoice details using the hook or API directly
+            // For now, let's use a direct API call since we need it on-demand
+            const { invoicesApi } = await import('@/lib/api/invoices');
+            const invoiceDetails = await invoicesApi.getInvoiceWithDetails(invoice.id);
             if (invoiceDetails) {
                 setSelectedInvoice(invoice);
-                setSelectedInvoiceDetails(invoiceDetails);
+                setSelectedInvoiceDetails(invoiceDetails as any);
                 setShowSendModal(true);
             }
         } catch (error) {
@@ -98,19 +107,19 @@ export default function InvoicesPage() {
     };
 
     const handleSaveNewInvoice = (newInvoice: any) => {
-        // For now, we'll need to reload the page to get the client data
-        // In a real app, you'd want to fetch the client data and add it to the list
-        window.location.reload();
+        // Refresh the invoices from the hook
+        refetchInvoices();
     };
 
     const handleSaveEditInvoice = (updatedInvoice: any) => {
-        // Update the invoice in the list
-        setInvoices(prev => prev.map(inv =>
+        // Update the filtered invoices locally and refresh from hook
+        setFilteredInvoices(prev => prev.map(inv =>
             inv.id === updatedInvoice.id ? { ...inv, ...updatedInvoice } : inv
         ));
+        refetchInvoices();
     };
 
-    if (loading) {
+    if (invoicesLoading) {
         return (
             <InvoicesListLoading viewType={viewType} />
         );
@@ -168,7 +177,7 @@ export default function InvoicesPage() {
                             <div className="stat bg-base-100 shadow-lg">
                                 <div className="stat-title">Total Invoices</div>
                                 <div className="flex items-center justify-between">
-                                    <div className="stat-value text-primary">{invoices.length}</div>
+                                    <div className="stat-value text-primary">{filteredInvoices.length}</div>
                                     <div className="stat-icon text-primary bg-primary/20 rounded-full h-12 w-12 flex items-center justify-center">
                                         <i className="far fa-money-bill-wave text-primary text-2xl"></i>
                                     </div>
@@ -179,7 +188,7 @@ export default function InvoicesPage() {
                                 <div className="stat-title">Total Amount</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-accent">
-                                        {formatCurrency(invoices.reduce((sum, invoice) => sum + (invoice?.amount || 0), 0))}
+                                        {formatCurrency(filteredInvoices.reduce((sum: number, invoice: any) => sum + (invoice?.amount || 0), 0))}
                                     </div>
                                     <div className="stat-icon text-accent bg-accent/20 rounded-full h-12 w-12 flex items-center justify-center">
                                         <i className="far fa-dollar-sign text-accent text-2xl"></i>
@@ -191,7 +200,7 @@ export default function InvoicesPage() {
                                 <div className="stat-title">Paid Invoices</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-success">
-                                        {invoices.filter(invoice => invoice.status === "paid").length}
+                                        {filteredInvoices.filter(invoice => invoice.status === "paid").length}
                                     </div>
                                     <div className="stat-icon text-success bg-success/20 rounded-full h-12 w-12 flex items-center justify-center">
                                         <i className="far fa-check-circle text-success text-2xl"></i>
@@ -203,7 +212,7 @@ export default function InvoicesPage() {
                                 <div className="stat-title">Overdue Invoices</div>
                                 <div className="flex items-center justify-between">
                                     <div className="stat-value text-error">
-                                        {invoices.filter(invoice => invoice.status === "overdue").length}
+                                        {filteredInvoices.filter(invoice => invoice.status === "overdue").length}
                                     </div>
                                     <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
                                         <i className="far fa-exclamation-triangle text-error text-2xl"></i>
@@ -227,7 +236,7 @@ export default function InvoicesPage() {
                                             className="input input-bordered w-full"
                                             onChange={(e) => {
                                                 const query = e.target.value.toLowerCase();
-                                                setInvoices(initialInvoices.filter(invoice =>
+                                                setFilteredInvoices(initialInvoices.filter(invoice =>
                                                     invoice.invoice_number.toLowerCase().includes(query) ||
                                                     invoice.client?.name?.toLowerCase().includes(query)
                                                 ));
@@ -239,9 +248,9 @@ export default function InvoicesPage() {
                                         (value: InvoiceStatus | "all") => {
                                             setInvoiceStatus(value);
                                             if (value === "all") {
-                                                setInvoices(initialInvoices);
+                                                setFilteredInvoices(initialInvoices);
                                             } else {
-                                                setInvoices(initialInvoices.filter(invoice => invoice.status === value));
+                                                setFilteredInvoices(initialInvoices.filter(invoice => invoice.status === value));
                                             }
                                         },
                                         "select-secondary w-full"
@@ -261,7 +270,7 @@ export default function InvoicesPage() {
                     <ErrorBoundary>
                         {viewType === "grid" && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                                {invoices.map((invoice) => (
+                                {filteredInvoices.map((invoice) => (
                                     <InvoiceCard
                                         key={invoice.id}
                                         invoice={invoice}
@@ -289,7 +298,7 @@ export default function InvoicesPage() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {invoices.map((invoice) => (
+                                                {filteredInvoices.map((invoice) => (
                                                     <tr key={invoice.id}>
                                                         <td>{invoice.invoice_number}</td>
                                                         <td>{invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : "N/A"}</td>

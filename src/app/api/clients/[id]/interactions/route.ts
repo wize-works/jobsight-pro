@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { id } = await params;
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (clientError || !client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
         // Build query
@@ -78,14 +78,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         if (error) {
             console.error('Error fetching client interactions:', error);
-            return NextResponse.json({ error: 'Failed to fetch interactions' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch interactions' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: interactions || [] });
+        return NextResponse.json({ success: true, data: interactions || [] }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client interactions GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { id } = await params;
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .single();
 
         if (clientError || !client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
         const now = new Date().toISOString();
@@ -154,13 +154,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         if (error) {
             console.error('Error creating client interaction:', error);
-            return NextResponse.json({ error: 'Failed to create interaction' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create interaction' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: interaction });
+        return NextResponse.json({ success: true, data: interaction }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client interactions POST API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

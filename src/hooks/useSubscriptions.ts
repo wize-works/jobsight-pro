@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     SubscriptionsAPI,
     SubscriptionResponse,
@@ -26,7 +26,7 @@ export function useCurrentSubscription(businessId: string) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchSubscription = async () => {
+    const fetchSubscription = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -43,13 +43,13 @@ export function useCurrentSubscription(businessId: string) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [businessId]);
 
     useEffect(() => {
         if (businessId) {
             fetchSubscription();
         }
-    }, [businessId]);
+    }, [businessId, fetchSubscription]);
 
     return { subscription, loading, error, refetch: fetchSubscription };
 }
@@ -62,7 +62,7 @@ export function useSubscriptionPlans() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchPlans = async () => {
+    const fetchPlans = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -77,11 +77,11 @@ export function useSubscriptionPlans() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchPlans();
-    }, []);
+    }, [fetchPlans]);
 
     return { plans, loading, error, refetch: fetchPlans };
 }
@@ -223,7 +223,7 @@ export function useSubscriptionManager(businessId: string) {
     // Combined error state
     const error = subscriptionError || plansError || createError || cancelError;
 
-    const createOrUpdateSubscription = async (planId: string, billingInterval: BillingInterval) => {
+    const createOrUpdateSubscription = useCallback(async (planId: string, billingInterval: BillingInterval) => {
         const result = await createSubscription({
             businessId,
             planId,
@@ -235,9 +235,9 @@ export function useSubscriptionManager(businessId: string) {
         }
 
         return result;
-    };
+    }, [businessId, createSubscription, refetchSubscription]);
 
-    const cancelCurrentSubscription = async () => {
+    const cancelCurrentSubscription = useCallback(async () => {
         const result = await cancelSubscription({ businessId });
 
         if (result.success) {
@@ -245,21 +245,21 @@ export function useSubscriptionManager(businessId: string) {
         }
 
         return result;
-    };
+    }, [businessId, cancelSubscription, refetchSubscription]);
 
-    const refreshData = async () => {
+    const refreshData = useCallback(async () => {
         await Promise.all([refetchSubscription(), refetchPlans()]);
-    };
+    }, [refetchSubscription, refetchPlans]);
 
-    const canUpgradeTo = (targetPlanId: string) => {
+    const canUpgradeTo = useCallback((targetPlanId: string) => {
         if (!subscription) return true;
         return subscriptionUtils.canUpgrade(subscription.plan_id, targetPlanId, plans);
-    };
+    }, [subscription, plans]);
 
-    const canDowngradeTo = (targetPlanId: string) => {
+    const canDowngradeTo = useCallback((targetPlanId: string) => {
         if (!subscription) return false;
         return subscriptionUtils.canDowngrade(subscription.plan_id, targetPlanId, plans);
-    };
+    }, [subscription, plans]);
 
     return {
         // Data

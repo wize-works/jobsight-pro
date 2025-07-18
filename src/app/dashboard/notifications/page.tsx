@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { getNotificationsByUserId, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
+import { useUserNotifications, useNotificationMutations } from "@/hooks/useNotifications";
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -13,38 +13,23 @@ import NotificationsLoading from "./loading";
 export default function NotificationsPage() {
     const { user } = useUser();
     const { businessId } = useBusiness();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-    useEffect(() => {
-        if (user?.id && businessId) {
-            loadNotifications();
-        }
-    }, [user?.id, businessId]);
-
-    const loadNotifications = async () => {
-        if (!user?.id || !businessId) return;
-
-        try {
-            setLoading(true);
-            const allNotifications = await getNotificationsByUserId(businessId, user.id);
-            setNotifications(allNotifications);
-        } catch (error) {
-            console.error("Error loading notifications:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Use hooks for data fetching and mutations
+    const { notifications, loading, refetch } = useUserNotifications(
+        businessId || '',
+        user?.id || ''
+    );
+    const { markAsRead, markAllAsRead } = useNotificationMutations();
 
     const handleMarkAsRead = async (notificationId: string) => {
         if (!businessId) return;
 
         try {
-            await markNotificationAsRead(businessId, notificationId);
-            setNotifications(prev =>
-                prev.map(n => n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n)
-            );
+            await markAsRead(notificationId, businessId);
+            toast.success("Notification marked as read");
+            // Refresh the data
+            refetch();
         } catch (error) {
             console.error("Error marking notification as read:", error);
             toast.error("Failed to mark notification as read");
@@ -55,11 +40,10 @@ export default function NotificationsPage() {
         if (!user?.id || !businessId) return;
 
         try {
-            await markAllNotificationsAsRead(businessId, user.id);
-            setNotifications(prev =>
-                prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() }))
-            );
+            await markAllAsRead(businessId, user.id);
             toast.success("All notifications marked as read");
+            // Refresh the data
+            refetch();
         } catch (error) {
             console.error("Error marking all notifications as read:", error);
             toast.error("Failed to mark all notifications as read");

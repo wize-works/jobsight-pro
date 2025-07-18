@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getMedias, searchMedias, deleteMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { useMedia, useMediaMutations, useMediaSearch } from "@/hooks/useMedia"
+import { useProjects } from "@/hooks/useProjects"
 import { Media } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
@@ -51,56 +51,30 @@ export default function MediaLibrary() {
     const [selectedType, setSelectedType] = useState<string | null>(null);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [mediaItems, setMediaItems] = useState<Media[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
 
-    // Load data on component mount
-    useEffect(() => {
-        loadData()
-    }, [])
+    // Use hooks for data fetching and mutations
+    const { media: mediaItems, loading: mediaLoading, refetch: refetchMedia } = useMedia();
+    const { projects, loading: projectsLoading } = useProjects();
+    const { deleteMedia } = useMediaMutations();
+    const { searchMedia } = useMediaSearch();
 
-    const loadData = async () => {
-        if (!businessId) {
-            return;
-        }
-        try {
-            setLoading(true)
-            const [mediaData, projectsData] = await Promise.all([
-                getMedias(businessId),
-                getProjects(businessId)
-            ])
-            setMediaItems(mediaData)
-            setProjects(projectsData)
-        } catch (error) {
-            console.error("Error loading media data:", error)
-            toast.error({
-                title: "Error",
-                description: "Failed to load media library",
-            })
-        } finally {
-            setLoading(false)
-        }
-    }
+    const loading = mediaLoading || projectsLoading;
 
-    // Handle search
+    // Handle search with debouncing
     useEffect(() => {
         const handleSearch = async () => {
             if (searchQuery.trim()) {
                 try {
-                    const results = await searchMedias(businessId, searchQuery)
-                    setMediaItems(results)
+                    await searchMedia(searchQuery);
                 } catch (error) {
-                    console.error("Error searching media:", error)
+                    console.error("Error searching media:", error);
                 }
-            } else {
-                loadData()
             }
-        }
+        };
 
-        const debounceTimer = setTimeout(handleSearch, 300)
-        return () => clearTimeout(debounceTimer)
-    }, [searchQuery, businessId])
+        const debounceTimer = setTimeout(handleSearch, 300);
+        return () => clearTimeout(debounceTimer);
+    }, [searchQuery, searchMedia]);
 
     // Filter media items based on project and type
     const filteredMedia = mediaItems.filter((item) => {
@@ -122,9 +96,9 @@ export default function MediaLibrary() {
 
         if (confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) {
             try {
-                await Promise.all(selectedItems.map(id => deleteMedia(businessId, id)))
+                await Promise.all(selectedItems.map(id => deleteMedia(id)))
                 setSelectedItems([])
-                await loadData()
+                await refetchMedia()
                 toast.success({
                     title: "Success",
                     description: `${selectedItems.length} item(s) deleted successfully`
@@ -137,12 +111,14 @@ export default function MediaLibrary() {
                 })
             }
         }
-    }    // Handle single item delete
+    }
+
+    // Handle single item delete
     const handleSingleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this item?")) {
             try {
-                await deleteMedia(businessId, id)
-                await loadData()
+                await deleteMedia(id)
+                await refetchMedia()
                 toast.success({
                     title: "Success",
                     description: "Media item deleted successfully"

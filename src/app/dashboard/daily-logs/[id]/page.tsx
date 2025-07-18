@@ -1,10 +1,10 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
-import { getCrews } from "@/app/actions/crews";
-import { getProjects } from "@/app/actions/projects";
-import { getCrewMembersByCrewId } from "@/app/actions/crew-members";
+import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { useCrews } from "@/hooks/useCrews";
+import { useProjects } from "@/hooks/useProjects";
+import { useBusinessData } from "@/hooks/useBusinessData";
 import { useBusiness } from "@/lib/business-context";
 import DailyLogDetailLoading from "./loading";
 import ModalLoading from "@/components/modal-loading";
@@ -26,6 +26,12 @@ export default function DailyLogPage({ params }: { params: Promise<{ id: string 
     const [projects, setProjects] = useState<Project[]>([]);
     const [crewMembers, setCrewMembers] = useState<CrewMember[]>([]);
 
+    // Hooks
+    const { getDailyLogWithDetails } = useDailyLogs();
+    const { crews: crewsData, fetchCrews } = useCrews();
+    const { projects: projectsData, fetchProjects } = useProjects();
+    const { getCrewMembers } = useBusinessData();
+
     useEffect(() => {
         if (!businessId) {
             return;
@@ -35,17 +41,22 @@ export default function DailyLogPage({ params }: { params: Promise<{ id: string 
             const { id } = await params;
             try {
                 // Fetch all required data in parallel
-                const [log, crews, projects] = await Promise.all([
-                    getDailyLogWithDetailsById(businessId, id),
-                    getCrews(businessId),
-                    getProjects(businessId)
+                const [log] = await Promise.all([
+                    getDailyLogWithDetails(id),
+                    fetchCrews(),
+                    fetchProjects()
                 ]);
 
                 if (!log) {
                     throw new Error("Daily log not found");
                 }
 
-                const crewMembers = await getCrewMembersByCrewId(businessId, log.crew_id || "");
+                let crewMembersData: CrewMember[] = [];
+                if (log.crew_id) {
+                    crewMembersData = await getCrewMembers(businessId);
+                    // Note: If crew_members table has a crew_id field, uncomment the line below
+                    // crewMembersData = crewMembersData.filter(member => member.crew_id === log.crew_id);
+                }
 
                 // Ensure materials and equipment arrays exist even if they're empty
                 const safeLog = {
@@ -54,9 +65,9 @@ export default function DailyLogPage({ params }: { params: Promise<{ id: string 
                     equipment: log.equipment || []
                 };
                 setLog(safeLog);
-                setCrews(crews);
-                setProjects(projects);
-                setCrewMembers(crewMembers || []);
+                setCrews(crewsData || []);
+                setProjects(projectsData || []);
+                setCrewMembers(crewMembersData || []);
 
             } catch (error) {
                 console.error("Error loading daily log:", error);

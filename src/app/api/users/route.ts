@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         if (action === 'get_by_id') {
             const id = searchParams.get('id');
             if (!id) {
-                return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
             }
 
             const { data: targetUser, error } = await supabase
@@ -54,16 +54,16 @@ export async function GET(request: NextRequest) {
                 .single();
 
             if (error) {
-                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
             }
 
-            return NextResponse.json({ success: true, data: targetUser });
+            return NextResponse.json({ success: true, data: targetUser }, { status: 200 });
         }
 
         if (action === 'get_by_auth_id') {
             const authId = searchParams.get('auth_id');
             if (!authId) {
-                return NextResponse.json({ error: 'Auth ID is required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'Auth ID is required' }, { status: 400 });
             }
 
             const { data: targetUser, error } = await supabase
@@ -74,16 +74,16 @@ export async function GET(request: NextRequest) {
                 .single();
 
             if (error) {
-                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
             }
 
-            return NextResponse.json({ success: true, data: targetUser });
+            return NextResponse.json({ success: true, data: targetUser }, { status: 200 });
         }
 
         if (action === 'search') {
             const query = searchParams.get('query');
             if (!query) {
-                return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'Search query is required' }, { status: 400 });
             }
 
             const { data: users, error } = await supabase
@@ -95,10 +95,20 @@ export async function GET(request: NextRequest) {
 
             if (error) {
                 console.error('Error searching users:', error);
-                return NextResponse.json({ error: 'Failed to search users' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to search users' }, { status: 500 });
             }
 
-            return NextResponse.json({ success: true, data: users || [] });
+            return NextResponse.json({
+                success: true,
+                data: users || [],
+                pagination: {
+                    count: users?.length || 0,
+                    total: users?.length || 0,
+                    limit: null,
+                    offset: 0,
+                    hasMore: false
+                }
+            }, { status: 200 });
         }
 
         // Default: Get all users with filtering
@@ -133,14 +143,30 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error('Error fetching users:', error);
-            return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch users' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: users || [] });
+        // Get total count for pagination
+        const { count: totalCount } = await supabase
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .eq('business_id', businessId);
+
+        return NextResponse.json({
+            success: true,
+            data: users || [],
+            pagination: {
+                count: users?.length || 0,
+                total: totalCount || 0,
+                limit: limit ? parseInt(limit) : null,
+                offset: offset ? parseInt(offset) : 0,
+                hasMore: offset && limit ? (parseInt(offset) + parseInt(limit)) < (totalCount || 0) : false
+            }
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error in users GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -152,7 +178,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -160,7 +186,7 @@ export async function POST(request: NextRequest) {
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -171,7 +197,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -186,7 +212,7 @@ export async function POST(request: NextRequest) {
         if (action === 'send_invitation') {
             const { email, name, role } = data;
             if (!email || !name || !role) {
-                return NextResponse.json({ error: 'Email, name, and role are required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'Email, name, and role are required' }, { status: 400 });
             }
 
             // This is a placeholder - actual email sending would be implemented
@@ -201,13 +227,13 @@ export async function POST(request: NextRequest) {
                 expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
             };
 
-            return NextResponse.json({ success: true, data: invitation });
+            return NextResponse.json({ success: true, data: invitation }, { status: 201 });
         }
 
         if (action === 'resend_invitation') {
             const { userId } = data;
             if (!userId) {
-                return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
             }
 
             // This is a placeholder - actual resend logic would be implemented
@@ -217,7 +243,7 @@ export async function POST(request: NextRequest) {
         if (action === 'revoke_invitation') {
             const { userId } = data;
             if (!userId) {
-                return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
             }
 
             // This is a placeholder - actual revoke logic would be implemented
@@ -227,7 +253,7 @@ export async function POST(request: NextRequest) {
         // Default: Create a new user
         const { user: newUserData } = data;
         if (!newUserData) {
-            return NextResponse.json({ error: 'User data is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'User data is required' }, { status: 400 });
         }
 
         const now = new Date().toISOString();
@@ -247,14 +273,14 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error('Error creating user:', error);
-            return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: newUser });
+        return NextResponse.json({ success: true, data: newUser }, { status: 201 });
 
     } catch (error) {
         console.error('Error in users POST API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -266,7 +292,7 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -274,7 +300,7 @@ export async function PUT(request: NextRequest) {
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -285,7 +311,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -293,7 +319,7 @@ export async function PUT(request: NextRequest) {
         // Handle update by auth ID
         if (action === 'update_by_auth_id') {
             if (!authId || !updateData) {
-                return NextResponse.json({ error: 'Auth ID and user data are required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'Auth ID and user data are required' }, { status: 400 });
             }
 
             const { data: updatedUser, error } = await supabase
@@ -310,21 +336,21 @@ export async function PUT(request: NextRequest) {
 
             if (error) {
                 console.error('Error updating user by auth ID:', error);
-                return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to update user' }, { status: 500 });
             }
 
-            return NextResponse.json({ success: true, data: updatedUser });
+            return NextResponse.json({ success: true, data: updatedUser }, { status: 200 });
         }
 
         // Handle admin update
         if (action === 'admin_update') {
             if (!userId || !updates) {
-                return NextResponse.json({ error: 'User ID and updates are required' }, { status: 400 });
+                return NextResponse.json({ success: false, error: 'User ID and updates are required' }, { status: 400 });
             }
 
             // Check if user is admin
             if (userData.role !== 'admin') {
-                return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+                return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
             }
 
             const { data: updatedUser, error } = await supabase
@@ -341,15 +367,15 @@ export async function PUT(request: NextRequest) {
 
             if (error) {
                 console.error('Error updating user as admin:', error);
-                return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to update user' }, { status: 500 });
             }
 
-            return NextResponse.json({ success: true, data: updatedUser });
+            return NextResponse.json({ success: true, data: updatedUser }, { status: 200 });
         }
 
         // Default: Update user by ID
         if (!userId || !updateData) {
-            return NextResponse.json({ error: 'User ID and user data are required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'User ID and user data are required' }, { status: 400 });
         }
 
         const { data: updatedUser, error } = await supabase
@@ -366,14 +392,14 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error('Error updating user:', error);
-            return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update user' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: updatedUser });
+        return NextResponse.json({ success: true, data: updatedUser }, { status: 200 });
 
     } catch (error) {
         console.error('Error in users PUT API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -385,19 +411,19 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('id');
 
         if (!userId) {
-            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -408,7 +434,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -422,11 +448,11 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (targetError) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
         }
 
         if (targetUser.auth_id === user.id) {
-            return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Cannot delete your own account' }, { status: 400 });
         }
 
         const { error } = await supabase
@@ -437,13 +463,13 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error('Error deleting user:', error);
-            return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to delete user' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, message: 'User deleted successfully' });
+        return NextResponse.json({ success: true, message: 'User deleted successfully' }, { status: 204 });
 
     } catch (error) {
         console.error('Error in users DELETE API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

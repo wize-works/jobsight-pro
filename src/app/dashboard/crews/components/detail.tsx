@@ -14,6 +14,7 @@ import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
 import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew, updateProjectCrew, deleteProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment, createEquipmentAssignment } from "@/app/actions/equipment-assignments";
+import { useCrews } from "@/hooks/useCrews";
 import { Project, projectStatusOptions } from "@/types/projects";
 import { ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { Equipment } from "@/types/equipment";
@@ -70,6 +71,7 @@ export default function CrewDetailComponent({
     allEquipment = [],
 }: CrewDetailProps) {
     const { businessId } = useBusiness();
+    const { updateCrew: updateCrewAPI } = useCrews();
 
     const [mounted, setMounted] = useState(false);
 
@@ -307,13 +309,20 @@ export default function CrewDetailComponent({
             return;
         }
 
-        await assignCrewLeader(businessId, crew.id, crewLeader);
+        const result = await updateCrewAPI(crew.id, { leader_id: crewLeader });
 
-        toast.success({
-            title: "Success",
-            description: `Assigned ${crewLeader} as the new crew leader.`,
-        });
-        router.refresh();
+        if (result) {
+            toast.success({
+                title: "Success",
+                description: `Assigned leader successfully.`,
+            });
+            router.refresh();
+        } else {
+            toast.error({
+                title: "Error",
+                description: "Failed to assign crew leader.",
+            });
+        }
     }
 
     const handleUpdateNotes = async () => {
@@ -326,12 +335,20 @@ export default function CrewDetailComponent({
         }
 
         try {
-            await updateCrewNotes(businessId, crew.id, notes);
-            toast.success({
-                title: "Success",
-                description: "Crew notes updated successfully.",
-            });
-            router.refresh();
+            const result = await updateCrewAPI(crew.id, { notes });
+
+            if (result) {
+                toast.success({
+                    title: "Success",
+                    description: "Notes updated successfully.",
+                });
+                router.refresh();
+            } else {
+                toast.error({
+                    title: "Error",
+                    description: "Failed to update notes.",
+                });
+            }
         } catch (error) {
             toast.error({
                 title: "Error",
@@ -361,7 +378,7 @@ export default function CrewDetailComponent({
                 notes: formData.notes || null
             } as any; // Using any as a workaround for the type issues
 
-            const result = await updateCrew(businessId, crew.id, crewUpdate);
+            const result = await updateCrewAPI(crew.id, crewUpdate);
 
             if (result) {
                 toast.success({
@@ -584,7 +601,11 @@ export default function CrewDetailComponent({
                                                 {statusOptions[crew.status as keyof typeof statusOptions]?.label || crew.status}
                                             </div>
                                         </div>
-                                        <p className="text-base-content/70 mt-1">Led by {crew.leader}</p>
+                                        <p className="text-base-content/70 mt-1">Led by {
+                                            crew.leader && typeof crew.leader === 'object' ? crew.leader.name :
+                                                crew.leader && typeof crew.leader === 'string' ? crew.leader :
+                                                    "No Leader Assigned"
+                                        }</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

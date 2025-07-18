@@ -37,12 +37,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Equipment fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch equipment" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch equipment" }, { status: 500 });
         }
 
         // Handle includes
@@ -184,14 +184,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: equipment,
             count: equipment?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch equipment" },
+            { success: false, error: "Failed to fetch equipment" },
             { status: 500 }
         );
     }
@@ -202,12 +203,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -238,18 +239,19 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Equipment creation error:", error);
-            return NextResponse.json({ error: "Failed to create equipment" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create equipment" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: equipment,
             message: "Equipment created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Equipment creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create equipment" },
+            { success: false, error: "Failed to create equipment" },
             { status: 500 }
         );
     }

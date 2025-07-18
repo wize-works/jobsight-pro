@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react';
 import { InvoiceAutomationRule, RateValidationResult } from '@/types/invoice-automation';
 import { Client } from '@/types/clients';
 import { Project } from '@/types/projects';
-import {
-    createInvoiceAutomationRule,
-    updateInvoiceAutomationRule,
-    deleteInvoiceAutomationRule
-} from '@/app/actions/client/invoice-automation';
-import { validateRates } from '@/app/actions/client/rate-management';
+import { useInvoiceAutomationMutation } from '@/hooks/useInvoiceAutomation';
 import { rateUtils } from '@/lib/api/rate-management';
 import { useBusiness } from '@/lib/business-context';
 import { toast } from '@/hooks/use-toast';
@@ -38,9 +33,9 @@ export default function RuleModal({
 }: RuleModalProps) {
     const { businessId } = useBusiness();
     const router = useRouter();
+    const { createRule, updateRule, deleteRule, loading: hookLoading, error: hookError } = useInvoiceAutomationMutation();
 
     const isCreating = !rule;
-    const [isUpdating, setIsUpdating] = useState(false);
     const [rateValidation, setRateValidation] = useState<RateValidationResult | null>(null);
 
     const [formData, setFormData] = useState({
@@ -130,8 +125,6 @@ export default function RuleModal({
 
     const handleSave = async () => {
         try {
-            setIsUpdating(true);
-
             // Validation
             if (!formData.clientId) {
                 toast.error("Please select a client");
@@ -139,70 +132,60 @@ export default function RuleModal({
             }
 
             if (isCreating) {
-                const newRule = await createInvoiceAutomationRule(businessId, {
-                    clientId: formData.clientId,
-                    projectId: formData.projectId || undefined,
-                    ruleType: formData.ruleType,
+                const newRule = await createRule({
+                    client_id: formData.clientId,
+                    project_id: formData.projectId || undefined,
+                    rule_type: formData.ruleType,
                     frequency: formData.frequency,
-                    minimumHours: formData.minimumHours,
-                    roundingRule: formData.roundingRule,
+                    minimum_hours: formData.minimumHours,
+                    rounding_rule: formData.roundingRule,
                     config: {
-                        timeBasedConfig: formData.ruleType === 'time_based' ? {
-                            includeLabor: formData.includeLabor,
-                            includeEquipment: formData.includeEquipment,
-                            includeMaterials: formData.includeMaterials,
-                            laborMarkup: formData.laborMarkup,
-                            equipmentMarkup: formData.equipmentMarkup,
-                            materialMarkup: formData.materialMarkup
-                        } : undefined
+                        include_time_entries: formData.includeLabor,
+                        include_equipment: formData.includeEquipment,
+                        include_materials: formData.includeMaterials,
+                        hourly_rate: undefined, // Will use default rates
                     },
-                    autoGenerate: formData.autoGenerate,
-                    requireApproval: formData.requireApproval,
-                    isActive: formData.isActive
+                    auto_generate: formData.autoGenerate,
+                    require_approval: formData.requireApproval,
+                    is_active: formData.isActive
                 });
 
-                if (newRule.success && newRule.data) {
-                    onRuleCreate(newRule.data);
+                if (newRule) {
+                    onRuleCreate(newRule as any); // Type conversion needed due to interface differences
                     onClose();
                     toast.success("Automation rule created successfully!");
                 } else {
-                    throw new Error(newRule.error || "Failed to create rule");
+                    throw new Error("Failed to create rule");
                 }
             } else {
-                const updatedRule = await updateInvoiceAutomationRule(businessId, rule!.id, {
-                    clientId: formData.clientId,
-                    projectId: formData.projectId || undefined,
-                    ruleType: formData.ruleType,
+                const updatedRule = await updateRule(rule!.id, {
+                    client_id: formData.clientId,
+                    project_id: formData.projectId || undefined,
+                    rule_type: formData.ruleType,
                     frequency: formData.frequency,
-                    minimumHours: formData.minimumHours,
-                    roundingRule: formData.roundingRule,
+                    minimum_hours: formData.minimumHours,
+                    rounding_rule: formData.roundingRule,
                     config: {
-                        timeBasedConfig: formData.ruleType === 'time_based' ? {
-                            includeLabor: formData.includeLabor,
-                            includeEquipment: formData.includeEquipment,
-                            includeMaterials: formData.includeMaterials,
-                            laborMarkup: formData.laborMarkup,
-                            equipmentMarkup: formData.equipmentMarkup,
-                            materialMarkup: formData.materialMarkup
-                        } : undefined
+                        include_time_entries: formData.includeLabor,
+                        include_equipment: formData.includeEquipment,
+                        include_materials: formData.includeMaterials,
+                        hourly_rate: undefined, // Will use default rates
                     },
-                    autoGenerate: formData.autoGenerate,
-                    requireApproval: formData.requireApproval,
-                    isActive: formData.isActive
+                    auto_generate: formData.autoGenerate,
+                    require_approval: formData.requireApproval,
+                    is_active: formData.isActive
                 });
 
-                if (updatedRule.success && updatedRule.data) {
-                    onRuleUpdate(updatedRule.data);
+                if (updatedRule) {
+                    onRuleUpdate(updatedRule as any); // Type conversion needed due to interface differences
                     toast.success("Automation rule updated successfully!");
                 } else {
-                    throw new Error(updatedRule.error || "Failed to update rule");
+                    throw new Error("Failed to update rule");
                 }
             }
         } catch (error) {
             console.error('Error saving rule:', error);
             toast.error(isCreating ? "Failed to create rule" : "Failed to update rule");
-        } finally {
-            setIsUpdating(false);
         }
     };
 
@@ -211,16 +194,17 @@ export default function RuleModal({
 
         if (confirm('Are you sure you want to delete this automation rule?')) {
             try {
-                setIsUpdating(true);
-                await deleteInvoiceAutomationRule(businessId, rule.id);
-                onRuleDelete(rule.id);
-                onClose();
-                toast.success("Automation rule deleted successfully!");
+                const success = await deleteRule(rule.id);
+                if (success) {
+                    onRuleDelete(rule.id);
+                    onClose();
+                    toast.success("Automation rule deleted successfully!");
+                } else {
+                    throw new Error("Failed to delete rule");
+                }
             } catch (error) {
                 console.error('Error deleting rule:', error);
                 toast.error("Failed to delete rule");
-            } finally {
-                setIsUpdating(false);
             }
         }
     };
@@ -253,7 +237,7 @@ export default function RuleModal({
                         <button
                             onClick={onClose}
                             className="btn btn-sm btn-circle btn-ghost text-primary-content hover:bg-primary-content hover:text-primary"
-                            disabled={isUpdating}
+                            disabled={hookLoading}
                         >
                             <i className="far fa-times"></i>
                         </button>
@@ -307,7 +291,7 @@ export default function RuleModal({
                                         value={formData.clientId}
                                         onChange={(e) => handleInputChange('clientId', e.target.value)}
                                         className="select select-bordered select-secondary"
-                                        disabled={isUpdating}
+                                        disabled={hookLoading}
                                     >
                                         <option value="">Select a client...</option>
                                         {clients.map(client => (
@@ -326,7 +310,7 @@ export default function RuleModal({
                                         value={formData.projectId}
                                         onChange={(e) => handleInputChange('projectId', e.target.value)}
                                         className="select select-bordered select-secondary"
-                                        disabled={isUpdating || !formData.clientId}
+                                        disabled={hookLoading || !formData.clientId}
                                     >
                                         <option value="">All projects for this client</option>
                                         {filteredProjects.map(project => (
@@ -345,7 +329,7 @@ export default function RuleModal({
                                         value={formData.ruleType}
                                         onChange={(e) => handleInputChange('ruleType', e.target.value)}
                                         className="select select-bordered select-secondary"
-                                        disabled={isUpdating}
+                                        disabled={hookLoading}
                                     >
                                         <option value="time_based">Time & Materials</option>
                                         <option value="milestone">Milestone</option>
@@ -361,7 +345,7 @@ export default function RuleModal({
                                         value={formData.frequency}
                                         onChange={(e) => handleInputChange('frequency', e.target.value)}
                                         className="select select-bordered select-secondary"
-                                        disabled={isUpdating}
+                                        disabled={hookLoading}
                                     >
                                         <option value="daily">Daily</option>
                                         <option value="weekly">Weekly</option>
@@ -381,7 +365,7 @@ export default function RuleModal({
                                         min="0"
                                         step="0.25"
                                         className="input input-bordered input-secondary"
-                                        disabled={isUpdating}
+                                        disabled={hookLoading}
                                     />
                                 </div>
 
@@ -393,7 +377,7 @@ export default function RuleModal({
                                         value={formData.roundingRule}
                                         onChange={(e) => handleInputChange('roundingRule', e.target.value)}
                                         className="select select-bordered select-secondary"
-                                        disabled={isUpdating}
+                                        disabled={hookLoading}
                                     >
                                         <option value="up">Round Up</option>
                                         <option value="down">Round Down</option>
@@ -422,7 +406,7 @@ export default function RuleModal({
                                                     checked={formData.includeLabor}
                                                     onChange={(e) => handleInputChange('includeLabor', e.target.checked)}
                                                     className="checkbox"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </label>
                                         </div>
@@ -439,7 +423,7 @@ export default function RuleModal({
                                                     max="100"
                                                     step="0.1"
                                                     className="input input-bordered input-secondary"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </div>
                                         )}
@@ -454,7 +438,7 @@ export default function RuleModal({
                                                     checked={formData.includeEquipment}
                                                     onChange={(e) => handleInputChange('includeEquipment', e.target.checked)}
                                                     className="checkbox"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </label>
                                         </div>
@@ -471,7 +455,7 @@ export default function RuleModal({
                                                     max="100"
                                                     step="0.1"
                                                     className="input input-bordered input-secondary"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </div>
                                         )}
@@ -486,7 +470,7 @@ export default function RuleModal({
                                                     checked={formData.includeMaterials}
                                                     onChange={(e) => handleInputChange('includeMaterials', e.target.checked)}
                                                     className="checkbox"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </label>
                                         </div>
@@ -503,7 +487,7 @@ export default function RuleModal({
                                                     max="100"
                                                     step="0.1"
                                                     className="input input-bordered input-secondary"
-                                                    disabled={isUpdating}
+                                                    disabled={hookLoading}
                                                 />
                                             </div>
                                         )}
@@ -529,7 +513,7 @@ export default function RuleModal({
                                             checked={formData.autoGenerate}
                                             onChange={(e) => handleInputChange('autoGenerate', e.target.checked)}
                                             className="checkbox"
-                                            disabled={isUpdating}
+                                            disabled={hookLoading}
                                         />
                                     </label>
                                 </div>
@@ -542,7 +526,7 @@ export default function RuleModal({
                                             checked={formData.requireApproval}
                                             onChange={(e) => handleInputChange('requireApproval', e.target.checked)}
                                             className="checkbox"
-                                            disabled={isUpdating}
+                                            disabled={hookLoading}
                                         />
                                     </label>
                                 </div>
@@ -555,7 +539,7 @@ export default function RuleModal({
                                             checked={formData.isActive}
                                             onChange={(e) => handleInputChange('isActive', e.target.checked)}
                                             className="checkbox"
-                                            disabled={isUpdating}
+                                            disabled={hookLoading}
                                         />
                                     </label>
                                 </div>
@@ -571,7 +555,7 @@ export default function RuleModal({
                             type="button"
                             className="btn btn-outline"
                             onClick={onClose}
-                            disabled={isUpdating}
+                            disabled={hookLoading}
                         >
                             Cancel
                         </button>
@@ -580,7 +564,7 @@ export default function RuleModal({
                             <button
                                 onClick={handleDelete}
                                 className="btn btn-error gap-2"
-                                disabled={isUpdating}
+                                disabled={hookLoading}
                             >
                                 <i className="far fa-trash"></i>
                                 Delete
@@ -590,9 +574,9 @@ export default function RuleModal({
                         <button
                             onClick={handleSave}
                             className="btn btn-primary gap-2"
-                            disabled={isUpdating || !formData.clientId}
+                            disabled={hookLoading || !formData.clientId}
                         >
-                            {isUpdating ? (
+                            {hookLoading ? (
                                 <>
                                     <span className="loading loading-spinner loading-sm"></span>
                                     {isCreating ? 'Creating...' : 'Updating...'}

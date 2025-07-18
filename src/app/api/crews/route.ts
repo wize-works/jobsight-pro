@@ -1,31 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
-import { z } from 'zod';
-import { fetchByBusiness, insertWithBusiness, fetchByBusinessWithQuery } from '@/lib/db';
-import { Crew, CrewInsert, CrewWithDetails } from '@/types/crews';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { createServerClient } from '@/lib/supabase';
+import { Crew, CrewInsert, CrewUpdate, CrewWithDetails } from '@/types/crews';
 import { v4 as uuidv4 } from 'uuid';
 
-// Validation schemas
-const CreateCrewSchema = z.object({
-    name: z.string().min(1, 'Crew name is required'),
-    specialty: z.string().optional(),
-    leader_id: z.string().optional(),
-    status: z.enum(['active', 'inactive', 'on_hold', 'archived']).default('active'),
-    notes: z.string().optional(),
-});
-
-const GetCrewsQuerySchema = z.object({
-    withStats: z.string().optional().transform(val => val === 'true'),
-    withMembers: z.string().optional().transform(val => val === 'true'),
-    withProjects: z.string().optional().transform(val => val === 'true'),
-    status: z.string().optional(),
-    specialty: z.string().optional(),
-    q: z.string().optional(),
-    limit: z.string().optional().transform(val => val ? parseInt(val) : undefined),
-    offset: z.string().optional().transform(val => val ? parseInt(val) : undefined),
-});
-
-// GET /api/crews - Get all crews with optional filters and stats
+/**
+ * GET /api/crews
+ * Get all crews for the authenticated user's business
+ */
 export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
@@ -34,117 +16,155 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        const query = GetCrewsQuerySchema.parse(Object.fromEntries(searchParams));
+        const withStats = searchParams.get('withStats') === 'true' || searchParams.get('include_stats') === 'true';
+        const withMembers = searchParams.get('withMembers') === 'true' || searchParams.get('include_members') === 'true';
+        const withProjects = searchParams.get('withProjects') === 'true' || searchParams.get('include_projects') === 'true';
+        const query = searchParams.get('q'); // Search query
+        const status = searchParams.get('status');
+        const specialty = searchParams.get('specialty');
+        const limit = searchParams.get('limit');
+        const offset = searchParams.get('offset');
+
+        const supabase = createServerClient();
+        if (!supabase) {
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
+        }
 
         // Get user's business ID
-        const { data: businesses } = await fetchByBusiness('businesses', '', '*', {
-            filter: { auth_id: user.id }
-        });
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('business_id')
+            .eq('auth_id', user.id)
+            .single();
 
-        if (!businesses || businesses.length === 0) {
+        if (userError || !userData?.business_id) {
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const businessId = businesses[0].id;
+        const businessId = userData.business_id;
 
-        // Build base query
-        let baseQuery: any = {
-            from: 'crews',
-            select: ['*'],
-            where: { business_id: businessId },
-            orderBy: { column: 'name', ascending: true }
-        };
+        // Build query
+        let dbQuery = supabase
+            .from('crews')
+            .select('*')
+            .eq('business_id', businessId);
 
         // Apply filters
-        if (query.status) {
-            baseQuery.where.status = query.status;
+        if (status) {
+            dbQuery = dbQuery.eq('status', status);
         }
-        if (query.specialty) {
-            baseQuery.where.specialty = query.specialty;
+        if (specialty) {
+            dbQuery = dbQuery.eq('specialty', specialty);
         }
-        if (query.q) {
-            baseQuery.where = {
-                ...baseQuery.where,
-                or: [
-                    { name: { ilike: `%${query.q}%` } },
-                    { specialty: { ilike: `%${query.q}%` } },
-                    { notes: { ilike: `%${query.q}%` } }
-                ]
-            };
+
+        // Apply search filter
+        if (query) {
+            dbQuery = dbQuery.or(`name.ilike.%${query}%,specialty.ilike.%${query}%,notes.ilike.%${query}%`);
         }
 
         // Apply pagination
-        if (query.limit) {
-            baseQuery.limit = query.limit;
+        if (limit) {
+            dbQuery = dbQuery.limit(parseInt(limit));
         }
-        if (query.offset) {
-            baseQuery.offset = query.offset;
+        if (offset) {
+            dbQuery = dbQuery.range(parseInt(offset), parseInt(offset) + parseInt(limit || '50') - 1);
         }
 
-        // Fetch crews
-        const { data: crews, error } = await fetchByBusinessWithQuery(businessId, baseQuery);
+        // Order by name
+        dbQuery = dbQuery.order('name', { ascending: true });
+
+        const { data: crews, error } = await dbQuery;
 
         if (error) {
             console.error('Error fetching crews:', error);
             return NextResponse.json({ success: false, error: 'Failed to fetch crews' }, { status: 500 });
         }
 
-        if (!crews || crews.length === 0) {
-            return NextResponse.json({ success: true, data: [] });
-        }
+        let result: any[] = crews || [];
 
-        let result: any[] = crews;
-
-        // Add stats if requested
-        if (query.withStats) {
+        // If withStats is requested, get crew statistics
+        if (withStats && crews && crews.length > 0) {
             const crewIds = crews.map(crew => crew.id);
 
-            const { data: statsData } = await fetchByBusinessWithQuery(businessId, {
-                from: 'crews',
-                select: ['id'],
-                aggregates: [
-                    { function: 'count', table: 'crew_member_assignments', alias: 'total_members', where: { crew_id: { in: crewIds } } },
-                    { function: 'count', table: 'project_crews', alias: 'total_projects', where: { crew_id: { in: crewIds } } },
-                    { function: 'count', table: 'project_crews', alias: 'active_projects', where: { crew_id: { in: crewIds }, start_date: { lte: new Date().toISOString() }, end_date: { gte: new Date().toISOString() } } },
-                    { function: 'count', table: 'equipment_assignments', alias: 'total_equipment', where: { crew_id: { in: crewIds } } }
-                ],
-                where: { id: { in: crewIds } }
-            });
+            // Get member counts
+            const { data: memberCounts } = await supabase
+                .from('crew_member_assignments')
+                .select('crew_id, id')
+                .in('crew_id', crewIds)
+                .eq('business_id', businessId)
+                .eq('status', 'active');
 
-            const statsMap = new Map(statsData?.map(stat => [stat.id, stat]) || []);
+            // Get project counts
+            const { data: projectCounts } = await supabase
+                .from('project_crews')
+                .select('crew_id, id')
+                .in('crew_id', crewIds)
+                .eq('business_id', businessId);
+
+            // Get active project counts
+            const today = new Date().toISOString().split('T')[0];
+            const { data: activeProjectCounts } = await supabase
+                .from('project_crews')
+                .select('crew_id, id')
+                .in('crew_id', crewIds)
+                .eq('business_id', businessId)
+                .lte('start_date', today)
+                .gte('end_date', today);
+
+            // Create stats map
+            const statsMap = new Map();
+            crewIds.forEach(crewId => {
+                statsMap.set(crewId, {
+                    total_members: memberCounts?.filter(m => m.crew_id === crewId).length || 0,
+                    total_projects: projectCounts?.filter(p => p.crew_id === crewId).length || 0,
+                    active_projects: activeProjectCounts?.filter(p => p.crew_id === crewId).length || 0,
+                });
+            });
 
             result = crews.map(crew => ({
                 ...crew,
-                stats: statsMap.get(crew.id) || {
-                    total_members: 0,
-                    total_projects: 0,
-                    active_projects: 0,
-                    total_equipment: 0
-                }
+                total_members: statsMap.get(crew.id)?.total_members || 0,
+                total_projects: statsMap.get(crew.id)?.total_projects || 0,
+                active_projects: statsMap.get(crew.id)?.active_projects || 0,
             }));
         }
 
         // Add member info if requested
-        if (query.withMembers) {
+        if (withMembers && crews && crews.length > 0) {
             const crewIds = crews.map(crew => crew.id);
 
-            const { data: assignments } = await fetchByBusiness('crew_member_assignments', businessId, '*', {
-                filter: { crew_id: { in: crewIds } }
-            });
+            const { data: assignments } = await supabase
+                .from('crew_member_assignments')
+                .select(`
+                    *,
+                    crew_member:crew_members!crew_member_assignments_crew_member_id_fkey (
+                        *,
+                        user:users!crew_members_user_id_fkey (
+                            id,
+                            name,
+                            email,
+                            phone
+                        )
+                    )
+                `)
+                .in('crew_id', crewIds)
+                .eq('business_id', businessId)
+                .eq('status', 'active');
 
-            const memberIds = assignments?.map(a => a.crew_member_id) || [];
-            const { data: members } = await fetchByBusiness('crew_members', businessId, '*', {
-                filter: { id: { in: memberIds } }
-            });
-
-            const memberMap = new Map(members?.map(member => [member.id, member]) || []);
             const assignmentsByCrewId = new Map<string, any[]>();
-
             assignments?.forEach(assignment => {
                 const crewAssignments = assignmentsByCrewId.get(assignment.crew_id) || [];
                 crewAssignments.push({
-                    ...assignment,
-                    member: memberMap.get(assignment.crew_member_id)
+                    ...assignment.crew_member,
+                    assignment: {
+                        id: assignment.id,
+                        role: assignment.role,
+                        status: assignment.status,
+                        start_date: assignment.start_date,
+                        end_date: assignment.end_date,
+                        hourly_rate: assignment.hourly_rate,
+                        notes: assignment.notes
+                    }
                 });
                 assignmentsByCrewId.set(assignment.crew_id, crewAssignments);
             });
@@ -156,50 +176,56 @@ export async function GET(request: NextRequest) {
         }
 
         // Add current projects if requested
-        if (query.withProjects) {
+        if (withProjects && crews && crews.length > 0) {
             const crewIds = crews.map(crew => crew.id);
             const today = new Date().toISOString().split('T')[0];
 
-            const { data: projectCrews } = await fetchByBusiness('project_crews', businessId, '*', {
-                filter: {
-                    crew_id: { in: crewIds },
-                    start_date: { lte: today },
-                    end_date: { gte: today }
-                }
-            });
+            const { data: projectCrews } = await supabase
+                .from('project_crews')
+                .select(`
+                    *,
+                    project:projects!project_crews_project_id_fkey (
+                        id,
+                        name,
+                        status,
+                        start_date,
+                        end_date,
+                        client:clients!projects_client_id_fkey (
+                            id,
+                            name
+                        )
+                    )
+                `)
+                .in('crew_id', crewIds)
+                .eq('business_id', businessId)
+                .lte('start_date', today)
+                .gte('end_date', today);
 
-            const projectIds = projectCrews?.map(pc => pc.project_id) || [];
-            const { data: projects } = await fetchByBusiness('projects', businessId, '*', {
-                filter: { id: { in: projectIds } }
-            });
-
-            const projectMap = new Map(projects?.map(project => [project.id, project]) || []);
             const projectsByCrewId = new Map<string, any[]>();
-
             projectCrews?.forEach(pc => {
                 const crewProjects = projectsByCrewId.get(pc.crew_id) || [];
-                crewProjects.push({
-                    ...pc,
-                    project: projectMap.get(pc.project_id)
-                });
+                crewProjects.push(pc.project);
                 projectsByCrewId.set(pc.crew_id, crewProjects);
             });
 
             result = result.map(crew => ({
                 ...crew,
-                current_projects: projectsByCrewId.get(crew.id) || []
+                projects: projectsByCrewId.get(crew.id) || []
             }));
         }
 
-        return NextResponse.json({ success: true, data: result });
+        return NextResponse.json({ success: true, data: result }, { status: 200 });
 
     } catch (error) {
-        console.error('Error in crews GET route:', error);
+        console.error('Error in crews GET API:', error);
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/crews - Create a new crew
+/**
+ * POST /api/crews
+ * Create a new crew
+ */
 export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
@@ -207,19 +233,30 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
+        const supabase = createServerClient();
+        if (!supabase) {
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
+        }
+
         const body = await request.json();
-        const validatedData = CreateCrewSchema.parse(body);
+
+        // Validate required fields
+        if (!body.name || !body.name.trim()) {
+            return NextResponse.json({ success: false, error: 'Crew name is required' }, { status: 400 });
+        }
 
         // Get user's business ID
-        const { data: businesses } = await fetchByBusiness('businesses', '', '*', {
-            filter: { auth_id: user.id }
-        });
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('business_id')
+            .eq('auth_id', user.id)
+            .single();
 
-        if (!businesses || businesses.length === 0) {
+        if (userError || !userData?.business_id) {
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const businessId = businesses[0].id;
+        const businessId = userData.business_id;
 
         // Create crew
         const crewId = uuidv4();
@@ -228,18 +265,22 @@ export async function POST(request: NextRequest) {
         const crewData: CrewInsert = {
             id: crewId,
             business_id: businessId,
-            name: validatedData.name,
-            specialty: validatedData.specialty || null,
-            leader_id: validatedData.leader_id || null,
-            status: validatedData.status || null,
-            notes: validatedData.notes || null,
+            name: body.name.trim(),
+            specialty: body.specialty || null,
+            leader_id: body.leader_id || null,
+            status: body.status || 'active',
+            notes: body.notes || null,
             created_at: now,
             created_by: user.id,
             updated_at: now,
             updated_by: user.id,
         };
 
-        const { data: crew, error } = await insertWithBusiness('crews', crewData, businessId);
+        const { data: crew, error } = await supabase
+            .from('crews')
+            .insert(crewData)
+            .select()
+            .single();
 
         if (error) {
             console.error('Error creating crew:', error);
@@ -249,10 +290,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, data: crew }, { status: 201 });
 
     } catch (error) {
-        console.error('Error in crews POST route:', error);
-        if (error instanceof z.ZodError) {
-            return NextResponse.json({ success: false, error: error.errors }, { status: 400 });
-        }
+        console.error('Error in crews POST API:', error);
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

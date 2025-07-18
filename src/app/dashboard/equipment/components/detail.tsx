@@ -6,7 +6,7 @@ import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMainte
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
-import { setEquipmentLocation } from "@/app/actions/equipments";
+import { useEquipmentMutation } from "@/hooks/useEquipment";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -59,6 +59,7 @@ export default function EquipmentDetail({
 }: EquipmentDetailProps) {
     const [mounted, setMounted] = useState(false);
     const { businessId } = useBusiness();
+    const { updateEquipment } = useEquipmentMutation();
 
     // Use the safe geolocation hook
     const {
@@ -67,14 +68,14 @@ export default function EquipmentDetail({
         refetch: requestLocation
     } = useCurrentPosition();
 
-    const updateLocationFromGPS = () => {
+    const updateLocationFromGPS = async () => {
         requestLocation();
 
         // Watch for position updates
         if (position) {
             const { latitude, longitude } = position.coords; const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
             setLocation(newLocation);
-            setEquipmentLocation(businessId, { id: equipment.id, location: newLocation } as EquipmentUpdate);
+            await updateEquipment(equipment.id, { location: newLocation });
             toast.success("Equipment location has been updated");
         } else if (geoError) {
             toast.error("Unable to get current location");

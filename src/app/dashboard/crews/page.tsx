@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Crew, CrewInsert, CrewStatus, CrewWithDetails, CrewWithStats } from "@/types/crews";
-import { createCrew, getCrewsWithDetails } from "@/app/actions/crews";
+import { useCrews } from "@/hooks/useCrews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";
@@ -40,26 +40,48 @@ export default function CrewsList() {
         specialty: "",
         status: "active",
         notes: "",
-    }); useEffect(() => {
-        const fetchCrews = async () => {
+    });
+
+    // Initialize crews hook
+    const { crews: hookCrews, fetchCrews, createCrew, error: crewError, loading: hookLoading } = useCrews();
+
+    useEffect(() => {
+        const loadCrews = async () => {
             try {
-                const data = await getCrewsWithDetails(businessId);
-                setCrews(data);
+                await fetchCrews({
+                    include_members: true,
+                    include_stats: true
+                });
             } catch (error) {
                 console.error("Error fetching crews:", error);
                 toast.error("Failed to load crews. Please try again later.");
             }
             setLoading(false);
         };
+
         if (businessId) {
-            fetchCrews();
+            loadCrews();
         }
-    }, [businessId]);
+    }, [businessId, fetchCrews]);
+
+    // Update local state when hook crews change
+    useEffect(() => {
+        setCrews(hookCrews);
+    }, [hookCrews]);
+
+    // Display error if any
+    useEffect(() => {
+        if (crewError) {
+            toast.error(crewError);
+        }
+    }, [crewError]);
 
     const refreshCrews = async () => {
         try {
-            const data = await getCrewsWithDetails(businessId);
-            setCrews(data);
+            await fetchCrews({
+                include_members: true,
+                include_stats: true
+            });
         } catch (error) {
             console.error("Error refreshing crews:", error);
             toast.error("Failed to refresh crews. Please try again later.");
@@ -84,14 +106,15 @@ export default function CrewsList() {
                 leader_id: formData.leader_id || null,
             } as CrewInsert;
 
-            const created = await createCrew(businessId, crewData);
+            const created = await createCrew(crewData);
             if (created) {
-                setCrews(prev => [...prev, created as CrewWithDetails]);
+                // The hook already updates the local state, so we don't need to manually update it
+                toast.success("Crew created successfully!");
+                setShowAddCrewModal(false);
+                return { success: true };
+            } else {
+                throw new Error("Failed to create crew");
             }
-
-            toast.success("Crew created successfully!");
-            setShowAddCrewModal(false);
-            return { success: true };
         }
         catch (error) {
             toast.error("Error creating crew. Please try again.");
@@ -142,8 +165,7 @@ export default function CrewsList() {
 
                     <div className="stat bg-base-100 shadow-lg">
                         <div className="stat-title text-lg">Total Members</div>
-                        <div className="flex items-center justify-between">
-                            <div className="stat-value text-secondary">{crews.reduce((total, crew) => total + crew.member_count, 0)}</div>
+                        <div className="flex items-center justify-between">                                <div className="stat-value text-secondary">{crews.reduce((total, crew) => total + (crew.member_count || 0), 0)}</div>
                             <div className="stat-icon text-secondary bg-secondary/20 rounded-full h-12 w-12 flex items-center justify-center">
                                 <i className="far fa-users fa-lg text-secondary"></i>
                             </div>
@@ -258,7 +280,11 @@ export default function CrewsList() {
                                                 <span className="text-base-content/40"><i className="far fa-screwdriver-wrench ml-2"></i> No current project</span>
                                             )}
                                         </td>
-                                        <td><span className={`${crew.leader_id ? "text-primary" : "text-base-content/40"}`}>{crew.leader}</span></td>
+                                        <td><span className={`${crew.leader_id ? "text-primary" : "text-base-content/40"}`}>
+                                            {crew.leader && typeof crew.leader === 'object' ? crew.leader.name :
+                                                crew.leader && typeof crew.leader === 'string' ? crew.leader :
+                                                    "No Leader Assigned"}
+                                        </span></td>
                                         <td>{crew.member_count}</td>
                                         <td><span className={`badge ${crew.status === "active" ? "badge-primary" : "badge-neutral"}`}>{crew.status}</span></td>
                                         <td>

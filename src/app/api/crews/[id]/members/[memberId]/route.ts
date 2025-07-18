@@ -20,12 +20,12 @@ export async function GET(
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { id, memberId } = await params;
@@ -57,16 +57,16 @@ export async function GET(
 
         if (error) {
             if (error.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Crew member assignment not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew member assignment not found' }, { status: 404 });
             }
             throw error;
         }
 
-        return NextResponse.json(assignment);
+        return NextResponse.json({ success: true, assignment }, { status: 200 });
     } catch (error) {
         console.error('Error fetching crew member:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -79,7 +79,7 @@ export async function PUT(
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -87,7 +87,7 @@ export async function PUT(
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { id, memberId } = await params;
@@ -103,7 +103,7 @@ export async function PUT(
 
         if (checkError) {
             if (checkError.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Crew member assignment not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew member assignment not found' }, { status: 404 });
             }
             throw checkError;
         }
@@ -137,18 +137,18 @@ export async function PUT(
 
         if (error) throw error;
 
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Invalid request data', details: error.errors },
+                { success: false, error: 'Invalid request data', details: error.errors },
                 { status: 400 }
             );
         }
 
         console.error('Error updating crew member assignment:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -161,12 +161,12 @@ export async function DELETE(
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { id, memberId } = await params;
@@ -182,7 +182,7 @@ export async function DELETE(
 
         if (checkError) {
             if (checkError.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Crew member assignment not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew member assignment not found' }, { status: 404 });
             }
             throw checkError;
         }
@@ -198,7 +198,7 @@ export async function DELETE(
 
         if (timesheets && timesheets.length > 0) {
             return NextResponse.json(
-                { error: 'Cannot delete crew member assignment with logged hours' },
+                { success: false, error: 'Cannot delete crew member assignment with logged hours' },
                 { status: 400 }
             );
         }
@@ -213,11 +213,11 @@ export async function DELETE(
 
         if (error) throw error;
 
-        return NextResponse.json({ message: 'Crew member assignment deleted successfully' });
+        return NextResponse.json({ success: true, message: 'Crew member assignment deleted successfully' }, { status: 204 });
     } catch (error) {
         console.error('Error deleting crew member assignment:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

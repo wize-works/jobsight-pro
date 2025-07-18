@@ -7,16 +7,15 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBusiness } from "@/lib/business-context";
 import { useBusiness as useBusinessApi } from "@/hooks/useBusiness";
-import { getUsers, deleteUser } from "@/app/actions/users";
+import { useUsers } from "@/hooks/useUsers";
+import { useProjects } from "@/hooks/useProjects";
+import { useEquipment } from "@/hooks/useEquipment";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { useSubscriptionManager } from "@/hooks/useSubscriptions";
 import { toast } from "@/hooks/use-toast";
-import { getProjects } from "@/app/actions/projects";
-import { getEquipments } from "@/app/actions/equipments";
-import { getInvoicesWithClient } from "@/app/actions/invoices";
-import { getDailyLogs } from "@/app/actions/daily-logs";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
-import { getCurrentSubscription } from "@/app/actions/subscriptions";
-import { BusinessSubscription } from "@/types/subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
 import { ReferralCodeGenerator } from "@/components/referral/ReferralCodeGenerator";
 import { formatDate } from "@/utils/formatters";
@@ -28,21 +27,41 @@ export default function BusinessPage() {
     const [activeTab, setActiveTab] = useState(tabParam || "profile");
     const { business, businessId, loading, error, refreshBusiness } = useBusiness();
     const { updateBusinessFromForm } = useBusinessApi();
-    const [subscription, setSubscription] = useState<BusinessSubscription | null>(null);
+
+    // Use hooks for data fetching
+    const { users, loading: usersLoading } = useUsers();
+    const { projects, loading: projectsLoading } = useProjects();
+    const { data: equipment, loading: equipmentLoading } = useEquipment();
+    const { invoices, loading: invoicesLoading } = useInvoices();
+    const { dailyLogs, loading: dailyLogsLoading } = useDailyLogs();
+    const { subscription, loading: subscriptionLoading } = useSubscriptionManager(businessId || '');
+
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [userCount, setUserCount] = useState(0);
-    const [projectCount, setProjectCount] = useState(0);
-    const [equipmentCount, setEquipmentCount] = useState(0);
-    const [dataLoaded, setDataLoaded] = useState(false);
-    // Initialize usage data with real values - will be updated when data loads
-    const [usageData, setUsageData] = useState({
-        userCount: 0,
-        storageUsedMB: 0, // Will fetch real storage usage
-        invoicesThisMonth: 0, // Will fetch real invoice count
-        aiQueriesThisMonth: 0, // Will fetch real AI usage
-        projectsActive: 0,
-        dailyLogsThisMonth: 0 // Will fetch real daily logs count
-    });
+
+    // Calculate counts from hook data
+    const userCount = Array.isArray(users) ? users.length : 0;
+    const projectCount = Array.isArray(projects) ? projects.length : 0;
+    const equipmentCount = Array.isArray(equipment) ? equipment.length : 0;
+
+    // Calculate usage data from hook data
+    const usageData = {
+        userCount: userCount,
+        storageUsedMB: 0, // TODO: Calculate from media
+        invoicesThisMonth: Array.isArray(invoices) ? invoices.filter(invoice => {
+            const invoiceDate = new Date(invoice.created_at || '');
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+        }).length : 0,
+        aiQueriesThisMonth: 0, // TODO: Track AI usage
+        projectsActive: Array.isArray(projects) ? projects.filter(p => p.status === 'active' || p.status === 'in-progress').length : 0,
+        dailyLogsThisMonth: Array.isArray(dailyLogs) ? dailyLogs.filter(log => {
+            const logDate = new Date(log.created_at || '');
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
+        }).length : 0
+    };
 
     // Handle tab parameter from URL
     useEffect(() => {
@@ -52,63 +71,10 @@ export default function BusinessPage() {
     }, [tabParam]);
 
     useEffect(() => {
-        if (businessId && !dataLoaded && !loading) {
-            async function fetchData() {
-                try {
-                    const [users, projects, equipment, businessSubscription, invoices, dailyLogs] = await Promise.all([
-                        getUsers(businessId),
-                        getProjects(businessId),
-                        getEquipments(businessId),
-                        getCurrentSubscription(businessId),
-                        getInvoicesWithClient(businessId),
-                        getDailyLogs(businessId)
-                    ]);
-
-                    setUserCount(users.length);
-                    setProjectCount(projects.length);
-                    setEquipmentCount(equipment.length);
-                    setSubscription(businessSubscription);
-
-                    // Calculate current month data
-                    const currentMonth = new Date().getMonth();
-                    const currentYear = new Date().getFullYear();
-
-                    const invoicesThisMonth = invoices.filter(invoice => {
-                        const invoiceDate = new Date(invoice.created_at || '');
-                        return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
-                    }).length;
-
-                    const dailyLogsThisMonth = dailyLogs.filter(log => {
-                        const logDate = new Date(log.created_at || '');
-                        return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
-                    }).length;
-
-                    // Update usage data with real counts
-                    setUsageData({
-                        userCount: users.length,
-                        storageUsedMB: 0, // TODO: Calculate actual storage usage from media uploads
-                        invoicesThisMonth: invoicesThisMonth,
-                        aiQueriesThisMonth: 0, // TODO: Track AI query usage in database
-                        projectsActive: projects.filter(p => p.status === 'active' || p.status === 'in-progress').length,
-                        dailyLogsThisMonth: dailyLogsThisMonth
-                    });
-
-                    setDataLoaded(true);
-                } catch (error) {
-                    console.error("Error fetching analytics data:", error);
-                }
-            }
-            fetchData();
-        }
-
         if (!business) {
             refreshBusiness();
         }
-
-        if (business && !dataLoaded) {
-            refreshBusiness();
-        }
-    }, [businessId, business, loading, dataLoaded]);
+    }, [business, refreshBusiness]);
 
     const handleSaveChanges = async (formData: FormData) => {
         setIsSubmitting(true);
@@ -121,19 +87,31 @@ export default function BusinessPage() {
 
             if (result) {
                 await refreshBusiness();
-                toast.success("Business information updated successfully");
+                toast({
+                    title: "Success",
+                    description: "Business information updated successfully",
+                    variant: "success"
+                });
             } else {
-                toast.error("Failed to update business information");
+                toast({
+                    title: "Error",
+                    description: "Failed to update business information",
+                    variant: "error"
+                });
             }
         } catch (error) {
             console.error("Error updating business:", error);
-            toast.error("An error occurred while updating business information");
+            toast({
+                title: "Error",
+                description: "An error occurred while updating business information",
+                variant: "error"
+            });
         } finally {
             setIsSubmitting(false);
         }
     }
 
-    if (loading) {
+    if (loading || usersLoading || projectsLoading || equipmentLoading || invoicesLoading || dailyLogsLoading || subscriptionLoading) {
         return <div className="flex justify-center items-center h-64">Loading...</div>
     }
 
@@ -459,7 +437,11 @@ export default function BusinessPage() {
                             <ReferralCodeGenerator
                                 businessId={businessId || ''}
                                 onCodeGenerated={(code) => {
-                                    toast.success("Referral code generated successfully!");
+                                    toast({
+                                        title: "Success",
+                                        description: "Referral code generated successfully!",
+                                        variant: "success"
+                                    });
                                 }}
                             />
                         </div>

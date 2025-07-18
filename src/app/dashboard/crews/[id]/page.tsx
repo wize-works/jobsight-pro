@@ -1,5 +1,5 @@
 "use client";
-import { getCrewDetailsByID } from "@/app/actions/crews";
+import { useCrews } from "@/hooks/useCrews";
 import CrewDetailComponent from "../components/detail";
 import { useBusiness } from "@/lib/business-context";
 import { useEffect, useState } from "react";
@@ -24,6 +24,9 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
     const [projects, setProjects] = useState<Project[]>([]);
     const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
 
+    // Initialize crews hook
+    const { getCrew, error: crewError } = useCrews();
+
     useEffect(() => {
         if (!businessId) {
             return;
@@ -32,41 +35,40 @@ export default function CrewPage({ params }: { params: Promise<{ id: string }> }
             setLoading(true);
             const { id: crewId } = await params;
             try {
-                const crewDetails = await getCrewDetailsByID(businessId, crewId);
+                const crewDetails = await getCrew(crewId, {
+                    include_members: true,
+                    include_projects: true,
+                    include_stats: true
+                });
 
                 if (crewDetails) {
-                    const {
-                        crew: crewData,
-                        members: membersData,
-                        allMembers: allMembersData,
-                        schedule: scheduleData,
-                        history: historyData,
-                        equipment: equipmentData,
-                        projects: projectsData,
-                        allEquipment: allEquipmentData
-                    } = crewDetails;
+                    setCrew(crewDetails);
+                    // Handle members from the API response
+                    const crewMembers = crewDetails.members || [];
+                    setMembers(crewMembers);
+                    setAllMembers(crewMembers);
 
-                    setCrew(crewData);
-                    setMembers(membersData);
-                    setAllMembers(allMembersData);
-                    setSchedule(scheduleData);
-                    setHistory(historyData);
-                    setEquipment(equipmentData);
-                    setProjects(projectsData);
-                    setAllEquipment(allEquipmentData);
+                    // Handle projects from the API response
+                    const crewProjects = crewDetails.projects || [];
+                    setProjects(crewProjects);
+
+                    // Initialize empty arrays for data not yet implemented in API
+                    setSchedule([]);
+                    setHistory([]);
+                    setEquipment([]);
+                    setAllEquipment([]);
                 } else {
-                    console.error("No crew details returned");
+                    console.error("Failed to load crew details");
                 }
             } catch (error) {
                 console.error("Error fetching crew details:", error);
-            }
-            finally {
+            } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [businessId, params]);
+    }, [businessId, params, getCrew]);
 
     if (loading) {
         return <CrewDetailLoading />;

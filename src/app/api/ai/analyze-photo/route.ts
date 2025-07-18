@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json(
-                { error: 'Authentication required' },
+                { success: false, error: 'Authentication required' },
                 { status: 401 }
             );
         }
@@ -18,18 +18,18 @@ export async function POST(request: NextRequest) {
 
         if (!imageUrl) {
             return NextResponse.json(
-                { error: 'Image URL is required' },
+                { success: false, error: 'Image URL is required' },
                 { status: 400 }
             );
         }
 
         const analysis = await analyzeConstructionPhoto(imageUrl);
 
-        return NextResponse.json(analysis);
+        return NextResponse.json({ success: true, data: analysis }, { status: 200 });
     } catch (error) {
         console.error('Photo analysis API error:', error);
         return NextResponse.json(
-            { error: 'Failed to analyze photo' },
+            { success: false, error: 'Failed to analyze photo' },
             { status: 500 }
         );
     }

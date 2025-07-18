@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -49,13 +49,13 @@ export async function GET(request: NextRequest) {
         // Validate business access
         const hasAccess = await validateBusinessAccess(user.id, businessId);
         if (!hasAccess) {
-            return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
         }
 
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         if (crewMemberId) {
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
             if (error) {
                 console.error('Error fetching crew member:', error);
-                return NextResponse.json({ error: 'Crew member not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew member not found' }, { status: 404 });
             }
 
             return NextResponse.json({ success: true, data: crewMember });
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
 
             if (error) {
                 console.error('Error fetching crew members:', error);
-                return NextResponse.json({ error: 'Failed to fetch crew members' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to fetch crew members' }, { status: 500 });
             }
 
-            return NextResponse.json({ success: true, data: crewMembers || [] });
+            return NextResponse.json({ success: true, data: crewMembers || [] }, { status: 200 });
         }
 
     } catch (error) {
         console.error('Error in crew members API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

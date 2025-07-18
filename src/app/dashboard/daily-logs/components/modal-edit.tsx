@@ -3,9 +3,8 @@ import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { useState, useEffect } from "react";
-import { updateDailyLog, getDailyLogWithDetailsById } from "@/app/actions/daily-logs";
-import { createDailyLogMaterial, updateDailyLogMaterial } from "@/app/actions/daily-log-materials";
-import { createDailyLogEquipment, updateDailyLogEquipment } from "@/app/actions/daily-log-equipment";
+import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { DailyLogAPI } from "@/lib/api/daily-logs";
 import { format } from "date-fns";
 import { DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
@@ -44,6 +43,9 @@ export default function EditModal({
     onClose,
     onSave
 }: EditModalProps) {
+    const { businessId } = useBusiness();
+    const { updateDailyLog, getDailyLogWithDetails } = useDailyLogs();
+
     const [formData, setFormData] = useState({
         date: "",
         project_id: "",
@@ -76,7 +78,7 @@ export default function EditModal({
         name: string | null;
         hours: number | null;
         isNew?: boolean;
-    }>>([]); const { businessId } = useBusiness();
+    }>>([]);
     const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -379,7 +381,7 @@ export default function EditModal({
             };
 
             // Update the main daily log
-            const updatedLog = await updateDailyLog(businessId, log.id, dailyLogUpdateData);
+            const updatedLog = await updateDailyLog(log.id, dailyLogUpdateData);
 
             if (!updatedLog) {
                 throw new Error("Failed to update daily log");
@@ -397,7 +399,7 @@ export default function EditModal({
                         cost: material.cost,
                     } as DailyLogMaterialInsert;
 
-                    return await createDailyLogMaterial(businessId, newMaterial);
+                    return await DailyLogAPI.createMaterial(log.id, newMaterial);
                 } else {
                     const materialUpdateData = {
                         name: material.name,
@@ -405,7 +407,7 @@ export default function EditModal({
                         cost: material.cost,
                     } as DailyLogMaterialUpdate;
 
-                    return await updateDailyLogMaterial(businessId, material.id, materialUpdateData);
+                    return await DailyLogAPI.updateMaterial(log.id, material.id, materialUpdateData);
                 }
             });
 
@@ -421,14 +423,14 @@ export default function EditModal({
                         hours: equip.hours,
                     } as DailyLogEquipmentInsert;
 
-                    return await createDailyLogEquipment(businessId, newEquipment);
+                    return await DailyLogAPI.createEquipment(log.id, newEquipment);
                 } else {
                     const equipmentUpdateData = {
                         name: equip.name,
                         hours: equip.hours,
                     } as DailyLogEquipmentUpdate;
 
-                    return await updateDailyLogEquipment(businessId, equip.id, equipmentUpdateData);
+                    return await DailyLogAPI.updateEquipment(log.id, equip.id, equipmentUpdateData);
                 }
             });
 
@@ -436,7 +438,10 @@ export default function EditModal({
             await Promise.all([...materialPromises, ...equipmentPromises]);
 
             // Get the updated log with all details
-            const refreshedLog = await getDailyLogWithDetailsById(businessId, log.id);
+            const refreshedLog = await getDailyLogWithDetails(log.id);
+            if (!refreshedLog) {
+                throw new Error("Failed to refresh log data");
+            }
 
             toast.success({
                 title: "Success",

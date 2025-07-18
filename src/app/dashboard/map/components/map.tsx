@@ -13,11 +13,9 @@ import { DivIcon, Icon } from "leaflet";
 import { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import React, { useEffect, useState } from "react";
-import { getProjects, setProjectLocation } from "@/app/actions/projects";
+import { useProjects, useProjectMutations } from "@/hooks/useProjects";
+import { useEquipment, useEquipmentMutation } from "@/hooks/useEquipment";
 import { toast } from "@/hooks/use-toast";
-import { set } from "zod";
-import { setEquipmentLocation } from "@/app/actions/equipments";
-import { useBusinessData } from "@/hooks/useBusinessData";
 import { useBusiness } from "@/lib/business-context";
 import { useRouter } from "next/navigation";
 
@@ -49,8 +47,6 @@ interface MapComponentProps {
 export default function MapComponent({ location }: MapComponentProps) {
     const { businessId } = useBusiness();
     const router = useRouter();
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [equipments, setEquipments] = useState<Equipment[]>([]);
     const [markers, setMarkers] = useState<L.LatLng[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
         null,
@@ -59,21 +55,15 @@ export default function MapComponent({ location }: MapComponentProps) {
         string | null
     >(null);
 
-    // Use the new business data hook
-    const { getEquipment } = useBusinessData();
+    // Use hooks for data fetching and mutations
+    const { projects, loading: projectsLoading } = useProjects();
+    const { data: equipment, loading: equipmentLoading } = useEquipment();
+    const { updateProject } = useProjectMutations();
+    const { updateEquipment } = useEquipmentMutation();
 
     useEffect(() => {
-        const fetchEquipment = async () => {
-            const fetchedEquipment = await getEquipment(businessId);
-            setEquipments(fetchedEquipment);
-        };
-        const fetchProjects = async () => {
-            const fetchedProjects = await getProjects(businessId);
-            setProjects(fetchedProjects);
-        };
-        fetchEquipment();
-        fetchProjects();
-    }, [businessId, getEquipment]);
+        // Data is automatically fetched by the hooks
+    }, [businessId]);
 
     function ClickHandler({
         onMapClick,
@@ -135,40 +125,27 @@ export default function MapComponent({ location }: MapComponentProps) {
                                             onSubmit={async (e) => {
                                                 e.preventDefault();
                                                 if (selectedProjectId) {
-                                                    // Corrected setProjectLocation call
-                                                    const project =
-                                                        await setProjectLocation(
-                                                            {
-                                                                id: selectedProjectId,
-                                                                business_id:
-                                                                    businessId,
-                                                                location: `Lat: ${marker.lat}, Lon: ${marker.lng}`,
-                                                            } as Project,
+                                                    try {
+                                                        // Use the updateProject hook
+                                                        await updateProject(selectedProjectId, {
+                                                            location: `Lat: ${marker.lat}, Lon: ${marker.lng}`,
+                                                        } as any);
+
+                                                        setMarkers((prev) =>
+                                                            prev.filter(
+                                                                (_, i) =>
+                                                                    i !== index,
+                                                            ),
                                                         );
-                                                    if (!project) {
+                                                        setSelectedProjectId(null);
+                                                        toast.success(
+                                                            "Project location updated successfully!",
+                                                        );
+                                                    } catch (error) {
                                                         toast.error(
                                                             "Failed to update project location.",
                                                         );
-                                                        return;
                                                     }
-
-                                                    setProjects((prev) =>
-                                                        prev.map((p) =>
-                                                            p.id === project.id
-                                                                ? project
-                                                                : p,
-                                                        ),
-                                                    );
-                                                    setMarkers((prev) =>
-                                                        prev.filter(
-                                                            (_, i) =>
-                                                                i !== index,
-                                                        ),
-                                                    );
-                                                    setSelectedProjectId(null);
-                                                    toast.success(
-                                                        "Project location updated successfully!",
-                                                    );
                                                 }
                                             }}
                                         >
@@ -226,41 +203,27 @@ export default function MapComponent({ location }: MapComponentProps) {
                                             onSubmit={async (e) => {
                                                 e.preventDefault();
                                                 if (selectedEquipmentId) {
-                                                    const equipment =
-                                                        await setEquipmentLocation(
-                                                            businessId,
-                                                            {
-                                                                id: selectedEquipmentId,
-                                                                location: `Lat: ${marker.lat}, Lon: ${marker.lng}`,
-                                                            } as Equipment,
+                                                    try {
+                                                        // Use the updateEquipment hook
+                                                        await updateEquipment(selectedEquipmentId, {
+                                                            location: `Lat: ${marker.lat}, Lon: ${marker.lng}`,
+                                                        } as any);
+
+                                                        setMarkers((prev) =>
+                                                            prev.filter(
+                                                                (_, i) =>
+                                                                    i !== index,
+                                                            ),
                                                         );
-                                                    if (!equipment) {
+                                                        setSelectedEquipmentId(null);
+                                                        toast.success(
+                                                            "Equipment location updated successfully!",
+                                                        );
+                                                    } catch (error) {
                                                         toast.error(
                                                             "Failed to update equipment location.",
                                                         );
-                                                        return;
                                                     }
-
-                                                    setEquipments((prev) =>
-                                                        prev.map((p) =>
-                                                            p.id ===
-                                                                equipment.id
-                                                                ? equipment
-                                                                : p,
-                                                        ),
-                                                    );
-                                                    setMarkers((prev) =>
-                                                        prev.filter(
-                                                            (_, i) =>
-                                                                i !== index,
-                                                        ),
-                                                    );
-                                                    setSelectedEquipmentId(
-                                                        null,
-                                                    );
-                                                    toast.success(
-                                                        "Equipment location updated successfully!",
-                                                    );
                                                 }
                                             }}
                                         >
@@ -280,13 +243,13 @@ export default function MapComponent({ location }: MapComponentProps) {
                                                     Select Equipment
                                                 </option>
                                                 {(
-                                                    equipments as unknown as Equipment[]
-                                                ).map((equipment) => (
+                                                    equipment as Equipment[]
+                                                ).map((equipmentItem) => (
                                                     <option
-                                                        key={equipment.id}
-                                                        value={equipment.id}
+                                                        key={equipmentItem.id}
+                                                        value={equipmentItem.id}
                                                     >
-                                                        {equipment.name}
+                                                        {equipmentItem.name}
                                                     </option>
                                                 ))}
                                             </select>
@@ -387,7 +350,7 @@ export default function MapComponent({ location }: MapComponentProps) {
                     </Marker>
                 );
             })}
-            {equipments.map((item) => {
+            {equipment.map((item) => {
                 const match = item.location?.match(
                     /Lat: ([-\d.]+), Lon: ([-\d.]+)/,
                 );
@@ -419,10 +382,10 @@ export default function MapComponent({ location }: MapComponentProps) {
                                         <i className="far fa-circle text-secondary w-4"></i>
                                         <span
                                             className={`badge badge-sm ${item.status === "available"
-                                                    ? "badge-success"
-                                                    : item.status === "in_use"
-                                                        ? "badge-warning"
-                                                        : "badge-error"
+                                                ? "badge-success"
+                                                : item.status === "in_use"
+                                                    ? "badge-warning"
+                                                    : "badge-error"
                                                 }`}
                                         >
                                             {item.status?.replace("_", " ")}

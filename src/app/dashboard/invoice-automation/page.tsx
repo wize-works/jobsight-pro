@@ -2,28 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { InvoiceAutomationRule } from '@/types/invoice-automation';
+import {
+    InvoiceAutomationRule
+} from '@/types/invoice-automation';
 import { Client } from '@/types/clients';
 import { Project } from '@/types/projects';
 import { RateValidationResult } from '@/types/invoice-automation';
-import {
-    getInvoiceAutomationRules,
-    deleteInvoiceAutomationRule,
-    generateInvoiceFromRule
-} from '@/app/actions/client/invoice-automation';
 import { validateRates } from '@/app/actions/client/rate-management';
 import { rateUtils } from '@/lib/api/rate-management';
 import { getClients } from '@/app/actions/clients';
 import { getProjects } from '@/app/actions/projects';
 import { useBusiness } from '@/lib/business-context';
 import { toast } from '@/hooks/use-toast';
+import { useInvoiceAutomation } from '@/hooks/useInvoiceAutomation';
 import RuleModal from './components/rule-modal';
 
 export default function InvoiceAutomationPage() {
     const router = useRouter();
     const { businessId } = useBusiness();
+    const {
+        rules,
+        loading: rulesLoading,
+        error: rulesError,
+        fetchRules,
+        deleteRule,
+        generateInvoice: generateInvoiceFromRule
+    } = useInvoiceAutomation();
 
-    const [rules, setRules] = useState<InvoiceAutomationRule[]>([]);
     const [clients, setClients] = useState<Client[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [rateValidation, setRateValidation] = useState<RateValidationResult | null>(null);
@@ -46,14 +51,15 @@ export default function InvoiceAutomationPage() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [rulesData, clientsData, projectsData, validationData] = await Promise.all([
-                getInvoiceAutomationRules(businessId),
+            const [clientsData, projectsData, validationData] = await Promise.all([
                 getClients(businessId),
                 getProjects(businessId),
                 rateUtils.validateBusinessRates(businessId)
             ]);
 
-            setRules(rulesData);
+            // Fetch rules separately using the hook
+            fetchRules();
+
             setClients(clientsData);
             setProjects(projectsData);
             setRateValidation(validationData);
@@ -80,19 +86,19 @@ export default function InvoiceAutomationPage() {
             startDate.setDate(startDate.getDate() - 30);
 
             const dateRange = {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: endDate.toISOString().split('T')[0]
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0]
             };
 
             // Generate a preview invoice using the rule
-            const result = await generateInvoiceFromRule(businessId, ruleId, dateRange);
+            const result = await generateInvoiceFromRule(ruleId, dateRange);
 
-            if (result.success && result.data) {
+            if (result && result.success) {
                 toast.success('Test completed successfully! Preview generated.');
                 // Navigate to preview page with the generated invoice data
                 router.push(`/dashboard/invoice-automation/preview?ruleId=${ruleId}`);
             } else {
-                toast.error(result.error || 'Failed to generate test invoice');
+                toast.error(result?.error || 'Failed to generate test invoice');
             }
         } catch (error) {
             console.error('Error testing rule:', error);
@@ -104,13 +110,12 @@ export default function InvoiceAutomationPage() {
 
     const handleDeleteRule = async (ruleId: string) => {
         try {
-            const result = await deleteInvoiceAutomationRule(businessId, ruleId);
+            const success = await deleteRule(ruleId);
 
-            if (result.success) {
+            if (success) {
                 toast.success('Rule deleted successfully');
-                await loadData();
             } else {
-                toast.error(result.error || 'Failed to delete rule');
+                toast.error('Failed to delete rule');
             }
         } catch (error) {
             console.error('Error deleting rule:', error);
@@ -249,23 +254,23 @@ export default function InvoiceAutomationPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-4">
                                             <h3 className="card-title">
-                                                {getRuleTypeLabel(rule.ruleType)} Rule
+                                                {getRuleTypeLabel(rule.rule_type)} Rule
                                             </h3>
-                                            {getStatusBadge(rule.isActive)}
+                                            {getStatusBadge(rule.is_active)}
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Client</label>
-                                                <p className="text-sm font-medium">{getClientName(rule.clientId)}</p>
+                                                <p className="text-sm font-medium">{getClientName(rule.client_id)}</p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Project</label>
-                                                <p className="text-sm font-medium">{getProjectName(rule.projectId)}</p>
+                                                <p className="text-sm font-medium">{getProjectName(rule.project_id)}</p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Type</label>
-                                                <p className="text-sm font-medium">{getRuleTypeLabel(rule.ruleType)}</p>
+                                                <p className="text-sm font-medium">{getRuleTypeLabel(rule.rule_type)}</p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Frequency</label>
@@ -276,13 +281,13 @@ export default function InvoiceAutomationPage() {
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Auto Generate</label>
                                                 <p className="text-sm font-medium">
-                                                    {rule.autoGenerate ? 'Yes' : 'No'}
+                                                    {rule.auto_generate ? 'Yes' : 'No'}
                                                 </p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-base-content/70">Requires Approval</label>
                                                 <p className="text-sm font-medium">
-                                                    {rule.requireApproval ? 'Yes' : 'No'}
+                                                    {rule.require_approval ? 'Yes' : 'No'}
                                                 </p>
                                             </div>
                                         </div>
@@ -304,7 +309,7 @@ export default function InvoiceAutomationPage() {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                setSelectedRule(rule);
+                                                setSelectedRule(rule as any); // Type conversion needed due to interface differences
                                                 setRuleModalOpen(true);
                                             }}
                                             className="btn btn-primary btn-sm"
@@ -376,17 +381,17 @@ export default function InvoiceAutomationPage() {
                 clients={clients}
                 projects={projects}
                 onRuleCreate={(newRule) => {
-                    setRules(prev => [...prev, newRule]);
+                    fetchRules(); // Refresh the rules from the hook
                     setRuleModalOpen(false);
                     setSelectedRule(null);
                 }}
                 onRuleUpdate={(updatedRule) => {
-                    setRules(prev => prev.map(r => r.id === updatedRule.id ? updatedRule : r));
+                    fetchRules(); // Refresh the rules from the hook
                     setRuleModalOpen(false);
                     setSelectedRule(null);
                 }}
                 onRuleDelete={(ruleId) => {
-                    setRules(prev => prev.filter(r => r.id !== ruleId));
+                    fetchRules(); // Refresh the rules from the hook
                     setRuleModalOpen(false);
                     setSelectedRule(null);
                 }}

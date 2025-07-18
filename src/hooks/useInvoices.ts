@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { invoicesApi, Invoice, InvoiceQuery, CreateInvoiceData, UpdateInvoiceData } from '@/lib/api/invoices';
+import { InvoiceWithDetails } from '@/types/invoices';
 
 // Hook for fetching invoices
 export const useInvoices = (query?: InvoiceQuery) => {
@@ -13,10 +14,12 @@ export const useInvoices = (query?: InvoiceQuery) => {
             setLoading(true);
             setError(null);
             const response = await invoicesApi.getInvoices(query);
-            setInvoices(response.data);
-            setCount(response.count);
+            setInvoices(Array.isArray(response.data) ? response.data : []);
+            setCount(response.pagination.count);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch invoices');
+            setInvoices([]); // Ensure invoices is always an array
+            setCount(0);
         } finally {
             setLoading(false);
         }
@@ -204,7 +207,7 @@ export const useInvoice = (id: string) => {
 
 // Hook for invoice with details
 export const useInvoiceWithDetails = (id: string) => {
-    const [invoice, setInvoice] = useState<Invoice | null>(null);
+    const [invoice, setInvoice] = useState<InvoiceWithDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -213,7 +216,7 @@ export const useInvoiceWithDetails = (id: string) => {
             setLoading(true);
             setError(null);
             const data = await invoicesApi.getInvoiceWithDetails(id);
-            setInvoice(data);
+            setInvoice(data as any);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch invoice details');
         } finally {

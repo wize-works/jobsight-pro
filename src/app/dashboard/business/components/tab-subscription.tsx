@@ -1,17 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import {
-    getCurrentSubscription,
-    cancelSubscription,
-    getSubscriptionPlans,
-    createSubscription,
-} from "@/app/actions/subscriptions";
-import {
-    createCheckoutSession,
-    createBillingPortalSession,
-    updateStripeSubscription,
-} from "@/app/actions/stripe";
+import { useState, useEffect } from "react";
+import { useSubscriptionManager } from "@/hooks/useSubscriptions";
+import { useStripeCheckout, useStripeBillingPortal } from "@/hooks/useStripe";
 import type {
     BusinessSubscription,
     SubscriptionPlan,
@@ -22,63 +13,26 @@ import { useBusiness } from "@/lib/business-context";
 
 export const TabSubscription = () => {
     const { businessId } = useBusiness();
-    const [currentSubscription, setCurrentSubscription] =
-        useState<BusinessSubscription | null>(null);
-    const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-    const [billingInterval, setBillingInterval] =
-        useState<BillingInterval>("monthly");
-    const [isLoading, setIsLoading] = useState(true);
+    const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+
+    // Use the subscription manager hook
+    const {
+        subscription: currentSubscription,
+        plans,
+        loading: isLoading,
+        error,
+        createOrUpdateSubscription,
+        cancelCurrentSubscription,
+        refreshData
+    } = useSubscriptionManager(businessId || '');
+
+    // Use Stripe hooks
+    const { createCheckoutSession, loading: checkoutLoading } = useStripeCheckout();
+    const { createBillingPortalSession, loading: billingLoading } = useStripeBillingPortal();
+
     const [isUpdating, setIsUpdating] = useState(false);
-    const isLoadingRef = useRef(false);
 
-    useEffect(() => {
-        const loadData = async () => {
-            if (!businessId || isLoadingRef.current) return;
-
-            try {
-                isLoadingRef.current = true;
-                setIsLoading(true);
-
-                const [subscription, subscriptionPlans] = await Promise.all([
-                    getCurrentSubscription(businessId),
-                    getSubscriptionPlans(),
-                ]);
-
-                setCurrentSubscription(subscription);
-                setPlans(subscriptionPlans);
-            } catch (error) {
-                console.error("Error loading subscription data:", error);
-            } finally {
-                setIsLoading(false);
-                isLoadingRef.current = false;
-            }
-        };
-
-        loadData();
-    }, [businessId]);
-
-    // Separate function for manual reloading
-    const reloadData = useCallback(async () => {
-        if (!businessId || isLoadingRef.current) return;
-
-        try {
-            isLoadingRef.current = true;
-            setIsLoading(true);
-
-            const [subscription, subscriptionPlans] = await Promise.all([
-                getCurrentSubscription(businessId),
-                getSubscriptionPlans(),
-            ]);
-
-            setCurrentSubscription(subscription);
-            setPlans(subscriptionPlans);
-        } catch (error) {
-            console.error("Error reloading subscription data:", error);
-        } finally {
-            setIsLoading(false);
-            isLoadingRef.current = false;
-        }
-    }, [businessId]);
+    // Remove the useEffect that calls refreshData - the useSubscriptionManager hook already handles fetching data when businessId changes
 
     const handlePlanChange = async (planId: string) => {
         try {
@@ -86,101 +40,139 @@ export const TabSubscription = () => {
 
             // Handle personal plan separately (no Stripe required)
             if (planId === "personal") {
-                const result = await createSubscription(
-                    businessId,
-                    planId,
-                    billingInterval,
-                );
+                const result = await createOrUpdateSubscription(planId, billingInterval);
 
                 if (result.success) {
-                    toast.success("Subscription updated successfully!");
-                    await reloadData();
+                    toast({
+                        title: "Success",
+                        description: "Subscription updated successfully!",
+                        variant: "success"
+                    });
+                    await refreshData();
                 } else {
-                    toast.error(result.error || "Failed to update subscription");
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to update subscription",
+                        variant: "error"
+                    });
                 }
                 return;
             }
 
             // Handle other paid plans
             if (currentSubscription?.stripe_subscription_id) {
-                // User has existing Stripe subscription, update it
-                const result = await updateStripeSubscription(
-                    businessId,
+                // User has existing Stripe subscription, create checkout session for changes
+                const result = await createCheckoutSession({
                     planId,
                     billingInterval,
-                );
+                });
 
                 if (result.success) {
-                    toast.success("Subscription updated successfully!");
-                    await reloadData();
+                    toast({
+                        title: "Success",
+                        description: "Redirecting to Stripe checkout...",
+                        variant: "success"
+                    });
+                    // Redirect is handled automatically by the hook
                 } else {
-                    toast.error(result.error || "Failed to update subscription");
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to start checkout process",
+                        variant: "error"
+                    });
                 }
             } else {
                 // New Stripe customer, redirect to checkout
-                const result = await createCheckoutSession(
-                    businessId,
+                const result = await createCheckoutSession({
                     planId,
                     billingInterval,
-                );
-                if (result.success && result.sessionUrl) {
-                    window.location.href = result.sessionUrl;
-                    return;
-                } else {
-                    toast.error(result.error || "Failed to create checkout session");
+                });
+                if (!result.success) {
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to create checkout session",
+                        variant: "error"
+                    });
                 }
+                // Redirect is handled automatically by the hook
             }
         } catch (error) {
             console.error("Error updating subscription:", error);
-            toast.error("Failed to update subscription");
+            toast({
+                title: "Error",
+                description: "Failed to update subscription",
+                variant: "error"
+            });
         } finally {
             setIsUpdating(false);
         }
     };
 
     const handleCancelSubscription = async () => {
-        setIsLoading(true);
+        setIsUpdating(true);
         try {
             // For Stripe subscriptions, redirect to billing portal
             if (currentSubscription?.stripe_subscription_id) {
-                const result = await createBillingPortalSession(businessId);
-                if (result.success && result.sessionUrl) {
-                    window.location.href = result.sessionUrl;
-                } else {
-                    toast.error(result.error || "Failed to access billing portal");
+                const result = await createBillingPortalSession();
+                if (!result.success) {
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to access billing portal",
+                        variant: "error"
+                    });
                 }
+                // Redirect is handled automatically by the hook
             } else {
                 // For local-only subscriptions (like personal plan)
-                const result = await cancelSubscription(businessId);
+                const result = await cancelCurrentSubscription();
                 if (result.success) {
-                    toast.success("Subscription cancelled successfully");
-                    await reloadData();
+                    toast({
+                        title: "Success",
+                        description: "Subscription cancelled successfully",
+                        variant: "success"
+                    });
+                    await refreshData();
                 } else {
-                    toast.error(result.error || "Failed to cancel subscription");
+                    toast({
+                        title: "Error",
+                        description: result.error || "Failed to cancel subscription",
+                        variant: "error"
+                    });
                 }
             }
         } catch (error) {
             console.error("Error canceling subscription:", error);
-            toast.error("Failed to cancel subscription");
+            toast({
+                title: "Error",
+                description: "Failed to cancel subscription",
+                variant: "error"
+            });
         } finally {
-            setIsLoading(false);
+            setIsUpdating(false);
         }
     };
 
     const handleManageBilling = async () => {
-        setIsLoading(true);
+        setIsUpdating(true);
         try {
-            const result = await createBillingPortalSession(businessId);
-            if (result.success && result.sessionUrl) {
-                window.location.href = result.sessionUrl;
-            } else {
-                toast.error(result.error || "Failed to access billing portal");
+            const result = await createBillingPortalSession();
+            if (!result.success) {
+                toast({
+                    title: "Error",
+                    description: result.error || "Failed to access billing portal",
+                    variant: "error"
+                });
             }
+            // Redirect is handled automatically by the hook
         } catch (error) {
             console.error("Error accessing billing portal:", error);
-            toast.error("Failed to access billing portal");
+            toast({
+                title: "Error",
+                description: "Failed to access billing portal",
+                variant: "error"
+            });
         } finally {
-            setIsLoading(false);
+            setIsUpdating(false);
         }
     };
 

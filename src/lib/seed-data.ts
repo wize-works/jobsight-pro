@@ -166,7 +166,7 @@ export async function seedFlintstonesData(options: SeedDataOptions) {
                 {
                     business_id: businessId,
                     name: 'Slate Rock and Gravel Company',
-                    type: 'Commercial',
+                    type: 'commercial',
                     contact_name: 'Mr. Slate',
                     contact_email: 'slate@quarry.stone',
                     contact_phone: '555-QUARRY',
@@ -184,7 +184,7 @@ export async function seedFlintstonesData(options: SeedDataOptions) {
                 {
                     business_id: businessId,
                     name: 'Bedrock City Planning',
-                    type: 'Government',
+                    type: 'government',
                     contact_name: 'Mayor Boulder',
                     contact_email: 'mayor@bedrock.gov',
                     contact_phone: '555-MAYOR',

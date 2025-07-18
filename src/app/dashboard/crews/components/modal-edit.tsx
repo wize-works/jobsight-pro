@@ -1,7 +1,7 @@
 import React, { use, useEffect, useState } from "react";
 import { Crew } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
-import { getCrewMembers } from "@/app/actions/crew-members"
+import { useCrews, useCrewMembers } from "@/hooks/useCrews";
 import { useBusiness } from "@/lib/business-context";
 
 interface ModalEditProps {
@@ -14,6 +14,7 @@ interface ModalEditProps {
 
 const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initialCrew, initialMembers }) => {
     const { businessId } = useBusiness();
+    const { fetchCrewMembers } = useCrewMembers();
     const [formData, setFormData] = useState({
         name: initialCrew?.name || "",
         status: initialCrew?.status || "active",
@@ -31,8 +32,15 @@ const ModalEdit: React.FC<ModalEditProps> = ({ title, onClose, onSubmit, initial
         const loadData = async () => {
             try {
                 setLoading(true);
-                const fetchedMembers = await getCrewMembers(businessId);
-                setMembers(fetchedMembers || []);
+                // Fetch all crew members using the API directly
+                const response = await fetch('/api/crew-members');
+                if (response.ok) {
+                    const data = await response.json();
+                    setMembers(data.members || []);
+                } else {
+                    console.error('Failed to fetch crew members');
+                    setError("Failed to load crew members");
+                }
             } catch (err) {
                 console.error("Error fetching crew members:", err);
                 setError("Failed to load crew members");

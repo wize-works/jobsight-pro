@@ -33,13 +33,17 @@ export function useUsers(params: GetUsersParams = {}) {
             setError(null);
             const result = await usersAPI.getUsers(params);
             if (result.success) {
-                setUsers(result.users || []);
-                setCount(result.count || 0);
+                setUsers(Array.isArray(result.data) ? result.data : []);
+                setCount(result.pagination?.count || 0);
             } else {
                 setError(result.error || 'Failed to fetch users');
+                setUsers([]); // Ensure users is always an array
+                setCount(0);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch users');
+            setUsers([]); // Ensure users is always an array
+            setCount(0);
         } finally {
             setLoading(false);
         }
@@ -147,7 +151,7 @@ export function useUserSearch() {
             setError(null);
             const result = await usersAPI.searchUsers(query);
             if (result.success) {
-                setUsers(result.users || []);
+                setUsers(result.data || []);
             } else {
                 setError(result.error || 'Failed to search users');
             }

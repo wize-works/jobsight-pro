@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { CrewWithMemberInfo } from "@/types/crews";
+// TODO: Create project crew assignment hooks to replace server actions
+// import { useProjectCrewMutations } from "@/hooks/useProjectCrews";
+// import { useCrews } from "@/hooks/useCrews";
 import { addCrewToProject } from "@/app/actions/project-crews";
 import { getAvailableCrews } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";

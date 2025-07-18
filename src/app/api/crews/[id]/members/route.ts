@@ -21,12 +21,12 @@ export async function GET(
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { id } = await params;
@@ -44,7 +44,7 @@ export async function GET(
 
         if (crewError) {
             if (crewError.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Crew not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew not found' }, { status: 404 });
             }
             throw crewError;
         }
@@ -132,11 +132,11 @@ export async function GET(
             };
         }
 
-        return NextResponse.json(result);
+        return NextResponse.json({ success: true, data: result }, { status: 200 });
     } catch (error) {
         console.error('Error fetching crew members:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -149,7 +149,7 @@ export async function POST(
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -157,7 +157,7 @@ export async function POST(
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { id } = await params;
@@ -172,7 +172,7 @@ export async function POST(
 
         if (crewError) {
             if (crewError.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Crew not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Crew not found' }, { status: 404 });
             }
             throw crewError;
         }
@@ -189,7 +189,7 @@ export async function POST(
 
         if (existingAssignment) {
             return NextResponse.json(
-                { error: 'User is already assigned to this crew' },
+                { success: false, error: 'User is already assigned to this crew' },
                 { status: 400 }
             );
         }
@@ -266,18 +266,18 @@ export async function POST(
 
         if (assignmentError) throw assignmentError;
 
-        return NextResponse.json(assignment, { status: 201 });
+        return NextResponse.json({ success: true, data: assignment }, { status: 201 });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Invalid request data', details: error.errors },
+                { success: false, error: 'Invalid request data', details: error.errors },
                 { status: 400 }
             );
         }
 
         console.error('Error creating crew member:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

@@ -5,9 +5,9 @@ import { Project } from '@/types/projects';
 import { CrewWithDetails } from '@/types/crews';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createEquipmentUsage, updateEquipmentUsage } from '@/app/actions/equipment_usage';
-import { getProjects } from '@/app/actions/projects';
-import { getCrewsWithDetails } from '@/app/actions/crews';
+import { useEquipmentUsageMutation } from '@/hooks/useEquipment';
+import { useProjects } from '@/hooks/useProjects';
+import { useCrews } from '@/hooks/useCrews';
 import { toast } from '@/hooks/use-toast';
 import { useBusiness } from '@/lib/business-context';
 
@@ -26,6 +26,11 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
+    // Use hooks
+    const { createUsage, updateUsage } = useEquipmentUsageMutation();
+    const { projects, loading: projectsLoading } = useProjects();
+    const { crews, loading: crewsLoading } = useCrews();
+
     // Form state
     const [formData, setFormData] = useState({
         project_id: '',
@@ -36,32 +41,10 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
         fuel_consumed: '',
     });
 
-    // Data lists
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [crews, setCrews] = useState<CrewWithDetails[]>([]);
-
-    // Load data
+    // Update loading state based on hooks
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [projectsData, crewsData] = await Promise.all([
-                    getProjects(businessId),
-                    getCrewsWithDetails(businessId)
-                ]);
-                setProjects(projectsData);
-                setCrews(crewsData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error({
-                    title: "Error",
-                    description: "Error loading project and crew data"
-                });
-            } finally {
-                setLoadingData(false);
-            }
-        };
-        fetchData();
-    }, []);
+        setLoadingData(projectsLoading || crewsLoading);
+    }, [projectsLoading, crewsLoading]);
 
     // Load existing usage data if editing
     useEffect(() => {
@@ -102,35 +85,29 @@ export const UsageModal = ({ isOpen, usage, onClose, onSave }: UsageModalProps) 
         try {
             const usageData = {
                 equipment_id: equipmentId,
-                project_id: formData.project_id || null,
-                crew_id: formData.crew_id || null,
-                start_date: formData.start_date || null,
-                end_date: formData.end_date || null,
+                project_id: formData.project_id || undefined,
+                employee_id: formData.crew_id || '',
+                start_date: formData.start_date || new Date().toISOString(),
+                end_date: formData.end_date || undefined,
                 hours_used: formData.hours_used ? parseFloat(formData.hours_used) : 0,
-                fuel_consumed: formData.fuel_consumed ? parseFloat(formData.fuel_consumed) : null,
-                ...(usage?.id && { id: usage.id })
-            } as unknown as EquipmentUsage;
+                fuel_used: formData.fuel_consumed ? parseFloat(formData.fuel_consumed) : undefined,
+            };
 
             if (usage?.id) {
-                await updateEquipmentUsage(businessId, usage.id, {
-                    ...usageData,
-                    id: usage.id,
-                });
+                const response = await updateUsage(usage.id, usageData);
                 toast.success({
                     title: "Success",
                     description: "Usage record updated successfully"
                 });
+                onSave(response.data as any);
             } else {
-                await createEquipmentUsage(businessId, {
-                    ...usageData,
-                });
+                const response = await createUsage(usageData);
                 toast.success({
                     title: "Success",
                     description: "Usage record created successfully"
                 });
+                onSave(response.data as any);
             }
-
-            onSave(usageData);
             onClose();
             router.refresh();
         } catch (error) {

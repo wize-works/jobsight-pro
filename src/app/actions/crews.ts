@@ -134,7 +134,6 @@ export const getCrewsWithDetails = async (businessId: string): Promise<CrewWithD
         return {
             ...crew,
             member_count: members?.filter((member) => member.crew_id === crew.id).length ?? 0,
-            leader: leaderData?.find((member) => member.id === crew.leader_id)?.name || "No Assigned Leader",
             current_project_id: projectId,
             current_project: projectsData?.find((project) => project.id === projectId)?.name || "No Current Project",
             active_projects: activeProjects,
@@ -186,7 +185,6 @@ export const getCrewWithDetailsById = async (businessId: string, id: string): Pr
     const data: CrewWithDetails = {
         ...crew,
         member_count: memberCount,
-        leader: leaderName,
         current_project_id: projectId,
         current_project: projectName,
         active_projects: totalProjects,

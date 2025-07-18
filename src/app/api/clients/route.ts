@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error('Error fetching clients:', error);
-            return NextResponse.json({ error: 'Failed to fetch clients' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch clients' }, { status: 500 });
         }
 
         // If withStats is requested, get project statistics
@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, data: clients });
+        return NextResponse.json({ success: true, data: clients }, { status: 200 });
 
     } catch (error) {
         console.error('Error in clients GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -168,13 +168,13 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error('Error creating client:', error);
-            return NextResponse.json({ error: 'Failed to create client' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create client' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: client });
+        return NextResponse.json({ success: true, data: client }, { status: 200 });
 
     } catch (error) {
         console.error('Error in clients POST API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

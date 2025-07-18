@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         // Validate required fields
         if (!recipientEmail || !recipientName || !invoiceData) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { success: false, error: 'Missing required fields' },
                 { status: 400 }
             );
         }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         if (emailResponse.error) {
             console.error('Resend error:', emailResponse.error);
             return NextResponse.json(
-                { error: 'Failed to send email', details: emailResponse.error },
+                { success: false, error: 'Failed to send email', details: emailResponse.error },
                 { status: 500 }
             );
         }
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
             success: true,
             messageId: emailResponse.data?.id,
             message: 'Invoice email sent successfully'
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error sending invoice email:', error);

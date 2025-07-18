@@ -30,6 +30,152 @@ This document establishes the standard implementation pattern for migrating from
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### 1.1 Critical Authentication Pattern
+
+**⚠️ LESSONS LEARNED: Business ID Retrieval**
+
+During the crews API migration, we discovered that the proper authentication pattern requires retrieving the business ID from the database, not from user metadata. This ensures consistency and security.
+
+#### ✅ CORRECT Pattern:
+```typescript
+// Get user's business ID from database
+const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('business_id')
+    .eq('auth_id', user.id)
+    .single();
+
+if (userError || !userData?.business_id) {
+    return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+}
+
+const businessId = userData.business_id;
+```
+
+#### ❌ INCORRECT Pattern (Don't Use):
+```typescript
+// Don't use publicMetadata - inconsistent and unreliable
+const businessId = user.publicMetadata?.businessId;
+```
+
+### 1.3 Hook Method Naming Convention
+
+**⚠️ STANDARDIZATION: Hook Method Names**
+
+All React hooks should use consistent method naming for better developer experience and code maintainability.
+
+#### ✅ CORRECT Hook Method Names:
+```typescript
+// Primary data fetching methods - ALWAYS use "fetch" prefix
+const { data, loading, error, fetchData } = useYourDomain();
+
+// Specific examples:
+const { crews, loading, error, fetchCrews } = useCrews();
+const { projects, loading, error, fetchProjects } = useProjects();
+const { dailyLogs, loading, error, fetchDailyLogs } = useDailyLogs();
+
+// CRUD operations
+const { createItem, updateItem, deleteItem } = useYourDomain();
+```
+
+#### ❌ INCORRECT Hook Method Names (Don't Use):
+```typescript
+// Don't use "get" prefix in hooks - that's for API methods
+const { getCrews, getProjects, getDailyLogs } = useYourDomain(); // ❌ WRONG
+
+// Don't use inconsistent names
+const { refetch, refresh, reload } = useYourDomain(); // ❌ WRONG
+
+// Don't use mixed naming conventions
+const { getItems, fetchOtherItems } = useYourDomain(); // ❌ WRONG
+```
+
+#### Hook Method Conventions:
+- **Primary fetch**: `fetchItems` (e.g., `fetchCrews`, `fetchProjects`) - **REQUIRED**
+- **Single item**: `getItem` (e.g., `getCrew`, `getProject`) - Exception for single items
+- **Create**: `createItem` (e.g., `createCrew`, `createProject`)
+- **Update**: `updateItem` (e.g., `updateCrew`, `updateProject`)
+- **Delete**: `deleteItem` (e.g., `deleteCrew`, `deleteProject`)
+- **Refresh**: `refreshItems` (e.g., `refreshCrews`, `refreshProjects`)
+
+#### Why `fetch` for Primary Methods?
+1. **Semantic clarity**: `fetchCrews()` clearly indicates an async operation
+2. **React conventions**: Most React hooks use `fetch` for data retrieval
+3. **API distinction**: API methods use `get`, hooks use `fetch`
+4. **Consistency**: All primary data retrieval methods follow same pattern
+
+### 1.4 API vs Hook Method Distinction
+
+**⚠️ CRITICAL: API Methods vs Hook Methods**
+
+There must be a clear distinction between API layer methods and hook layer methods.
+
+#### API Methods (lib/api): Use `get` prefix
+```typescript
+// src/lib/api/crews.ts
+export const crewsApi = {
+  getCrews: async () => {}, // API method - uses "get"
+  getCrew: async (id) => {}, // API method - uses "get"
+  createCrew: async (data) => {}, // API method
+  updateCrew: async (id, data) => {}, // API method
+  deleteCrew: async (id) => {}, // API method
+};
+```
+
+#### Hook Methods (hooks): Use `fetch` prefix for primary operations
+```typescript
+// src/hooks/useCrews.ts
+export const useCrews = () => ({
+  fetchCrews: async () => {}, // Hook method - uses "fetch"
+  getCrew: async (id) => {}, // Hook method - exception for single items
+  createCrew: async (data) => {}, // Hook method
+  updateCrew: async (id, data) => {}, // Hook method
+  deleteCrew: async (id) => {}, // Hook method
+});
+```
+
+#### Migration Rule:
+```typescript
+// When migrating from actions to hooks:
+
+// ❌ OLD ACTION PATTERN:
+export async function getCrews(businessId: string) { ... }
+
+// ✅ NEW API PATTERN:
+export const crewsApi = {
+  getCrews: async (params) => { ... } // API layer
+};
+
+// ✅ NEW HOOK PATTERN:
+export const useCrews = () => ({
+  fetchCrews: async (params) => { ... } // Hook layer
+});
+```
+
+### 1.5 Response Format Standardization
+
+**⚠️ LESSONS LEARNED: Consistent Response Format**
+
+All API endpoints must return a consistent response format that client utilities can rely on.
+
+#### ✅ CORRECT Response Format:
+```typescript
+// Success response
+return NextResponse.json({ success: true, data: result });
+
+// Error response
+return NextResponse.json({ error: 'Error message' }, { status: 400 });
+```
+
+#### ❌ INCORRECT Response Format (Don't Use):
+```typescript
+// Don't return raw data without wrapper
+return NextResponse.json(result);
+
+// Don't use inconsistent error format
+return NextResponse.json({ message: 'Error' }, { status: 400 });
+```
+
 ### 2. Next.js 15 Dynamic Route Parameters
 
 **⚠️ CRITICAL: Next.js 15 Breaking Change**
@@ -503,8 +649,9 @@ export const useYourDomain = (): UseYourDomainResult => {
 - [ ] **⚠️ Next.js 15**: Ensure all dynamic routes await params Promise
 - [ ] Implement business validation
 - [ ] Add comprehensive error handling
-- [ ] Create client-side utilities
-- [ ] Build React hooks
+- [ ] Create client-side utilities (API methods use `get` prefix)
+- [ ] Build React hooks (Hook methods use `fetch` prefix for primary operations)
+- [ ] **⚠️ Hook Naming**: Ensure hooks use `fetchItems` not `getItems` for primary methods
 - [ ] Update component usage
 - [ ] Test authentication flows
 - [ ] Validate business isolation
@@ -530,6 +677,7 @@ export const useYourDomain = (): UseYourDomainResult => {
 7. **Performance Issues**: Implement proper loading states and caching
 8. **Security Gaps**: Validate all inputs and sanitize outputs
 9. **⚠️ Next.js 15 Params Error**: NOT awaiting params in dynamic routes will cause build failures
+10. **⚠️ Hook Naming Error**: Using `getItems` instead of `fetchItems` in hooks causes confusion
 
 ### Critical Next.js 15 Pitfall: Dynamic Route Parameters
 

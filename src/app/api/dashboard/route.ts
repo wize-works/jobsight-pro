@@ -18,12 +18,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         const url = new URL(request.url);
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness?.business_id) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        return NextResponse.json({ data: dashboardData });
+        return NextResponse.json({ success: true, data: dashboardData }, { status: 200 });
 
     } catch (error) {
         console.error("Error in dashboard GET:", error);
@@ -285,6 +285,6 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        return NextResponse.json({ data: emptyData });
+        return NextResponse.json({ success: true, data: emptyData }, { status: 200 });
     }
 }

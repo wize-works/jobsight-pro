@@ -38,12 +38,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Equipment usage fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch usage" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch usage" }, { status: 500 });
         }
 
         // Handle includes
@@ -187,14 +187,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: usage,
             count: usage?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment usage API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch usage" },
+            { success: false, error: "Failed to fetch usage" },
             { status: 500 }
         );
     }
@@ -205,12 +206,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!equipment) {
-            return NextResponse.json({ error: "Equipment not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Equipment not found" }, { status: 404 });
         }
 
         // Validate employee exists and belongs to business
@@ -249,7 +250,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!employee) {
-            return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 });
         }
 
         // Validate project if provided
@@ -262,7 +263,7 @@ export async function POST(request: NextRequest) {
                 .single();
 
             if (!project) {
-                return NextResponse.json({ error: "Project not found" }, { status: 404 });
+                return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
             }
         }
 
@@ -279,18 +280,19 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Equipment usage creation error:", error);
-            return NextResponse.json({ error: "Failed to create usage record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create usage record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: usage,
             message: "Usage record created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Equipment usage creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create usage record" },
+            { success: false, error: "Failed to create usage record" },
             { status: 500 }
         );
     }
@@ -301,12 +303,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -317,7 +319,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -325,7 +327,7 @@ export async function PUT(request: NextRequest) {
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: "Usage ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Usage ID is required" }, { status: 400 });
         }
 
         const usageData = UsageUpdateSchema.parse(updateData);
@@ -339,7 +341,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!existingUsage) {
-            return NextResponse.json({ error: "Usage record not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Usage record not found" }, { status: 404 });
         }
 
         const { data: usage, error } = await supabase
@@ -356,18 +358,19 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Equipment usage update error:", error);
-            return NextResponse.json({ error: "Failed to update usage record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update usage record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: usage,
             message: "Usage record updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment usage update error:", error);
         return NextResponse.json(
-            { error: "Failed to update usage record" },
+            { success: false, error: "Failed to update usage record" },
             { status: 500 }
         );
     }
@@ -378,12 +381,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -394,7 +397,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -402,7 +405,7 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) {
-            return NextResponse.json({ error: "Usage ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Usage ID is required" }, { status: 400 });
         }
 
         // Validate usage record exists and belongs to business
@@ -414,7 +417,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!existingUsage) {
-            return NextResponse.json({ error: "Usage record not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Usage record not found" }, { status: 404 });
         }
 
         const { error } = await supabase
@@ -425,17 +428,18 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Equipment usage deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete usage record" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete usage record" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: "Usage record deleted successfully"
-        });
+        }, { status: 204 });
 
     } catch (error) {
         console.error("Equipment usage deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete usage record" },
+            { success: false, error: "Failed to delete usage record" },
             { status: 500 }
         );
     }

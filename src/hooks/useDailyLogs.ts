@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DailyLogAPI, handleApiError } from "@/lib/api/daily-logs";
-import { DailyLog, DailyLogInsert, DailyLogUpdate } from "@/types/daily-logs";
+import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
 import { DailyLogMaterial, DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
 
-// Daily Logs Hook
-export function useDailyLogs(params?: {
+export interface DailyLogSearchParams {
     include?: string;
     search?: string;
     project_id?: string;
@@ -14,101 +13,140 @@ export function useDailyLogs(params?: {
     date_to?: string;
     limit?: number;
     offset?: number;
-}) {
-    const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+}
+
+// Main Daily Logs Hook
+export function useDailyLogs() {
+    const [dailyLogs, setDailyLogs] = useState<DailyLogWithDetails[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [pagination, setPagination] = useState({
-        limit: params?.limit || 50,
-        offset: params?.offset || 0,
-        hasMore: false,
-    });
 
-    const fetchDailyLogs = async (refresh = false) => {
+    const fetchDailyLogs = useCallback(async (params?: DailyLogSearchParams) => {
         setLoading(true);
         setError(null);
 
         try {
-            const response = await DailyLogAPI.getDailyLogs({
-                ...params,
-                offset: refresh ? 0 : pagination.offset,
-            });
+            const result = await DailyLogAPI.getDailyLogs(params);
 
-            if (refresh) {
-                setDailyLogs(response.data);
+            if (result.data) {
+                setDailyLogs(result.data as DailyLogWithDetails[]);
+                // Handle stats if available in response
+                setStats(result.pagination || null);
             } else {
-                setDailyLogs(prev => [...prev, ...response.data]);
-            }
-
-            if (response.pagination) {
-                setPagination(response.pagination);
+                setDailyLogs([]);
             }
         } catch (err) {
             setError(handleApiError(err));
+            setDailyLogs([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const createDailyLog = async (data: DailyLogInsert): Promise<DailyLog | null> => {
+    const getDailyLog = useCallback(async (id: string, include?: string) => {
+        setLoading(true);
+        setError(null);
+
         try {
-            const response = await DailyLogAPI.createDailyLog(data);
-            setDailyLogs(prev => [response.data, ...prev]);
-            return response.data;
+            const result = await DailyLogAPI.getDailyLog(id, include);
+            return result;
         } catch (err) {
             setError(handleApiError(err));
             return null;
+        } finally {
+            setLoading(false);
         }
-    };
+    }, []);
 
-    const updateDailyLog = async (id: string, data: DailyLogUpdate): Promise<DailyLog | null> => {
+    const createDailyLog = useCallback(async (dailyLogData: DailyLogInsert) => {
+        setLoading(true);
+        setError(null);
+
         try {
-            const response = await DailyLogAPI.updateDailyLog(id, data);
-            setDailyLogs(prev => prev.map(log => log.id === id ? response.data : log));
-            return response.data;
+            const result = await DailyLogAPI.createDailyLog(dailyLogData);
+
+            // Add to local state
+            if (result) {
+                setDailyLogs(prev => [result as DailyLogWithDetails, ...prev]);
+            }
+
+            return result;
         } catch (err) {
             setError(handleApiError(err));
             return null;
+        } finally {
+            setLoading(false);
         }
-    };
+    }, []);
 
-    const deleteDailyLog = async (id: string): Promise<boolean> => {
+    const updateDailyLog = useCallback(async (id: string, dailyLogData: DailyLogUpdate) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const result = await DailyLogAPI.updateDailyLog(id, dailyLogData);
+
+            // Update local state
+            if (result) {
+                setDailyLogs(prev => prev.map(log =>
+                    log.id === id ? { ...log, ...result } : log
+                ));
+            }
+
+            return result;
+        } catch (err) {
+            setError(handleApiError(err));
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const deleteDailyLog = useCallback(async (id: string) => {
+        setLoading(true);
+        setError(null);
+
         try {
             await DailyLogAPI.deleteDailyLog(id);
+
+            // Remove from local state
             setDailyLogs(prev => prev.filter(log => log.id !== id));
+
             return true;
         } catch (err) {
             setError(handleApiError(err));
             return false;
+        } finally {
+            setLoading(false);
         }
-    };
+    }, []);
 
-    const loadMore = () => {
-        if (!loading && pagination.hasMore) {
-            setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }));
-            fetchDailyLogs(false);
+    const refreshDailyLogs = useCallback((params?: DailyLogSearchParams) => {
+        fetchDailyLogs(params);
+    }, [fetchDailyLogs]);
+
+    const getDailyLogWithDetails = useCallback(async (id: string): Promise<DailyLogWithDetails | null> => {
+        try {
+            return await DailyLogAPI.getDailyLogWithDetails(id);
+        } catch (err) {
+            setError(handleApiError(err));
+            return null;
         }
-    };
-
-    const refresh = () => {
-        setPagination(prev => ({ ...prev, offset: 0 }));
-        fetchDailyLogs(true);
-    };
-
-    useEffect(() => {
-        fetchDailyLogs(true);
-    }, [params?.search, params?.project_id, params?.crew_id, params?.date_from, params?.date_to]);
+    }, []);
 
     return {
         dailyLogs,
+        stats,
         loading,
         error,
-        pagination,
+        fetchDailyLogs,
+        getDailyLog,
+        getDailyLogWithDetails,
         createDailyLog,
         updateDailyLog,
         deleteDailyLog,
-        loadMore,
-        refresh,
+        refreshDailyLogs,
     };
 }
 
@@ -273,8 +311,8 @@ export function useDailyLog(id: string | null, include?: string) {
         setError(null);
 
         try {
-            const response = await DailyLogAPI.getDailyLog(id, include);
-            setDailyLog(response.data);
+            const result = await DailyLogAPI.getDailyLog(id, include);
+            setDailyLog(result);
         } catch (err) {
             setError(handleApiError(err));
         } finally {
@@ -286,9 +324,9 @@ export function useDailyLog(id: string | null, include?: string) {
         if (!id) return null;
 
         try {
-            const response = await DailyLogAPI.updateDailyLog(id, data);
-            setDailyLog(response.data);
-            return response.data;
+            const result = await DailyLogAPI.updateDailyLog(id, data);
+            setDailyLog(result);
+            return result;
         } catch (err) {
             setError(handleApiError(err));
             return null;

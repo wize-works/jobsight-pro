@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (businessError || !business) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         // Get user details
@@ -64,12 +64,12 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (userError || !userToVerify) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
         }
 
         if (userToVerify.email_verified) {
             return NextResponse.json(
-                { error: "Email is already verified" },
+                { success: false, error: "Email is already verified" },
                 { status: 400 }
             );
         }
@@ -116,12 +116,13 @@ export async function POST(request: NextRequest) {
         if (emailResponse.error) {
             console.error("Email verification error:", emailResponse.error);
             return NextResponse.json(
-                { error: "Failed to send verification email" },
+                { success: false, error: "Failed to send verification email" },
                 { status: 500 }
             );
         }
 
         return NextResponse.json({
+            success: true,
             data: {
                 sent: true,
                 messageId: emailResponse.data?.id,
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error("Email verification error:", error);
         return NextResponse.json(
-            { error: "Failed to send verification email" },
+            { success: false, error: "Failed to send verification email" },
             { status: 500 }
         );
     }
@@ -150,7 +151,7 @@ export async function PUT(request: NextRequest) {
             decoded = JSON.parse(Buffer.from(token, "base64").toString());
         } catch (error) {
             return NextResponse.json(
-                { error: "Invalid verification token" },
+                { success: false, error: "Invalid verification token" },
                 { status: 400 }
             );
         }
@@ -158,14 +159,14 @@ export async function PUT(request: NextRequest) {
         // Check if token is expired
         if (new Date(decoded.expiresAt) < new Date()) {
             return NextResponse.json(
-                { error: "Verification token has expired" },
+                { success: false, error: "Verification token has expired" },
                 { status: 400 }
             );
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Verify and update user
@@ -183,12 +184,13 @@ export async function PUT(request: NextRequest) {
 
         if (error || !verifiedUser) {
             return NextResponse.json(
-                { error: "Invalid verification token" },
+                { success: false, error: "Invalid verification token" },
                 { status: 400 }
             );
         }
 
         return NextResponse.json({
+            success: true,
             data: {
                 verified: true,
                 user: {
@@ -201,12 +203,12 @@ export async function PUT(request: NextRequest) {
                 }
             },
             message: "Email verified successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Email verification error:", error);
         return NextResponse.json(
-            { error: "Invalid verification token" },
+            { success: false, error: "Invalid verification token" },
             { status: 500 }
         );
     }

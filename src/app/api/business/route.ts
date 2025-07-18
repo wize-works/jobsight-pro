@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // If businessId is provided, get business by ID
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
             if (error) {
                 console.error('Error fetching business by ID:', error);
-                return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
             }
 
             // Verify user has access to this business
@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
                 .single();
 
             if (userError || userData?.business_id !== businessId) {
-                return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+                return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
             }
 
-            return NextResponse.json({ success: true, data: business });
+            return NextResponse.json({ success: true, data: business }, { status: 200 });
         }
 
         // Get user's business
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (!userData?.business_id) {
-            return NextResponse.json({ success: true, data: null }); // User doesn't have a business yet
+            return NextResponse.json({ success: true, data: null }, { status: 201 }); // User doesn't have a business yet
         }
 
         // Get the business details
@@ -82,14 +82,14 @@ export async function GET(request: NextRequest) {
 
         if (businessError) {
             console.error('Error fetching business:', businessError);
-            return NextResponse.json({ error: 'Failed to fetch business' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch business' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: businessData });
+        return NextResponse.json({ success: true, data: businessData }, { status: 200 });
 
     } catch (error) {
         console.error('Error in business GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ succcess: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Create a new business
@@ -157,6 +157,7 @@ export async function POST(request: NextRequest) {
         if (businessError) {
             console.error('Error creating business:', businessError);
             return NextResponse.json({
+                success: false,
                 error: `Failed to create business: ${businessError.message}`
             }, { status: 500 });
         }
@@ -185,18 +186,21 @@ export async function POST(request: NextRequest) {
             if (createUserError) {
                 console.error('Error creating user:', createUserError);
                 return NextResponse.json({
+                    success: false,
                     error: 'Failed to create user record'
                 }, { status: 500 });
             }
         } else if (getUserError) {
             console.error('Error checking existing user:', getUserError);
             return NextResponse.json({
+                success: false,
                 error: 'Failed to check user record'
             }, { status: 500 });
         } else {
             // User exists, check if they already have a business
             if (existingUser.business_id) {
                 return NextResponse.json({
+                    success: false,
                     error: 'User already has a business associated'
                 }, { status: 400 });
             }
@@ -210,16 +214,17 @@ export async function POST(request: NextRequest) {
             if (userError) {
                 console.error('Error updating user with business ID:', userError);
                 return NextResponse.json({
+                    success: false,
                     error: 'Failed to update user record'
                 }, { status: 500 });
             }
         }
 
-        return NextResponse.json({ success: true, data: { businessId } });
+        return NextResponse.json({ success: true, data: { businessId } }, { status: 200 });
 
     } catch (error) {
         console.error('Error in business POST API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -231,7 +236,7 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -239,6 +244,7 @@ export async function PUT(request: NextRequest) {
 
         if (!businessId) {
             return NextResponse.json({
+                success: false,
                 error: 'Business ID is required'
             }, { status: 400 });
         }
@@ -246,7 +252,7 @@ export async function PUT(request: NextRequest) {
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Verify user has access to this business
@@ -257,7 +263,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (userError || userData?.business_id !== businessId) {
-            return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
         }
 
         const now = new Date().toISOString();
@@ -294,14 +300,15 @@ export async function PUT(request: NextRequest) {
         if (error) {
             console.error('Error updating business:', error);
             return NextResponse.json({
+                success: false,
                 error: `Failed to update business: ${error.message}`
             }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 201 });
 
     } catch (error) {
         console.error('Error in business PUT API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

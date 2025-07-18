@@ -17,14 +17,20 @@ export interface UserResponse {
 
 export interface UsersResponse {
     success: boolean;
-    users?: User[];
-    count?: number;
+    data?: User[];
+    pagination?: {
+        count: number;
+        total: number;
+        limit: number | null;
+        offset: number;
+        hasMore: boolean;
+    };
     error?: string;
 }
 
 export interface UserSearchResponse {
     success: boolean;
-    users?: User[];
+    data?: User[];
     error?: string;
 }
 

@@ -11,12 +11,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -45,14 +45,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (error || !contact) {
-            return NextResponse.json({ error: 'Contact not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Contact not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, data: contact });
+        return NextResponse.json({ success: true, data: contact }, { status: 200 });
 
     } catch (error) {
         console.error('Error in contact GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -86,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -123,18 +123,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         if (error) {
             console.error('Error updating contact:', error);
-            return NextResponse.json({ error: 'Failed to update contact' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update contact' }, { status: 500 });
         }
 
         if (!contact) {
-            return NextResponse.json({ error: 'Contact not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Contact not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, data: contact });
+        return NextResponse.json({ success: true, data: contact }, { status: 200 });
 
     } catch (error) {
         console.error('Error in contact PUT API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -146,12 +146,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -165,7 +165,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -180,13 +180,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         if (error) {
             console.error('Error deleting contact:', error);
-            return NextResponse.json({ error: 'Failed to delete contact' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to delete contact' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 201 });
 
     } catch (error) {
         console.error('Error in contact DELETE API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

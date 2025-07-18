@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         const url = new URL(request.url);
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness?.business_id) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Error fetching daily logs:", error);
-            return NextResponse.json({ error: "Failed to fetch daily logs" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch daily logs" }, { status: 500 });
         }
 
         // Enhanced data fetching based on includes
@@ -171,17 +171,18 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: transformedData,
             pagination: {
                 limit,
                 offset,
                 hasMore: transformedData?.length === limit,
             },
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Error in daily logs GET:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }
 
@@ -189,12 +190,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         const body = await request.json();
@@ -208,7 +209,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness?.business_id) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -227,16 +228,16 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Error creating daily log:", error);
-            return NextResponse.json({ error: "Failed to create daily log" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create daily log" }, { status: 500 });
         }
 
-        return NextResponse.json({ data }, { status: 201 });
+        return NextResponse.json({ success: true, data }, { status: 201 });
 
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: "Validation error", details: error.errors }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Validation error", details: error.errors }, { status: 400 });
         }
         console.error("Error in daily logs POST:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }

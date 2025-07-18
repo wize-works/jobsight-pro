@@ -94,18 +94,82 @@ export async function GET(
                     : Promise.resolve({ data: [] }),
             ]);
 
-            // Add fetched data to response
+            // Get client data if project is included
+            let clientData = null;
+            if (includes.includes('project') && projectData.data?.client_id) {
+                const { data: client } = await supabase
+                    .from("clients")
+                    .select("id, name, contact_name, contact_email, contact_phone")
+                    .eq("id", projectData.data.client_id)
+                    .single();
+                clientData = client;
+            }
+
+            // Get equipment info if equipment is included
+            let equipmentInfoData: any[] = [];
+            if (includes.includes('equipment') && equipmentData.data && equipmentData.data.length > 0) {
+                const equipmentIds = equipmentData.data.map((eq: any) => eq.equipment_id).filter(Boolean);
+                if (equipmentIds.length > 0) {
+                    const { data: equipmentInfo } = await supabase
+                        .from("equipment")
+                        .select("id, name")
+                        .in("id", equipmentIds);
+                    equipmentInfoData = equipmentInfo || [];
+                }
+            }
+
+            // Format response to match DailyLogWithDetails interface
             transformedData = {
                 ...dailyLog,
-                ...(includes.includes('project') && { project: projectData.data }),
-                ...(includes.includes('crew') && { crew: crewData.data }),
-                ...(includes.includes('materials') && { materials: materialsData.data || [] }),
-                ...(includes.includes('equipment') && { equipment: equipmentData.data || [] }),
+                ...(includes.includes('project') && {
+                    project: projectData.data ? {
+                        id: projectData.data.id,
+                        name: projectData.data.name,
+                        description: projectData.data.description
+                    } : null
+                }),
+                ...(includes.includes('crew') && {
+                    crew: crewData.data ? {
+                        id: crewData.data.id,
+                        name: crewData.data.name
+                    } : null
+                }),
+                ...(includes.includes('materials') && {
+                    materials: materialsData.data?.map((material: any) => ({
+                        id: material.id,
+                        name: material.name,
+                        quantity: material.quantity,
+                        cost: material.cost,
+                        supplier: material.supplier
+                    })) || []
+                }),
+                ...(includes.includes('equipment') && {
+                    equipment: equipmentData.data?.map((eq: any) => ({
+                        id: eq.id,
+                        name: equipmentInfoData.find((info: any) => info.id === eq.equipment_id)?.name || eq.name,
+                        hours: eq.hours
+                    })) || []
+                }),
                 ...(includes.includes('media') && { media: mediaData.data?.map((link: any) => link.media) || [] }),
+                ...(includes.includes('project') && {
+                    client: clientData ? {
+                        id: clientData.id,
+                        name: clientData.name,
+                        contact_name: clientData.contact_name,
+                        contact_email: clientData.contact_email,
+                        contact_phone: clientData.contact_phone
+                    } : {
+                        id: "",
+                        name: null,
+                        contact_name: null,
+                        contact_email: null,
+                        contact_phone: null
+                    }
+                }),
             };
         }
 
-        return NextResponse.json({ data: transformedData });
+        return NextResponse.json({ success: true, data: transformedData });
 
     } catch (error) {
         console.error("Error in daily log GET:", error);
@@ -167,7 +231,7 @@ export async function PUT(
             return NextResponse.json({ error: "Daily log not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ data });
+        return NextResponse.json({ success: true, data });
 
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -220,7 +284,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Failed to delete daily log" }, { status: 500 });
         }
 
-        return NextResponse.json({ message: "Daily log deleted successfully" });
+        return NextResponse.json({ success: true, message: "Daily log deleted successfully" });
 
     } catch (error) {
         console.error("Error in daily log DELETE:", error);

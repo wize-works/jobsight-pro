@@ -1,5 +1,5 @@
-import { ProjectWithDetails, ProjectStatus, projectStatusOptions, Project, projectTypeOptions, ProjectType } from "@/types/projects";
-import { updateProject } from "@/app/actions/projects";
+import { ProjectWithDetails, ProjectStatus, projectStatusOptions, Project, ProjectUpdate, projectTypeOptions, ProjectType } from "@/types/projects";
+import { useProjectMutations } from "@/hooks/useProjects";
 import { formatDate, formatCurrency } from "@/utils/date";
 import { progressBar } from "@/utils/progress";
 import Link from "next/link";
@@ -14,6 +14,7 @@ export const ProjectCard = ({ project }: {
 }) => {
     const { businessId } = useBusiness();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const { updateProject } = useProjectMutations();
 
     const getProjectInitials = (name: string) => {
         return name
@@ -154,11 +155,15 @@ export const ProjectCard = ({ project }: {
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
                                 title="Start project"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "in_progress" } as Project);
-                                    toast.success("Project started successfully");
-                                    window.location.reload();
+                                    try {
+                                        await updateProject(project.id, { status: "in_progress" } as ProjectUpdate);
+                                        toast.success("Project started successfully");
+                                        window.location.reload();
+                                    } catch (error) {
+                                        toast.error("Failed to start project");
+                                    }
                                 }}
                             >
                                 <i className="fas fa-play" />
@@ -168,11 +173,15 @@ export const ProjectCard = ({ project }: {
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
                                 title="Pause project"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "on_hold" } as Project);
-                                    toast.success("Project paused successfully");
-                                    window.location.reload();
+                                    try {
+                                        await updateProject(project.id, { status: "on_hold" } as ProjectUpdate);
+                                        toast.success("Project paused successfully");
+                                        window.location.reload();
+                                    } catch (error) {
+                                        toast.error("Failed to pause project");
+                                    }
                                 }}
                             >
                                 <i className="fas fa-pause" />
@@ -182,11 +191,15 @@ export const ProjectCard = ({ project }: {
                             <button
                                 className="btn btn-ghost btn-sm btn-circle"
                                 title="Complete project"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     e.stopPropagation();
-                                    updateProject(businessId, project.id, { status: "completed" } as Project);
-                                    toast.success("Project completed successfully");
-                                    window.location.reload();
+                                    try {
+                                        await updateProject(project.id, { status: "completed" } as ProjectUpdate);
+                                        toast.success("Project completed successfully");
+                                        window.location.reload();
+                                    } catch (error) {
+                                        toast.error("Failed to complete project");
+                                    }
                                 }}
                             >
                                 <i className="fas fa-check" />

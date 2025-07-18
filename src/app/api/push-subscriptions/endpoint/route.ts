@@ -35,13 +35,13 @@ export async function DELETE(request: NextRequest) {
 
         try {
             await Promise.all(deletePromises);
-            return NextResponse.json({ success: true });
+            return NextResponse.json({ success: true }, { status: 204 });
         } catch (error) {
             console.error("Error deleting push subscriptions:", error);
-            return NextResponse.json({ error: "Failed to delete push subscriptions" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete push subscriptions" }, { status: 500 });
         }
     } catch (error) {
         console.error("Error in DELETE /api/push-subscriptions/endpoint:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }

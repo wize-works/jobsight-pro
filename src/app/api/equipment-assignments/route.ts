@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Equipment assignments fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch assignments" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch assignments" }, { status: 500 });
         }
 
         // Handle includes
@@ -159,14 +159,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: assignments,
             count: assignments?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment assignments API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch assignments" },
+            { success: false, error: "Failed to fetch assignments" },
             { status: 500 }
         );
     }
@@ -177,12 +178,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!equipment) {
-            return NextResponse.json({ error: "Equipment not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Equipment not found" }, { status: 404 });
         }
 
         // Validate employee exists and belongs to business
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!employee) {
-            return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 });
         }
 
         // Check for conflicting assignments
@@ -235,7 +236,7 @@ export async function POST(request: NextRequest) {
 
         if (existingAssignments && existingAssignments.length > 0) {
             return NextResponse.json(
-                { error: "Equipment has conflicting assignments during this period" },
+                { success: false, error: "Equipment has conflicting assignments during this period" },
                 { status: 409 }
             );
         }
@@ -253,18 +254,19 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Equipment assignment creation error:", error);
-            return NextResponse.json({ error: "Failed to create assignment" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create assignment" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: assignment,
             message: "Assignment created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Equipment assignment creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create assignment" },
+            { success: false, error: "Failed to create assignment" },
             { status: 500 }
         );
     }
@@ -275,12 +277,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -291,7 +293,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -299,7 +301,7 @@ export async function PUT(request: NextRequest) {
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: "Assignment ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Assignment ID is required" }, { status: 400 });
         }
 
         const assignmentData = AssignmentUpdateSchema.parse(updateData);
@@ -313,7 +315,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!existingAssignment) {
-            return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Assignment not found" }, { status: 404 });
         }
 
         const { data: assignment, error } = await supabase
@@ -330,18 +332,19 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Equipment assignment update error:", error);
-            return NextResponse.json({ error: "Failed to update assignment" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update assignment" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: assignment,
             message: "Assignment updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Equipment assignment update error:", error);
         return NextResponse.json(
-            { error: "Failed to update assignment" },
+            { success: false, error: "Failed to update assignment" },
             { status: 500 }
         );
     }
@@ -352,12 +355,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -368,7 +371,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -376,7 +379,7 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) {
-            return NextResponse.json({ error: "Assignment ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Assignment ID is required" }, { status: 400 });
         }
 
         // Validate assignment exists and belongs to business
@@ -388,7 +391,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!existingAssignment) {
-            return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Assignment not found" }, { status: 404 });
         }
 
         const { error } = await supabase
@@ -399,17 +402,18 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Equipment assignment deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete assignment" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete assignment" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: "Assignment deleted successfully"
-        });
+        }, { status: 204 });
 
     } catch (error) {
         console.error("Equipment assignment deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete assignment" },
+            { success: false, error: "Failed to delete assignment" },
             { status: 500 }
         );
     }

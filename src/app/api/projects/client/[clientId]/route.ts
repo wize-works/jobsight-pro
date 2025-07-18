@@ -15,12 +15,12 @@ export async function GET(
         const { clientId } = await params;
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -31,17 +31,17 @@ export async function GET(
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const projects = await getProjectsByClientId(profile.business_id, clientId);
 
-        return NextResponse.json(projects);
+        return NextResponse.json({ success: true, data: projects }, { status: 200 });
 
     } catch (error) {
         console.error('Error in GET /api/projects/client/[clientId]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

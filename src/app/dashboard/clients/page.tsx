@@ -2,21 +2,20 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { createClient } from "@/app/actions/clients"
 import { ClientStatus, clientStatusOptions, ClientType, clientTypeOptions, type Client, type ClientInsert, type ClientWithStats } from "@/types/clients"
 import { toast } from "@/hooks/use-toast"
 import { ClientCard } from "./components/card"
 import ClientModal from "./components/modal-client"
 import { v4 as uuidv4 } from "uuid"
-import { getClientsWithStats } from "@/app/actions/clients"
+import { useClients } from "@/hooks/useClients"
 import ClientsListLoading from "./loading"
 import { useBusiness } from "@/lib/business-context"
 import ErrorBoundary from "@/components/error-boundary"
 
 export default function ClientsPage() {
     const { businessId } = useBusiness();
+    const { loading, error, getClients, createClient } = useClients();
 
-    const [loading, setLoading] = useState(true);
     const [clients, setClients] = useState<ClientWithStats[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("all"); const [statusFilter, setStatusFilter] = useState("all"); const [showAddClientModal, setShowAddClientModal] = useState(false);
@@ -30,16 +29,25 @@ export default function ClientsPage() {
         }
         const fetchClients = async () => {
             try {
-                const data = await getClientsWithStats(businessId);
-                setClients(data);
+                const data = await getClients({ withStats: true });
+                if (data) {
+                    setClients(data as ClientWithStats[]);
+                } else if (error) {
+                    toast({
+                        title: "Error",
+                        description: error,
+                    });
+                }
             } catch (error) {
                 console.error("Error fetching clients:", error);
-                toast.error("Failed to load clients. Please try again.");
+                toast({
+                    title: "Error",
+                    description: "Failed to load clients. Please try again.",
+                });
             }
-            setLoading(false);
         };
         fetchClients();
-    }, [businessId]);
+    }, [businessId, getClients, error]);
 
     const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
@@ -63,21 +71,34 @@ export default function ClientsPage() {
     const clientTypes = ["all", ...new Set(clients.map((client) => client.type?.split(" ")[0] || "Other"))]; const handleAddClient = async (formData: any) => {
         const clientData = {
             id: uuidv4(),
-            ...formData
+            ...formData,
+            business_id: businessId,
         };
 
-        const data = await createClient(businessId, clientData as ClientInsert);
-        if (data) {
-            setClients((prev) => [
-                ...prev,
-                {
-                    ...data,
-                    total_projects: 0,
-                    active_projects: 0,
-                    total_budget: 0,
-                },
-            ]);
-            setShowAddClientModal(false);
+        try {
+            const data = await createClient(clientData as ClientInsert);
+            if (data) {
+                setClients((prev) => [
+                    ...prev,
+                    {
+                        ...data,
+                        total_projects: 0,
+                        active_projects: 0,
+                        total_budget: 0,
+                    },
+                ]);
+                setShowAddClientModal(false);
+                toast({
+                    title: "Success",
+                    description: "Client created successfully!",
+                });
+            }
+        } catch (error) {
+            console.error("Error creating client:", error);
+            toast({
+                title: "Error",
+                description: "Failed to create client. Please try again.",
+            });
         }
     }
 

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { updateInvoice } from "@/app/actions/invoices";
-import { getInvoiceItemsByInvoiceId, createInvoiceItem, updateInvoiceItem, deleteInvoiceItem } from "@/app/actions/invoice-items";
-import { getClients } from "@/app/actions/clients";
-import { getProjects } from "@/app/actions/projects";
+import { useUpdateInvoice } from "@/hooks/useInvoices";
+import { useInvoiceItemsByInvoice, useInvoiceItemMutations } from "@/hooks/useInvoiceItems";
+import { useClients } from "@/hooks/useClients";
+import { useProjects } from "@/hooks/useProjects";
 import { InvoiceUpdate, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient } from "@/types/invoices";
 import { InvoiceItem, InvoiceItemInsert } from "@/types/invoice-items";
 import { Client } from "@/types/clients";
@@ -25,9 +25,27 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
     const router = useRouter();
     const { businessId } = useBusiness();
     const { user } = useUser();
-    const [loading, setLoading] = useState(false); const [loadingData, setLoadingData] = useState(true);
+
+    // Initialize hooks
+    const { updateInvoice, loading: updateLoading, error: updateError } = useUpdateInvoice();
+    const {
+        invoiceItems,
+        loading: itemsLoading,
+        refetch: refetchItems
+    } = useInvoiceItemsByInvoice(invoice?.id || '');
+    const {
+        createInvoiceItem,
+        updateInvoiceItem,
+        deleteInvoiceItem,
+        loading: itemMutationLoading
+    } = useInvoiceItemMutations();
+    const { getClients, loading: clientsLoading } = useClients();
+    const { projects, loading: projectsLoading, fetchProjects } = useProjects();
+
+    const [loading, setLoading] = useState(false);
+    const [loadingData, setLoadingData] = useState(true);
     const [clients, setClients] = useState<Client[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
+    const [projectsList, setProjectsList] = useState<Project[]>([]);
 
     // Invoice items state
     interface InvoiceItemRow {
@@ -61,19 +79,17 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
             loadInitialData();
             populateForm();
         }
-    }, [isOpen, invoice, businessId]); const loadInitialData = async () => {
-        setLoadingData(true);
-        try {
-            const [clientsData, projectsData, invoiceItemsData] = await Promise.all([
-                getClients(businessId),
-                getProjects(businessId),
-                getInvoiceItemsByInvoiceId(businessId, invoice.id),
-            ]);
-            setClients(clientsData);
-            setProjects(projectsData);
+    }, [isOpen, invoice, businessId]);
 
-            // Convert invoice items to the format we need
-            const formattedItems = invoiceItemsData.map((item: InvoiceItem) => ({
+    // Update projects list when projects hook data changes
+    useEffect(() => {
+        setProjectsList(projects);
+    }, [projects]);
+
+    // Update items when invoice items hook data changes
+    useEffect(() => {
+        if (invoiceItems.length > 0) {
+            const formattedItems = invoiceItems.map((item: any) => ({
                 id: item.id,
                 description: item.description || "",
                 quantity: item.quantity || 1,
@@ -81,20 +97,29 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                 amount: item.amount || 0,
                 isExisting: true,
             }));
-
-            // If no items exist, add one empty item
-            if (formattedItems.length === 0) {
-                formattedItems.push({
-                    id: `item${Date.now()}`,
-                    description: "",
-                    quantity: 1,
-                    unit_price: 0,
-                    amount: 0,
-                    isExisting: false,
-                });
-            }
-
             setItems(formattedItems);
+        } else if (isOpen && invoice) {
+            // If no items exist, add one empty item
+            setItems([{
+                id: `item${Date.now()}`,
+                description: "",
+                quantity: 1,
+                unit_price: 0,
+                amount: 0,
+                isExisting: false,
+            }]);
+        }
+    }, [invoiceItems, isOpen, invoice]);
+
+    const loadInitialData = async () => {
+        setLoadingData(true);
+        try {
+            // Load clients using hook
+            const clientsData = await getClients();
+
+            if (clientsData) {
+                setClients(clientsData);
+            }
         } catch (error) {
             console.error("Error loading data:", error);
             toast.error({
@@ -127,8 +152,8 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
 
     // Get filtered projects based on selected client
     const filteredProjects = formData.client_id
-        ? projects.filter((p) => p.client_id === formData.client_id)
-        : projects; const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        ? projectsList.filter((p) => p.client_id === formData.client_id)
+        : projectsList; const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
             const { name, value } = e.target;
             setFormData(prev => ({
                 ...prev,
@@ -190,7 +215,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
         // If it's an existing item, delete it from the database
         if (itemToRemove.isExisting) {
             try {
-                await deleteInvoiceItem(businessId, itemToRemove.id);
+                await deleteInvoiceItem(itemToRemove.id);
                 toast.success({
                     title: "Success",
                     description: "Item removed successfully"
@@ -240,19 +265,19 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                 invoice_number: formData.invoice_number,
                 issue_date: formData.issue_date,
                 due_date: formData.due_date,
-                paid_date: formData.paid_date || null,
-                payment_method: formData.payment_method || null,
+                paid_date: formData.paid_date || undefined,
+                payment_method: formData.payment_method || undefined,
                 amount: total, // Use calculated total from items
                 tax_rate: formData.tax_rate,
-                notes: formData.notes || null,
+                notes: formData.notes || undefined,
                 status: formData.status,
                 created_at: invoice.created_at,
                 created_by: invoice.created_by,
                 updated_at: new Date().toISOString(),
-                updated_by: user?.id || null,
+                updated_by: user?.id || undefined,
             };
 
-            const updatedInvoice = await updateInvoice(businessId, invoice.id, invoiceData);
+            const updatedInvoice = await updateInvoice(invoice.id, invoiceData);
 
             if (updatedInvoice) {
                 // Handle invoice items
@@ -260,41 +285,22 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
                     if (item.isExisting) {
                         // Update existing item
                         const itemData = {
-                            id: item.id,
-                            invoice_id: invoice.id,
-                            business_id: businessId,
                             description: item.description,
                             quantity: item.quantity,
-                            unit_price: item.unit_price,
+                            rate: item.unit_price,
                             amount: item.amount,
-                            tax_rate: null,
-                            tax_amount: null,
-                            total_price: item.amount,
-                            created_at: new Date().toISOString(), // This will be ignored for existing items
-                            created_by: user?.id || null,
-                            updated_at: new Date().toISOString(),
-                            updated_by: user?.id || null,
                         };
-                        return updateInvoiceItem(businessId, item.id, itemData);
+                        return updateInvoiceItem(item.id, itemData);
                     } else {
                         // Create new item
                         const itemData = {
-                            id: crypto.randomUUID(),
                             invoice_id: invoice.id,
-                            business_id: businessId,
                             description: item.description,
                             quantity: item.quantity,
-                            unit_price: item.unit_price,
+                            rate: item.unit_price,
                             amount: item.amount,
-                            tax_rate: null,
-                            tax_amount: null,
-                            total_price: item.amount,
-                            created_at: new Date().toISOString(),
-                            created_by: user?.id || null,
-                            updated_at: new Date().toISOString(),
-                            updated_by: user?.id || null,
                         };
-                        return createInvoiceItem(businessId, itemData);
+                        return createInvoiceItem(itemData);
                     }
                 });
 

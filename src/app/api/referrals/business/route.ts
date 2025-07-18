@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
             referrer_business: referrerBusiness.name,
         };
 
-        return NextResponse.json(response);
+        return NextResponse.json({ success: true, data: response }, { status: 201 });
 
     } catch (error) {
         console.error('Error in referral creation:', error);

@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        return NextResponse.json(crews);
+        return NextResponse.json({ success: true, data: crews }, { status: 200 });
 
     } catch (error) {
         console.error('Error in GET /api/project-crews:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -71,12 +71,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const crewData = await request.json();
@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
         // Validate required fields
         if (!crewData.project_id || !crewData.crew_id) {
             return NextResponse.json({
+                success: false,
                 error: 'Project ID and crew ID are required'
             }, { status: 400 });
         }
@@ -108,10 +109,10 @@ export async function POST(request: NextRequest) {
             );
 
             if (!crew) {
-                return NextResponse.json({ error: 'Failed to add crew to project' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to add crew to project' }, { status: 500 });
             }
 
-            return NextResponse.json(crew, { status: 201 });
+            return NextResponse.json({ success: true, data: crew }, { status: 201 });
         }
 
         // Create full project crew assignment
@@ -123,15 +124,15 @@ export async function POST(request: NextRequest) {
         });
 
         if (!crew) {
-            return NextResponse.json({ error: 'Failed to create crew assignment' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create crew assignment' }, { status: 500 });
         }
 
-        return NextResponse.json(crew, { status: 201 });
+        return NextResponse.json({ success: true, data: crew }, { status: 201 });
 
     } catch (error) {
         console.error('Error in POST /api/project-crews:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
