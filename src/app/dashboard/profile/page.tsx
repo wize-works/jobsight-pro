@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import PushManager from "@/components/push-manager";
 import { useNotifications } from "@/hooks/use-notifications";
+import { useUserByAuthId, useUserAvatar } from "@/hooks/useUsers";
 import { toast } from "@/hooks/use-toast";
-import { uploadUserAvatar } from "@/app/actions/user-avatar";
-import { getUserByAuthId, getUserById } from "@/app/actions/users";
 import { useBusiness } from "@/lib/business-context";
 import { NotificationTypeOptions, NotificationChannelOptions } from "@/types/notifications";
 import ProfileLoading from "./loading";
@@ -40,10 +39,11 @@ export default function ProfilePage() {
     const { user, isLoaded } = useUser();
     const [isSaving, setIsSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [currentUser, setCurrentUser] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Use hooks for data fetching and mutations
+    const { user: currentUser, loading: userLoading, refetch: refetchUser } = useUserByAuthId(user?.id || null);
+    const { uploadAvatar, loading: isUploadingAvatar } = useUserAvatar();
 
     // Profile form state
     const [profileForm, setProfileForm] = useState<UserProfile>({
@@ -81,48 +81,31 @@ export default function ProfilePage() {
     // Check if we should show the notifications loading state
     const shouldShowNotificationsLoading = notificationsLoading && user?.id;
 
-    // Load user data when component mounts
+    // Initialize profile form when user data loads
     useEffect(() => {
-        if (user && isLoaded && businessId) {
-            // Load current user data from database first
-            loadCurrentUser();
+        if (currentUser) {
+            setProfileForm({
+                firstName: currentUser.first_name || user?.firstName || "",
+                lastName: currentUser.last_name || user?.lastName || "",
+                email: currentUser.email || user?.emailAddresses?.[0]?.emailAddress || "",
+                phone: currentUser.phone || "",
+                jobTitle: "", // Note: job_title not in current user type
+                language: "English", // Note: language not in current user type
+                timeZone: "Pacific Time (PT)", // Note: time_zone not in current user type
+            });
+        } else if (user && !userLoading) {
+            // Fallback to Clerk data if no database user exists
+            setProfileForm({
+                firstName: user.firstName || "",
+                lastName: user.lastName || "",
+                email: user.emailAddresses?.[0]?.emailAddress || "",
+                phone: "",
+                jobTitle: "",
+                language: "English",
+                timeZone: "Pacific Time (PT)",
+            });
         }
-    }, [user, isLoaded, businessId]);
-
-    const loadCurrentUser = async () => {
-        if (!user?.id || !businessId) return;
-
-        try {
-            const dbUser = await getUserByAuthId(businessId, user.id);
-            if (dbUser) {
-                setCurrentUser(dbUser);
-                setAvatarUrl(dbUser.avatar_url);
-                // Set profile form from database data, fallback to Kinde only if db data is empty
-                setProfileForm({
-                    firstName: dbUser.first_name || user.firstName || "",
-                    lastName: dbUser.last_name || user.lastName || "",
-                    email: dbUser.email || user.emailAddresses?.[0]?.emailAddress || "",
-                    phone: dbUser.phone || "",
-                    jobTitle: "", // This should come from database or be empty
-                    language: "English", // This should come from database or default
-                    timeZone: "Pacific Time (PT)", // This should come from database or default
-                });
-            } else {
-                // Only use Kinde data if no database user exists (shouldn't happen in normal flow)
-                setProfileForm({
-                    firstName: user.firstName || "",
-                    lastName: user.lastName || "",
-                    email: user.emailAddresses?.[0]?.emailAddress || "",
-                    phone: "",
-                    jobTitle: "",
-                    language: "English",
-                    timeZone: "Pacific Time (PT)",
-                });
-            }
-        } catch (error) {
-            console.error("Error loading user data:", error);
-        }
-    };
+    }, [currentUser, user, userLoading]);
 
     // Initialize notification preferences
     useEffect(() => {
@@ -156,22 +139,19 @@ export default function ProfilePage() {
         event: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const file = event.target.files?.[0];
-        if (!file) return;
-
-        setIsUploadingAvatar(true);
+        if (!file || !businessId) return;
 
         try {
-            const result = await uploadUserAvatar(businessId, file);
+            const result = await uploadAvatar({ file });
 
-            if (result.success && result.avatarUrl) {
-                setAvatarUrl(result.avatarUrl);
+            if (result.success && result.user?.avatar_url) {
                 toast({
                     title: "Avatar updated",
                     description:
                         "Your profile picture has been updated successfully.",
                 });
-                // Reload user data to get the latest info
-                await loadCurrentUser();
+                // Refresh user data to get the latest info
+                refetchUser();
             } else {
                 toast.error({
                     title: "Upload failed",
@@ -186,7 +166,6 @@ export default function ProfilePage() {
                     "An unexpected error occurred while uploading your avatar.",
             });
         } finally {
-            setIsUploadingAvatar(false);
             // Reset file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
@@ -232,7 +211,9 @@ export default function ProfilePage() {
             console.error("Error updating notification preferences:", error);
             toast.error("Failed to update notification preferences");
         }
-    }; if (!isLoaded || !user) {
+    };
+
+    if (!isLoaded || !user || userLoading) {
         return <ProfileLoading />;
     }
 
@@ -261,11 +242,11 @@ export default function ProfilePage() {
                             {/* Avatar Section */}
                             <div className="flex items-center space-x-6 mb-8">
                                 <div className="relative">
-                                    {avatarUrl ? (
+                                    {currentUser?.avatar_url ? (
                                         <div className="avatar">
                                             <div className="w-24 rounded-full">
                                                 <img
-                                                    src={avatarUrl}
+                                                    src={currentUser.avatar_url}
                                                     alt="Profile"
                                                     className=""
                                                 />

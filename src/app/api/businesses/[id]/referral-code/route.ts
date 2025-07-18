@@ -55,8 +55,6 @@ export async function POST(request: NextRequest) {
             .eq('auth_id', userId)
             .single();
 
-        console.log('Debug - User lookup:', { userId, user, userError });
-
         if (userError || !user) {
             console.log('Debug - User not found:', { userId, userError });
             return NextResponse.json(
@@ -113,7 +111,7 @@ export async function POST(request: NextRequest) {
             const response: ReferralCodeResponse = {
                 referral_code: business.referral_code,
             };
-            return NextResponse.json(response);
+            return NextResponse.json({ success: true, data: response }, { status: 200 });
         }
 
         // Generate new referral code
@@ -259,7 +257,7 @@ export async function GET(request: NextRequest) {
             referral_code: business.referral_code || '',
         };
 
-        return NextResponse.json(response);
+        return NextResponse.json({ success: true, data: response }, { status: 200 });
 
     } catch (error) {
         console.error('Error getting referral code:', error);

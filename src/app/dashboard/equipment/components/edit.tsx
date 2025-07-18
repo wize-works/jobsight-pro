@@ -3,8 +3,7 @@ import { useState } from "react";
 import type { EquipmentUpdate, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
-import { updateEquipment } from "@/app/actions/equipments";
-import { createEquipmentSpecification, updateEquipmentSpecification } from "@/app/actions/equipment-specifications";
+import { useEquipmentMutation, useEquipmentSpecificationMutation } from "@/hooks/useEquipment";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import { toast } from "@/hooks/use-toast";
@@ -17,6 +16,11 @@ interface SpecFormState {
 
 export default function EditEquipment({ initialEquipment, initialSpecifications }: { initialEquipment: EquipmentWithDetails, initialSpecifications: EquipmentSpecification[] }) {
     const { businessId } = useBusiness();
+    const router = useRouter();
+
+    // Use the equipment mutation hooks
+    const { updateEquipment } = useEquipmentMutation();
+    const { createSpecification, updateSpecification } = useEquipmentSpecificationMutation();
 
     // Use the safe geolocation hook
     const {
@@ -49,7 +53,6 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
     };
     const [equipment, setEquipment] = useState<Partial<EquipmentWithDetails>>(initialEquipment);
     const [specifications, setSpecifications] = useState<EquipmentSpecification[]>(initialSpecifications);
-    const router = useRouter();
 
     const handleEquipmentChange = (e: { target: { name: any; value: any; }; }) => {
         const { name, value } = e.target;
@@ -93,8 +96,23 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
         if (!equipment.id) {
             throw new Error("Equipment ID is required to update equipment.");
         }
-        const equipmentModel = equipment as EquipmentUpdate;
-        await updateEquipment(businessId, equipment.id, equipmentModel);
+
+        const equipmentData = {
+            name: equipment.name || "",
+            type: equipment.type || undefined,
+            status: equipment.status || undefined,
+            description: equipment.description || undefined,
+            serial_number: equipment.serial_number || undefined,
+            model: equipment.model || undefined,
+            year: equipment.year || undefined,
+            purchase_date: equipment.purchase_date || undefined,
+            purchase_price: equipment.purchase_price || undefined,
+            current_value: equipment.current_value || undefined,
+            location: equipment.location || undefined,
+            manufacturer: equipment.make || undefined,
+        };
+
+        await updateEquipment(equipment.id, equipmentData);
         router.push("/dashboard/equipment");
     };
 
@@ -334,19 +352,16 @@ export default function EditEquipment({ initialEquipment, initialSpecifications 
                                                 className="btn btn-sm btn-outline btn-secondary"
                                                 onClick={async () => {
                                                     if (!spec.id) {
-                                                        await createEquipmentSpecification(businessId, {
+                                                        await createSpecification({
                                                             equipment_id: equipment.id ?? "",
-                                                            name: spec.name,
-                                                            value: spec.value,
-                                                            id: "",
-                                                            business_id: "",
-                                                            created_at: "",
-                                                            created_by: null,
-                                                            updated_at: null,
-                                                            updated_by: null
+                                                            specification: spec.name || "",
+                                                            value: spec.value || "",
                                                         });
                                                     } else {
-                                                        await updateEquipmentSpecification(businessId, spec.id, { ...spec, name: spec.name, value: spec.value });
+                                                        await updateSpecification(spec.id ?? "", {
+                                                            specification: spec.name || "",
+                                                            value: spec.value || ""
+                                                        });
                                                     }
                                                 }}
                                                 title="Update"

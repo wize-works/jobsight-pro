@@ -276,7 +276,7 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
             .in("status", ["active", "trialing"]);
 
         revalidatePath("/dashboard/business");
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error updating Stripe subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to update subscription" }, { status: 500 });
@@ -308,7 +308,7 @@ async function getStripeSubscription(businessId: string) {
             stripeSubscription.stripe_subscription_id
         );
 
-        return NextResponse.json({ success: true, subscription });
+        return NextResponse.json({ success: true, subscription }, { status: 200 });
     } catch (error) {
         console.error("Error getting Stripe subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to get subscription" }, { status: 500 });
@@ -360,7 +360,7 @@ async function cancelStripeSubscription(businessId: string) {
             .in("status", ["active", "trialing"]);
 
         revalidatePath("/dashboard/business");
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error canceling Stripe subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to cancel subscription" }, { status: 500 });

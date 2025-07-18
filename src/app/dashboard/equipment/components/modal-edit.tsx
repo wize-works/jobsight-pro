@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { updateEquipment } from "@/app/actions/equipments";
-import { createEquipmentSpecification, updateEquipmentSpecification, deleteEquipmentSpecification } from "@/app/actions/equipment-specifications";
-import { setEquipmentRate, getEquipmentRate } from "@/app/actions/client/rate-management";
+import { useEquipmentMutation, useEquipmentSpecificationMutation } from "@/hooks/useEquipment";
 import { useRateManagement } from "@/hooks/useRateManagement";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentWithDetails, EquipmentUpdate, EquipmentStatus, EquipmentType } from "@/types/equipment";
@@ -27,7 +25,9 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
 
-    // Use the new rate management hook
+    // Use the hooks
+    const { updateEquipment } = useEquipmentMutation();
+    const { createSpecification, updateSpecification, deleteSpecification } = useEquipmentSpecificationMutation();
     const { updateEquipmentRate, getEquipmentRate } = useRateManagement();
 
     // Form state
@@ -134,7 +134,7 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         if (spec.id) {
             // Delete from backend if it has an ID
             try {
-                await deleteEquipmentSpecification(businessId, spec.id);
+                await deleteSpecification(spec.id);
                 toast.success({
                     title: "Success",
                     description: "Specification deleted successfully"
@@ -165,29 +165,23 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         try {
             if (!spec.id) {
                 // Create new specification
-                const newSpec = await createEquipmentSpecification(businessId, {
+                const newSpec = await createSpecification({
                     equipment_id: equipment.id,
-                    name: spec.name,
-                    value: spec.value,
-                    id: "",
-                    business_id: businessId,
-                    created_at: "",
-                    created_by: null,
-                    updated_at: null,
-                    updated_by: null
+                    specification: spec.name,
+                    value: spec.value || "",
                 });
                 // Update the local state with the new ID
                 if (newSpec) {
                     setEquipmentSpecs(prev =>
-                        prev.map((s, i) => i === idx ? { ...s, id: newSpec.id } : s)
+                        prev.map((s, i) => i === idx ? { ...s, id: newSpec.data.id } : s)
                     );
                 }
             } else {
                 // Update existing specification
-                await updateEquipmentSpecification(businessId, spec.id, {
-                    name: spec.name,
-                    value: spec.value
-                } as EquipmentSpecificationUpdate);
+                await updateSpecification(spec.id, {
+                    specification: spec.name,
+                    value: spec.value || ""
+                });
             }
 
             toast.success({
@@ -210,26 +204,24 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
         try {
             if (!equipment.id) {
                 throw new Error("Equipment ID is required to update equipment.");
-            } const equipmentData = {
-                name: formData.name,
-                type: formData.type,
-                status: formData.status,
-                description: formData.description || null,
-                serial_number: formData.serial_number || null,
-                make: formData.make || null,
-                model: formData.model || null,
-                year: formData.year || null,
-                purchase_date: formData.purchase_date || null,
-                purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
-                current_value: formData.current_value ? parseFloat(formData.current_value) : null,
-                location: formData.location || null,
-                next_maintenance: formData.next_maintenance || null,
-                image_url: formData.image_url || null,
-                is_billable: formData.is_billable,
-                hourly_rate: formData.is_billable ? formData.hourly_rate : 0,
-            } as EquipmentUpdate;
+            }
 
-            const updatedEquipment = await updateEquipment(businessId, equipment.id, equipmentData);
+            const equipmentData = {
+                name: formData.name,
+                type: formData.type || undefined,
+                status: formData.status || undefined,
+                description: formData.description || undefined,
+                serial_number: formData.serial_number || undefined,
+                model: formData.model || undefined,
+                year: formData.year || undefined,
+                purchase_date: formData.purchase_date || undefined,
+                purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : undefined,
+                current_value: formData.current_value ? parseFloat(formData.current_value) : undefined,
+                location: formData.location || undefined,
+                manufacturer: formData.make || undefined,
+            };
+
+            const updatedEquipment = await updateEquipment(equipment.id, equipmentData);
 
             if (updatedEquipment) {
                 // Update equipment rates

@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { getInvoiceWitDetailsById } from "@/app/actions/invoices";
+import { useInvoiceWithDetails } from "@/hooks/useInvoices";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/error-boundary";
@@ -29,39 +29,16 @@ export default function InvoiceDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const { business } = useBusiness();
-    const [invoice, setInvoice] = useState<InvoiceWithDetails | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+
+    // Use the hook to fetch invoice details
+    const { invoice, loading, error, refetch } = useInvoiceWithDetails(id);
+
     const [showSendModal, setShowSendModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-    useEffect(() => {
-        async function fetchInvoice() {
-            if (!business || !id) return;
-
-            try {
-                setLoading(true);
-                setError(null);
-                const invoiceData = await getInvoiceWitDetailsById(business.id, id);
-
-                if (!invoiceData) {
-                    setError("Invoice not found.");
-                    return;
-                }
-
-                setInvoice(invoiceData);
-            } catch (err) {
-                console.error('Error fetching invoice:', err);
-                setError("Failed to load invoice details.");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchInvoice();
-    }, [business, id]); const getPdf = async () => {
+    const getPdf = async () => {
         if (!invoice) return;
 
         setDownloadingPdf(true);
@@ -130,7 +107,7 @@ export default function InvoiceDetailPage() {
     }
 
     // Calculate subtotal
-    const subtotal = invoice.items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+    const subtotal = invoice?.items?.reduce((sum, item) => sum + (item.amount ?? 0), 0) ?? 0;
 
     // Calculate tax (assuming 8% tax rate)
     const taxRate = 0.08;
@@ -198,17 +175,17 @@ export default function InvoiceDetailPage() {
                     <div className="bg-base-100 p-6 rounded-lg shadow-sm mb-6 print:shadow-none" id="invoice-print">
                         <div className="flex flex-col md:flex-row justify-between mb-8">
                             <div>
-                                <img src={invoice.business_info.logo_url ?? "/logo-full.png"} alt="JobSight Logo" className="h-12 mb-4" />
+                                <img src={invoice?.business_info?.logo_url ?? "/logo-full.png"} alt="JobSight Logo" className="h-12 mb-4" />
                                 <div>
-                                    <p className="font-bold">{invoice.business_info.name}</p>
-                                    <p>{invoice.business_info.street}</p>
+                                    <p className="font-bold">{invoice?.business_info?.name}</p>
+                                    <p>{invoice?.business_info?.street}</p>
                                     <p>
-                                        {invoice.business_info.city}, {invoice.business_info.state} {invoice.business_info.zip}
+                                        {invoice?.business_info?.city}, {invoice?.business_info?.state} {invoice?.business_info?.zip}
                                     </p>
-                                    <p>{invoice.business_info.country}</p>
-                                    <p>Phone: {invoice.business_info.phone}</p>
-                                    <p>Email: {invoice.business_info.email}</p>
-                                    <p>Tax ID: {invoice.business_info.tax_id}</p>
+                                    <p>{invoice?.business_info?.country}</p>
+                                    <p>Phone: {invoice?.business_info?.phone}</p>
+                                    <p>Email: {invoice?.business_info?.email}</p>
+                                    <p>Tax ID: {invoice?.business_info?.tax_id}</p>
                                 </div>
                             </div>
                             <div className="mt-6 md:mt-0 text-right">
@@ -225,7 +202,7 @@ export default function InvoiceDetailPage() {
                                         </tr>
                                         <tr>
                                             <td className="text-right font-medium pr-4">Due Date:</td>
-                                            <td>{formatDate(invoice.due_date)}</td>
+                                            <td>{invoice?.due_date ? formatDate(invoice.due_date) : 'N/A'}</td>
                                         </tr>
                                         {invoice.paid_date && (
                                             <tr>
@@ -248,11 +225,11 @@ export default function InvoiceDetailPage() {
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">Bill To:</h3>
                                 <div className="p-4 bg-base-200 rounded-lg">
-                                    <p className="font-bold">{invoice.billing_address.name}</p>
-                                    <p>Attn: {invoice.billing_address.attention}</p>
-                                    <p>{invoice.billing_address.street}</p>
+                                    <p className="font-bold">{invoice?.billing_address?.name}</p>
+                                    <p>Attn: {invoice?.billing_address?.attention}</p>
+                                    <p>{invoice?.billing_address?.street}</p>
                                     <p>
-                                        {invoice.billing_address.city}, {invoice.billing_address.state} {invoice.billing_address.zip}
+                                        {invoice?.billing_address?.city}, {invoice?.billing_address?.state} {invoice?.billing_address?.zip}
                                     </p>
                                     <p>{invoice.billing_address.country}</p>
                                 </div>
@@ -365,7 +342,7 @@ export default function InvoiceDetailPage() {
                         isOpen={showEditModal}
                         onClose={() => setShowEditModal(false)}
                         onSave={(updatedInvoice) => {
-                            setInvoice(prev => prev ? { ...prev, ...updatedInvoice } : null);
+                            refetch();
                             setShowEditModal(false);
                         }}
                         invoice={{

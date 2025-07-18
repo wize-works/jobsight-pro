@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
         const limit = searchParams.get('limit') || '20';
 
         if (!query) {
-            return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Search query is required' }, { status: 400 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business ID
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
         if (clientsError) {
             console.error('Error searching clients:', clientsError);
-            return NextResponse.json({ error: 'Failed to search clients' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to search clients' }, { status: 500 });
         }
 
         const result: any = {
@@ -89,10 +89,10 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, data: result });
+        return NextResponse.json({ success: true, data: result }, { status: 200 });
 
     } catch (error) {
         console.error('Error in clients search API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

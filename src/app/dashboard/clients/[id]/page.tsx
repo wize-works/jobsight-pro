@@ -4,19 +4,20 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiveClient, getClientArchiveInfo, getClientDetailsByID } from "@/app/actions/clients";
-import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
-import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
-import { getProjectsByClientId, createProject } from "@/app/actions/projects";
-import { createInvoice } from "@/app/actions/invoices";
-import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, unlinkMediaFromClient, uploadClientLogo } from "@/app/actions/media";
+import { useClients, useClientContacts, useClientInteractions } from "@/hooks/useClients";
+import { useProjects, useProjectMutations } from "@/hooks/useProjects";
+import { useInvoices, useCreateInvoice } from "@/hooks/useInvoices";
+import { useClientLogo } from "@/hooks/useMedia";
+import { mediaApi } from "@/lib/api/media";
+import { invoicesApi } from "@/lib/api/invoices";
 import { toast } from "@/hooks/use-toast";
 import { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
 import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } from "@/types/client-interactions";
-import { Project, ProjectStatus, projectStatusOptions } from "@/types/projects";
+import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { Client, ClientStatus, clientStatusOptions } from "@/types/clients";
 import { MediaType, Media } from "@/types/media";
 import { InvoiceInsert } from "@/types/invoices";
+import { CreateInvoiceData } from "@/lib/api/invoices";
 import { useBusiness } from "@/lib/business-context";
 import { getProxiedMediaUrl } from "@/lib/media-utils";
 import ClientModal from "../components/modal-client";
@@ -34,7 +35,16 @@ import { generateClientPdf } from "@/app/actions/pdf-generation-gotenberg";
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();
     const { user } = useUser();
-    const router = useRouter();// Data loading states
+    const router = useRouter();
+
+    // Initialize hooks
+    const { getClientById, updateClient, deleteClient } = useClients();
+    const { getClientContacts, createClientContact, updateClientContact } = useClientContacts();
+    const { getClientInteractions, createClientInteraction, updateClientInteraction } = useClientInteractions();
+    const { createProject } = useProjectMutations();
+    const { createInvoice } = useCreateInvoice();
+
+    // Data loading states
     const [loading, setLoading] = useState(true);
     const [client, setClient] = useState<Client>({} as Client);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -42,6 +52,11 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
     const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
     const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
+
+    // Logo management state
+    const [clientLogo, setClientLogo] = useState<any>(null);
+    const [logoLoading, setLogoLoading] = useState(false);
+    const [logoError, setLogoError] = useState<string | null>(null);
 
     // UI states
     const [activeTab, setActiveTab] = useState("overview");
@@ -57,10 +72,12 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [editInteraction, setEditInteraction] = useState<ClientInteraction | null>(null);
     const [clientNotes, setClientNotes] = useState("");
     const [showAddProjectModal, setShowAddProjectModal] = useState(false);
-    const [mediaLoading, setMediaLoading] = useState(false); const [logoUploadLoading, setLogoUploadLoading] = useState(false);
+    const [mediaLoading, setMediaLoading] = useState(false);
+    const [logoUploadLoading, setLogoUploadLoading] = useState(false);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
     const [invoiceLoading, setInvoiceLoading] = useState(false);
-    const [archiveLoading, setArchiveLoading] = useState(false); const [archiveInfo, setArchiveInfo] = useState<{
+    const [archiveLoading, setArchiveLoading] = useState(false);
+    const [archiveInfo, setArchiveInfo] = useState<{
         relatedData: {
             projectCount: number;
             contactCount: number;
@@ -69,6 +86,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         };
     } | null>(null);
     const [downloadingPdf, setDownloadingPdf] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             if (!businessId) {
@@ -77,29 +95,69 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             setLoading(true);
             const { id } = await params;
             try {
-                const clientDetails = await getClientDetailsByID(businessId, id);
+                const clientDetails = await getClientById(id, {
+                    includeContacts: true,
+                    includeInteractions: true,
+                    includeProjects: true,
+                    includeStats: true
+                });
                 if (clientDetails) {
-                    const { client, projects, contacts, interactions, stats } = clientDetails;
+                    const { client, contacts, interactions, projects, stats } = clientDetails;
                     setClient(client);
-                    setProjects(projects);
-                    setContacts(contacts);
-                    setInteractions(interactions);
+                    setProjects(projects || []);
+                    setContacts(contacts || []);
+                    setInteractions(interactions || []);
+                    setClientNotes(client.notes || "");
                     // Can also use stats for dashboard metrics
                 }
 
-                // Get archive info in the background
-                getClientArchiveInfo(businessId, id).then(info => {
-                    setArchiveInfo(info);
-                }).catch(error => {
-                    console.error("Error getting archive info:", error);
-                });
+                // Get archive info for the client to show related data counts
+                try {
+                    // Count related data manually since we have the data loaded
+                    const relatedData = {
+                        projectCount: projects?.length || 0,
+                        contactCount: contacts?.length || 0,
+                        interactionCount: interactions?.length || 0,
+                        invoiceCount: 0 // Will be loaded separately as invoices aren't preloaded
+                    };
+                    setArchiveInfo({ relatedData });
+
+                    // Asynchronously load invoice count for more accurate archive info
+                    loadInvoiceCount();
+                } catch (error) {
+                    console.error("Error setting archive info:", error);
+                }
             } catch (error) {
                 console.error("Error fetching client data:", error);
             } finally {
                 setLoading(false);
             }
         }; fetchData();
-    }, [params, businessId]);    // PDF download function - now saves to media storage
+    }, [params, businessId]);
+
+    // Load invoice count for archive info
+    const loadInvoiceCount = async () => {
+        if (!client?.id || !businessId) return;
+
+        try {
+            const response = await invoicesApi.getInvoicesByClient(client.id);
+            const invoiceCount = response.data?.length || 0;
+
+            // Update archive info with actual invoice count
+            setArchiveInfo(prev => ({
+                relatedData: {
+                    projectCount: prev?.relatedData?.projectCount || 0,
+                    contactCount: prev?.relatedData?.contactCount || 0,
+                    interactionCount: prev?.relatedData?.interactionCount || 0,
+                    invoiceCount
+                }
+            }));
+        } catch (error) {
+            console.error("Error loading invoice count:", error);
+        }
+    };
+
+    // PDF download function - now saves to media storage
     const downloadClientPdf = async () => {
         if (!client || !businessId) return;
 
@@ -113,10 +171,10 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             }
 
             // PDF is now saved to media storage and linked to client
-            toast.success({
+            toast({
                 title: "PDF generated and saved",
                 description: "Client PDF has been saved to your documents and linked to this client.",
-                autoClose: true,
+                variant: "success"
             });
 
             // Refresh media data to show the new PDF
@@ -135,9 +193,10 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         } catch (error) {
             console.error('Error generating client PDF:', error);
-            toast.error({
+            toast({
                 title: "Failed to generate PDF",
                 description: "There was an error generating the client PDF. Please try again.",
+                variant: "error"
             });
         } finally {
             setDownloadingPdf(false);
@@ -162,18 +221,19 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         try {
             await createClientContact(businessId, contactData);
-            toast.success({
+            toast({
                 title: "Contact created",
                 description: "Your contact has been created successfully.",
-                autoClose: true,
+                variant: "success"
             });
             router.refresh();
             return { success: true };
         } catch (error) {
             console.error("Error creating contact:", error);
-            toast.error({
+            toast({
                 title: "Error creating contact",
                 description: "There was an error creating the contact.",
+                variant: "error"
             });
             return { success: false };
         } finally {
@@ -225,9 +285,9 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
     const handleAddProject = async (formData: any) => {
         try {
-            await createProject(businessId, {
-                id: "",
-                business_id: "",
+            const projectData: ProjectInsert = {
+                id: crypto.randomUUID(),
+                business_id: businessId,
                 name: formData.name,
                 type: formData.type || null,
                 status: formData.status,
@@ -239,24 +299,27 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 client_id: client.id,
                 manager_id: null,
                 progress: null,
-                created_by: null,
-                created_at: null,
-                updated_by: null,
-                updated_at: null
-            });
+                created_by: user?.id || null,
+                created_at: new Date().toISOString(),
+                updated_by: user?.id || null,
+                updated_at: new Date().toISOString(),
+            };
 
-            toast.success({
+            await createProject(projectData);
+
+            toast({
                 title: "Project created",
                 description: "Your project has been created successfully.",
-                autoClose: true,
+                variant: "success"
             });
 
             router.refresh();
             return { success: true };
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error creating project",
                 description: "There was an error creating the project.",
+                variant: "error"
             });
             throw error;
         }
@@ -335,12 +398,27 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         try {
             setMediaLoading(true);
-            const [linked, available] = await Promise.all([
-                getMediaByClientId(businessId, client.id),
-                getAvailableMediaForClient(businessId, client.id)
-            ]);
-            setLinkedMedia(linked);
-            setAvailableMedia(available);
+
+            // Get client-linked media
+            const linkedMediaResponse = await mediaApi.getMedia({
+                client_id: client.id,
+                limit: 100
+            });
+
+            setLinkedMedia(linkedMediaResponse.data || []);
+
+            // Get all business media for linking (excluding already linked)
+            const allMediaResponse = await mediaApi.getMedia({
+                limit: 500 // Get more for available selection
+            });
+
+            // Filter out already linked media
+            const linkedMediaIds = (linkedMediaResponse.data || []).map(media => media.id);
+            const availableMediaForLinking = (allMediaResponse.data || []).filter(
+                media => !linkedMediaIds.includes(media.id)
+            );
+
+            setAvailableMedia(availableMediaForLinking);
         } catch (error) {
             console.error("Error loading client media:", error);
             toast.error("Failed to load media data");
@@ -355,70 +433,148 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         metadata: { name: string; description: string; type: MediaType }
     ): Promise<boolean> => {
         try {
-            const success = await uploadClientMedia(
-                businessId,
-                client.id,
-                file,
-                metadata.type,
-                metadata.description
-            );
+            // Get upload URL
+            const uploadUrlResponse = await fetch('/api/media/upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: metadata.type,
+                    filename: file.name
+                }),
+            });
 
-            if (success) {
-                await loadMediaData(); // Refresh data
-                toast.success("Media uploaded successfully");
-                return true;
-            } else {
-                throw new Error("Upload failed");
+            if (!uploadUrlResponse.ok) {
+                throw new Error('Failed to get upload URL');
             }
+
+            const { uploadUrl, fileUrl, fileName } = await uploadUrlResponse.json();
+
+            // Upload file to storage
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'x-ms-blob-type': 'BlockBlob',
+                    'Content-Type': file.type,
+                },
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload file');
+            }
+
+            // Create media record
+            const mediaResponse = await fetch('/api/media', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: fileUrl,
+                    name: metadata.name || file.name,
+                    description: metadata.description,
+                    type: metadata.type,
+                    size: file.size,
+                    uploaded_at: new Date().toISOString(),
+                }),
+            });
+
+            if (!mediaResponse.ok) {
+                throw new Error('Failed to create media record');
+            }
+
+            const media = await mediaResponse.json();
+
+            // Link media to client
+            await fetch('/api/media-links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    media_id: media.data.id,
+                    linked_id: client.id,
+                    linked_type: 'client'
+                }),
+            });
+
+            toast.success({
+                title: "Upload successful",
+                description: `${file.name} has been uploaded and linked to ${client.name}`,
+                autoClose: true,
+            });
+
+            await loadMediaData(); // Refresh data
+            return true;
         } catch (error) {
             console.error("Error uploading media:", error);
-            toast.error("Failed to upload media");
+            toast.error({
+                title: "Upload failed",
+                description: error instanceof Error ? error.message : "Failed to upload media",
+            });
             return false;
         }
     };
 
     const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await linkExistingMediaToClient(businessId, mediaIds, client.id);
-
-            if (success) {
-                await loadMediaData(); // Refresh data
-                toast.success(`Linked ${mediaIds.length} media item(s)`);
-                return { success: true };
-            } else {
-                throw new Error("Link failed");
+            // Link each selected media item to the client
+            for (const mediaId of mediaIds) {
+                await fetch('/api/media-links', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        media_id: mediaId,
+                        linked_id: client.id,
+                        linked_type: 'client'
+                    }),
+                });
             }
+
+            toast.success({
+                title: "Media linked successfully",
+                description: `${mediaIds.length} file(s) have been linked to ${client.name}`,
+                autoClose: true,
+            });
+
+            await loadMediaData(); // Refresh data
+            return { success: true };
         } catch (error) {
             console.error("Error linking media:", error);
-            const errorMessage = "Failed to link media";
-            toast.error(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to link media";
+            toast.error({
+                title: "Link failed",
+                description: errorMessage,
+            });
             return { success: false, error: errorMessage };
         }
     };
 
     const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            // For client media, we need to unlink each media item individually
-            let success = true;
+            // Unlink each selected media item from the client
             for (const mediaId of mediaIds) {
-                const result = await unlinkMediaFromClient(businessId, mediaId, client.id);
-                if (!result) {
-                    success = false;
-                    break;
+                const deleteResponse = await fetch(`/api/media-links?media_id=${mediaId}&linked_id=${client.id}&linked_type=client`, {
+                    method: 'DELETE',
+                });
+
+                if (!deleteResponse.ok) {
+                    const errorData = await deleteResponse.json();
+                    throw new Error(errorData.error || `Failed to unlink media ${mediaId}`);
                 }
             }
 
-            if (success) {
-                await loadMediaData(); // Refresh data
-                toast.success(`Unlinked ${mediaIds.length} media item(s)`);
-                return { success: true };
-            } else {
-                throw new Error("Unlink failed");
-            }
+            toast.success({
+                title: "Media unlinked successfully",
+                description: `${mediaIds.length} file(s) have been unlinked from ${client.name}`,
+                autoClose: true,
+            });
+
+            await loadMediaData(); // Refresh data
+            return { success: true };
         } catch (error) {
             console.error("Error unlinking media:", error);
-            const errorMessage = "Failed to unlink media";
-            toast.error(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to unlink media";
+            toast.error({
+                title: "Unlink failed",
+                description: errorMessage,
+            });
             return { success: false, error: errorMessage };
         }
     };
@@ -426,18 +582,128 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     // Load media data when client changes
     useEffect(() => {
         loadMediaData();
+        fetchClientLogo();
     }, [client.id]);
+
+    // Fetch client logo
+    const fetchClientLogo = async () => {
+        if (!client.id) return;
+
+        try {
+            const response = await fetch(`/api/media?client_id=${client.id}&search=logo&type=images`);
+            if (response.ok) {
+                const data = await response.json();
+                const logo = data.data.find((media: any) =>
+                    media.name?.toLowerCase().includes('logo') ||
+                    media.description?.toLowerCase().includes('logo')
+                );
+                setClientLogo(logo || null);
+            }
+        } catch (error) {
+            console.error('Error fetching client logo:', error);
+            setLogoError('Failed to load logo');
+        }
+    };
+
+    // Upload client logo using media API
+    const uploadClientLogo = async (file: File): Promise<{ success: boolean; logoUrl?: string }> => {
+        setLogoLoading(true);
+        setLogoError(null);
+
+        try {
+            // Get upload URL
+            const uploadUrlResponse = await fetch('/api/media/upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'images',
+                    filename: file.name
+                }),
+            });
+
+            if (!uploadUrlResponse.ok) {
+                throw new Error('Failed to get upload URL');
+            }
+
+            const { uploadUrl, fileUrl, fileName } = await uploadUrlResponse.json();
+
+            // Upload file to storage
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'x-ms-blob-type': 'BlockBlob',
+                    'Content-Type': file.type,
+                },
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload file');
+            }
+
+            // Create media record
+            const mediaResponse = await fetch('/api/media', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: fileUrl,
+                    name: `${fileName}-client-logo`,
+                    description: `Logo for client`,
+                    type: 'images',
+                    size: file.size,
+                    uploaded_at: new Date().toISOString(),
+                }),
+            });
+
+            if (!mediaResponse.ok) {
+                throw new Error('Failed to create media record');
+            }
+
+            const media = await mediaResponse.json();
+
+            // Link media to client
+            await fetch('/api/media-links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    media_id: media.data.id,
+                    linked_id: client.id,
+                    linked_type: 'client'
+                }),
+            });
+
+            // Update client logo_url field for backward compatibility
+            const updatedClient = await updateClient(client.id, {
+                logo_url: fileUrl,
+            } as any);
+
+            if (updatedClient) {
+                setClient(updatedClient);
+                setClientLogo(media.data);
+            }
+
+            return { success: true, logoUrl: fileUrl };
+        } catch (error) {
+            console.error('Error uploading client logo:', error);
+            setLogoError(error instanceof Error ? error.message : 'Failed to upload logo');
+            return { success: false };
+        } finally {
+            setLogoLoading(false);
+        }
+    };
 
     const handleUpdateClientNotes = async (notes: string) => {
         try {
-            await updateClientNotes(businessId, client.id, notes);
-            toast.success({
-                title: "Notes updated",
-                description: "Client notes have been updated successfully.",
-                autoClose: true,
-            });
+            const updatedClient = await updateClient(client.id, { notes } as any);
+            if (updatedClient) {
+                setClient(updatedClient);
+                toast({
+                    title: "Notes updated",
+                    description: "Client notes have been updated successfully.",
+                });
+            }
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error updating notes",
                 description: "There was an error updating the client notes.",
             });
@@ -468,10 +734,15 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 updated_by: user?.id || null
             };
 
-            const updatedClient = await updateClient(businessId, client.id, clientData);
-            setClient(updatedClient);
-            toast.success("Client updated successfully");
-            router.refresh();
+            const updatedClient = await updateClient(client.id, clientData);
+            if (updatedClient) {
+                setClient(updatedClient);
+                toast({
+                    title: "Success",
+                    description: "Client updated successfully",
+                });
+                router.refresh();
+            }
         } catch (error) {
             console.error("Error updating client:", error);
             toast.error("Failed to update client");
@@ -503,12 +774,12 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         setLogoUploadLoading(true);
         try {
-            const result = await uploadClientLogo(businessId, client.id, file);
+            const result = await uploadClientLogo(file);
             if (result.success) {
-                toast.success({
+                toast({
                     title: "Logo uploaded",
                     description: "Client logo has been updated successfully.",
-                    autoClose: true,
+                    variant: "success"
                 });
                 router.refresh();
             } else {
@@ -516,9 +787,10 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
             }
         } catch (error) {
             console.error("Error uploading logo:", error);
-            toast.error({
+            toast({
                 title: "Upload failed",
                 description: "There was an error uploading the logo.",
+                variant: "error"
             });
         } finally {
             setLogoUploadLoading(false);
@@ -533,27 +805,20 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         setInvoiceLoading(true);
 
         try {
-            const invoiceData: InvoiceInsert = {
-                id: crypto.randomUUID(),
-                business_id: businessId,
-                invoice_number: formData.invoice_number,
+            const invoiceData: CreateInvoiceData = {
                 client_id: client.id,
-                project_id: formData.project_id || null,
-                amount: formData.amount,
-                tax_rate: formData.tax_rate,
-                status: formData.status,
+                project_id: formData.project_id || undefined,
+                invoice_number: formData.invoice_number,
                 issue_date: formData.issue_date,
                 due_date: formData.due_date,
-                paid_date: null,
-                payment_method: null,
+                amount: formData.amount,
+                total_amount: formData.amount * (1 + formData.tax_rate / 100),
+                tax_amount: formData.amount * (formData.tax_rate / 100),
+                status: formData.status,
                 notes: formData.notes,
-                created_at: new Date().toISOString(),
-                created_by: user?.id || null,
-                updated_at: new Date().toISOString(),
-                updated_by: user?.id || null
             };
 
-            const invoice = await createInvoice(businessId, invoiceData);
+            const invoice = await createInvoice(invoiceData);
             if (invoice) {
                 toast.success({
                     title: "Invoice created",
@@ -580,8 +845,16 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         if (!archiveInfo) {
             setArchiveLoading(true);
             try {
-                const info = await getClientArchiveInfo(businessId, client.id);
-                setArchiveInfo(info);
+                // TODO: Implement client archive info API
+                // For now, just show placeholder data
+                setArchiveInfo({
+                    relatedData: {
+                        projectCount: projects.length,
+                        contactCount: contacts.length,
+                        interactionCount: interactions.length,
+                        invoiceCount: 0
+                    }
+                });
                 setArchiveLoading(false);
             } catch (error) {
                 setArchiveLoading(false);
@@ -622,13 +895,13 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         setArchiveLoading(true);
 
         try {
-            const success = await archiveClient(businessId, client.id);
+            const success = await deleteClient(client.id, true); // Archive
 
             if (success) {
-                toast.success({
+                toast({
                     title: "Client archived successfully",
                     description: `"${client.name}" has been archived. All data has been preserved.`,
-                    autoClose: true,
+                    variant: "success"
                 });
                 router.refresh();
             } else {
@@ -639,9 +912,10 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
             const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 
-            toast.error({
+            toast({
                 title: "Error archiving client",
                 description: errorMessage,
+                variant: "error"
             });
         } finally {
             setArchiveLoading(false);
@@ -656,13 +930,15 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         setArchiveLoading(true);
 
         try {
-            const success = await unarchiveClient(businessId, client.id);
+            // Use the updateClient function to change status to active
+            const updatedClient = await updateClient(client.id, { status: 'active' } as any);
 
-            if (success) {
-                toast.success({
+            if (updatedClient) {
+                setClient(updatedClient);
+                toast({
                     title: "Client unarchived successfully",
-                    description: `"${client.name}" is now active again.`,
-                    autoClose: true,
+                    description: `"${client.name}" has been restored to active status.`,
+                    variant: "success"
                 });
                 router.refresh();
             } else {
@@ -673,14 +949,17 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
             const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 
-            toast.error({
+            toast({
                 title: "Error unarchiving client",
                 description: errorMessage,
+                variant: "error"
             });
         } finally {
             setArchiveLoading(false);
         }
-    }; if (loading) {
+    };
+
+    if (loading) {
         return <ClientDetailLoading />
     }
 
@@ -691,7 +970,9 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                 <p>The requested client does not exist or you don't have permission to view it.</p>
             </div>
         )
-    } return (
+    }
+
+    return (
         <div>
             {/* Client Header */}
             <ErrorBoundary fallback={(error) => (

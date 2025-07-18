@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { getMediaById, deleteMedia, updateMedia } from "@/app/actions/media"
-import { getProjects } from "@/app/actions/projects"
+import { useMediaById, useMediaMutations } from "@/hooks/useMedia"
+import { useProjects } from "@/hooks/useProjects"
 import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"
 import { toast } from "@/hooks/use-toast"
@@ -17,70 +17,43 @@ export default function MediaDetail() {
     const mediaId = params.id as string
     const { businessId } = useBusiness();
 
-    const [mediaItem, setMediaItem] = useState<Media | null>(null)
-    const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [editedItem, setEditedItem] = useState<Partial<Media>>({})
 
+    // Use hooks for data fetching and mutations
+    const { media: mediaItem, loading: mediaLoading, refetch: refetchMedia } = useMediaById(mediaId);
+    const { projects, loading: projectsLoading } = useProjects();
+    const { updateMedia, deleteMedia } = useMediaMutations();
+
+    const loading = mediaLoading || projectsLoading;
+
+    // Initialize edit state when media loads
     useEffect(() => {
-        loadData()
-    }, [mediaId, businessId])
-
-    const loadData = async () => {
-        if (!businessId) {
-            return;
+        if (mediaItem) {
+            setEditedItem(mediaItem);
         }
-
-        try {
-            setLoading(true)
-            const [media, projectsData] = await Promise.all([
-                getMediaById(businessId, mediaId),
-                getProjects(businessId)
-            ])
-
-            if (!media) {
-                toast.success({
-                    title: "Error",
-                    description: "Media item not found",
-                })
-                router.push("/dashboard/media")
-                return
-            }
-
-            setMediaItem(media)
-            setEditedItem(media)
-            setProjects(projectsData)
-        } catch (error) {
-            console.error("Error loading media:", error)
-            toast.error({
-                title: "Error",
-                description: "Failed to load media item",
-            })
-        } finally {
-            setLoading(false)
-        }
-    }
+    }, [mediaItem]);
 
     const handleSave = async () => {
         if (!mediaItem) return
 
         try {
-            const updated = await updateMedia(businessId, mediaItem.id, {
-                name: editedItem.name || mediaItem.name,
-                description: editedItem.description ?? null,
-                project_id: editedItem.project_id ?? null
-            } as MediaUpdate)
+            const updated = await updateMedia(mediaItem.id, {
+                name: editedItem.name || mediaItem.name || undefined,
+                description: editedItem.description || undefined,
+                project_id: editedItem.project_id || undefined
+            })
 
             if (updated) {
-                setMediaItem(updated)
                 setIsEditing(false)
                 toast.success({
                     title: "Success",
                     description: "Media item updated successfully"
                 })
+                // Refresh the data
+                refetchMedia()
             }
         } catch (error) {
             console.error("Error updating media:", error)
@@ -95,7 +68,7 @@ export default function MediaDetail() {
         if (!mediaItem) return
 
         try {
-            const success = await deleteMedia(businessId, mediaItem.id)
+            const success = await deleteMedia(mediaItem.id)
             if (success) {
                 toast.success({
                     title: "Success",

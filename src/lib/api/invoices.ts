@@ -5,7 +5,7 @@ export interface Invoice {
     client_id: string;
     project_id?: string;
     invoice_number: string;
-    invoice_date: string;
+    issue_date: string;
     due_date?: string;
     amount: number;
     tax_amount?: number;
@@ -73,7 +73,7 @@ export interface CreateInvoiceData {
     client_id: string;
     project_id?: string;
     invoice_number: string;
-    invoice_date: string;
+    issue_date: string;
     due_date?: string;
     amount: number;
     tax_amount?: number;
@@ -90,13 +90,21 @@ export interface UpdateInvoiceData extends Partial<CreateInvoiceData> { }
 
 // API response types
 export interface InvoiceResponse {
+    success: boolean;
     data: Invoice[];
-    count: number;
+    pagination: {
+        count: number;
+        total: number | null;
+        limit: number | null;
+        offset: number;
+        hasMore: boolean;
+    };
 }
 
 export interface InvoiceSingleResponse {
+    success: boolean;
     data: Invoice;
-    message: string;
+    message?: string;
 }
 
 // Invoices API functions
@@ -116,7 +124,17 @@ export const invoicesApi = {
         if (!response.ok) {
             throw new Error('Failed to fetch invoices');
         }
-        return response.json();
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch invoices');
+        }
+
+        return {
+            success: true,
+            data: result.data,
+            pagination: result.pagination
+        };
     },
 
     // Create invoice
@@ -130,7 +148,14 @@ export const invoicesApi = {
         if (!response.ok) {
             throw new Error('Failed to create invoice');
         }
-        return response.json();
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to create invoice');
+        }
+
+        return result;
     },
 
     // Update invoice
@@ -144,7 +169,14 @@ export const invoicesApi = {
         if (!response.ok) {
             throw new Error('Failed to update invoice');
         }
-        return response.json();
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to update invoice');
+        }
+
+        return result;
     },
 
     // Delete invoice
@@ -313,7 +345,7 @@ export const invoiceUtils = {
             errors.push('Invoice number is required');
         }
 
-        if (!invoice.invoice_date?.trim()) {
+        if (!invoice.issue_date?.trim()) {
             errors.push('Invoice date is required');
         }
 
@@ -358,8 +390,8 @@ export const invoiceUtils = {
     // Sort invoices by date
     sortByDate: (invoices: Invoice[], ascending: boolean = false): Invoice[] => {
         return [...invoices].sort((a, b) => {
-            const dateA = new Date(a.invoice_date);
-            const dateB = new Date(b.invoice_date);
+            const dateA = new Date(a.issue_date);
+            const dateB = new Date(b.issue_date);
             return ascending ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
         });
     },
@@ -396,7 +428,7 @@ export const invoiceUtils = {
     createTemplate: (clientId: string): CreateInvoiceData => ({
         client_id: clientId,
         invoice_number: '',
-        invoice_date: new Date().toISOString().split('T')[0],
+        issue_date: new Date().toISOString().split('T')[0],
         amount: 0,
         total_amount: 0,
         status: 'draft',

@@ -123,12 +123,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -151,9 +151,10 @@ export async function POST(request: NextRequest) {
 
         if (users.length === 0) {
             return NextResponse.json({
+                success: true,
                 data: { successful: 0, failed: 0, total: 0 },
                 message: "No users found for business"
-            });
+            }, { status: 200 });
         }
 
         let successful = 0;
@@ -215,18 +216,19 @@ export async function POST(request: NextRequest) {
         await Promise.all(emailPromises);
 
         return NextResponse.json({
+            success: true,
             data: {
                 successful,
                 failed,
                 total: users.length
             },
             message: `Bulk email notifications completed: ${successful} successful, ${failed} failed`
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Email notifications error:", error);
         return NextResponse.json(
-            { error: "Failed to send email notifications" },
+            { success: false, error: "Failed to send email notifications" },
             { status: 500 }
         );
     }
@@ -237,12 +239,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -253,7 +255,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -264,12 +266,13 @@ export async function PUT(request: NextRequest) {
 
         if (result.success) {
             return NextResponse.json({
+                success: true,
                 data: { sent: true },
                 message: "Email notification sent successfully"
-            });
+            }, { status: 200 });
         } else {
             return NextResponse.json(
-                { error: result.error || "Failed to send email notification" },
+                { success: false, error: result.error || "Failed to send email notification" },
                 { status: 500 }
             );
         }
@@ -277,7 +280,7 @@ export async function PUT(request: NextRequest) {
     } catch (error) {
         console.error("Single email notification error:", error);
         return NextResponse.json(
-            { error: "Failed to send email notification" },
+            { success: false, error: "Failed to send email notification" },
             { status: 500 }
         );
     }
@@ -288,12 +291,12 @@ export async function PATCH(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -304,7 +307,7 @@ export async function PATCH(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -328,12 +331,13 @@ export async function PATCH(request: NextRequest) {
 
         if (result.success) {
             return NextResponse.json({
+                success: true,
                 data: { sent: true },
                 message: "Test email notification sent successfully"
             });
         } else {
             return NextResponse.json(
-                { error: result.error || "Failed to send test email notification" },
+                { success: false, error: result.error || "Failed to send test email notification" },
                 { status: 500 }
             );
         }
@@ -341,7 +345,7 @@ export async function PATCH(request: NextRequest) {
     } catch (error) {
         console.error("Test email notification error:", error);
         return NextResponse.json(
-            { error: "Failed to send test email notification" },
+            { success: false, error: "Failed to send test email notification" },
             { status: 500 }
         );
     }

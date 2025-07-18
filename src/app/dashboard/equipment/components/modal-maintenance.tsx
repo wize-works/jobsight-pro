@@ -9,7 +9,7 @@ import {
 } from '@/types/equipment-maintenance';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createEquipmentMaintenance, updateEquipmentMaintenance } from '@/app/actions/equipment-maintenance';
+import { useEquipmentMaintenanceMutation } from '@/hooks/useEquipment';
 import { toast } from '@/hooks/use-toast';
 import { useBusiness } from '@/lib/business-context';
 
@@ -26,6 +26,9 @@ export const MaintenanceModal = ({ isOpen, maintenance, onClose, onSave }: Maint
     const equipmentId = params?.id as string;
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
+
+    // Use the maintenance mutation hook
+    const { createMaintenance, updateMaintenance } = useEquipmentMaintenanceMutation();
 
     // Form state
     const [formData, setFormData] = useState({
@@ -82,28 +85,27 @@ export const MaintenanceModal = ({ isOpen, maintenance, onClose, onSave }: Maint
                 maintenance_type: formData.maintenance_type,
                 maintenance_date: new Date(formData.maintenance_date).toISOString(),
                 description: formData.description,
-                technician: formData.technician || null,
-                cost: formData.cost ? parseFloat(formData.cost) : null,
-                notes: formData.notes || null,
-                maintenance_status: formData.status,
-                ...(maintenance?.id && { id: maintenance.id })
-            } as EquipmentMaintenance;
+                performed_by: formData.technician || undefined,
+                cost: formData.cost ? parseFloat(formData.cost) : undefined,
+                notes: formData.notes || undefined,
+                status: formData.status,
+            };
 
             if (maintenance?.id) {
-                await updateEquipmentMaintenance(businessId, maintenance.id, maintenanceData);
+                const response = await updateMaintenance(maintenance.id, maintenanceData);
                 toast.success({
                     title: "Success",
                     description: "Maintenance record updated successfully"
                 });
+                onSave(response.data as any);
             } else {
-                await createEquipmentMaintenance(businessId, maintenanceData);
+                const response = await createMaintenance(maintenanceData);
                 toast.success({
                     title: "Success",
                     description: "Maintenance record added successfully"
                 });
+                onSave(response.data as any);
             }
-
-            onSave(maintenanceData);
             onClose();
             router.refresh();
         } catch (error) {

@@ -38,12 +38,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Invoice items fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch invoice items" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch invoice items" }, { status: 500 });
         }
 
         // Handle includes
@@ -128,14 +128,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: invoiceItems,
             count: invoiceItems?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Invoice items API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch invoice items" },
+            { success: false, error: "Failed to fetch invoice items" },
             { status: 500 }
         );
     }
@@ -146,12 +147,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -178,7 +179,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!invoice) {
-            return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Invoice not found" }, { status: 404 });
         }
 
         const { data: invoiceItem, error } = await supabase
@@ -194,18 +195,19 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Invoice item creation error:", error);
-            return NextResponse.json({ error: "Failed to create invoice item" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create invoice item" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: invoiceItem,
             message: "Invoice item created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Invoice item creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create invoice item" },
+            { success: false, error: "Failed to create invoice item" },
             { status: 500 }
         );
     }
@@ -216,12 +218,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -232,7 +234,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -240,7 +242,7 @@ export async function PUT(request: NextRequest) {
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: "Invoice item ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Invoice item ID is required" }, { status: 400 });
         }
 
         const invoiceItemData = InvoiceItemUpdateSchema.parse(updateData);
@@ -254,7 +256,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!existingItem) {
-            return NextResponse.json({ error: "Invoice item not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Invoice item not found" }, { status: 404 });
         }
 
         const { data: invoiceItem, error } = await supabase
@@ -271,18 +273,19 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Invoice item update error:", error);
-            return NextResponse.json({ error: "Failed to update invoice item" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update invoice item" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: invoiceItem,
             message: "Invoice item updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Invoice item update error:", error);
         return NextResponse.json(
-            { error: "Failed to update invoice item" },
+            { success: false, error: "Failed to update invoice item" },
             { status: 500 }
         );
     }
@@ -293,12 +296,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -309,7 +312,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -317,7 +320,7 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) {
-            return NextResponse.json({ error: "Invoice item ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Invoice item ID is required" }, { status: 400 });
         }
 
         // Validate invoice item exists and belongs to business
@@ -329,7 +332,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!existingItem) {
-            return NextResponse.json({ error: "Invoice item not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Invoice item not found" }, { status: 404 });
         }
 
         const { error } = await supabase
@@ -340,17 +343,18 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Invoice item deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete invoice item" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete invoice item" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: "Invoice item deleted successfully"
-        });
+        }, { status: 204 });
 
     } catch (error) {
         console.error("Invoice item deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete invoice item" },
+            { success: false, error: "Failed to delete invoice item" },
             { status: 500 }
         );
     }
@@ -361,12 +365,12 @@ export async function PATCH(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -377,7 +381,7 @@ export async function PATCH(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -385,7 +389,7 @@ export async function PATCH(request: NextRequest) {
         const { items } = BulkUpsertSchema.parse(body);
 
         if (!items || items.length === 0) {
-            return NextResponse.json({ error: "No items provided" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "No items provided" }, { status: 400 });
         }
 
         const results = [];
@@ -446,16 +450,17 @@ export async function PATCH(request: NextRequest) {
         const failureCount = results.filter(r => !r.success).length;
 
         return NextResponse.json({
+            success: true,
             message: `Processed ${items.length} items: ${successCount} successful, ${failureCount} failed`,
             results,
             success_count: successCount,
             failure_count: failureCount
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Bulk upsert error:", error);
         return NextResponse.json(
-            { error: "Failed to process bulk upsert" },
+            { success: false, error: "Failed to process bulk upsert" },
             { status: 500 }
         );
     }

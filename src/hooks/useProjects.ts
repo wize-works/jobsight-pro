@@ -29,10 +29,11 @@ export function useProjects(options?: {
         try {
             setLoading(true);
             const data = await getProjects(options);
-            setProjects(data);
+            setProjects(Array.isArray(data) ? data : []);
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch projects');
+            setProjects([]); // Ensure projects is always an array
             console.error('Error fetching projects:', err);
         } finally {
             setLoading(false);
@@ -54,7 +55,7 @@ export function useProjects(options?: {
         projects,
         loading,
         error,
-        refetch: fetchProjects,
+        fetchProjects,
     };
 }
 

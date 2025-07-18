@@ -9,12 +9,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         const offset = searchParams.get('offset');
 
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID is required' }, { status: 400 });
         }
 
         let query = supabase
@@ -64,21 +64,22 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error('Error fetching notifications:', error);
-            return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch notifications' }, { status: 500 });
         }
 
         // If requesting a single notification by ID, return single object
         if (id && data && data.length > 0) {
-            return NextResponse.json({ data: data[0] });
+            return NextResponse.json({ success: true, data: data[0] }, { status: 200 });
         }
 
         return NextResponse.json({
+            success: true,
             data: data || [],
             count: count || 0,
-        });
+        }, { status: 200 });
     } catch (error) {
         console.error('Error in GET /api/notifications:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -86,23 +87,24 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const body = await request.json();
         const { businessId, ...notification } = body;
 
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID is required' }, { status: 400 });
         }
 
         if (!notification.user_id || !notification.title || !notification.type) {
             return NextResponse.json({
+                success: false,
                 error: 'User ID, title, and type are required'
             }, { status: 400 });
         }
@@ -122,13 +124,13 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error('Error creating notification:', error);
-            return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create notification' }, { status: 500 });
         }
 
-        return NextResponse.json({ data });
+        return NextResponse.json({ success: true, data }, { status: 201 });
     } catch (error) {
         console.error('Error in POST /api/notifications:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -136,19 +138,19 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const body = await request.json();
         const { id, businessId, markAllAsRead, userId, ...notification } = body;
 
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID is required' }, { status: 400 });
         }
 
         if (markAllAsRead && userId) {
@@ -167,17 +169,18 @@ export async function PUT(request: NextRequest) {
 
             if (error) {
                 console.error('Error marking all notifications as read:', error);
-                return NextResponse.json({ error: 'Failed to mark all notifications as read' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to mark all notifications as read' }, { status: 500 });
             }
 
             return NextResponse.json({
+                success: true,
                 data: data || [],
                 message: 'All notifications marked as read'
-            });
+            }, { status: 200 });
         }
 
         if (!id) {
-            return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
         }
 
         const updatedNotification = await applyUpdated<NotificationUpdate>(notification);
@@ -192,13 +195,13 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error('Error updating notification:', error);
-            return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update notification' }, { status: 500 });
         }
 
-        return NextResponse.json({ data });
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT /api/notifications:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -206,12 +209,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -219,7 +222,7 @@ export async function DELETE(request: NextRequest) {
         const businessId = searchParams.get('businessId');
 
         if (!id || !businessId) {
-            return NextResponse.json({ error: 'ID and Business ID are required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'ID and Business ID are required' }, { status: 400 });
         }
 
         const { error } = await supabase
@@ -230,12 +233,12 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error('Error deleting notification:', error);
-            return NextResponse.json({ error: 'Failed to delete notification' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to delete notification' }, { status: 500 });
         }
 
-        return NextResponse.json({ message: 'Notification deleted successfully' });
+        return NextResponse.json({ success: true, message: 'Notification deleted successfully' }, { status: 204 });
     } catch (error) {
         console.error('Error in DELETE /api/notifications:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

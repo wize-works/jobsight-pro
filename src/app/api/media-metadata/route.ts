@@ -7,12 +7,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         // Get business_id from user metadata
         const businessId = user.publicMetadata?.businessId as string;
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID not found' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
         }
 
         // Query parameters
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error('Error fetching media metadata:', error);
-            return NextResponse.json({ error: 'Failed to fetch media metadata' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch media metadata' }, { status: 500 });
         }
 
         // Get total count
@@ -62,12 +62,13 @@ export async function GET(request: NextRequest) {
             .eq('business_id', businessId);
 
         return NextResponse.json({
+            success: true,
             data: data as MediaMetadata[],
             count: totalCount || 0,
-        });
+        }, { status: 200 });
     } catch (error) {
         console.error('Error in GET media metadata:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -75,12 +76,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const body = await request.json();
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
         // Get business_id from user metadata
         const businessId = user.publicMetadata?.businessId as string;
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID not found' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
         }
 
         const metadataData: MediaMetadataInsert = {
@@ -108,16 +109,17 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error('Error creating media metadata:', error);
-            return NextResponse.json({ error: 'Failed to create media metadata' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create media metadata' }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: data as MediaMetadata,
             message: 'Media metadata created successfully',
-        });
+        }, { status: 201 });
     } catch (error) {
         console.error('Error in POST media metadata:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -125,25 +127,25 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const body = await request.json();
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: 'Media metadata ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Media metadata ID is required' }, { status: 400 });
         }
 
         // Get business_id from user metadata
         const businessId = user.publicMetadata?.businessId as string;
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID not found' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
         }
 
         const metadataUpdate: MediaMetadataUpdate = {
@@ -162,20 +164,21 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error('Error updating media metadata:', error);
-            return NextResponse.json({ error: 'Failed to update media metadata' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update media metadata' }, { status: 500 });
         }
 
         if (!data) {
-            return NextResponse.json({ error: 'Media metadata not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Media metadata not found' }, { status: 404 });
         }
 
         return NextResponse.json({
+            success: true,
             data: data as MediaMetadata,
             message: 'Media metadata updated successfully',
-        });
+        }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT media metadata:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -183,25 +186,25 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
         if (!id) {
-            return NextResponse.json({ error: 'Media metadata ID is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Media metadata ID is required' }, { status: 400 });
         }
 
         // Get business_id from user metadata
         const businessId = user.publicMetadata?.businessId as string;
         if (!businessId) {
-            return NextResponse.json({ error: 'Business ID not found' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
         }
 
         const { error } = await supabase
@@ -212,14 +215,15 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error('Error deleting media metadata:', error);
-            return NextResponse.json({ error: 'Failed to delete media metadata' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to delete media metadata' }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: 'Media metadata deleted successfully',
-        });
+        }, { status: 204 });
     } catch (error) {
         console.error('Error in DELETE media metadata:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

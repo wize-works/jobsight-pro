@@ -9,9 +9,9 @@ import {
 } from '@/types/equipment-assignments';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createEquipmentAssignment, updateEquipmentAssignment, deleteEquipmentAssignment } from '@/app/actions/equipment-assignments';
-import { getCrews } from '@/app/actions/crews';
-import { getProjects } from '@/app/actions/projects';
+import { useEquipmentAssignmentMutation } from '@/hooks/useEquipment';
+import { useCrews } from '@/hooks/useCrews';
+import { useProjects } from '@/hooks/useProjects';
 import { toast } from '@/hooks/use-toast';
 import type { Crew } from '@/types/crews';
 import type { Project } from '@/types/projects';
@@ -33,6 +33,11 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
+    // Use hooks
+    const { createAssignment, updateAssignment, deleteAssignment } = useEquipmentAssignmentMutation();
+    const { crews, loading: crewsLoading } = useCrews();
+    const { projects, loading: projectsLoading } = useProjects();
+
     // Form state
     const [formData, setFormData] = useState({
         crew_id: '',
@@ -42,32 +47,12 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
         status: 'available' as EquipmentAssignmentStatus,
         notes: ''
     });
-
-    const [crews, setCrews] = useState<Crew[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-
-    // Load crews and projects
+    // Update loading state based on hooks
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [crewData, projectData] = await Promise.all([
-                    getCrews(businessId),
-                    getProjects(businessId)
-                ]);
-                setCrews(crewData);
-                setProjects(projectData);
-            } catch (error) {
-                toast.error({
-                    title: "Error",
-                    description: "Failed to load crews and projects"
-                });
-            } finally {
-                setLoadingData(false);
-            }
-        };
+        setLoadingData(crewsLoading || projectsLoading);
+    }, [crewsLoading, projectsLoading]);
 
-        loadData();
-    }, []);    // If we have an assignment record, populate the form
+    // If we have an assignment record, populate the form
     useEffect(() => {
         if (assignment) {
             setFormData({
@@ -104,29 +89,29 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
         try {
             const assignmentData = {
                 equipment_id: equipmentId,
-                crew_id: formData.crew_id,
-                project_id: formData.project_id,
+                employee_id: formData.crew_id,
+                project_id: formData.project_id || undefined,
                 start_date: new Date(formData.start_date).toISOString(),
-                end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
-                status: formData.status,
-                notes: formData.notes || null,
-                ...(assignment?.id && { id: assignment.id })
-            } as EquipmentAssignment;
+                end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
+                status: formData.status || undefined,
+                notes: formData.notes || undefined,
+            };
 
             if (assignment?.id) {
-                await updateEquipmentAssignment(businessId, assignment.id, assignmentData as EquipmentAssignmentUpdate);
+                const response = await updateAssignment(assignment.id, assignmentData);
                 toast.success({
                     title: "Success",
                     description: "Equipment assignment updated successfully"
                 });
+                onSave(response.data as any);
             } else {
-                await createEquipmentAssignment(businessId, assignmentData as EquipmentAssignmentInsert);
+                const response = await createAssignment(assignmentData);
                 toast.success({
                     title: "Success",
                     description: "Equipment assigned successfully"
                 });
+                onSave(response.data as any);
             }
-            onSave(assignmentData);
             onClose();
             router.refresh();
         } catch (error) {
@@ -147,7 +132,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
 
         setLoading(true);
         try {
-            await deleteEquipmentAssignment(businessId, assignment.id);
+            await deleteAssignment(assignment.id);
             toast.success({
                 title: "Success",
                 description: "Assignment deleted successfully"

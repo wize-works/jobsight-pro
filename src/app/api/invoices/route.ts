@@ -20,7 +20,7 @@ const InvoiceCreateSchema = z.object({
     client_id: z.string().min(1, "Client ID is required"),
     project_id: z.string().optional(),
     invoice_number: z.string().min(1, "Invoice number is required"),
-    invoice_date: z.string().min(1, "Invoice date is required"),
+    issue_date: z.string().min(1, "Invoice date is required"),
     due_date: z.string().optional(),
     amount: z.coerce.number().min(0, "Amount must be non-negative"),
     tax_amount: z.coerce.number().optional(),
@@ -40,12 +40,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -86,11 +86,11 @@ export async function GET(request: NextRequest) {
         }
 
         if (params.start_date) {
-            query = query.gte("invoice_date", params.start_date);
+            query = query.gte("issue_date", params.start_date);
         }
 
         if (params.end_date) {
-            query = query.lte("invoice_date", params.end_date);
+            query = query.lte("issue_date", params.end_date);
         }
 
         // Apply pagination
@@ -103,13 +103,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Default ordering
-        query = query.order("invoice_date", { ascending: false });
+        query = query.order("issue_date", { ascending: false });
 
         const { data: invoices, error } = await query;
 
         if (error) {
             console.error("Invoices fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch invoices" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch invoices" }, { status: 500 });
         }
 
         // Handle includes
@@ -248,15 +248,32 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        // Get total count for pagination if limit is specified
+        let totalCount = null;
+        if (params.limit || params.offset) {
+            const { count } = await supabase
+                .from('invoices')
+                .select('*', { count: 'exact', head: true })
+                .eq('business_id', businessId);
+            totalCount = count;
+        }
+
         return NextResponse.json({
+            success: true,
             data: invoices,
-            count: invoices?.length || 0
-        });
+            pagination: {
+                count: invoices?.length || 0,
+                total: totalCount,
+                limit: params.limit || null,
+                offset: params.offset || 0,
+                hasMore: params.limit ? (invoices?.length || 0) >= params.limit : false
+            }
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Invoices API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch invoices" },
+            { success: false, error: "Failed to fetch invoices" },
             { status: 500 }
         );
     }
@@ -267,12 +284,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -283,7 +300,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -299,7 +316,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!client) {
-            return NextResponse.json({ error: "Client not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Client not found" }, { status: 404 });
         }
 
         // Validate project if provided
@@ -312,7 +329,7 @@ export async function POST(request: NextRequest) {
                 .single();
 
             if (!project) {
-                return NextResponse.json({ error: "Project not found" }, { status: 404 });
+                return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
             }
         }
 
@@ -329,7 +346,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error("Invoice creation error:", error);
-            return NextResponse.json({ error: "Failed to create invoice" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to create invoice" }, { status: 500 });
         }
 
         // Create notification for invoice creation
@@ -344,14 +361,15 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json({
+            success: true,
             data: invoice,
             message: "Invoice created successfully"
-        });
+        }, { status: 201 });
 
     } catch (error) {
         console.error("Invoice creation error:", error);
         return NextResponse.json(
-            { error: "Failed to create invoice" },
+            { success: false, error: "Failed to create invoice" },
             { status: 500 }
         );
     }
@@ -362,12 +380,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -378,7 +396,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -386,7 +404,7 @@ export async function PUT(request: NextRequest) {
         const { id, ...updateData } = body;
 
         if (!id) {
-            return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Invoice ID is required" }, { status: 400 });
         }
 
         const invoiceData = InvoiceUpdateSchema.parse(updateData);
@@ -400,7 +418,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!existingInvoice) {
-            return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Invoice not found" }, { status: 404 });
         }
 
         const { data: invoice, error } = await supabase
@@ -417,7 +435,7 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Invoice update error:", error);
-            return NextResponse.json({ error: "Failed to update invoice" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update invoice" }, { status: 500 });
         }
 
         // Get client name for notification
@@ -439,14 +457,15 @@ export async function PUT(request: NextRequest) {
         );
 
         return NextResponse.json({
+            success: true,
             data: invoice,
             message: "Invoice updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Invoice update error:", error);
         return NextResponse.json(
-            { error: "Failed to update invoice" },
+            { success: false, error: "Failed to update invoice" },
             { status: 500 }
         );
     }
@@ -457,12 +476,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -473,7 +492,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -481,7 +500,7 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) {
-            return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Invoice ID is required" }, { status: 400 });
         }
 
         // Get invoice data before deletion for notification
@@ -493,7 +512,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!existingInvoice) {
-            return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Invoice not found" }, { status: 404 });
         }
 
         const { error } = await supabase
@@ -504,7 +523,7 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Invoice deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete invoice" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete invoice" }, { status: 500 });
         }
 
         // Get client name for notification
@@ -526,13 +545,14 @@ export async function DELETE(request: NextRequest) {
         );
 
         return NextResponse.json({
+            success: true,
             message: "Invoice deleted successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Invoice deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete invoice" },
+            { success: false, error: "Failed to delete invoice" },
             { status: 500 }
         );
     }

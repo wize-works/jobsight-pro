@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -49,13 +49,13 @@ export async function POST(request: NextRequest) {
         // Validate business access
         const hasAccess = await validateBusinessAccess(user.id, businessId);
         if (!hasAccess) {
-            return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
         }
 
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Verify equipment exists and belongs to business
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (equipmentError || !equipment) {
-            return NextResponse.json({ error: 'Equipment not found or access denied' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Equipment not found or access denied' }, { status: 404 });
         }
 
         // Update equipment rate
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
             console.error('Error updating equipment rate:', error);
-            return NextResponse.json({ error: 'Failed to update equipment rate' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update equipment rate' }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -97,11 +97,11 @@ export async function POST(request: NextRequest) {
                 hourlyRate: data.hourly_rate,
                 overtimeRate: data.overtime_rate
             }
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error in equipment rate API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -129,13 +129,13 @@ export async function GET(request: NextRequest) {
         // Validate business access
         const hasAccess = await validateBusinessAccess(user.id, businessId);
         if (!hasAccess) {
-            return NextResponse.json({ error: 'Access denied to business' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Access denied to business' }, { status: 403 });
         }
 
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get equipment rate
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (error || !equipment) {
-            return NextResponse.json({ error: 'Equipment not found or access denied' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Equipment not found or access denied' }, { status: 404 });
         }
 
         const billingRate: BillingRate = {
@@ -156,10 +156,10 @@ export async function GET(request: NextRequest) {
             effectiveDate: new Date().toISOString()
         };
 
-        return NextResponse.json({ success: true, data: billingRate });
+        return NextResponse.json({ success: true, data: billingRate }, { status: 200 });
 
     } catch (error) {
         console.error('Error getting equipment rate:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

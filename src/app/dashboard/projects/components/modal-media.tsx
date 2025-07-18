@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { MediaType } from "@/types/media";
+// TODO: Create project-specific media upload hook to replace server action
+// import { useMediaMutations } from "@/hooks/useMedia";
 import { uploadProjectMedia } from "@/app/actions/media";
 import { useBusiness } from "@/lib/business-context";
 

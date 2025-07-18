@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (clientError || !client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
         const result: any = { client };
@@ -142,11 +142,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             };
         }
 
-        return NextResponse.json({ success: true, data: result });
+        return NextResponse.json({ success: true, data: result }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -158,7 +158,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -180,7 +180,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -200,18 +200,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         if (error) {
             console.error('Error updating client:', error);
-            return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update client' }, { status: 500 });
         }
 
         if (!client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, data: client });
+        return NextResponse.json({ success: true, data: client }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client PUT API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -223,7 +223,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -231,7 +231,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -245,7 +245,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -266,14 +266,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
             if (error) {
                 console.error('Error archiving client:', error);
-                return NextResponse.json({ error: 'Failed to archive client' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to archive client' }, { status: 500 });
             }
 
             if (!client) {
-                return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
             }
 
-            return NextResponse.json({ success: true, data: client });
+            return NextResponse.json({ success: true, data: client }, { status: 200 });
         } else {
             // Hard delete (check for related data first)
             const { data: relatedData, error: relatedError } = await supabase
@@ -284,7 +284,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
             if (relatedError) {
                 console.error('Error checking related data:', relatedError);
-                return NextResponse.json({ error: 'Failed to check related data' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to check related data' }, { status: 500 });
             }
 
             if ((relatedData?.length || 0) > 0) {
@@ -302,14 +302,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
             if (error) {
                 console.error('Error deleting client:', error);
-                return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to delete client' }, { status: 500 });
             }
 
-            return NextResponse.json({ success: true });
+            return NextResponse.json({ success: true }, { status: 201 });
         }
 
     } catch (error) {
         console.error('Error in client DELETE API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

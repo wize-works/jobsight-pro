@@ -85,9 +85,11 @@ export const CrewCard = ({
                         <div className="flex items-center gap-2 text-sm">
                             <i className="fas fa-user-tie w-4 text-base-content/60" />
                             <span className="font-medium">
-                                {crew.leader && crew.leader !== "No Leader" ? crew.leader : "No Leader Assigned"}
+                                {crew.leader && typeof crew.leader === 'object' ? crew.leader.name :
+                                    crew.leader && typeof crew.leader === 'string' ? crew.leader :
+                                        "No Leader Assigned"}
                             </span>
-                            {crew.leader && crew.leader !== "No Leader" && (
+                            {crew.leader && (
                                 <span className="badge badge-primary badge-xs">Leader</span>
                             )}
                         </div>
@@ -95,9 +97,9 @@ export const CrewCard = ({
                         <div className="flex items-center gap-2 text-sm">
                             <i className="fas fa-users w-4 text-base-content/60" />
                             <span className="text-base-content/80">
-                                {crew.member_count || 0} member{crew.member_count !== 1 ? 's' : ''}
+                                {crew.member_count || 0} member{(crew.member_count || 0) !== 1 ? 's' : ''}
                             </span>
-                            {crew.member_count > 0 && (
+                            {(crew.member_count || 0) > 0 && (
                                 <span className="badge badge-outline badge-xs">Team</span>
                             )}
                         </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBusiness } from '@/lib/business-context';
 import { formatCurrency } from '@/utils/formatters';
-import { getResourceUtilizationData } from '@/app/actions/resource-utilization';
+import { useResourceUtilization } from '@/hooks/useResourceUtilization';
 
 interface CrewUtilization {
     id: string;
@@ -51,20 +51,6 @@ interface ResourceUtilizationDashboardProps {
 
 export default function ResourceUtilizationDashboard({ filters }: ResourceUtilizationDashboardProps) {
     const { businessId } = useBusiness();
-    const [crewData, setCrewData] = useState<CrewUtilization[]>([]);
-    const [equipmentData, setEquipmentData] = useState<EquipmentUtilization[]>([]);
-    const [summary, setSummary] = useState<ResourceUtilizationSummary>({
-        totalCrews: 0,
-        averageCrewUtilization: 0,
-        totalEquipment: 0,
-        averageEquipmentUtilization: 0,
-        highUtilizationCrews: 0,
-        highUtilizationEquipment: 0,
-        idleCrews: 0,
-        idleEquipment: 0
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     // Filter states
     const [dateRange, setDateRange] = useState({
@@ -74,32 +60,25 @@ export default function ResourceUtilizationDashboard({ filters }: ResourceUtiliz
     const [crewTypeFilter, setCrewTypeFilter] = useState<string>('all');
     const [equipmentTypeFilter, setEquipmentTypeFilter] = useState<string>('all');
 
-    useEffect(() => {
-        if (businessId) {
-            fetchResourceUtilizationData();
-        }
-    }, [businessId, dateRange, crewTypeFilter, equipmentTypeFilter]); const fetchResourceUtilizationData = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+    // Use the resource utilization hook
+    const { data, loading, error } = useResourceUtilization({
+        dateRange: { start: dateRange.start, end: dateRange.end },
+        crewType: crewTypeFilter !== 'all' ? crewTypeFilter : undefined,
+        equipmentType: equipmentTypeFilter !== 'all' ? equipmentTypeFilter : undefined
+    });
 
-            // Call the backend service with filters
-            const result = await getResourceUtilizationData(businessId, {
-                dateRange: { start: dateRange.start, end: dateRange.end },
-                crewType: crewTypeFilter !== 'all' ? crewTypeFilter : undefined,
-                equipmentType: equipmentTypeFilter !== 'all' ? equipmentTypeFilter : undefined
-            });
-
-            setCrewData(result.crews);
-            setEquipmentData(result.equipment);
-            setSummary(result.summary);
-
-        } catch (err) {
-            setError('Failed to load resource utilization data');
-            console.error('Error fetching resource utilization:', err);
-        } finally {
-            setLoading(false);
-        }
+    // Extract data from hook result
+    const crewData = data?.crews || [];
+    const equipmentData = data?.equipment || [];
+    const summary = data?.summary || {
+        totalCrews: 0,
+        averageCrewUtilization: 0,
+        totalEquipment: 0,
+        averageEquipmentUtilization: 0,
+        highUtilizationCrews: 0,
+        highUtilizationEquipment: 0,
+        idleCrews: 0,
+        idleEquipment: 0
     };
 
     const getUtilizationColor = (rate: number) => {

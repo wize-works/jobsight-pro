@@ -20,12 +20,12 @@ export async function GET(
         const { id } = await params;
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -36,21 +36,21 @@ export async function GET(
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const crew = await getProjectCrewById(profile.business_id, id);
 
         if (!crew) {
-            return NextResponse.json({ error: 'Crew assignment not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Crew assignment not found' }, { status: 404 });
         }
 
-        return NextResponse.json(crew);
+        return NextResponse.json({ success: true, data: crew }, { status: 200 });
 
     } catch (error) {
         console.error('Error in GET /api/project-crews/[id]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -68,12 +68,12 @@ export async function PUT(
         const { id } = await params;
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -84,7 +84,7 @@ export async function PUT(
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const updateData = await request.json();
@@ -95,15 +95,15 @@ export async function PUT(
         });
 
         if (!crew) {
-            return NextResponse.json({ error: 'Failed to update crew assignment' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to update crew assignment' }, { status: 500 });
         }
 
-        return NextResponse.json(crew);
+        return NextResponse.json({ success: true, data: crew }, { status: 200 });
 
     } catch (error) {
         console.error('Error in PUT /api/project-crews/[id]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
@@ -121,12 +121,12 @@ export async function DELETE(
         const { id } = await params;
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -137,7 +137,7 @@ export async function DELETE(
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -153,7 +153,7 @@ export async function DELETE(
             );
 
             if (!success) {
-                return NextResponse.json({ error: 'Failed to remove crew from project' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Failed to remove crew from project' }, { status: 500 });
             }
 
             return NextResponse.json({ success: true });
@@ -163,15 +163,15 @@ export async function DELETE(
         const success = await deleteProjectCrew(profile.business_id, id);
 
         if (!success) {
-            return NextResponse.json({ error: 'Failed to delete crew assignment' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to delete crew assignment' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error) {
         console.error('Error in DELETE /api/project-crews/[id]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

@@ -48,7 +48,7 @@ class CrewsApi {
     }>> {
         try {
             const searchParams = new URLSearchParams();
-            if (params?.search) searchParams.append('search', params.search);
+            if (params?.search) searchParams.append('q', params.search);
             if (params?.status) searchParams.append('status', params.status);
             if (params?.specialty) searchParams.append('specialty', params.specialty);
             if (params?.leader_id) searchParams.append('leader_id', params.leader_id);
@@ -65,8 +65,19 @@ class CrewsApi {
                 return { data: null, error: error.error || 'Failed to fetch crews', loading: false };
             }
 
-            const data = await response.json();
-            return { data, error: null, loading: false };
+            const responseData = await response.json();
+
+            // Handle the new response format { success: true, data: [...] }
+            if (responseData.success && responseData.data) {
+                const data = {
+                    crews: responseData.data,
+                    stats: responseData.stats,
+                    pagination: responseData.pagination
+                };
+                return { data, error: null, loading: false };
+            } else {
+                return { data: null, error: 'Invalid response format', loading: false };
+            }
         } catch (error) {
             return { data: null, error: 'Network error', loading: false };
         }
@@ -112,8 +123,14 @@ class CrewsApi {
                 return { data: null, error: error.error || 'Failed to create crew', loading: false };
             }
 
-            const data = await response.json();
-            return { data, error: null, loading: false };
+            const responseData = await response.json();
+
+            // Handle the new response format { success: true, data: crew }
+            if (responseData.success && responseData.data) {
+                return { data: responseData.data, error: null, loading: false };
+            } else {
+                return { data: null, error: 'Invalid response format', loading: false };
+            }
         } catch (error) {
             return { data: null, error: 'Network error', loading: false };
         }

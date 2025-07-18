@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
         const { url, html, filename = 'document.pdf', returnAsAttachment = true } = await request.json();
 
         if (!url && !html) {
-            return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Either URL or HTML content is required' }, { status: 400 });
         }
 
         let pdfBuffer: Buffer;
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
                 filename: filename,
                 pdf: pdfBuffer.toString('base64'),
                 size: pdfBuffer.length
-            });
+            }, { status: 200 });
         }
 
         // Return PDF as response with appropriate headers for download
@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json(
             {
+                success: false,
                 error: 'Failed to generate PDF',
                 details: errorMessage,
                 stack: error instanceof Error ? error.stack : undefined

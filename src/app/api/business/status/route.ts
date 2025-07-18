@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         const supabase = createServerClient();
 
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ sucess: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         if (checkType === 'detailed') {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
             if (error && error.code !== 'PGRST116') {
                 console.error('Error checking business status:', error);
-                return NextResponse.json({ error: 'Database error' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 });
             }
 
             const hasSubscription = data?.business_subscriptions?.subscription_id ? true : false;
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
                     businessId: data?.id || null,
                     business: data
                 }
-            });
+            }, { status: 200 });
         } else {
             // Basic business status check
             const { data: userData, error: userError } = await supabase
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
             if (userError && userError.code !== 'PGRST116') {
                 console.error('Error checking user business:', userError);
-                return NextResponse.json({ error: 'Database error' }, { status: 500 });
+                return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 });
             }
 
             const hasBusiness = userData?.business_id ? true : false;
@@ -73,11 +73,11 @@ export async function GET(request: NextRequest) {
                     hasBusiness,
                     businessId: userData?.business_id || null
                 }
-            });
+            }, { status: 200 });
         }
 
     } catch (error) {
         console.error('Error in business status API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
+// TODO: Create milestone hooks to replace server actions
+// import { useMilestoneMutations } from "@/hooks/useMilestones";
 import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";

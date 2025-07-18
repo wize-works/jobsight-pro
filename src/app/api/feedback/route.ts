@@ -32,12 +32,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error("Feedback fetch error:", error);
-            return NextResponse.json({ error: "Failed to fetch feedback" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to fetch feedback" }, { status: 500 });
         }
 
         // Handle includes
@@ -145,14 +145,15 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             data: feedback,
             count: feedback?.length || 0
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Feedback API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch feedback" },
+            { success: false, error: "Failed to fetch feedback" },
             { status: 500 }
         );
     }
@@ -163,12 +164,12 @@ export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -213,13 +214,14 @@ export async function POST(request: NextRequest) {
 
             if (updateError) {
                 console.error("Feedback update error:", updateError);
-                return NextResponse.json({ error: "Failed to update feedback" }, { status: 500 });
+                return NextResponse.json({ success: false, error: "Failed to update feedback" }, { status: 500 });
             }
 
             return NextResponse.json({
+                success: true,
                 data: updatedFeedback,
                 message: "Feedback updated successfully"
-            });
+            }, { status: 200 });
         } else {
             // Create new feedback
             const { data: newFeedback, error: createError } = await supabase
@@ -238,19 +240,20 @@ export async function POST(request: NextRequest) {
 
             if (createError) {
                 console.error("Feedback creation error:", createError);
-                return NextResponse.json({ error: "Failed to create feedback" }, { status: 500 });
+                return NextResponse.json({ success: false, error: "Failed to create feedback" }, { status: 500 });
             }
 
             return NextResponse.json({
+                success: true,
                 data: newFeedback,
                 message: "Feedback created successfully"
-            });
+            }, { status: 201 });
         }
 
     } catch (error) {
         console.error("Feedback creation error:", error);
         return NextResponse.json(
-            { error: "Failed to process feedback" },
+            { success: false, error: "Failed to process feedback" },
             { status: 500 }
         );
     }
@@ -261,12 +264,12 @@ export async function PUT(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -277,7 +280,7 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -286,7 +289,7 @@ export async function PUT(request: NextRequest) {
 
         // Allow updating by either ID or message_id
         if (!id && !message_id) {
-            return NextResponse.json({ error: "Either feedback ID or message ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Either feedback ID or message ID is required" }, { status: 400 });
         }
 
         const feedbackData = FeedbackUpdateSchema.parse(updateData);
@@ -312,18 +315,19 @@ export async function PUT(request: NextRequest) {
 
         if (error) {
             console.error("Feedback update error:", error);
-            return NextResponse.json({ error: "Failed to update feedback" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update feedback" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             data: feedback,
             message: "Feedback updated successfully"
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Feedback update error:", error);
         return NextResponse.json(
-            { error: "Failed to update feedback" },
+            { success: false, error: "Failed to update feedback" },
             { status: 500 }
         );
     }
@@ -334,12 +338,12 @@ export async function DELETE(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -350,7 +354,7 @@ export async function DELETE(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -359,7 +363,7 @@ export async function DELETE(request: NextRequest) {
         const messageId = searchParams.get("message_id");
 
         if (!id && !messageId) {
-            return NextResponse.json({ error: "Either feedback ID or message ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Either feedback ID or message ID is required" }, { status: 400 });
         }
 
         let query = supabase
@@ -378,17 +382,18 @@ export async function DELETE(request: NextRequest) {
 
         if (error) {
             console.error("Feedback deletion error:", error);
-            return NextResponse.json({ error: "Failed to delete feedback" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to delete feedback" }, { status: 500 });
         }
 
         return NextResponse.json({
+            success: true,
             message: "Feedback deleted successfully"
-        });
+        }, { status: 204 });
 
     } catch (error) {
         console.error("Feedback deletion error:", error);
         return NextResponse.json(
-            { error: "Failed to delete feedback" },
+            { success: false, error: "Failed to delete feedback" },
             { status: 500 }
         );
     }
@@ -399,12 +404,12 @@ export async function PATCH(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 });
         }
 
         // Get user's business
@@ -415,7 +420,7 @@ export async function PATCH(request: NextRequest) {
             .single();
 
         if (!userBusiness) {
-            return NextResponse.json({ error: "Business not found" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
 
         const businessId = userBusiness.business_id;
@@ -423,7 +428,7 @@ export async function PATCH(request: NextRequest) {
         const { message_id } = body;
 
         if (!message_id) {
-            return NextResponse.json({ error: "Message ID is required" }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Message ID is required" }, { status: 400 });
         }
 
         // Get user's feedback for this message
@@ -446,6 +451,7 @@ export async function PATCH(request: NextRequest) {
         const thumbsDown = allFeedback?.filter(f => f.feedback_type === "thumbs_down").length || 0;
 
         return NextResponse.json({
+            success: false,
             user_feedback: userFeedback,
             stats: {
                 thumbs_up_count: thumbsUp,
@@ -453,12 +459,12 @@ export async function PATCH(request: NextRequest) {
                 total_feedback: thumbsUp + thumbsDown,
                 positive_ratio: thumbsUp + thumbsDown > 0 ? (thumbsUp / (thumbsUp + thumbsDown)) * 100 : 0
             }
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error("Feedback lookup error:", error);
         return NextResponse.json(
-            { error: "Failed to get feedback" },
+            { success: false, error: "Failed to get feedback" },
             { status: 500 }
         );
     }

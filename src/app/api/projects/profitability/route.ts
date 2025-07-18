@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = await createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Get user's business
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (!profile?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -47,12 +47,12 @@ export async function GET(request: NextRequest) {
 
         const data = await getProjectProfitabilityData(profile.business_id, filters);
 
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 200 });
 
     } catch (error) {
         console.error('Error in GET /api/projects/profitability:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

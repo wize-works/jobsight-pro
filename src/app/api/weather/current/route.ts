@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
         if (!lat || !lon) {
             return NextResponse.json(
-                { error: "Latitude and longitude are required" },
+                { success: false, error: "Latitude and longitude are required" },
                 { status: 400 },
             );
         }
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         const apiKey = process.env.OPENWEATHER_API_KEY;
         if (!apiKey) {
             return NextResponse.json(
-                { error: "Weather API key not configured" },
+                { success: false, error: "Weather API key not configured" },
                 { status: 500 },
             );
         }
@@ -34,11 +34,11 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         console.error("Weather API error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch weather data" },
+            { success: false, error: "Failed to fetch weather data" },
             { status: 500 },
         );
     }

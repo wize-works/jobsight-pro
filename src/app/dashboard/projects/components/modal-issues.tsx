@@ -1,6 +1,8 @@
 "use client";
 
 import { useBusinessData } from "@/hooks/useBusinessData";
+// TODO: Create project issues hooks to replace server actions
+// import { useProjectIssuesMutations } from "@/hooks/useProjectIssues";
 import { createProjectIssue, updateProjectIssue } from "@/app/actions/projects-issues";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";

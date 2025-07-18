@@ -15,6 +15,7 @@ export const DailyLogCard = ({
     isSelected?: boolean;
     onSelect?: (log: DailyLogWithDetails) => void;
 }) => {
+    console.log("DailyLogCard rendered with log:", log);
     const { businessId } = useBusiness();
     const { generateDailyLogDownload, isGenerating, error } = useDailyLogPdf();
 
@@ -147,7 +148,7 @@ export const DailyLogCard = ({
             (log.delays && log.delays !== "No delays reported") ||
             (log.quality && log.quality.toLowerCase().includes('issue'));
     };
-
+    console.log("DailyLogCard rendered with log:", log);
     return (
         <div
             className={`card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-shadow duration-200`}
@@ -229,7 +230,7 @@ export const DailyLogCard = ({
                         <div className="stat-title">Hours Worked</div>
                     </div>
                     <div className="stat px-2 py-3">
-                        <div className="stat-value text-success">{log.materials.length}</div>
+                        <div className="stat-value text-success">{log.materials?.length || 0}</div>
                         <div className="stat-title">Materials</div>
                     </div>
                     <div className="stat px-2 py-3">
@@ -243,10 +244,10 @@ export const DailyLogCard = ({
                     <div>
                         <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
                             <i className="fas fa-boxes text-xs text-base-content/60" />
-                            Materials ({log.materials.length})
+                            Materials ({log.materials?.length})
                         </h4>
                         <div className="space-y-1">
-                            {log.materials.length > 0 ? (
+                            {log.materials?.length > 0 ? (
                                 <>
                                     {log.materials.slice(0, 2).map((material) => (
                                         <div key={material.id} className="text-xs text-base-content/70 flex justify-between">
@@ -256,9 +257,9 @@ export const DailyLogCard = ({
                                             </span>
                                         </div>
                                     ))}
-                                    {log.materials.length > 2 && (
+                                    {log.materials?.length > 2 && (
                                         <div className="text-xs text-base-content/50">
-                                            +{log.materials.length - 2} more...
+                                            +{log.materials?.length - 2} more...
                                         </div>
                                     )}
                                 </>
@@ -273,10 +274,10 @@ export const DailyLogCard = ({
                     <div>
                         <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
                             <i className="fas fa-tools text-xs text-base-content/60" />
-                            Equipment ({log.equipment.length})
+                            Equipment ({log.equipment?.length})
                         </h4>
                         <div className="space-y-1">
-                            {log.equipment.length > 0 ? (
+                            {log.equipment?.length > 0 ? (
                                 <>
                                     {log.equipment.slice(0, 2).map((equip) => (
                                         <div key={equip.id} className="text-xs text-base-content/70 flex justify-between">

@@ -4,12 +4,14 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
 import { Crew } from "@/types/crews";
-import { quickUpdateTask } from "@/app/actions/tasks";
+import { useTaskMutations } from "@/hooks/useTasks";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 import "./task-animations.css";
+import { QuickUpdateTaskRequest } from "@/lib/api/tasks";
+import { updateTask } from "@/app/actions/client/tasks";
 
 interface EnhancedTaskCardProps {
     task: TaskWithDetails;
@@ -32,6 +34,7 @@ export default function EnhancedTaskCard({
     const [isUpdating, setIsUpdating] = useState(false);
     const [showActions, setShowActions] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
+    const { quickUpdateTask } = useTaskMutations();
 
     useEffect(() => {
         if (isEditing && nameInputRef.current) {
@@ -43,19 +46,23 @@ export default function EnhancedTaskCard({
     const handleQuickUpdate = async (updates: Partial<Task>) => {
         try {
             setIsUpdating(true);
-            const updatedTask = await quickUpdateTask(businessId, task.id, updates);
-            onTaskUpdate(updatedTask);
+            const result = await quickUpdateTask(task.id, { updates });
+            if (result.success && result.task) {
+                onTaskUpdate(result.task);
 
-            // Subtle success feedback
-            const updateType = updates.status ? 'Status' : updates.priority ? 'Priority' : updates.assigned_to ? 'Assignment' : 'Task';
-            toast.success(`${updateType} updated`, {
-                duration: 2000,
-                style: {
-                    background: '#10B981',
-                    color: 'white',
-                    fontSize: '14px'
-                }
-            });
+                // Subtle success feedback
+                const updateType = updates.status ? 'Status' : updates.priority ? 'Priority' : updates.assigned_to ? 'Assignment' : 'Task';
+                toast.success(`${updateType} updated`, {
+                    duration: 2000,
+                    style: {
+                        background: '#10B981',
+                        color: 'white',
+                        fontSize: '14px'
+                    }
+                });
+            } else {
+                toast.error(result.error || "Failed to update task");
+            }
         } catch (error) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task");

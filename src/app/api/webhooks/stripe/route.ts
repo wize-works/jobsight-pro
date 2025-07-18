@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('stripe-signature');
 
     if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-        return NextResponse.json({ error: 'Missing signature or webhook secret' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Missing signature or webhook secret' }, { status: 400 });
     }
 
     let event;
@@ -47,14 +47,14 @@ export async function POST(request: NextRequest) {
         event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
         console.error('Webhook signature verification failed:', err);
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
     }
 
     const supabase = createServerClient();
 
     if (!supabase) {
         return NextResponse.json(
-            { error: "Supabase client not initialized" },
+            { success: false, error: "Supabase client not initialized" },
             { status: 500 }
         );
     }
@@ -245,9 +245,9 @@ export async function POST(request: NextRequest) {
             created_at: new Date().toISOString(),
         } as unknown as StripePaymentEventInsert);
 
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ success: true, received: true }, { status: 200 });
     } catch (error) {
         console.error('Error processing webhook:', error);
-        return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Webhook processing failed' }, { status: 500 });
     }
 }

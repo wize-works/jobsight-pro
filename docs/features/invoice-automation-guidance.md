@@ -310,7 +310,7 @@ interface InvoiceApprovalActions {
   - Visual indicators for missing/invalid rates
   - Responsive design using DaisyUI
   
-- ✅ Rate Management Page (`src/app/rate-management/page.tsx`)
+- ✅ Rate Management Page (`src/app/dashboard/rate-management/page.tsx`)
   - Standalone page for rate management
   - Business context integration
   - Loading states and error handling

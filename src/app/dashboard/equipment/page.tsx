@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { getEquipments, searchEquipments } from "@/app/actions/equipments";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
-import type { Equipment, EquipmentStatus, EquipmentType, EquipmentWithDetails } from "@/types/equipment";
+import { useEquipment, useEquipmentMutation } from "@/hooks/useEquipment";
+import { useEquipmentSpecifications } from "@/hooks/useEquipment";
+import type { Equipment as DbEquipment, EquipmentStatus, EquipmentType, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";
+import { equipmentApi } from "@/lib/api/equipment";
 import { EquipmentCard } from "./components/card";
 import EquipmentListLoading from "./loading";
 import { useBusiness } from "@/lib/business-context";
@@ -27,8 +28,11 @@ const EquipmentEditModal = dynamic(() => import("./components/modal-edit"), {
 
 export default function EquipmentPage() {
     const { businessId, loading } = useBusiness();
-    const [isLoading, setIsLoading] = useState(true);
-    const [equipments, setEquipments] = useState<Equipment[]>([]);
+
+    // Hooks
+    const { data: equipments, loading: equipmentsLoading, error: equipmentsError, refetch: refetchEquipment } = useEquipment();
+    const { deleteEquipment } = useEquipmentMutation();
+
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
@@ -38,30 +42,10 @@ export default function EquipmentPage() {
     const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
     const [showEditEquipmentModal, setShowEditEquipmentModal] = useState(false);
     const [selectedEquipment, setSelectedEquipment] = useState<EquipmentWithDetails | null>(null);
-    const [selectedSpecifications, setSelectedSpecifications] = useState<EquipmentSpecification[]>([]);
-
-    useEffect(() => {
-        if (!businessId) {
-            return;
-        }
-
-        const fetchData = async () => {
-            try {
-                const initialEquipment = await getEquipments(businessId);
-                setEquipments(initialEquipment);
-            }
-            catch (error) {
-                console.error("Error fetching equipments:", error);
-            }
-            finally {
-                setIsLoading(false);
-            }
-        }
-        fetchData();
-    }, [businessId]);
+    const [selectedSpecifications, setSelectedSpecifications] = useState<any[]>([]);
 
     // Filter logic
-    const filteredEquipments = equipments.filter((item) => {
+    const filteredEquipments = (equipments || []).filter((item) => {
         const matchesSearch =
             item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
@@ -73,8 +57,8 @@ export default function EquipmentPage() {
     // Search handler
     const handleSearch = async () => {
         if (searchTerm.trim() === "") return;
-        const results = await searchEquipments(businessId, searchTerm);
-        setEquipments(results);
+        // The filtering is handled by the filteredEquipments calculation above
+        // If we need server-side search, we can use the equipment API search functionality
     };
 
     const updateViewType = (type: "grid" | "list") => {
@@ -84,19 +68,36 @@ export default function EquipmentPage() {
         }
     };
 
-    const handleEditEquipment = async (equipment: Equipment) => {
+    const handleEditEquipment = async (equipment: DbEquipment) => {
         try {
-            const specifications = await getEquipmentSpecificationsByEquipmentId(businessId, equipment.id);
+            // Create a temporary specifications hook to fetch data
+            const specificationsResponse = await equipmentApi.getEquipmentSpecifications({ equipment_id: equipment.id });
             setSelectedEquipment(equipment as EquipmentWithDetails);
-            setSelectedSpecifications(specifications);
+            setSelectedSpecifications(specificationsResponse.data);
             setShowEditEquipmentModal(true);
         } catch (error) {
             console.error("Error fetching equipment specifications:", error);
+            // Show equipment without specifications for now
+            setSelectedSpecifications([]);
+            setSelectedEquipment(equipment as EquipmentWithDetails);
+            setShowEditEquipmentModal(true);
         }
     };
 
-    if (loading || isLoading) {
+    if (loading || equipmentsLoading) {
         return <EquipmentListLoading />;
+    }
+
+    if (equipmentsError) {
+        return (
+            <div className="alert alert-error">
+                <i className="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h3 className="font-bold">Failed to load equipment</h3>
+                    <div className="text-xs">{equipmentsError}</div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -166,7 +167,7 @@ export default function EquipmentPage() {
                             <div className="stat-title text-lg">Maintenance Due</div>
                             <div className="flex items-center justify-between">
                                 <div className="stat-value text-error">
-                                    {equipments.filter((item) => item.next_maintenance && new Date(item.next_maintenance) <= new Date()).length}
+                                    {(equipments as DbEquipment[]).filter((item) => item.next_maintenance && new Date(item.next_maintenance) <= new Date()).length}
                                 </div>
                                 <div className="stat-icon text-error bg-error/20 rounded-full h-12 w-12 flex items-center justify-center">
                                     <i className="far fa-tools fa-lg"></i>
@@ -236,7 +237,7 @@ export default function EquipmentPage() {
                             {filteredEquipments.map((item) => (
                                 <EquipmentCard
                                     key={item.id}
-                                    equipment={item}
+                                    equipment={item as DbEquipment}
                                     onEdit={handleEditEquipment}
                                 />
                             ))}
@@ -263,7 +264,7 @@ export default function EquipmentPage() {
                                             <td>{equipmentStatusOptions.badge(item.status as EquipmentStatus)}</td>
                                             <td>-</td>
                                             <td>{item.location || "-"}</td>
-                                            <td>{item.next_maintenance ? new Date(item.next_maintenance).toLocaleDateString() : "-"}</td>
+                                            <td>{(item as DbEquipment).next_maintenance ? new Date((item as DbEquipment).next_maintenance!).toLocaleDateString() : "-"}</td>
                                             <td>
                                                 <Link href={`/dashboard/equipment/${item.id}`} className="btn btn-sm btn-outline">
                                                     View Details
@@ -298,7 +299,7 @@ export default function EquipmentPage() {
                 {/* Modals */}
                 {showAddEquipmentModal && (
                     <EquipmentNewModal isOpen={showAddEquipmentModal} onClose={() => setShowAddEquipmentModal(false)} onSave={function (equipment: any): void {
-                        setEquipments([...equipments, equipment]);
+                        refetchEquipment();
                     }} />
                 )}
                 {showEditEquipmentModal && selectedEquipment && (
@@ -308,7 +309,7 @@ export default function EquipmentPage() {
                         equipment={selectedEquipment}
                         specifications={selectedSpecifications}
                         onSave={function (updatedEquipment: EquipmentWithDetails): void {
-                            setEquipments(equipments.map((item) => item.id === updatedEquipment.id ? updatedEquipment : item));
+                            refetchEquipment();
                         }}
                     />
                 )}

@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Task, TaskWithDetails, TaskStatus, TaskPriority, taskStatusOptions, taskPriorityOptions } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
-import { getTasksWithDetails, deleteTask } from "@/app/actions/tasks";
-import { getProjects } from "@/app/actions/projects";
-import { getCrews } from "@/app/actions/crews";
+import { useTasksWithDetails, useTaskMutations } from "@/hooks/useTasks";
+import { useProjects } from "@/hooks/useProjects";
+import { useCrews } from "@/hooks/useCrews";
 import { useBusiness } from "@/lib/business-context";
 import EnhancedTaskCard from "./enhanced-task-card";
 import TaskDetailsModal from "./task-details-modal";
@@ -38,6 +38,12 @@ export default function TaskGridView({
     const [projectFilter, setProjectFilter] = useState<string | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Hooks for data fetching and mutations
+    const { tasks: hookTasks, loading: tasksLoading, refetch: refetchTasks } = useTasksWithDetails();
+    const { projects: hookProjects, loading: projectsLoading, fetchProjects: refetchProjects } = useProjects();
+    const { crews: hookCrews, loading: crewsLoading, fetchCrews: refetchCrews } = useCrews();
+    const { deleteTask } = useTaskMutations();
+
     useEffect(() => {
         if (initialTasks.length === 0) {
             fetchData();
@@ -49,15 +55,15 @@ export default function TaskGridView({
 
         try {
             setLoading(true);
-            const [tasksData, projectsData, crewsData] = await Promise.all([
-                getTasksWithDetails(businessId),
-                getProjects(businessId),
-                getCrews(businessId)
+            // Use hook refetch methods instead of server actions
+            await Promise.all([
+                refetchTasks(),
+                refetchProjects(),
+                refetchCrews()
             ]);
 
-            setTasks(tasksData);
-            setProjects(projectsData);
-            setCrews(crewsData);
+            // The hooks will automatically update their state
+            // So we don't need to manually set the data here
         } catch (error) {
             console.error("Error fetching data:", error);
             toast.error("Failed to load tasks");
@@ -78,9 +84,13 @@ export default function TaskGridView({
 
     const handleTaskDelete = async (taskId: string) => {
         try {
-            await deleteTask(businessId, taskId);
-            setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-            toast.success("Task deleted successfully!");
+            const result = await deleteTask(taskId);
+            if (result.success) {
+                setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+                toast.success("Task deleted successfully!");
+            } else {
+                toast.error(result.error || "Failed to delete task");
+            }
         } catch (error) {
             console.error("Error deleting task:", error);
             toast.error("Failed to delete task");

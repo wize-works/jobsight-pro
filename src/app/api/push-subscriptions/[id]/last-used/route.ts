@@ -21,12 +21,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         if (error) {
             console.error("Error updating push subscription last used:", error);
-            return NextResponse.json({ error: "Failed to update push subscription last used" }, { status: 500 });
+            return NextResponse.json({ success: false, error: "Failed to update push subscription last used" }, { status: 500 });
         }
 
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         console.error("Error in PUT /api/push-subscriptions/[id]/last-used:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }

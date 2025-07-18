@@ -71,10 +71,10 @@ export async function GET(request: NextRequest) {
 
         const data = await getResourceUtilizationData(business.id, filters);
 
-        return NextResponse.json(data);
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         console.error("Error in GET /api/resource-utilization:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
 }
 

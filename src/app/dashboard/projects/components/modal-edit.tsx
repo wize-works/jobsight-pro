@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
+import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectUpdate } from "@/types/projects";
 import { User } from "@/types/users";
-import { updateProject } from "@/app/actions/projects";
+import { useProjectMutations } from "@/hooks/useProjects";
 import { formatDateForInput } from "@/utils/date";
 import { useBusinessData } from "@/hooks/useBusinessData";
 import { CrewMember } from "@/types/crew-members";
@@ -24,7 +24,8 @@ export default function ProjectEditModal({
     project,
     onSave
 }: ProjectEditModalProps) {
-    const { businessId } = useBusiness(); const [formData, setFormData] = useState({
+    const { businessId } = useBusiness();
+    const { updateProject } = useProjectMutations(); const [formData, setFormData] = useState({
         name: project.name || "",
         description: project.description || "",
         client_id: project.client_id || "",
@@ -135,7 +136,7 @@ export default function ProjectEditModal({
                 status: formData.status,
             } as ProjectInsert;
 
-            const updatedProject = await updateProject(businessId, project.id, projectData);
+            const updatedProject = await updateProject(project.id, projectData as ProjectUpdate);
 
             if (updatedProject) {
                 toast.success({

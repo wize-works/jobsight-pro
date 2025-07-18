@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions } from "@/types/projects";
 import { Client } from "@/types/clients";
 import { CrewMember } from "@/types/crew-members";
-import { getClients } from "@/app/actions/clients";
+import { useClients } from "@/hooks/useClients";
 import { useBusinessData } from "@/hooks/useBusinessData";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
@@ -41,23 +41,26 @@ export default function ProjectModal({
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState("");
 
-    // Use the new business data hook
+    // Use the new business data hook and client hooks
     const { getCrewMembers } = useBusinessData();
+    const { getClients: fetchClients } = useClients();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [clientsData, managersData] = await Promise.all([
-                    getClients(businessId),
+                    fetchClients(),
                     getCrewMembers(businessId)
                 ]);
-                setClients(clientsData);
+                if (clientsData) {
+                    setClients(clientsData);
+                }
                 setManagers(managersData);
             } catch (error) {
                 console.error("Error fetching data:", error);
-                toast.error({
+                toast({
                     title: "Error",
-                    description: "Failed to load data"
+                    description: "Failed to load data",
                 });
             } finally {
                 setLoadingData(false);
@@ -67,7 +70,7 @@ export default function ProjectModal({
         if (isOpen) {
             fetchData();
         }
-    }, [isOpen]);
+    }, [isOpen, businessId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

@@ -1,5 +1,8 @@
 "use client";
 
+// TODO: Migrate to crew hooks and project crew assignment hooks
+// import { useCrews } from "@/hooks/useCrews";
+// import { useProjectCrewMutations } from "@/hooks/useProjectCrews";
 import { getCrewsByProjectId, getAvailableCrews } from "@/app/actions/crews";
 import { useBusinessData } from "@/hooks/useBusinessData";
 import { Crew, CrewWithMemberInfo } from "@/types/crews";

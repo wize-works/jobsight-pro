@@ -14,12 +14,24 @@ export type CrewWithMemberInfo = Crew & {
 }
 
 export type CrewWithDetails = Crew & {
-    leader: string;
-    member_count: number;
+    leader?: {
+        id: string;
+        name: string;
+        email: string;
+    };
+    members?: any[]; // CrewMember array when included
+    projects?: any[]; // Project array when included
+    stats?: {
+        total_members: number;
+        active_projects: number;
+        total_hours: number;
+    };
+    // Legacy fields for backward compatibility
+    member_count?: number;
     current_project?: string | null;
     current_project_id?: string | null;
-    active_projects: number;
-    total_hours: number;
+    active_projects?: number;
+    total_hours?: number;
 };
 
 export type CrewWithStats = Crew & {

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
             return NextResponse.json({
                 success: false,
                 error: businessResponse.error
-            })
+            }, { status: 403 });
         }
 
         // If user has no business
@@ -32,19 +32,19 @@ export async function GET(request: Request) {
             return NextResponse.json({
                 success: true,
                 hasBusiness: false
-            })
+            }, { status: 200 });
         }
 
         return NextResponse.json({
             success: true,
             hasBusiness: true,
             business: businessResponse
-        })
+        }, { status: 200 });
     } catch (error) {
         console.error('Error in business check:', error)
         return NextResponse.json({
             success: false,
             error: 'Failed to verify business access'
-        })
+        }, { status: 500 });
     }
 }

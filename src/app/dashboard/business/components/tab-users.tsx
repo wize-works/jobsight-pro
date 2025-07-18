@@ -1,17 +1,20 @@
 "use client";
-import { resendUserInvitation, revokeUserInvitation, sendUserInvitation } from "@/app/actions/user-invitations";
-import { deleteUser, getUsers, updateUserAsAdmin } from "@/app/actions/users";
 import { toast } from "@/hooks/use-toast";
 import { User, UserRole, userRoleOptions, UserStatus, userStatusOptions } from "@/types/users";
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
 import { useBusiness } from "@/lib/business-context";
 import { useFeatureGate } from "@/hooks/useFeatureGate";
+import { useUsers } from "@/hooks/useUsers";
+import { useUserMutations } from "@/hooks/useUsers";
+import { useUserInvitations } from "@/hooks/useUsers";
+import { useState } from "react";
 
 export default function UsersPermissionsTab() {
     const { businessId } = useBusiness();
-    const { canAddUsers, getUserLimit, currentPlan } = useFeatureGate(); const [users, setUsers] = useState<User[]>([]);
-    const [loadingUsers, setLoadingUsers] = useState(true);
+    const { canAddUsers, getUserLimit, currentPlan } = useFeatureGate();
+    const { users, loading: loadingUsers, refetch: refetchUsers } = useUsers();
+    const { updateUser, deleteUser } = useUserMutations();
+    const { sendInvitation, resendInvitation, revokeInvitation } = useUserInvitations();
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -30,22 +33,9 @@ export default function UsersPermissionsTab() {
     const [inviting, setInviting] = useState(false);
     const { user: currentUser } = useUser();
 
-    useEffect(() => {
-        loadUsers();
-    }, []);
+    // Remove manual loadUsers and useEffect, handled by useUsers hook
 
-    const loadUsers = async () => {
-        try {
-            setLoadingUsers(true);
-            const usersData = await getUsers(businessId);
-            setUsers(usersData);
-        } catch (error) {
-            console.error("Error loading users:", error);
-            toast.error("Failed to load users");
-        } finally {
-            setLoadingUsers(false);
-        }
-    }; const handleInviteUser = async () => {
+    const handleInviteUser = async () => {
         if (!inviteEmail || !inviteFirstName) {
             toast.error({
                 title: "Error",
@@ -55,7 +45,7 @@ export default function UsersPermissionsTab() {
         }
 
         // Check user limit before inviting
-        const currentUserCount = users.length;
+        const currentUserCount = users?.length || 0;
         if (!canAddUsers(currentUserCount, 1)) {
             toast.error({
                 title: "User Limit Reached",
@@ -67,10 +57,14 @@ export default function UsersPermissionsTab() {
         setInviting(true);
         try {
             const fullName = `${inviteFirstName} ${inviteLastName}`.trim();
-            const result = await sendUserInvitation(businessId, inviteEmail, fullName, inviteRole);
+            const result = await sendInvitation({
+                email: inviteEmail,
+                name: fullName,
+                role: inviteRole
+            });
 
-            if (result.success && result.user) {
-                setUsers(prev => [...prev, result.user]);
+            if (result.success) {
+                await refetchUsers();
                 setShowInviteModal(false);
                 setInviteEmail("");
                 setInviteFirstName("");
@@ -104,18 +98,17 @@ export default function UsersPermissionsTab() {
 
         try {
             let success = false;
-
             if (userStatus === 'invited') {
                 // Revoke invitation for invited users
-                const result = await revokeUserInvitation(businessId, userId);
+                const result = await revokeInvitation(userId);
                 success = result.success;
             } else {
                 // Delete user for active users
-                success = await deleteUser(businessId, userId);
+                const result = await deleteUser(userId);
+                success = result.success;
             }
-
             if (success) {
-                setUsers(prev => prev.filter(user => user.id !== userId));
+                await refetchUsers();
                 toast.success({
                     title: "User Removed",
                     description: `${userName} has been removed from your business`,
@@ -137,8 +130,7 @@ export default function UsersPermissionsTab() {
 
     const handleResendInvitation = async (userId: string, userEmail: string) => {
         try {
-            const result = await resendUserInvitation(businessId, userId);
-
+            const result = await resendInvitation(userId);
             if (result.success) {
                 toast.success({
                     title: "Invitation Resent",
@@ -185,10 +177,8 @@ export default function UsersPermissionsTab() {
 
         setUpdatingUser(true);
         try {
-            console.log("Updating user:", {
-                businessId,
-                userId: editingUser.id,
-                data: {
+            const result = await updateUser(editingUser.id, {
+                user: {
                     first_name: editFormData.first_name,
                     last_name: editFormData.last_name,
                     email: editFormData.email,
@@ -196,18 +186,8 @@ export default function UsersPermissionsTab() {
                     status: editFormData.status
                 }
             });
-            const result = await updateUserAsAdmin(businessId, editingUser.id, {
-                first_name: editFormData.first_name,
-                last_name: editFormData.last_name,
-                email: editFormData.email,
-                role: editFormData.role,
-                status: editFormData.status
-            });
-
-            if (result.success && result.user) {
-                setUsers(prev => prev.map(user =>
-                    user.id === editingUser.id ? result.user! : user
-                ));
+            if (result.success) {
+                await refetchUsers();
                 setShowEditModal(false);
                 setEditingUser(null);
                 toast.success({

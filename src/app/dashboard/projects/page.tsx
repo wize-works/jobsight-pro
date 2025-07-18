@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Project, ProjectStatus, projectStatusOptions, ProjectType, projectTypeOptions, ProjectWithDetails } from "@/types/projects";
 import { progressBar } from "@/utils/progress";
 import { formatDate, formatCurrency } from "@/utils/date";
-import { createProject, getProjectsWithDetails, updateProject } from "@/app/actions/projects";
+import { useProjectsWithDetails, useProjectMutations } from "@/hooks/useProjects";
 import { ProjectCard } from "./components/card";
 import { useBusiness } from "@/lib/business-context";
 import ProjectsLoading from "./loading";
@@ -26,8 +26,6 @@ const ProjectEditModal = dynamic(() => import("./components/modal-edit"), {
 
 export default function ProjectsPage() {
     const { businessId } = useBusiness();
-    const [loading, setLoading] = useState(true);
-    const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
     const [viewType, setViewType] = useState<"grid" | "list">(
         typeof window !== "undefined" && localStorage.getItem("projectsViewType") === "list" ? "list" : "grid"
     );
@@ -39,6 +37,32 @@ export default function ProjectsPage() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
     const [sortOption, setSortOption] = useState("name");
+
+    // Use hooks for data fetching and mutations
+    const { projects, loading, refetch: refetchProjects } = useProjectsWithDetails();
+    const { createProject } = useProjectMutations();
+
+    // Handle project save
+    const handleProjectSave = async (projectData: any) => {
+        try {
+            // Add businessId to projectData
+            const projectWithBusiness = {
+                ...projectData,
+                business_id: businessId
+            };
+
+            // Create the new project
+            await createProject(projectWithBusiness);
+
+            // Refresh the projects list after successful creation
+            refetchProjects();
+            setShowAddProjectModal(false);
+        } catch (error) {
+            console.error("Error saving project:", error);
+            // Don't close modal on error so user can retry
+            throw error; // Re-throw so modal can handle the error
+        }
+    };
 
     // Calculate project statistics
     const totalProjects = projects.length;
@@ -77,20 +101,6 @@ export default function ProjectsPage() {
         }
     });
 
-    useEffect(() => {
-        if (businessId === undefined || businessId === null || businessId === "") {
-            setLoading(true);
-            return;
-        }
-        const fetchProjects = async () => {
-            setLoading(true);
-            const projectsData = await getProjectsWithDetails(businessId);
-            setProjects(projectsData);
-            setLoading(false);
-        }
-        fetchProjects();
-    }, [businessId]);
-
     const updateViewType = (type: "grid" | "list") => {
         setViewType(type);
         if (typeof window !== "undefined") {
@@ -102,20 +112,6 @@ export default function ProjectsPage() {
         // Placeholder for issue saving logic
         console.log("Issue saved:", issue);
         setShowAddProjectModal(false);
-    }; const handleProjectSave = async (projectData: any) => {
-        try {
-            // Create the new project
-            await createProject(businessId, projectData);
-
-            // Refresh the projects list after successful creation
-            const projectsData = await getProjectsWithDetails(businessId);
-            setProjects(projectsData);
-            setShowAddProjectModal(false);
-        } catch (error) {
-            console.error("Error saving project:", error);
-            // Don't close modal on error so user can retry
-            throw error; // Re-throw so modal can handle the error
-        }
     };
 
     const handleEditProject = (project: ProjectWithDetails) => {
@@ -125,8 +121,7 @@ export default function ProjectsPage() {
 
     const handleEditProjectSave = async (updatedProject: Project) => {
         // Refresh the projects list after successful update
-        const projectsData = await getProjectsWithDetails(businessId);
-        setProjects(projectsData);
+        refetchProjects();
         setShowEditProjectModal(false);
         setSelectedProject(null);
     }; if (loading) {

@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { createInvoice } from "@/app/actions/invoices";
-import { createInvoiceItem } from "@/app/actions/invoice-items";
-import { getClients } from "@/app/actions/clients";
-import { getProjects } from "@/app/actions/projects";
-import { InvoiceInsert, InvoiceStatus, invoiceStatusOptions } from "@/types/invoices";
-import { InvoiceItemInsert } from "@/types/invoice-items";
+import { useCreateInvoice } from "@/hooks/useInvoices";
+import { useCreateInvoiceItem } from "@/hooks/useInvoiceItems";
+import { clientsApi } from "@/lib/api/clients";
+import { getProjects } from "@/lib/api/projects";
+import { CreateInvoiceData } from "@/lib/api/invoices";
+import { CreateInvoiceItemData } from "@/lib/api/invoice-items";
+import { InvoiceStatus, invoiceStatusOptions } from "@/types/invoices";
 import { Client } from "@/types/clients";
 import { Project } from "@/types/projects";
 import { toast } from "@/hooks/use-toast";
@@ -36,6 +37,10 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
     const [loadingData, setLoadingData] = useState(true);
     const [clients, setClients] = useState<Client[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    // Initialize hooks
+    const { createInvoice } = useCreateInvoice();
+    const { createInvoiceItem } = useCreateInvoiceItem();
 
     // Form state
     const [formData, setFormData] = useState({
@@ -69,11 +74,15 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
     const loadInitialData = async () => {
         setLoadingData(true);
         try {
-            const [clientsData, projectsData] = await Promise.all([
-                getClients(businessId),
-                getProjects(businessId),
+            const [clientsResponse, projectsData] = await Promise.all([
+                clientsApi.getClients(),
+                getProjects(),
             ]);
-            setClients(clientsData);
+
+            if (clientsResponse.success && clientsResponse.data) {
+                setClients(clientsResponse.data as Client[]);
+            }
+
             setProjects(projectsData);
         } catch (error) {
             console.error("Error loading data:", error);
@@ -160,46 +169,32 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true); try {
-            const invoiceData: InvoiceInsert = {
-                id: crypto.randomUUID(),
-                business_id: businessId,
+            const invoiceData: CreateInvoiceData = {
                 client_id: formData.client_id,
-                project_id: formData.project_id || formData.client_id, // Use client_id as fallback
+                project_id: formData.project_id || undefined,
                 invoice_number: formData.invoice_number,
                 issue_date: formData.issue_date,
                 due_date: formData.due_date,
-                paid_date: null,
-                payment_method: null,
-                amount: total,
-                tax_rate: formData.tax_rate,
-                notes: formData.notes || null,
+                amount: subtotal,
+                tax_amount: subtotal * (formData.tax_rate / 100),
+                total_amount: total,
                 status: formData.status,
-                created_at: new Date().toISOString(),
-                created_by: user?.id || null,
-                updated_at: new Date().toISOString(),
-                updated_by: user?.id || null,
-            }; const newInvoice = await createInvoice(businessId, invoiceData);
+                notes: formData.notes,
+            };
+
+            const newInvoice = await createInvoice(invoiceData);
 
             if (newInvoice) {
                 // Create invoice items
                 const itemCreationPromises = items.map(async (item) => {
-                    const itemData: InvoiceItemInsert = {
-                        id: crypto.randomUUID(),
+                    const itemData: CreateInvoiceItemData = {
                         invoice_id: newInvoice.id,
-                        business_id: businessId,
                         description: item.description,
                         quantity: item.quantity,
-                        unit_price: item.unit_price,
+                        rate: item.unit_price,
                         amount: item.amount,
-                        tax_rate: null,
-                        tax_amount: null,
-                        total_price: item.amount,
-                        created_at: new Date().toISOString(),
-                        created_by: user?.id || null,
-                        updated_at: new Date().toISOString(),
-                        updated_by: user?.id || null,
                     };
-                    return createInvoiceItem(businessId, itemData);
+                    return createInvoiceItem(itemData);
                 });
 
                 await Promise.all(itemCreationPromises);

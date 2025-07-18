@@ -18,11 +18,11 @@ export async function POST(request: NextRequest) {
         } = await request.json();
 
         if (!url && !html) {
-            return NextResponse.json({ error: 'Either URL or HTML content is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Either URL or HTML content is required' }, { status: 400 });
         }
 
         if (saveToStorage && !businessId) {
-            return NextResponse.json({ error: 'businessId is required when saveToStorage is true' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'businessId is required when saveToStorage is true' }, { status: 400 });
         }
 
         let pdfBuffer: Buffer;
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
             if (!uploadResult.success) {
                 return NextResponse.json(
                     {
+                        success: false,
                         error: 'Failed to save PDF to storage',
                         details: uploadResult.error
                     },
@@ -130,13 +131,14 @@ export async function POST(request: NextRequest) {
                 filename: filename,
                 pdf: pdfBuffer.toString('base64'),
                 size: pdfBuffer.length
-            });
+            }, { status: 200 });
         }
     } catch (error) {
         console.error('Error generating PDF with Gotenberg:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json(
             {
+                success: false,
                 error: 'Failed to generate PDF',
                 details: errorMessage,
                 stack: error instanceof Error ? error.stack : undefined

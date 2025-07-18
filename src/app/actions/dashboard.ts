@@ -92,14 +92,14 @@ export async function getDashboardData(businessId: string) {
         if (invoicesError) {
             console.error("Error fetching invoices:", invoicesError);
         }
-
+        console.log("Fetched data:", invoices);
         // Calculate comprehensive statistics
-        const activeProjects = projects?.filter(p => p.status === 'active') || [];
+        const activeProjects = projects?.filter(p => p.status === 'active' || p.status === "in_progress") || [];
         const completedProjects = projects?.filter(p => p.status === 'completed') || [];
         const onHoldProjects = projects?.filter(p => p.status === 'on_hold') || [];
         const planningProjects = projects?.filter(p => p.status === 'planning') || [];
 
-        const pendingTasks = tasks?.filter(t => t.status === 'pending') || [];
+        const pendingTasks = tasks?.filter(t => t.status === 'pending' || t.status === "not_started") || [];
         const inProgressTasks = tasks?.filter(t => t.status === 'in_progress') || [];
         const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
 

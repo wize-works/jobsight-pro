@@ -1,4 +1,4 @@
-import { DailyLog, DailyLogInsert, DailyLogUpdate } from "@/types/daily-logs";
+import { DailyLog, DailyLogInsert, DailyLogUpdate, DailyLogWithDetails } from "@/types/daily-logs";
 import { DailyLogMaterial, DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { DailyLogEquipment, DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
 
@@ -7,6 +7,7 @@ const API_BASE = "/api/daily-logs";
 
 // API Response types
 export interface ApiResponse<T> {
+    success: boolean;
     data: T;
     pagination?: {
         limit: number;
@@ -33,7 +34,7 @@ export class DailyLogAPI {
         date_to?: string;
         limit?: number;
         offset?: number;
-    }): Promise<ApiResponse<DailyLog[]>> {
+    }): Promise<{ data: DailyLog[]; pagination?: { limit: number; offset: number; hasMore: boolean } }> {
         const url = new URL(API_BASE, window.location.origin);
 
         if (params) {
@@ -49,10 +50,20 @@ export class DailyLogAPI {
             throw new Error(`Failed to fetch daily logs: ${response.statusText}`);
         }
 
-        return response.json();
+        const result = await response.json();
+
+        // Handle the API response format { success: true, data: [...], pagination: {...} }
+        if (result.success) {
+            return {
+                data: result.data || [],
+                pagination: result.pagination
+            };
+        } else {
+            throw new Error(result.error || 'Failed to fetch daily logs');
+        }
     }
 
-    static async createDailyLog(data: DailyLogInsert): Promise<ApiResponse<DailyLog>> {
+    static async createDailyLog(data: DailyLogInsert): Promise<DailyLog> {
         const response = await fetch(API_BASE, {
             method: "POST",
             headers: {
@@ -65,10 +76,11 @@ export class DailyLogAPI {
             throw new Error(`Failed to create daily log: ${response.statusText}`);
         }
 
-        return response.json();
+        const result: ApiResponse<DailyLog> = await response.json();
+        return result.data;
     }
 
-    static async getDailyLog(id: string, include?: string): Promise<ApiResponse<DailyLog>> {
+    static async getDailyLog(id: string, include?: string): Promise<DailyLog> {
         const url = new URL(`${API_BASE}/${id}`, window.location.origin);
 
         if (include) {
@@ -80,10 +92,24 @@ export class DailyLogAPI {
             throw new Error(`Failed to fetch daily log: ${response.statusText}`);
         }
 
-        return response.json();
+        const result: ApiResponse<DailyLog> = await response.json();
+        return result.data;
     }
 
-    static async updateDailyLog(id: string, data: DailyLogUpdate): Promise<ApiResponse<DailyLog>> {
+    static async getDailyLogWithDetails(id: string): Promise<DailyLogWithDetails> {
+        const url = new URL(`${API_BASE}/${id}`, window.location.origin);
+        url.searchParams.append("include", "project,crew,materials,equipment,media");
+
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+            throw new Error(`Failed to fetch daily log with details: ${response.statusText}`);
+        }
+
+        const result: ApiResponse<DailyLogWithDetails> = await response.json();
+        return result.data;
+    }
+
+    static async updateDailyLog(id: string, data: DailyLogUpdate): Promise<DailyLog> {
         const response = await fetch(`${API_BASE}/${id}`, {
             method: "PUT",
             headers: {
@@ -96,7 +122,8 @@ export class DailyLogAPI {
             throw new Error(`Failed to update daily log: ${response.statusText}`);
         }
 
-        return response.json();
+        const result: ApiResponse<DailyLog> = await response.json();
+        return result.data;
     }
 
     static async deleteDailyLog(id: string): Promise<{ message: string }> {
@@ -108,7 +135,8 @@ export class DailyLogAPI {
             throw new Error(`Failed to delete daily log: ${response.statusText}`);
         }
 
-        return response.json();
+        const result: { success: boolean; message: string } = await response.json();
+        return { message: result.message };
     }
 
     // Materials
@@ -266,7 +294,7 @@ export class DailyLogAPI {
     }
 
     // Utility methods
-    static async getDailyLogWithAll(id: string): Promise<ApiResponse<DailyLog>> {
+    static async getDailyLogWithAll(id: string): Promise<DailyLog> {
         return this.getDailyLog(id, "project,crew,materials,equipment,media");
     }
 
@@ -278,7 +306,7 @@ export class DailyLogAPI {
         date_to?: string;
         limit?: number;
         offset?: number;
-    }): Promise<ApiResponse<DailyLog[]>> {
+    }): Promise<{ data: DailyLog[]; pagination?: { limit: number; offset: number; hasMore: boolean } }> {
         return this.getDailyLogs({
             ...params,
             include: "project,crew",
@@ -290,7 +318,7 @@ export class DailyLogAPI {
         crew_id?: string;
         date_from?: string;
         date_to?: string;
-    }): Promise<ApiResponse<DailyLog[]>> {
+    }): Promise<{ data: DailyLog[]; pagination?: { limit: number; offset: number; hasMore: boolean } }> {
         return this.getDailyLogs({
             ...params,
             include: "project,crew,materials,equipment",

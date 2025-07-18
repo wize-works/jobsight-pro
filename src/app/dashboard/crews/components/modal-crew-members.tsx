@@ -3,8 +3,7 @@ import dynamic from "next/dynamic";
 import { CrewWithDetails } from "@/types/crews";
 import { CrewMember, CrewMemberInsert } from "@/types/crew-members";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
-import { getCrewMembers, getCrewMembersByCrewId, createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
-import { addCrewMemberToCrew, deleteCrewMemberAssignment, getCrewMemberAssignments } from "@/app/actions/crew-member-assignment";
+import { useCrews, useCrewMembers, useCrewAssignments } from "@/hooks/useCrews";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ModalLoading from "@/components/modal-loading";
@@ -34,6 +33,9 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
     onRefresh
 }) => {
     const { businessId } = useBusiness();
+    const { fetchCrewMembers, createCrewMember, updateCrewMember } = useCrewMembers();
+    const { fetchCrewAssignments, createCrewAssignment, deleteCrewAssignment } = useCrewAssignments();
+
     const [loading, setLoading] = useState(true);
     const [members, setMembers] = useState<CrewMember[]>([]);
     const [allMembers, setAllMembers] = useState<CrewMember[]>([]);
@@ -50,15 +52,24 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
     }, [isOpen, businessId, crew.id]); const loadData = async () => {
         try {
             setLoading(true);
-            const [crewMembers, availableMembers] = await Promise.all([
-                getCrewMembersByCrewId(businessId, crew.id),
-                getCrewMembers(businessId)
-            ]);
-            setMembers(crewMembers || []);
-            setAllMembers(availableMembers || []);
+
+            // Fetch crew members for this specific crew
+            await fetchCrewMembers(crew.id);
+
+            // Fetch all available members from the API
+            const response = await fetch('/api/crew-members');
+            if (response.ok) {
+                const data = await response.json();
+                setAllMembers(data.members || []);
+            }
+
+            // Get crew members from the crew data if available
+            if (crew.members) {
+                setMembers(crew.members);
+            }
         } catch (error) {
             console.error("Error loading crew members:", error);
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Failed to load crew members. Please try again.",
             });
@@ -76,10 +87,10 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
         } as CrewMemberInsert;
 
         try {
-            const member = await createCrewMember(businessId, memberData);
+            const member = await createCrewMember(crew.id, memberData);
 
             if (!member) {
-                toast.error({
+                toast({
                     title: "Error",
                     description: "Failed to create crew member. Please try again.",
                 });
@@ -87,9 +98,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
             }
 
             if (member) {
-                await addCrewMemberToCrew(businessId, crew.id, member.id);
-
-                toast.success({
+                toast({
                     title: "Success",
                     description: `Added ${member.name} to the crew.`,
                 });
@@ -100,7 +109,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
             loadData();
             return { success: true };
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Error adding crew member. Please try again.",
             });
@@ -111,8 +120,24 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
     const handleLinkMember = async (formData: any) => {
         try {
             if (formData.memberId) {
-                await addCrewMemberToCrew(businessId, crew.id, formData.memberId);
-                toast.success({
+                // Create assignment using direct API call
+                const response = await fetch(`/api/crews/${crew.id}/assignments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        crew_member_id: formData.memberId,
+                        role: 'member',
+                        status: 'active'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create assignment');
+                }
+
+                toast({
                     title: "Success",
                     description: `Linked ${formData.member?.name || 'member'} to the crew.`,
                 });
@@ -122,7 +147,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
             loadData();
             return { success: true };
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Error linking crew member. Please try again.",
             });
@@ -137,10 +162,10 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
 
     const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, formData.id, formData);
+            const result = await updateCrewMember(crew.id, formData.id, formData);
 
             if (result) {
-                toast.success({
+                toast({
                     title: "Success",
                     description: `Updated ${formData.name} successfully.`,
                 });
@@ -154,7 +179,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
                 throw new Error("Failed to update crew member");
             }
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Error updating crew member. Please try again.",
             });
@@ -166,13 +191,27 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
         }
 
         try {
-            // Find the assignment first
-            const assignments = await getCrewMemberAssignments(businessId);
-            const assignment = assignments.find(a => a.crew_id === crew.id && a.crew_member_id === memberId);
+            // Get assignments for this crew and find the specific assignment
+            const response = await fetch(`/api/crews/${crew.id}/assignments`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch assignments');
+            }
+
+            const data = await response.json();
+            const assignments = data.assignments || [];
+            const assignment = assignments.find((a: any) => a.crew_member_id === memberId);
 
             if (assignment) {
-                await deleteCrewMemberAssignment(businessId, assignment.id);
-                toast.success({
+                // Delete the assignment
+                const deleteResponse = await fetch(`/api/crews/${crew.id}/assignments/${assignment.id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error('Failed to delete assignment');
+                }
+
+                toast({
                     title: "Success",
                     description: `Removed ${memberName} from the crew.`,
                 });
@@ -182,7 +221,7 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
                 throw new Error("Assignment not found");
             }
         } catch (error) {
-            toast.error({
+            toast({
                 title: "Error",
                 description: "Failed to remove crew member. Please try again.",
             });

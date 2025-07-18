@@ -404,7 +404,6 @@ export async function getCrewsWithDetails(
 
             return {
                 ...crew,
-                leader: crew.leader_id || 'No Leader Assigned',
                 member_count: memberAssignments.length,
                 current_project: currentProject?.name || null,
                 current_project_id: currentProject?.id || null,
@@ -417,7 +416,7 @@ export async function getCrewsWithDetails(
         let filteredCrews = crewsWithDetails;
         if (filters?.hasActiveProject !== undefined) {
             filteredCrews = crewsWithDetails.filter(crew =>
-                filters.hasActiveProject ? crew.active_projects > 0 : crew.active_projects === 0
+                filters.hasActiveProject ? (crew.active_projects || 0) > 0 : (crew.active_projects || 0) === 0
             );
         }
 

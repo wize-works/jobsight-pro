@@ -2,10 +2,15 @@ import type { Project, ProjectInsert, ProjectUpdate, ProjectWithDetails } from '
 
 // Project API client utilities
 export interface ProjectsResponse {
-    projects: Project[];
-    total?: number;
-    page?: number;
-    limit?: number;
+    success: boolean;
+    data: Project[];
+    pagination: {
+        count: number;
+        total: number | null;
+        limit: number | null;
+        offset: number;
+        hasMore: boolean;
+    };
 }
 
 export interface ProjectDetailsResponse {
@@ -53,7 +58,7 @@ export async function getProjects(options?: {
     const params = new URLSearchParams();
 
     if (options?.includeDetails) {
-        params.append('includeDetails', 'true');
+        params.append('include', 'details');
     }
 
     if (options?.search) {
@@ -71,7 +76,13 @@ export async function getProjects(options?: {
         throw new Error(`Failed to fetch projects: ${response.statusText}`);
     }
 
-    return response.json();
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch projects');
+    }
+
+    return result.data || [];
 }
 
 /**
@@ -119,7 +130,13 @@ export async function createProject(projectData: ProjectInsert): Promise<Project
         throw new Error(`Failed to create project: ${response.statusText}`);
     }
 
-    return response.json();
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error(result.error || 'Failed to create project');
+    }
+
+    return result.data;
 }
 
 /**
@@ -150,7 +167,13 @@ export async function updateProject(
         throw new Error(`Failed to update project: ${response.statusText}`);
     }
 
-    return response.json();
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error(result.error || 'Failed to update project');
+    }
+
+    return result.data;
 }
 
 /**

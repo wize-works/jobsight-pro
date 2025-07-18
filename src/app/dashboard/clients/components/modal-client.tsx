@@ -3,8 +3,8 @@
 import { Client, ClientIndustry, clientIndustryOptions, ClientStatus, clientStatusOptions, ClientType, clientTypeOptions } from "@/types/clients";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
-import { uploadClientLogo } from "@/app/actions/clients";
 import { useBusiness } from "@/lib/business-context";
+import { useClientLogo } from "@/hooks/useMedia";
 
 interface ClientModalProps {
     client?: Client | null;
@@ -18,6 +18,7 @@ export default function ClientModal({ client, isOpen, onClose, onSubmit, loading
     const isEditing = !!client;
     const { businessId } = useBusiness();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { uploadClientLogo } = useClientLogo(client?.id || "");
 
     const [form, setForm] = useState({
         name: client?.name || "",
@@ -94,9 +95,9 @@ export default function ClientModal({ client, isOpen, onClose, onSubmit, loading
         try {
             if (isEditing && client?.id) {
                 // For existing clients, upload immediately
-                const logoUrl = await uploadClientLogo(businessId, client.id, file);
-                if (logoUrl) {
-                    setForm(prev => ({ ...prev, logo_url: logoUrl }));
+                const result = await uploadClientLogo(file);
+                if (result.success && result.media) {
+                    setForm(prev => ({ ...prev, logo_url: result.media!.url }));
                     toast.success("Logo uploaded successfully");
                 } else {
                     throw new Error("Upload failed");

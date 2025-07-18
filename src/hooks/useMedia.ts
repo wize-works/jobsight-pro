@@ -428,3 +428,144 @@ export const useMediaFilters = () => {
         clearFilters,
     };
 };
+
+// Hook for client logo management
+export const useClientLogo = (clientId: string) => {
+    const [logo, setLogo] = useState<Media | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchClientLogo = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await mediaApi.getMediaByClient(clientId);
+            // Find the logo media (should be image type with logo in name or description)
+            const logoMedia = response.data.find(media =>
+                media.type === 'images' &&
+                (media.name?.toLowerCase().includes('logo') ||
+                    media.description?.toLowerCase().includes('logo'))
+            );
+            setLogo(logoMedia || null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch client logo');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const uploadClientLogo = async (file: File): Promise<{ success: boolean; media?: Media }> => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Get upload URL
+            const uploadUrlResponse = await fetch('/api/media/upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'images',
+                    filename: file.name
+                }),
+            });
+
+            if (!uploadUrlResponse.ok) {
+                throw new Error('Failed to get upload URL');
+            }
+
+            const { uploadUrl, fileUrl, fileName } = await uploadUrlResponse.json();
+
+            // Upload file to storage
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'x-ms-blob-type': 'BlockBlob',
+                    'Content-Type': file.type,
+                },
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload file');
+            }
+
+            // Create media record
+            const mediaResponse = await mediaApi.createMedia({
+                url: fileUrl,
+                name: `${fileName}-client-logo`,
+                description: `Logo for client`,
+                type: 'images',
+                size: file.size,
+                uploaded_at: new Date().toISOString(),
+            });
+
+            // Link media to client
+            await fetch('/api/media-links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    media_id: mediaResponse.data.id,
+                    linked_id: clientId,
+                    linked_type: 'client'
+                }),
+            });
+
+            // Update client logo_url field for backward compatibility
+            await fetch(`/api/clients/${clientId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    logo_url: fileUrl,
+                }),
+            });
+
+            setLogo(mediaResponse.data);
+            return { success: true, media: mediaResponse.data };
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to upload logo';
+            setError(errorMessage);
+            return { success: false };
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deleteClientLogo = async (): Promise<{ success: boolean }> => {
+        if (!logo) return { success: false };
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Delete media record
+            await mediaApi.deleteMedia(logo.id);
+
+            // Clear client logo_url field
+            await fetch(`/api/clients/${clientId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    logo_url: null,
+                }),
+            });
+
+            setLogo(null);
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete logo';
+            setError(errorMessage);
+            return { success: false };
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        logo,
+        loading,
+        error,
+        fetchClientLogo,
+        uploadClientLogo,
+        deleteClientLogo,
+    };
+};

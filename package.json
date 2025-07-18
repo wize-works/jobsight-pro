@@ -23,13 +23,14 @@
     "dependencies": {
         "@azure/storage-blob": "^12.27.0",
         "@clerk/elements": "^0.23.35",
-        "@clerk/nextjs": "^6.23.1",
+        "@clerk/nextjs": "^6.25.4",
         "@clerk/themes": "^2.2.52",
         "@hookform/resolvers": "latest",
         "@langchain/openai": "^0.5.13",
         "@microsoft/clarity": "^1.0.0",
         "@sentry/nextjs": "^9.27.0",
         "@sentry/types": "^9.30.0",
+        "@serwist/next": "^9.0.8",
         "@stripe/react-stripe-js": "^3.7.0",
         "@stripe/stripe-js": "^7.3.1",
         "@supabase/supabase-js": "latest",
@@ -67,15 +68,14 @@
         "react-resizable-panels": "^2.1.7",
         "recharts": "latest",
         "resend": "^4.5.2",
+        "serwist": "^9.0.8",
         "sonner": "latest",
         "stripe": "^18.2.1",
         "tailwind-merge": "^3.3.0",
         "tailwindcss-animate": "^1.0.7",
         "uuid": "latest",
         "web-push": "^3.6.7",
-        "zod": "latest",
-        "@serwist/next": "^9.0.8",
-        "serwist": "^9.0.8"
+        "zod": "latest"
     },
     "devDependencies": {
         "@next/bundle-analyzer": "^15.3.4",

@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
             success: true,
             confirmed_count: confirmedCount,
             errors: errors.length > 0 ? errors : undefined,
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Error in referral confirmation:', error);

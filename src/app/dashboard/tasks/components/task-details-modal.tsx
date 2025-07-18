@@ -6,8 +6,9 @@ import { Task, TaskPriority, taskPriorityOptions, TaskStatus, taskStatusOptions,
 import { Project } from "@/types/projects";
 import { ProjectMilestone } from "@/types/project_milestones";
 import { Crew } from "@/types/crews";
-import { updateTask, deleteTask, createTask } from "@/app/actions/tasks";
-import { getProjectMilestonesByProjectId } from "@/app/actions/project-milestones";
+import { useTaskMutations } from "@/hooks/useTasks";
+// TODO: Create useProjectMilestones hook
+// import { useProjectMilestones } from "@/hooks/useProjectMilestones";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistance, formatDistanceToNow } from "date-fns";
@@ -43,6 +44,11 @@ export default function TaskDetailsModal({
     const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
     const [loadingMilestones, setLoadingMilestones] = useState(false);
 
+    // Hooks for task mutations
+    const { createTask, updateTask, deleteTask } = useTaskMutations();
+    // TODO: Replace with useProjectMilestones hook when available
+    // const { getMilestonesByProject } = useProjectMilestones();
+
     const isCreating = !task;
 
     // Load milestones when project changes
@@ -54,8 +60,14 @@ export default function TaskDetailsModal({
 
         try {
             setLoadingMilestones(true);
-            const projectMilestones = await getProjectMilestonesByProjectId(businessId, projectId);
-            setMilestones(projectMilestones || []);
+            // TODO: Replace with hook when useProjectMilestones is available
+            // const result = await getMilestonesByProject(projectId);
+            // if (result.success) {
+            //     setMilestones(result.milestones || []);
+            // } else {
+            //     setMilestones([]);
+            // }
+            setMilestones([]); // Temporary: no milestones until hook is created
         } catch (error) {
             console.error("Error loading milestones:", error);
             setMilestones([]);
@@ -118,18 +130,24 @@ export default function TaskDetailsModal({
                     return;
                 }
 
-                const newTask = await createTask(businessId, formData as TaskUpdate);
-                if (newTask && onTaskCreate) {
-                    onTaskCreate(newTask);
+                const result = await createTask({ task: formData as TaskUpdate });
+                if (result.success && result.task && onTaskCreate) {
+                    onTaskCreate(result.task);
+                    onClose();
+                    toast.success("Task created successfully!");
+                } else {
+                    toast.error(result.error || "Failed to create task");
                 }
-                onClose();
-                toast.success("Task created successfully!");
             } else {
                 // Update existing task
-                const updatedTask = await updateTask(businessId, task!.id, formData as TaskUpdate);
-                onTaskUpdate(updatedTask);
-                setIsEditing(false);
-                toast.success("Task updated successfully!");
+                const result = await updateTask(task!.id, { task: formData as TaskUpdate });
+                if (result.success && result.task) {
+                    onTaskUpdate(result.task);
+                    setIsEditing(false);
+                    toast.success("Task updated successfully!");
+                } else {
+                    toast.error(result.error || "Failed to update task");
+                }
             }
         } catch (error) {
             console.error(isCreating ? "Error creating task:" : "Error updating task:", error);
@@ -144,10 +162,14 @@ export default function TaskDetailsModal({
 
         try {
             setIsUpdating(true);
-            await deleteTask(businessId, task.id);
-            onTaskDelete(task.id);
-            onClose();
-            toast.success("Task deleted successfully!");
+            const result = await deleteTask(task.id);
+            if (result.success) {
+                onTaskDelete(task.id);
+                onClose();
+                toast.success("Task deleted successfully!");
+            } else {
+                toast.error(result.error || "Failed to delete task");
+            }
         } catch (error) {
             console.error("Error deleting task:", error);
             toast.error("Failed to delete task");

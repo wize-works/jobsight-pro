@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
         if (!userId) {
             console.log('[mark-setup-complete API] No userId found in auth');
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { success: false, error: 'Unauthorized' },
                 { status: 401 }
             );
         }
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         if (userError || !user?.business_id) {
             console.error('[mark-setup-complete API] Error fetching user:', userError);
             return NextResponse.json(
-                { error: 'Business not found. Please contact support.' },
+                { success: false, error: 'Business not found. Please contact support.' },
                 { status: 404 }
             );
         }
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         if (business?.owner_id !== userId) {
             console.error('[mark-setup-complete API] User is not business owner');
             return NextResponse.json(
-                { error: 'Only business owners can complete setup' },
+                { success: false, error: 'Only business owners can complete setup' },
                 { status: 403 }
             );
         }
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         if (updateError) {
             console.error('[mark-setup-complete API] Error marking setup as completed:', updateError);
             return NextResponse.json(
-                { error: 'Failed to mark setup as completed' },
+                { success: false, error: 'Failed to mark setup as completed' },
                 { status: 500 }
             );
         }
@@ -76,12 +76,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: 'Account set up successfully!',
-        });
+        }, { status: 200 });
 
     } catch (error) {
         console.error('[mark-setup-complete API] Error:', error);
         return NextResponse.json(
             {
+                success: false,
                 error: 'Failed to mark setup as completed',
                 details: error instanceof Error ? error.message : 'Unknown error'
             },

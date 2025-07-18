@@ -11,12 +11,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (clientError || !client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
         // Get contacts
@@ -57,14 +57,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         if (error) {
             console.error('Error fetching client contacts:', error);
-            return NextResponse.json({ error: 'Failed to fetch contacts' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch contacts' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: contacts || [] });
+        return NextResponse.json({ success: true, data: contacts || [] }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client contacts GET API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     try {
         const user = await currentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const supabase = createServerClient();
         if (!supabase) {
-            return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
         }
 
         // Await the params
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .single();
 
         if (userError || !userData?.business_id) {
-            return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const businessId = userData.business_id;
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .single();
 
         if (clientError || !client) {
-            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 });
         }
 
         // If this is marked as primary, unset any existing primary contacts
@@ -149,13 +149,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         if (error) {
             console.error('Error creating client contact:', error);
-            return NextResponse.json({ error: 'Failed to create contact' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to create contact' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true, data: contact });
+        return NextResponse.json({ success: true, data: contact }, { status: 200 });
 
     } catch (error) {
         console.error('Error in client contacts POST API:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createEquipment } from "@/app/actions/equipments";
-import { setEquipmentRate } from "@/app/actions/client/rate-management";
+import { useEquipmentMutation } from "@/hooks/useEquipment";
 import { useRateManagement } from "@/hooks/useRateManagement";
 import { toast } from "@/hooks/use-toast";
 import type { EquipmentInsert, EquipmentStatus, EquipmentType, EquipmentCondition } from "@/types/equipment";
@@ -23,6 +22,8 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(false);
 
+    // Use the equipment mutation hook
+    const { createEquipment } = useEquipmentMutation();
     // Use the new rate management hook
     const { updateEquipmentRate } = useRateManagement();
 
@@ -65,28 +66,25 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                 name: formData.name,
                 type: formData.type,
                 status: formData.status,
-                description: formData.description || null,
-                serial_number: formData.serial_number || null,
-                make: formData.make || null,
-                model: formData.model || null,
-                year: formData.year || null,
-                purchase_date: formData.purchase_date || null,
-                purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
-                current_value: formData.current_value ? parseFloat(formData.current_value) : null,
-                location: formData.location || null,
-                next_maintenance: formData.next_maintenance || null,
-                image_url: formData.image_url || null,
-                is_billable: formData.is_billable,
-                hourly_rate: formData.is_billable ? formData.hourly_rate : 0,
-            } as EquipmentInsert;
+                description: formData.description || undefined,
+                serial_number: formData.serial_number || undefined,
+                model: formData.model || undefined,
+                year: formData.year || undefined,
+                purchase_date: formData.purchase_date || undefined,
+                purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : undefined,
+                current_value: formData.current_value ? parseFloat(formData.current_value) : undefined,
+                location: formData.location || undefined,
+                manufacturer: formData.make || undefined,
+                condition: formData.condition,
+            };
 
-            const newEquipment = await createEquipment(businessId, equipmentData);
+            const response = await createEquipment(equipmentData);
 
-            if (newEquipment) {
+            if (response) {
                 // Set equipment rate if billable
                 if (formData.is_billable && formData.hourly_rate > 0) {
                     await updateEquipmentRate({
-                        equipmentId: newEquipment.id,
+                        equipmentId: response.data.id,
                         businessId,
                         hourlyRate: formData.hourly_rate,
                         overtimeRate: undefined
@@ -97,7 +95,7 @@ export default function EquipmentNewModal({ isOpen, onClose, onSave }: Equipment
                     title: "Success",
                     description: "Equipment created successfully"
                 });
-                onSave(newEquipment);
+                onSave(response.data);
                 onClose();
                 router.refresh();
             } else {
