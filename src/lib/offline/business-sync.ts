@@ -1,5 +1,11 @@
 import { BusinessOfflineManager } from './dexie-db';
 
+// Global type declarations for Clerk auth state
+declare global {
+    var authStateInitialized: boolean | undefined;
+    var currentClerkUser: { id: string } | null | undefined;
+}
+
 /**
  * Business Sync Service for handling offline-first synchronization
  * 
