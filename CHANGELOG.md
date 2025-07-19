@@ -1,3 +1,10 @@
+# [1.136.0](https://github.com/wize-works/jobsight-pro/compare/v1.135.0...v1.136.0) (2025-07-19)
+
+
+### Features
+
+* Implement client and server utilities for projects, subscriptions, tasks, and users ([ebe5be7](https://github.com/wize-works/jobsight-pro/commit/ebe5be7ecb7b69839eb8be3c5f8a3e5608530ba4))
+
 # [1.135.0](https://github.com/wize-works/jobsight-pro/compare/v1.134.0...v1.135.0) (2025-07-18)
 
 
