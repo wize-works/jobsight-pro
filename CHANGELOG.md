@@ -1,3 +1,10 @@
+# [1.138.0](https://github.com/wize-works/jobsight-pro/compare/v1.137.0...v1.138.0) (2025-07-19)
+
+
+### Features
+
+* remove user avatar upload functionality and related actions ([b80ef6e](https://github.com/wize-works/jobsight-pro/commit/b80ef6eb36fc70934c7daf1319ac9de9e763f7b1))
+
 # [1.137.0](https://github.com/wize-works/jobsight-pro/compare/v1.136.0...v1.137.0) (2025-07-19)
 
 
