@@ -1,3 +1,10 @@
+# [1.139.0](https://github.com/wize-works/jobsight-pro/compare/v1.138.0...v1.139.0) (2025-07-19)
+
+
+### Features
+
+* enhance subscription management with update functionality and improve error handling ([b1a1bba](https://github.com/wize-works/jobsight-pro/commit/b1a1bba3b18792227cd10e60bbc9c44df3800a3f))
+
 # [1.138.0](https://github.com/wize-works/jobsight-pro/compare/v1.137.0...v1.138.0) (2025-07-19)
 
 
