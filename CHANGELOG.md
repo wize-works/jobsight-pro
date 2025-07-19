@@ -1,3 +1,10 @@
+# [1.137.0](https://github.com/wize-works/jobsight-pro/compare/v1.136.0...v1.137.0) (2025-07-19)
+
+
+### Features
+
+* Enhance error handling component with user-friendly UI and reset functionality ([859fc37](https://github.com/wize-works/jobsight-pro/commit/859fc373f026b372ec6ae98c8197f110d15d7770))
+
 # [1.136.0](https://github.com/wize-works/jobsight-pro/compare/v1.135.0...v1.136.0) (2025-07-19)
 
 
