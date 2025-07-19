@@ -37,6 +37,17 @@ export interface CancelSubscriptionResponse {
     error?: string;
 }
 
+export interface UpdateSubscriptionRequest {
+    businessId: string;
+    planId: string;
+    billingInterval: BillingInterval;
+}
+
+export interface UpdateSubscriptionResponse {
+    success: boolean;
+    error?: string;
+}
+
 /**
  * API client for subscription operations
  */
@@ -115,6 +126,34 @@ export class SubscriptionsAPI {
                 ...data
             }),
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Update an existing Stripe subscription
+     */
+    async updateSubscription(data: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> {
+        const requestBody = {
+            action: 'update-subscription',
+            ...data
+        };
+
+        console.log("Client API - Request body:", requestBody);
+
+        const response = await fetch('/api/stripe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        console.log("Client API - Response status:", response.status);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

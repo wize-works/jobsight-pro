@@ -23,10 +23,16 @@ export async function getAIUsageDataServer(businessId: string): Promise<{
             throw new Error('Failed to create Supabase client');
         }
 
-        // Get business subscription info
+        // Get business subscription info from business_subscriptions table
         const { data: business, error: businessError } = await supabase
             .from('businesses')
-            .select('subscription_plan, subscription_status')
+            .select(`
+                id,
+                business_subscriptions!inner(
+                    plan_id,
+                    status
+                )
+            `)
             .eq('id', businessId)
             .single();
 
@@ -35,14 +41,19 @@ export async function getAIUsageDataServer(businessId: string): Promise<{
             return { success: false, error: 'Failed to fetch business data' };
         }
 
+        // Extract subscription data
+        const subscription = business?.business_subscriptions?.[0];
+        const subscriptionPlan = subscription?.plan_id || 'free';
+        const subscriptionStatus = subscription?.status || 'inactive';
+
         // Get AI usage for current month
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
 
         const { data: aiUsage, error: usageError } = await supabase
-            .from('ai_usage_logs')
-            .select('tokens_used')
+            .from('ai_logs')
+            .select('tokens_prompt, tokens_completion')
             .eq('business_id', businessId)
             .gte('created_at', startOfMonth.toISOString());
 
@@ -51,19 +62,25 @@ export async function getAIUsageDataServer(businessId: string): Promise<{
             return { success: false, error: 'Failed to fetch AI usage data' };
         }
 
-        // Calculate totals
-        const currentUsage = aiUsage?.reduce((sum, log) => sum + (log.tokens_used || 0), 0) || 0;
+        // Calculate totals using prompt + completion tokens
+        const currentUsage = aiUsage?.reduce((sum, log) => {
+            const promptTokens = log.tokens_prompt || 0;
+            const completionTokens = log.tokens_completion || 0;
+            return sum + promptTokens + completionTokens;
+        }, 0) || 0;
 
         // Set limits based on subscription plan
         let limit = 0;
-        switch (business.subscription_plan) {
+        switch (subscriptionPlan) {
             case 'starter':
                 limit = 10000;
                 break;
             case 'professional':
+            case 'pro':
                 limit = 50000;
                 break;
             case 'enterprise':
+            case 'business':
                 limit = 200000;
                 break;
             default:
@@ -71,7 +88,7 @@ export async function getAIUsageDataServer(businessId: string): Promise<{
         }
 
         const percentageUsed = limit > 0 ? (currentUsage / limit) * 100 : 0;
-        const canUseAI = business.subscription_status === 'active' && currentUsage < limit;
+        const canUseAI = subscriptionStatus === 'active' && currentUsage < limit;
         const remainingTokens = Math.max(0, limit - currentUsage);
 
         return {
@@ -157,16 +174,23 @@ Context data: ${JSON.stringify(contextData, null, 2)}`
 
         const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't process your request.";
 
-        // Log usage
-        const tokensUsed = completion.usage?.total_tokens || 0;
+        // Log usage to ai_logs table
+        const promptTokens = completion.usage?.prompt_tokens || 0;
+        const completionTokens = completion.usage?.completion_tokens || 0;
+
         await supabase
-            .from('ai_usage_logs')
+            .from('ai_logs')
             .insert({
                 business_id: businessId,
-                query,
-                response,
-                tokens_used: tokensUsed,
-                model_used: AI_MODELS.CHAT_GPT_4O_MINI
+                user_id: null, // Will be set by the calling API if needed
+                object_type: 'ai_query',
+                object_id: null,
+                action: 'chat_completion',
+                input: query,
+                output: response,
+                tokens_prompt: promptTokens,
+                tokens_completion: completionTokens,
+                model: AI_MODELS.CHAT_GPT_4O_MINI
             });
 
         return {

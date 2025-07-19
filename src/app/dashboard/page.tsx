@@ -37,7 +37,6 @@ import CompactWeatherWidget from "@/components/compact-weather-widget"
 import { RoleBasedDashboard } from "@/components/role-based-dashboard"
 import { useUserRole } from "@/hooks/use-user-role"
 import { BusinessSweepstakeDashboard } from "@/components/referral/BusinessSweepstakeDashboard"
-import { SubscriptionStatusBanner } from "@/components/subscription";
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title)
@@ -821,7 +820,6 @@ Please provide brief, actionable insights and recommendations for business opera
 
     return (
         <RoleBasedDashboard fallbackRole="member" onQuickAction={handleQuickAction}>
-            <SubscriptionStatusBanner className="mb-6" />
             <div className="space-y-6">
                 {/* Modal Components */}
                 {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}

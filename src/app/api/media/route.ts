@@ -18,11 +18,18 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
 
-        // Get business_id from user metadata
-        const businessId = user.publicMetadata?.businessId as string;
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
+        // Get user's business
+        const { data: userBusiness } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", user.id)
+            .single();
+
+        if (!userBusiness) {
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
+
+        const businessId = userBusiness.business_id;
 
         // Query parameters
         const search = searchParams.get('search');
@@ -126,11 +133,18 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        // Get business_id from user metadata
-        const businessId = user.publicMetadata?.businessId as string;
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
+        // Get user's business
+        const { data: userBusiness } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", user.id)
+            .single();
+
+        if (!userBusiness) {
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
+
+        const businessId = userBusiness.business_id;
 
         const mediaData: MediaInsert = {
             ...body,
@@ -182,11 +196,18 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Media ID is required' }, { status: 400 });
         }
 
-        // Get business_id from user metadata
-        const businessId = user.publicMetadata?.businessId as string;
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
+        // Get user's business
+        const { data: userBusiness } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", user.id)
+            .single();
+
+        if (!userBusiness) {
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
+
+        const businessId = userBusiness.business_id;
 
         const mediaUpdate: MediaUpdate = {
             ...updateData,
@@ -241,11 +262,18 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Media ID is required' }, { status: 400 });
         }
 
-        // Get business_id from user metadata
-        const businessId = user.publicMetadata?.businessId as string;
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID not found' }, { status: 400 });
+        // Get user's business
+        const { data: userBusiness } = await supabase
+            .from("users")
+            .select("business_id")
+            .eq("auth_id", user.id)
+            .single();
+
+        if (!userBusiness) {
+            return NextResponse.json({ success: false, error: "Business not found" }, { status: 404 });
         }
+
+        const businessId = userBusiness.business_id;
 
         // Delete related media links first
         const { error: linkError } = await supabase

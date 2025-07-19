@@ -9,6 +9,8 @@ import {
     CreateSubscriptionResponse,
     CancelSubscriptionRequest,
     CancelSubscriptionResponse,
+    UpdateSubscriptionRequest,
+    UpdateSubscriptionResponse,
     subscriptionsAPI,
     subscriptionUtils
 } from '@/lib/api/subscriptions';
@@ -137,6 +139,31 @@ export function useCancelSubscription() {
 }
 
 /**
+ * Hook for updating existing Stripe subscriptions
+ */
+export function useUpdateSubscription() {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const updateSubscription = async (data: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await subscriptionsAPI.updateSubscription(data);
+            return result;
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to update subscription';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { updateSubscription, loading, error };
+}
+
+/**
  * Hook for subscription analytics
  */
 export function useSubscriptionAnalytics(subscription: BusinessSubscription | null, plans: SubscriptionPlan[]) {
@@ -213,29 +240,47 @@ export function useSubscriptionManager(businessId: string) {
     const { plans, loading: plansLoading, error: plansError, refetch: refetchPlans } = useSubscriptionPlans();
     const { createSubscription, loading: createLoading, error: createError } = useCreateSubscription();
     const { cancelSubscription, loading: cancelLoading, error: cancelError } = useCancelSubscription();
+    const { updateSubscription, loading: updateLoading, error: updateError } = useUpdateSubscription();
 
     const analytics = useSubscriptionAnalytics(subscription, plans);
     const planComparison = usePlanComparison(plans);
 
     // Combined loading state
-    const loading = subscriptionLoading || plansLoading || createLoading || cancelLoading;
+    const loading = subscriptionLoading || plansLoading || createLoading || cancelLoading || updateLoading;
 
     // Combined error state
-    const error = subscriptionError || plansError || createError || cancelError;
+    const error = subscriptionError || plansError || createError || cancelError || updateError;
 
     const createOrUpdateSubscription = useCallback(async (planId: string, billingInterval: BillingInterval) => {
-        const result = await createSubscription({
-            businessId,
-            planId,
-            billingInterval
-        });
+        // Check if user has an existing Stripe subscription
+        if (subscription?.stripe_subscription_id) {
+            // Use update for existing Stripe subscriptions
+            const result = await updateSubscription({
+                businessId,
+                planId,
+                billingInterval
+            });
 
-        if (result.success) {
-            await refetchSubscription();
+            if (result.success) {
+                await refetchSubscription();
+            }
+
+            return result;
+        } else {
+            // Use create for new subscriptions or non-Stripe subscriptions
+            const result = await createSubscription({
+                businessId,
+                planId,
+                billingInterval
+            });
+
+            if (result.success) {
+                await refetchSubscription();
+            }
+
+            return result;
         }
-
-        return result;
-    }, [businessId, createSubscription, refetchSubscription]);
+    }, [businessId, subscription?.stripe_subscription_id, createSubscription, updateSubscription, refetchSubscription]);
 
     const cancelCurrentSubscription = useCallback(async () => {
         const result = await cancelSubscription({ businessId });
@@ -283,6 +328,7 @@ export function useSubscriptionManager(businessId: string) {
 
         // Individual hook methods
         createSubscription,
+        updateSubscription,
         cancelSubscription,
         refetchSubscription,
         refetchPlans
