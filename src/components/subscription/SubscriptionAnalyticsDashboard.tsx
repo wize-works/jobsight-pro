@@ -78,10 +78,12 @@ export const SubscriptionAnalyticsDashboard: React.FC<SubscriptionAnalyticsDashb
         }
 
         // Only load if we have AI feature, a valid businessId, and haven't loaded yet
-        if (hasFeature('ai_assistant') && businessId && businessId.length > 0 && !aiUsageLoaded) {
+        // Removed hasFeature from dependencies as it may change on every render
+        // Removed aiUsageLoading from dependencies to prevent infinite loops
+        if (hasFeature('ai_assistant') && businessId && businessId.length > 0 && !aiUsageLoaded && !aiUsageLoading) {
             loadAIUsage();
         }
-    }, [businessId, hasFeature, aiUsageLoading, aiUsageLoaded]);
+    }, [businessId, aiUsageLoaded]);
 
     const storageUsagePercentage = calculateStorageUsagePercentage(usageData.storageUsedMB, currentPlan);
     const userUsagePercentage = (usageData.userCount / getUserLimit()) * 100;

@@ -59,25 +59,22 @@ export const TabSubscription = () => {
                 return;
             }
 
-            // Handle other paid plans
+            // For paid plans, check if user has existing Stripe subscription
             if (currentSubscription?.stripe_subscription_id) {
-                // User has existing Stripe subscription, create checkout session for changes
-                const result = await createCheckoutSession({
-                    planId,
-                    billingInterval,
-                });
+                // User has existing Stripe subscription - update it directly
+                const result = await createOrUpdateSubscription(planId, billingInterval);
 
                 if (result.success) {
                     toast({
                         title: "Success",
-                        description: "Redirecting to Stripe checkout...",
+                        description: "Subscription updated successfully!",
                         variant: "success"
                     });
-                    // Redirect is handled automatically by the hook
+                    await refreshData();
                 } else {
                     toast({
                         title: "Error",
-                        description: result.error || "Failed to start checkout process",
+                        description: result.error || "Failed to update subscription",
                         variant: "error"
                     });
                 }

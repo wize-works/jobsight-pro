@@ -15,7 +15,6 @@ import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useMedia } from "@/hooks/use-media";
 import { useSubscriptionManager } from "@/hooks/useSubscriptions";
 import { toast } from "@/hooks/use-toast";
-import { getAIUsageDataClient } from "@/lib/ai/client-functions";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
@@ -40,14 +39,6 @@ export default function BusinessPage() {
     const { subscription, loading: subscriptionLoading } = useSubscriptionManager(businessId || '');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [aiUsage, setAiUsage] = useState({
-        currentUsage: 0,
-        limit: 0,
-        percentageUsed: 0,
-        canUseAI: false,
-        remainingTokens: 0
-    });
-    const [aiUsageLoading, setAiUsageLoading] = useState(false);
 
     // Calculate counts from hook data
     const userCount = Array.isArray(users) ? users.length : 0;
@@ -64,7 +55,7 @@ export default function BusinessPage() {
             const currentYear = new Date().getFullYear();
             return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
         }).length : 0,
-        aiQueriesThisMonth: aiUsage.currentUsage, // Actual AI usage tracking - tokens used this month
+        aiQueriesThisMonth: 0, // AI usage will be handled by SubscriptionAnalyticsDashboard component
         projectsActive: Array.isArray(projects) ? projects.filter(p => p.status === 'active' || p.status === 'in-progress').length : 0,
         dailyLogsThisMonth: Array.isArray(dailyLogs) ? dailyLogs.filter(log => {
             const logDate = new Date(log.created_at || '');
@@ -86,29 +77,6 @@ export default function BusinessPage() {
             refreshBusiness();
         }
     }, [business, refreshBusiness]);
-
-    // Load AI usage data
-    useEffect(() => {
-        if (businessId && !aiUsageLoading) {
-            setAiUsageLoading(true);
-            getAIUsageDataClient()
-                .then((result) => {
-                    if (result.success && result.data) {
-                        setAiUsage(result.data);
-                    } else {
-                        console.error('Error loading AI usage:', result.error);
-                        // Keep default values on error
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error loading AI usage:', error);
-                    // Keep default values on error
-                })
-                .finally(() => {
-                    setAiUsageLoading(false);
-                });
-        }
-    }, [businessId, aiUsageLoading]);
 
     const handleSaveChanges = async (formData: FormData) => {
         setIsSubmitting(true);

@@ -29,6 +29,12 @@ const nextConfig = {
             };
         }
 
+        // Suppress Supabase realtime warnings since we don't use realtime
+        config.ignoreWarnings = [
+            /Critical dependency: the request of a dependency is an expression/,
+            /Module not found: Error: Can't resolve.*@supabase\/realtime-js/,
+        ];
+
         // Configure specific module tree shaking
         config.module.rules = config.module.rules || [];
         config.module.rules.push({

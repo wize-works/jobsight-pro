@@ -4,6 +4,7 @@ import { useUserRole } from '@/hooks/use-user-role';
 import { getDashboardConfig, getWidgetsByPriority, priorityZoneStyles } from '@/lib/dashboard-config';
 import type { UserRole, PriorityZone } from '@/lib/dashboard-config';
 import Loading from '@/app/loading';
+import { SubscriptionStatusBanner } from './subscription';
 
 interface RoleBasedDashboardProps {
     children: React.ReactNode;
@@ -82,6 +83,7 @@ export function RoleBasedDashboard({ children, fallbackRole = 'member', onQuickA
 
     return (
         <div className="role-based-dashboard">
+            <SubscriptionStatusBanner className="mb-6" />
             {/* Dashboard Header with Role Info */}
             <div className="flex items-center justify-between mb-6">
                 <div>

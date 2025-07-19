@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { stripe } from "@/lib/stripe";
 import { createServerClient } from "@/lib/supabase";
 import { loadSubscriptionPlans } from "@/lib/subscriptions/plans";
@@ -7,26 +7,59 @@ import type { StripeCustomerInsert } from "@/types/stripe-customers";
 import { revalidatePath } from "next/cache";
 
 export async function POST(req: NextRequest) {
+    console.log("=== STRIPE API POST HANDLER CALLED ===");
     try {
-        const { business } = await withBusinessServer();
-        const { action, ...data } = await req.json();
+        console.log("Getting user from Clerk...");
+        const user = await currentUser();
+        if (!user) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const supabase = createServerClient();
+        if (!supabase) {
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
+        }
+
+        // Get user's business ID
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('business_id')
+            .eq('auth_id', user.id)
+            .single();
+
+        if (userError || !userData?.business_id) {
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+        }
+
+        const businessId = userData.business_id;
+        console.log("Business found:", businessId);
+
+        console.log("Parsing request body...");
+        const body = await req.json();
+        console.log("Request body parsed:", body);
+
+        const { action, ...data } = body;
+        console.log("Stripe API - Action received:", action);
+        console.log("Stripe API - Data received:", data);
 
         switch (action) {
             case 'create-customer':
-                return await createStripeCustomer(business.id);
+                return await createStripeCustomer(businessId);
             case 'create-checkout-session':
-                return await createCheckoutSession(business.id, data.planId, data.billingInterval);
+                return await createCheckoutSession(businessId, data.planId, data.billingInterval);
             case 'create-billing-portal-session':
-                return await createBillingPortalSession(business.id);
+                return await createBillingPortalSession(businessId);
             case 'update-subscription':
-                return await updateStripeSubscription(business.id, data.planId, data.billingInterval);
+                return await updateStripeSubscription(businessId, data.planId, data.billingInterval);
             case 'cancel-subscription':
-                return await cancelStripeSubscription(business.id);
+                return await cancelStripeSubscription(businessId);
             default:
                 return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
         }
     } catch (error) {
+        console.error("=== STRIPE API POST ERROR ===");
         console.error("Stripe API error:", error);
+        console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
         return NextResponse.json(
             { success: false, error: "Internal server error" },
             { status: 500 }
@@ -36,13 +69,34 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
-        const { business } = await withBusinessServer();
+        const user = await currentUser();
+        if (!user) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const supabase = createServerClient();
+        if (!supabase) {
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
+        }
+
+        // Get user's business ID
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('business_id')
+            .eq('auth_id', user.id)
+            .single();
+
+        if (userError || !userData?.business_id) {
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+        }
+
+        const businessId = userData.business_id;
         const { searchParams } = new URL(req.url);
         const action = searchParams.get('action');
 
         switch (action) {
             case 'get-subscription':
-                return await getStripeSubscription(business.id);
+                return await getStripeSubscription(businessId);
             default:
                 return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
         }

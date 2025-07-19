@@ -72,7 +72,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get recent daily logs with enhanced context
         const { data: dailyLogs, error: dailyLogsError } = await fetchByBusinessWithQuery(businessId, {
             from: "daily_logs",
-            select: ["id", "date", "work_completed", "work_planned", "hours_worked", "weather", "achievements", "project_id", "crew_id", "safety", "quality", "delays", "notes"],
+            select: ["id", "date", "work_completed", "work_planned", "hours_worked", "weather", "project_id", "crew_id", "safety", "quality", "delays", "notes"],
             joins: [
                 {
                     table: "projects",
