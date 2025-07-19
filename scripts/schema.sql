@@ -765,6 +765,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipment' AND column_name = 'hourly_rate') THEN
         ALTER TABLE public.equipment ADD COLUMN hourly_rate DECIMAL(10,2) DEFAULT 0.00;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipment' AND column_name = 'overtime_rate') THEN
+        ALTER TABLE public.equipment ADD COLUMN overtime_rate DECIMAL(10,2) DEFAULT 0.00;
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipment' AND column_name = 'is_billable') THEN
         ALTER TABLE public.equipment ADD COLUMN is_billable BOOLEAN DEFAULT true;
     END IF;

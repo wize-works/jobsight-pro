@@ -29,17 +29,6 @@ const nextConfig = {
             };
         }
 
-        // Enhanced tree shaking optimizations
-        config.optimization = {
-            ...config.optimization,
-            usedExports: true,
-            sideEffects: false,
-            // Enable more aggressive tree shaking
-            innerGraph: true,
-            // Optimize module concatenation for better tree shaking
-            concatenateModules: true,
-        };
-
         // Configure specific module tree shaking
         config.module.rules = config.module.rules || [];
         config.module.rules.push({

@@ -49,6 +49,9 @@ export function DashboardClient({ children }: { children: React.ReactNode }) {
                                     setSidebarCollapsed={setSidebarCollapsed}
                                     sidebarCollapsed={sidebarCollapsed}
                                 />
+                                <main className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
+                                    {children}
+                                </main>
                                 <AIAssistantButton />
                             </ErrorBoundary>
                         </SubscriptionProvider>

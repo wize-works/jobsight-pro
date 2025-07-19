@@ -1075,6 +1075,7 @@ export interface Database {
                     description: string | null
                     image_url: string | null
                     hourly_rate: number | null
+                    overtime_rate: number | null
                     is_billable: boolean | null
                     created_at: string
                     created_by: string
@@ -1098,6 +1099,7 @@ export interface Database {
                     description: string | null
                     image_url: string | null
                     hourly_rate?: number | null
+                    overtime_rate?: number | null
                     is_billable?: boolean | null
                     created_at: string
                     created_by: string
@@ -1122,6 +1124,7 @@ export interface Database {
                     description: string | null
                     image_url: string | null
                     hourly_rate?: number | null
+                    overtime_rate?: number | null
                     is_billable?: boolean | null
                     created_at: string
                     created_by: string
