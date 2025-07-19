@@ -109,6 +109,13 @@ export function RoleBasedDashboard({ children, fallbackRole = 'member', onQuickA
                 </div>
             </div>
 
+            {/* Role-specific footer insights */}
+            <div className="mt-8 p-4 bg-base-200 rounded-lg">
+                <div className="text-sm text-base-content/70">
+                    💡 <strong>Tip for {effectiveRole}s:</strong> {getRoleTip(effectiveRole)}
+                </div>
+            </div>
+
             {/* Quick Actions Bar */}
             <div className="bg-base-100 p-4 rounded-lg shadow-sm mb-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -135,13 +142,6 @@ export function RoleBasedDashboard({ children, fallbackRole = 'member', onQuickA
             {/* Role-specific dashboard content */}
             <div className="space-y-6">
                 {children}
-            </div>
-
-            {/* Role-specific footer insights */}
-            <div className="mt-8 p-4 bg-base-200 rounded-lg">
-                <div className="text-sm text-base-content/70">
-                    💡 <strong>Tip for {effectiveRole}s:</strong> {getRoleTip(effectiveRole)}
-                </div>
             </div>
         </div>
     );

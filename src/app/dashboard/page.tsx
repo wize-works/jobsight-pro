@@ -821,9 +821,7 @@ Please provide brief, actionable insights and recommendations for business opera
 
     return (
         <RoleBasedDashboard fallbackRole="member" onQuickAction={handleQuickAction}>
-            <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
-                <SubscriptionStatusBanner className="mb-6" />
-            </div>
+            <SubscriptionStatusBanner className="mb-6" />
             <div className="space-y-6">
                 {/* Modal Components */}
                 {<ProjectModal isOpen={projectModal} onClose={() => setProjectModal(false)} onSave={async () => setProjectModal(false)} />}
