@@ -12,14 +12,6 @@ import { CrewMember } from "@/types/crew-members";
 import TabSafety from "./tab-safety";
 import ModalLoading from "@/components/modal-loading";
 import UniversalMediaManager from "@/components/universal-media-manager";
-import {
-    getMediaByDailyLogId,
-    uploadDailyLogMedia,
-    linkExistingMediaToDailyLog,
-    unlinkMediaFromDailyLog,
-    getMedias
-} from "@/app/actions/media";
-import { generateDailyLogHTML } from "@/app/actions/generate-html";
 import { formatDate } from "@/utils/date";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
@@ -93,15 +85,20 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     // Load media data when component mounts or log changes
     useEffect(() => {
         loadMediaData();
-    }, [currentLog.id, businessId]); const loadMediaData = async () => {
+    }, [currentLog.id, businessId]);
+
+    const loadMediaData = async () => {
         if (!businessId) return;
 
         setMediaLoading(true);
         try {
-            const [linked, available] = await Promise.all([
-                getMediaByDailyLogId(businessId, currentLog.id),
-                getMedias(businessId)
-            ]);
+            // Fetch linked media for daily log
+            const linkedResponse = await fetch(`/api/media?daily_log_id=${currentLog.id}`);
+            const linked = linkedResponse.ok ? (await linkedResponse.json()).data || [] : [];
+
+            // Fetch all available media 
+            const availableResponse = await fetch('/api/media');
+            const available = availableResponse.ok ? (await availableResponse.json()).data || [] : [];
 
             setLinkedMedia(linked);
             setAvailableMedia(available);
@@ -129,30 +126,30 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
 
         setIsDownloading(true);
         try {
-            // Generate HTML using server action
-            const html = await generateDailyLogHTML(businessId, currentLog.id);
+            // Generate PDF via API
             const filename = `daily-log-${currentLog.project?.name || 'unknown'}-${formatDate(currentLog.date)}.pdf`;
 
-            // Generate PDF
-            const pdfResponse = await fetch('/api/generate-pdf-gotenberg', {
+            const response = await fetch('/api/pdf-generation', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ html, filename }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'daily-log',
+                    dailyLogId: currentLog.id,
+                    fileName: filename
+                })
             });
 
-            if (!pdfResponse.ok) {
+            if (!response.ok) {
                 throw new Error('Failed to generate PDF');
             }
 
             // Download the PDF
-            const blob = await pdfResponse.blob();
+            const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `daily-log-${currentLog.project?.name || 'unknown'}-${formatDate(currentLog.date)}.pdf`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -233,8 +230,20 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     // Media upload handler
     const handleMediaUpload = async (file: File, metadata: { name: string; description: string; type: any }) => {
         try {
-            const success = await uploadDailyLogMedia(businessId, currentLog.id, file, metadata.type, metadata.description);
-            if (success) {
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('name', metadata.name);
+            formData.append('description', metadata.description);
+            formData.append('type', metadata.type);
+            formData.append('daily_log_id', currentLog.id);
+
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
                 await loadMediaData(); // Refresh media list
                 return true;
             }
@@ -248,8 +257,25 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     // Media link handler
     const handleMediaLink = async (mediaIds: string[]) => {
         try {
-            const success = await linkExistingMediaToDailyLog(businessId, mediaIds, currentLog.id);
-            if (success) {
+            // Link each media item to the daily log
+            const linkPromises = mediaIds.map(media_id =>
+                fetch('/api/media-links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        media_id,
+                        linked_id: currentLog.id,
+                        linked_type: 'daily_log',
+                    }),
+                })
+            );
+
+            const responses = await Promise.all(linkPromises);
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (allSuccessful) {
                 await loadMediaData(); // Refresh media list
                 return { success: true };
             }
@@ -263,11 +289,21 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
     // Media unlink handler
     const handleMediaUnlink = async (mediaIds: string[]) => {
         try {
-            for (const mediaId of mediaIds) {
-                await unlinkMediaFromDailyLog(businessId, mediaId, currentLog.id);
+            // Unlink each media item from the daily log
+            const unlinkPromises = mediaIds.map(media_id =>
+                fetch(`/api/media-links?media_id=${media_id}&linked_id=${currentLog.id}&linked_type=daily_log`, {
+                    method: 'DELETE',
+                })
+            );
+
+            const responses = await Promise.all(unlinkPromises);
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (allSuccessful) {
+                await loadMediaData(); // Refresh media list
+                return { success: true };
             }
-            await loadMediaData(); // Refresh media list
-            return { success: true };
+            return { success: false, error: "Failed to unlink media" };
         } catch (error) {
             console.error("Error unlinking media:", error);
             return { success: false, error: "Failed to unlink media" };

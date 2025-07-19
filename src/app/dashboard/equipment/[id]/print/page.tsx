@@ -1,10 +1,7 @@
 "use client";
-import { getEquipmentById } from "@/app/actions/equipments";
-import { getEquipmentMaintenancesByEquipmentId } from "@/app/actions/equipment-maintenance";
-import { getEquipmentUsagesByEquipmentId } from "@/app/actions/equipment_usage";
-import { getEquipmentAssignmentsByEquipmentId } from "@/app/actions/equipment-assignments";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
-import { getMediaByEquipmentId } from "@/app/actions/media";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { Equipment } from "@/lib/api/equipment";
 import { EquipmentMaintenance } from "@/types/equipment-maintenance";
 import { EquipmentUsage } from "@/types/equipment_usage";
 import { EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
@@ -12,18 +9,52 @@ import { EquipmentSpecification } from "@/types/equipment-specifications";
 import { Media } from "@/types/media";
 import { useBusiness } from "@/lib/business-context";
 
-export default async function EquipmentPrintPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const { businessId } = await useBusiness();
-    const equipment = await getEquipmentById(businessId, id)
-    const [maintenances, usages, assignments, specifications, documents] = await Promise.all([
-        getEquipmentMaintenancesByEquipmentId(businessId, id),
-        getEquipmentUsagesByEquipmentId(businessId, id),
-        getEquipmentAssignmentsByEquipmentId(businessId, id),
-        getEquipmentSpecificationsByEquipmentId(businessId, id),
-        getMediaByEquipmentId(businessId, id, "documents"),
-    ]);
-    ;
+export default function EquipmentPrintPage() {
+    const params = useParams();
+    const id = params.id as string;
+    const { businessId } = useBusiness();
+
+    const [equipment, setEquipment] = useState<Equipment | null>(null);
+    const [maintenances, setMaintenances] = useState<EquipmentMaintenance[]>([]);
+    const [usages, setUsages] = useState<EquipmentUsage[]>([]);
+    const [assignments, setAssignments] = useState<EquipmentAssignmentWithDetails[]>([]);
+    const [specifications, setSpecifications] = useState<EquipmentSpecification[]>([]);
+    const [documents, setDocuments] = useState<Media[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [equipmentRes, maintenanceRes, usageRes, assignmentRes, specRes, mediaRes] = await Promise.all([
+                    fetch(`/api/equipment/${id}?business_id=${businessId}`).then(r => r.json()),
+                    fetch(`/api/equipment-maintenance?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-usage?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-assignments?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-specifications?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/media?business_id=${businessId}&equipment_id=${id}&type=documents`).then(r => r.json()),
+                ]);
+
+                setEquipment(equipmentRes.data);
+                setMaintenances(maintenanceRes.data || []);
+                setUsages(usageRes.data || []);
+                setAssignments(assignmentRes.data || []);
+                setSpecifications(specRes.data || []);
+                setDocuments(mediaRes.data || []);
+            } catch (error) {
+                console.error('Error fetching equipment data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (businessId && id) {
+            fetchData();
+        }
+    }, [businessId, id]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Loading...</div>;
+    }
 
     if (!equipment) {
         return <div className="p-8 text-center">Equipment not found.</div>;
@@ -44,9 +75,8 @@ export default async function EquipmentPrintPage({ params }: { params: Promise<{
     return (
         <div className="max-w-3xl mx-auto bg-white p-8 print:p-0 print:bg-white print:shadow-none shadow rounded-lg text-base-content">
             <div className="flex flex-col items-center mb-8">
-                <img src={equipment.image_url || "/default-equipment.png"} alt={equipment.name} className="rounded-xl w-48 h-48 object-cover mb-4" />
                 <h1 className="text-3xl font-bold mb-2">{equipment.name}</h1>
-                <div className="text-base-content/70 mb-2">{equipment.make} {equipment.model} ({equipment.year})</div>
+                <div className="text-base-content/70 mb-2">{equipment.manufacturer} {equipment.model} ({equipment.year})</div>
                 <div className="mb-2">Type: <span className="font-semibold">{equipment.type}</span></div>
                 <div className="mb-2">Status: <span className="font-semibold capitalize">{equipment.status?.replace(/_/g, " ")}</span></div>
                 <div className="mb-2">Location: <span className="font-semibold">{equipment.location}</span></div>

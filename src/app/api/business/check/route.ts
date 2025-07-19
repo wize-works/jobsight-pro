@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { getUserBusiness } from "@/app/actions/business"
+import { createServerClient } from '@/lib/supabase'
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
@@ -17,18 +17,37 @@ export async function GET(request: Request) {
             userId = authUserId;
         }
 
-        const businessResponse = await getUserBusiness(userId)
+        // Get user's business using direct database query
+        const supabase = createServerClient();
+        if (!supabase) {
+            return NextResponse.json({ success: false, error: 'Database connection failed' }, { status: 500 });
+        }
 
-        // If there's an authentication error
-        if ('success' in businessResponse && !businessResponse.success) {
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select(`
+                id,
+                business_id,
+                business:businesses(
+                    id,
+                    name,
+                    created_at,
+                    updated_at
+                )
+            `)
+            .eq('auth_id', userId)
+            .single();
+
+        if (userError) {
+            console.error('Database error:', userError);
             return NextResponse.json({
                 success: false,
-                error: businessResponse.error
-            }, { status: 403 });
+                error: 'User not found'
+            }, { status: 404 });
         }
 
         // If user has no business
-        if (!businessResponse || !('id' in businessResponse)) {
+        if (!userData.business_id || !userData.business) {
             return NextResponse.json({
                 success: true,
                 hasBusiness: false
@@ -38,7 +57,7 @@ export async function GET(request: Request) {
         return NextResponse.json({
             success: true,
             hasBusiness: true,
-            business: businessResponse
+            business: userData.business
         }, { status: 200 });
     } catch (error) {
         console.error('Error in business check:', error)

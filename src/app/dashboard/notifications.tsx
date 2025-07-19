@@ -2,10 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { getUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications";
+import { useUnreadNotifications, useNotificationMutations } from "@/hooks/use-notifications";
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import { useNotificationRefresh } from "@/hooks/use-notifications-refresh";
@@ -13,55 +13,17 @@ import { useNotificationRefresh } from "@/hooks/use-notifications-refresh";
 export const Notifications = () => {
     const { user } = useUser();
     const { businessId, loading: businessLoading, error: businessError } = useBusiness();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [isOpen, setIsOpen] = useState(false); const loadNotifications = useCallback(async () => {
-        if (!user?.id || !businessId || businessId === "") {
-            setLoading(false);
-            return;
-        }
+    const [isOpen, setIsOpen] = useState(false);
 
-        try {
-            setLoading(true);
-            const unreadNotifications = await getUnreadNotifications(businessId, user.id);
-            // Additional safety check to ensure we always set an array
-            setNotifications(Array.isArray(unreadNotifications) ? unreadNotifications : []);
-        } catch (error) {
-            console.error("Error loading notifications:", error);
-            setNotifications([]); // Reset to empty array on error
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.id, businessId]); useEffect(() => {
-        if (user?.id && businessId && businessId !== "") {
-            // Load notifications when prerequisites are met
-            let isMounted = true;
+    // Use our consolidated hooks
+    const {
+        notifications,
+        loading,
+        error,
+        refetch: loadNotifications
+    } = useUnreadNotifications(businessId || '', user?.id || '');
 
-            (async () => {
-                setLoading(true);
-                try {
-                    const unreadNotifications = await getUnreadNotifications(businessId, user.id);
-                    if (isMounted) {
-                        // Additional safety check to ensure we always set an array
-                        setNotifications(Array.isArray(unreadNotifications) ? unreadNotifications : []);
-                    }
-                } catch (error) {
-                    console.error("Error loading notifications:", error);
-                    if (isMounted) {
-                        setNotifications([]); // Reset to empty array on error
-                    }
-                } finally {
-                    if (isMounted) {
-                        setLoading(false);
-                    }
-                }
-            })();
-
-            return () => {
-                isMounted = false;
-            };
-        }
-    }, [user?.id, businessId]);
+    const { markAsRead, markAllAsRead, loading: mutationLoading } = useNotificationMutations();
 
     // Auto-refresh notifications every 30 seconds
     useNotificationRefresh({
@@ -69,31 +31,33 @@ export const Notifications = () => {
         enabled: !!user?.id && !!businessId
     });
 
-    const handleMarkAsRead = async (notificationId: string) => {
+    const handleMarkAsRead = useCallback(async (notificationId: string) => {
         if (!businessId) return;
 
         try {
-            await markNotificationAsRead(businessId, notificationId);
-            setNotifications(prev => (prev || []).filter(n => n.id !== notificationId));
+            await markAsRead(notificationId, businessId);
+            // Refresh notifications to update the list
+            loadNotifications();
         } catch (error) {
             console.error("Error marking notification as read:", error);
             toast.error("Failed to mark notification as read");
         }
-    };
+    }, [businessId, markAsRead, loadNotifications]);
 
-    const handleMarkAllAsRead = async () => {
+    const handleMarkAllAsRead = useCallback(async () => {
         if (!user?.id || !businessId || !notifications || notifications.length === 0) return;
 
         try {
-            await markAllNotificationsAsRead(businessId, user.id);
-            setNotifications([]);
+            await markAllAsRead(businessId, user.id);
+            // Refresh notifications to update the list
+            loadNotifications();
             setIsOpen(false);
             toast.success("All notifications marked as read");
         } catch (error) {
             console.error("Error marking all notifications as read:", error);
             toast.error("Failed to mark all notifications as read");
         }
-    };
+    }, [user?.id, businessId, notifications?.length, markAllAsRead, loadNotifications]);
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
@@ -163,8 +127,9 @@ export const Notifications = () => {
                                 <button
                                     className="btn btn-xs btn-ghost"
                                     onClick={handleMarkAllAsRead}
+                                    disabled={mutationLoading}
                                 >
-                                    Mark all read
+                                    {mutationLoading ? "Marking..." : "Mark all read"}
                                 </button>
                             )}
                         </div>
@@ -172,6 +137,17 @@ export const Notifications = () => {
                         {loading ? (
                             <div className="flex justify-center py-4">
                                 <div className="loading loading-spinner loading-sm"></div>
+                            </div>
+                        ) : error ? (
+                            <div className="text-center py-8 text-error">
+                                <i className="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                <p>Error loading notifications</p>
+                                <button
+                                    className="btn btn-sm btn-ghost mt-2"
+                                    onClick={loadNotifications}
+                                >
+                                    Retry
+                                </button>
                             </div>
                         ) : !notifications || notifications.length === 0 ? (
                             <div className="text-center py-8 text-base-content/60">
@@ -212,8 +188,13 @@ export const Notifications = () => {
                                                     e.stopPropagation();
                                                     handleMarkAsRead(notification.id);
                                                 }}
+                                                disabled={mutationLoading}
                                             >
-                                                <i className="fas fa-times"></i>
+                                                {mutationLoading ? (
+                                                    <div className="loading loading-xs"></div>
+                                                ) : (
+                                                    <i className="fas fa-times"></i>
+                                                )}
                                             </button>
                                         </div>
                                     </div>

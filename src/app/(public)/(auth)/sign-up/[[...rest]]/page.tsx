@@ -9,13 +9,10 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import { getSubscriptionPlans, createSubscription } from "@/app/actions/subscriptions";
-import { createCheckoutSession } from "@/app/actions/stripe";
-import { createBusiness, getUserBusiness } from "@/app/actions/business";
-import { createSelf, getSelfByAuthId } from "@/app/actions/users";
+import { getSubscriptionPlans, createSubscription } from "@/lib/subscriptions/client-functions";
+import { useBusiness } from "@/hooks/use-business";
 import { BusinessReferralInput } from "@/components/referral/BusinessReferralInput";
 import type { SubscriptionPlan } from "@/types/subscription";
-import type { UserInsert } from "@/types/users";
 
 // Password validation component
 const PasswordField = () => {
@@ -154,6 +151,9 @@ export default function SignUpPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    // Initialize business hook
+    const { getUserBusiness, createBusiness, loading: businessLoading, error: businessError } = useBusiness();
+
     // Registration flow state
     const [currentStep, setCurrentStep] = useState<'auth' | 'business' | 'plans' | 'processing'>('auth');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -226,8 +226,12 @@ export default function SignUpPage() {
             if (isSignedIn && user) {
                 // Check if user already has complete setup
                 try {
-                    const dbUser = await getSelfByAuthId(user.id);
-                    if (dbUser) {
+                    const userResponse = await fetch('/api/users?action=get_by_id&id=' + encodeURIComponent(user.id), {
+                        method: 'GET',
+                    });
+                    const userResult = await userResponse.json();
+
+                    if (userResult.success && userResult.data) {
                         const userBusiness = await getUserBusiness(user.id);
                         if (userBusiness) {
                             // User has complete setup, redirect to dashboard
@@ -324,26 +328,42 @@ export default function SignUpPage() {
 
         try {
             // Create user record in database
-            const dbUser = await getSelfByAuthId(user.id);
-            if (!dbUser) {
-                await createSelf({
-                    auth_id: user.id,
-                    email: user.emailAddresses[0]?.emailAddress || "",
-                    first_name: user.firstName || "",
-                    last_name: user.lastName || "",
-                    avatar_url: user.imageUrl || "",
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    created_by: user.id,
-                    updated_by: user.id,
-                    status: "active",
-                    role: "admin",
-                } as UserInsert);
+            const userResponse = await fetch('/api/users?action=get_by_id&id=' + encodeURIComponent(user.id), {
+                method: 'GET',
+            });
+            const userResult = await userResponse.json();
+
+            if (!userResult.success || !userResult.data) {
+                // Create new user
+                const createUserResponse = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user: {
+                            auth_id: user.id,
+                            email: user.emailAddresses[0]?.emailAddress || "",
+                            first_name: user.firstName || "",
+                            last_name: user.lastName || "",
+                            avatar_url: user.imageUrl || "",
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            created_by: user.id,
+                            updated_by: user.id,
+                            status: "active",
+                            role: "admin",
+                        }
+                    }),
+                });
+
+                if (!createUserResponse.ok) {
+                    throw new Error("Failed to create user record");
+                }
             }
 
             // Create business record in database
             const businessResult = await createBusiness({
-                userId: user.id,
                 businessName: businessForm.businessName,
                 businessType: businessForm.businessType,
                 email: businessForm.email || user.emailAddresses[0]?.emailAddress || "",
@@ -355,12 +375,12 @@ export default function SignUpPage() {
                 country: businessForm.country,
             });
 
-            if (!businessResult.success) {
-                throw new Error(businessResult.error || "Failed to create business");
+            if (!businessResult) {
+                throw new Error("Failed to create business");
             }
 
             // Handle referral if one was provided
-            if (referralCode.trim() && businessResult.businessId) {
+            if (referralCode.trim() && businessResult.id) {
                 try {
                     // Check if plan is eligible for referrals (starter, pro, business)
                     const eligiblePlans = ['starter', 'pro', 'business'];
@@ -372,7 +392,7 @@ export default function SignUpPage() {
                             },
                             body: JSON.stringify({
                                 referrer_code: referralCode.trim().toUpperCase(),
-                                business_id: businessResult.businessId,
+                                business_id: businessResult.id,
                                 plan_type: planId,
                             }),
                         });
@@ -409,11 +429,19 @@ export default function SignUpPage() {
                 }
             } else {
                 // For paid plans, redirect to Stripe checkout
-                const checkoutResult = await createCheckoutSession(
-                    businessResult.businessId!,
-                    planId,
-                    billingInterval
-                );
+                const checkoutResponse = await fetch('/api/stripe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'create-checkout-session',
+                        planId: planId,
+                        billingInterval: billingInterval,
+                    }),
+                });
+
+                const checkoutResult = await checkoutResponse.json();
 
                 if (checkoutResult.success && checkoutResult.sessionUrl) {
                     // Redirect to Stripe checkout

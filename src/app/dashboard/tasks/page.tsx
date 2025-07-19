@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTasksWithDetails } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews } from "@/hooks/use-crews";
 import { TaskWithDetails, Task } from "@/types/tasks";
 import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";

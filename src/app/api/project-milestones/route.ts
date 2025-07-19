@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectMilestones,
-    createProjectMilestone,
-    getProjectMilestoneById,
-    getProjectMilestonesByProjectId,
-    searchProjectMilestones
-} from '@/app/actions/project-milestones';
+    getProjectMilestonesServer,
+    createProjectMilestoneServer,
+    getProjectMilestoneByIdServer,
+    getProjectMilestonesByProjectIdServer,
+    searchProjectMilestonesServer
+} from '@/lib/project-milestones/server';
 
 /**
  * GET /api/project-milestones
@@ -43,11 +43,11 @@ export async function GET(request: NextRequest) {
         let milestones;
 
         if (searchQuery) {
-            milestones = await searchProjectMilestones(profile.business_id, searchQuery);
+            milestones = await searchProjectMilestonesServer(profile.business_id, searchQuery);
         } else if (projectId) {
-            milestones = await getProjectMilestonesByProjectId(profile.business_id, projectId);
+            milestones = await getProjectMilestonesByProjectIdServer(profile.business_id, projectId);
         } else {
-            milestones = await getProjectMilestones(profile.business_id);
+            milestones = await getProjectMilestonesServer(profile.business_id);
         }
 
         return NextResponse.json({ success: true, data: milestones }, { status: 200 });
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const milestone = await createProjectMilestone(profile.business_id, {
+        const milestone = await createProjectMilestoneServer(profile.business_id, user.id, {
             ...milestoneData,
             business_id: profile.business_id,
             created_by: user.id,

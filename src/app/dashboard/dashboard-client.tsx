@@ -49,17 +49,6 @@ export function DashboardClient({ children }: { children: React.ReactNode }) {
                                     setSidebarCollapsed={setSidebarCollapsed}
                                     sidebarCollapsed={sidebarCollapsed}
                                 />
-                                {pathname === "/dashboard/map" ? (
-                                    <div className="pb-20 lg:pb-6">
-                                        <SubscriptionStatusBanner className="m-4" />
-                                        {children}
-                                    </div>
-                                ) : (
-                                    <div className="p-4 md:p-6 container mx-auto pb-20 lg:pb-6">
-                                        <SubscriptionStatusBanner className="mb-6" />
-                                        {children}
-                                    </div>
-                                )}
                                 <AIAssistantButton />
                             </ErrorBoundary>
                         </SubscriptionProvider>

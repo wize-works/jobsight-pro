@@ -1,15 +1,10 @@
 "use client";
 
-// TODO: Migrate to crew hooks and project crew assignment hooks
-// import { useCrews } from "@/hooks/useCrews";
-// import { useProjectCrewMutations } from "@/hooks/useProjectCrews";
-import { getCrewsByProjectId, getAvailableCrews } from "@/app/actions/crews";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { Crew, CrewWithMemberInfo } from "@/types/crews";
 import { set } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { removeCrewFromProject, addCrewToProject } from "@/app/actions/project-crews";
 import { useBusiness } from "@/lib/business-context";
 import ErrorBoundary from "@/components/error-boundary";
 import { toast } from "@/hooks/use-toast";
@@ -23,14 +18,30 @@ interface CrewsTabProps {
 export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabProps) {
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
-    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]); useEffect(() => {
+    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]);
+
+    const loadAvailableCrews = async () => {
+        try {
+            const response = await fetch('/api/crews/available/with-member-info');
+            if (!response.ok) {
+                throw new Error('Failed to fetch available crews');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error loading available crews:", error);
+            return [];
+        }
+    };
+
+    useEffect(() => {
         async function loadCrews() {
             try {
                 setLoading(true);
-                const available = await getAvailableCrews(businessId);
+                const available = await loadAvailableCrews();
                 // Filter out crews that are already assigned to this project
                 const assignedCrewIds = crews.map(crew => crew.id);
-                const filteredAvailable = available.filter(crew => !assignedCrewIds.includes(crew.id));
+                const filteredAvailable = available.filter((crew: CrewWithMemberInfo) => !assignedCrewIds.includes(crew.id));
                 setAvailableCrews(filteredAvailable);
 
             } catch (error) {
@@ -45,20 +56,42 @@ export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabP
 
     const handleRemoveCrew = async (crewId: string, crewName: string) => {
         try {
-            const success = await removeCrewFromProject(businessId, projectId, crewId);
-            if (success) {
-                toast.success(`${crewName} removed from project successfully!`);
-                // Update the local crews list by removing the crew
-                if (onCrewsUpdated) {
-                    const updatedCrews = crews.filter(crew => crew.id !== crewId);
-                    onCrewsUpdated(updatedCrews);
-                }
-                // Refresh available crews list
-                const available = await getAvailableCrews(businessId);
-                setAvailableCrews(available);
-            } else {
-                toast.error("Failed to remove crew from project");
+            // Find the project-crew assignment to delete
+            const response = await fetch(`/api/project-crews?projectId=${projectId}`, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch project crews');
             }
+
+            const projectCrews = await response.json();
+            const assignment = projectCrews.data?.find((pc: any) => pc.crew_id === crewId);
+
+            if (!assignment) {
+                throw new Error('Assignment not found');
+            }
+
+            // Delete the assignment
+            const deleteResponse = await fetch(`/api/project-crews/${assignment.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!deleteResponse.ok) {
+                throw new Error('Failed to remove crew');
+            }
+
+            toast.success(`${crewName} removed from project successfully!`);
+
+            // Update the local crews list by removing the crew
+            if (onCrewsUpdated) {
+                const updatedCrews = crews.filter(crew => crew.id !== crewId);
+                onCrewsUpdated(updatedCrews);
+            }
+
+            // Refresh available crews list
+            const available = await loadAvailableCrews();
+            setAvailableCrews(available);
         } catch (error) {
             console.error("Error removing crew:", error);
             toast.error("An error occurred while removing the crew");
@@ -67,21 +100,33 @@ export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabP
 
     const handleAssignCrew = async (crewId: string, crewName: string) => {
         try {
-            const result = await addCrewToProject(businessId, projectId, crewId);
-            if (result) {
-                toast.success(`${crewName} assigned to project successfully!`);
-                // Find the assigned crew and add it to the crews list
-                const assignedCrew = availableCrews.find(crew => crew.id === crewId);
-                if (assignedCrew && onCrewsUpdated) {
-                    const updatedCrews = [...crews, assignedCrew];
-                    onCrewsUpdated(updatedCrews);
-                }
-                // Refresh available crews list to remove the assigned crew
-                const available = await getAvailableCrews(businessId);
-                setAvailableCrews(available);
-            } else {
-                toast.error("Failed to assign crew to project");
+            const response = await fetch('/api/project-crews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    project_id: projectId,
+                    crew_id: crewId,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to assign crew');
             }
+
+            toast.success(`${crewName} assigned to project successfully!`);
+
+            // Find the assigned crew and add it to the crews list
+            const assignedCrew = availableCrews.find(crew => crew.id === crewId);
+            if (assignedCrew && onCrewsUpdated) {
+                const updatedCrews = [...crews, assignedCrew];
+                onCrewsUpdated(updatedCrews);
+            }
+
+            // Refresh available crews list to remove the assigned crew
+            const available = await loadAvailableCrews();
+            setAvailableCrews(available);
         } catch (error) {
             console.error("Error assigning crew:", error);
             toast.error("An error occurred while assigning the crew");

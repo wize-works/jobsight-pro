@@ -6,7 +6,7 @@ import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient, Invoic
 import { formatCurrency } from "@/utils/formatters";
 import InvoiceCard from './components/card';
 import { useBusiness } from '@/lib/business-context';
-import { useInvoices, useInvoiceWithDetails } from '@/hooks/useInvoices';
+import { useInvoices, useInvoiceWithDetails } from '@/hooks/use-invoices';
 import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
 import InvoicesListLoading from "./loading";

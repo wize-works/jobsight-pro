@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectCrews,
-    createProjectCrew,
-    searchProjectCrews,
-    addCrewToProject
-} from '@/app/actions/project-crews';
+    getProjectCrewsServer,
+    createProjectCrewServer,
+    searchProjectCrewsServer,
+    addCrewToProjectServer
+} from '@/lib/project-crews/server';
 
 /**
  * GET /api/project-crews
@@ -42,13 +42,13 @@ export async function GET(request: NextRequest) {
         let crews;
 
         if (searchQuery) {
-            crews = await searchProjectCrews(profile.business_id, searchQuery);
+            crews = await searchProjectCrewsServer(profile.business_id, searchQuery);
         } else {
-            crews = await getProjectCrews(profile.business_id);
+            crews = await getProjectCrewsServer(profile.business_id);
 
             // Filter by project if specified
             if (projectId) {
-                crews = crews.filter(crew => crew.project_id === projectId);
+                crews = crews.filter((crew: any) => crew.project_id === projectId);
             }
         }
 
@@ -102,8 +102,9 @@ export async function POST(request: NextRequest) {
 
         // Check if this is a simple crew assignment (add crew to project)
         if (crewData.addToProject) {
-            const crew = await addCrewToProject(
+            const crew = await addCrewToProjectServer(
                 profile.business_id,
+                user.id,
                 crewData.project_id,
                 crewData.crew_id
             );
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create full project crew assignment
-        const crew = await createProjectCrew(profile.business_id, {
+        const crew = await createProjectCrewServer(profile.business_id, user.id, {
             ...crewData,
             business_id: profile.business_id,
             created_by: user.id,

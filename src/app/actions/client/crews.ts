@@ -392,6 +392,24 @@ export async function getCrewsWithDetails(
         const projectMap = new Map(projects.map(p => [p.id, p]));
 
         // Build crew details
+        // Get daily logs to calculate total hours for each crew
+        const allCrewIds = crews.map(crew => crew.id);
+        const dailyLogs = await db.dailyLogs
+            .where('business_id')
+            .equals(businessId)
+            .and(log => allCrewIds.includes(log.crew_id!))
+            .toArray();
+
+        // Calculate total hours for each crew
+        const crewHoursMap = new Map<string, number>();
+        for (const log of dailyLogs) {
+            if (log.crew_id) {
+                const currentHours = crewHoursMap.get(log.crew_id) || 0;
+                const logHours = (log.hours_worked || 0) + (log.overtime || 0);
+                crewHoursMap.set(log.crew_id, currentHours + logHours);
+            }
+        }
+
         const crewsWithDetails: CrewWithDetails[] = crews.map(crew => {
             const memberAssignments = assignments.filter(a => a.crew_id === crew.id);
             const currentProjectCrews = projectCrews.filter(pc => pc.crew_id === crew.id);
@@ -408,7 +426,7 @@ export async function getCrewsWithDetails(
                 current_project: currentProject?.name || null,
                 current_project_id: currentProject?.id || null,
                 active_projects: currentProjectCrews.length,
-                total_hours: 0 // TODO: Calculate from daily logs when available
+                total_hours: crewHoursMap.get(crew.id) || 0
             };
         });
 

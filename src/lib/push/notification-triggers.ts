@@ -2,7 +2,7 @@
 'use server';
 
 import { sendPushNotificationToUser, sendPushNotificationToBusiness } from './actions';
-import { createNotification } from '@/app/actions/notifications';
+import { createNotificationServer } from '@/lib/notifications/server';
 import { withBusinessServer } from '@/lib/auth/with-business-server';
 
 export async function triggerProjectNotification(
@@ -21,7 +21,7 @@ export async function triggerProjectNotification(
         // Create in-app notification for assigned users
         if (assignedUserIds && assignedUserIds.length > 0) {
             for (const userId of assignedUserIds) {
-                await createNotification(
+                await createNotificationServer(
                     business.id,
                     {
                         user_id: userId,
@@ -64,7 +64,7 @@ export async function triggerTaskNotification(
 
         if (assignedUserId) {
             // Create in-app notification
-            await createNotification(
+            await createNotificationServer(
                 business.id,
                 {
                     user_id: assignedUserId,
@@ -105,7 +105,7 @@ export async function triggerEquipmentNotification(
 
         if (assignedUserId) {
             // Create in-app notification
-            await createNotification(
+            await createNotificationServer(
                 business.id,
                 {
                     user_id: assignedUserId,

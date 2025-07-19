@@ -9,7 +9,7 @@ import {
 } from '@/types/equipment-maintenance';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useEquipmentMaintenanceMutation } from '@/hooks/useEquipment';
+import { useEquipmentMaintenanceMutation } from '@/hooks/use-equipment';
 import { toast } from '@/hooks/use-toast';
 import { useBusiness } from '@/lib/business-context';
 

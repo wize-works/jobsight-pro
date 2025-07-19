@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ProjectMilestone, ProjectMilestoneInsert, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
-// TODO: Create milestone hooks to replace server actions
-// import { useMilestoneMutations } from "@/hooks/useMilestones";
-import { createProjectMilestone, updateProjectMilestone } from "@/app/actions/project-milestones";
+import { useProjectMilestones } from "@/hooks/useProjectMilestones";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { formatDateForInput } from "@/utils/date";
@@ -20,6 +18,7 @@ interface MilestoneModalProps {
 export default function MilestoneModal({ isOpen, onClose, projectId, milestone, onSave }: MilestoneModalProps) {
     const isEditing = !!milestone?.id;
     const { businessId } = useBusiness();
+    const { createMilestone, updateMilestone } = useProjectMilestones();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -85,24 +84,28 @@ export default function MilestoneModal({ isOpen, onClose, projectId, milestone, 
             if (isEditing && milestone) {
                 // Update existing milestone
                 milestoneData.id = milestone.id;
-                const updatedMilestone = await updateProjectMilestone(businessId, milestone.id, milestoneData);
+                const result = await updateMilestone(milestone.id, milestoneData);
 
-                if (updatedMilestone) {
+                if (result.success && result.milestone) {
                     toast.success({
                         title: "Success",
                         description: "Milestone updated successfully"
                     });
-                    if (onSave) onSave(updatedMilestone);
+                    if (onSave) onSave(result.milestone);
+                } else {
+                    throw new Error(result.error || 'Failed to update milestone');
                 }
             } else {
                 // Create new milestone
-                const newMilestone = await createProjectMilestone(businessId, milestoneData);
-                if (newMilestone) {
+                const result = await createMilestone(milestoneData);
+                if (result.success && result.milestone) {
                     toast.success({
                         title: "Success",
                         description: "Milestone created successfully"
                     });
-                    if (onSave) onSave(newMilestone);
+                    if (onSave) onSave(result.milestone);
+                } else {
+                    throw new Error(result.error || 'Failed to create milestone');
                 }
             }
 

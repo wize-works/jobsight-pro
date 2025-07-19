@@ -1,27 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSubscriptionContext } from '@/contexts/SubscriptionContext';
 import { BusinessSubscriptionPlan } from '@/types/business_subscriptions';
-
-interface EmailNotificationSettings {
-    paymentReminders: boolean;
-    upgradePrompts: boolean;
-    featureAnnouncements: boolean;
-    usageAlerts: boolean;
-    securityUpdates: boolean;
-    monthlyReports: boolean;
-}
-
-interface NotificationTemplate {
-    id: string;
-    name: string;
-    subject: string;
-    type: 'payment' | 'upgrade' | 'feature' | 'usage' | 'security' | 'report';
-    requiredPlan: BusinessSubscriptionPlan | 'all';
-    enabled: boolean;
-    description: string;
-}
+import {
+    useBusinessEmailManagement,
+    type BusinessEmailSettings,
+    type BusinessEmailTemplate
+} from '@/hooks/useBusinessEmailSettings';
 
 interface SubscriptionEmailManagerProps {
     businessId: string;
@@ -33,164 +19,63 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
     className = ''
 }) => {
     const { getCurrentPlan } = useSubscriptionContext();
-    const [settings, setSettings] = useState<EmailNotificationSettings>({
-        paymentReminders: true,
-        upgradePrompts: true,
-        featureAnnouncements: true,
-        usageAlerts: true,
-        securityUpdates: true,
-        monthlyReports: false
-    });
-    const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+
+    // Use the hook for email settings and templates
+    const {
+        settings,
+        templates,
+        loading,
+        error,
+        updateSettings,
+        updateTemplate,
+        saveAll
+    } = useBusinessEmailManagement(businessId);
 
     const currentPlan = getCurrentPlan();
 
-    useEffect(() => {
-        loadEmailSettings();
-        loadEmailTemplates();
-    }, [businessId]);
-
-    const loadEmailSettings = async () => {
-        try {
-            // TODO: Load actual settings from backend
-            // For now, using default settings
-            setLoading(false);
-        } catch (error) {
-            console.error('Error loading email settings:', error);
-            setLoading(false);
-        }
+    const handleSettingChange = (setting: keyof BusinessEmailSettings, value: boolean) => {
+        const newSettings = { ...settings, [setting]: value };
+        updateSettings(newSettings);
     };
 
-    const loadEmailTemplates = async () => {
-        try {
-            // TODO: Load actual templates from backend
-            const mockTemplates: NotificationTemplate[] = [
-                {
-                    id: 'payment_reminder',
-                    name: 'Payment Reminder',
-                    subject: 'Payment Due Reminder - JobSight Pro',
-                    type: 'payment',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Remind customers about upcoming payments'
-                },
-                {
-                    id: 'payment_failed',
-                    name: 'Payment Failed',
-                    subject: 'Payment Failed - Action Required',
-                    type: 'payment',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Notify customers when payments fail'
-                },
-                {
-                    id: 'upgrade_prompt',
-                    name: 'Upgrade Suggestion',
-                    subject: 'Unlock More Features with JobSight Pro+',
-                    type: 'upgrade',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Suggest upgrades based on usage patterns'
-                },
-                {
-                    id: 'feature_announcement',
-                    name: 'New Feature Announcement',
-                    subject: 'New Features Available in JobSight Pro',
-                    type: 'feature',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Announce new features to subscribers'
-                },
-                {
-                    id: 'storage_warning',
-                    name: 'Storage Limit Warning',
-                    subject: 'Storage Limit Approaching - JobSight Pro',
-                    type: 'usage',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Warn when approaching storage limits'
-                },
-                {
-                    id: 'user_limit_warning',
-                    name: 'User Limit Warning',
-                    subject: 'User Limit Reached - JobSight Pro',
-                    type: 'usage',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Notify when user limits are reached'
-                },
-                {
-                    id: 'security_update',
-                    name: 'Security Update',
-                    subject: 'Important Security Update - JobSight Pro',
-                    type: 'security',
-                    requiredPlan: 'all',
-                    enabled: true,
-                    description: 'Critical security notifications'
-                },
-                {
-                    id: 'monthly_report',
-                    name: 'Monthly Usage Report',
-                    subject: 'Your Monthly JobSight Pro Report',
-                    type: 'report',
-                    requiredPlan: 'pro',
-                    enabled: false,
-                    description: 'Monthly usage and analytics report (Pro+ only)'
-                }
-            ];
-
-            setTemplates(mockTemplates);
-        } catch (error) {
-            console.error('Error loading email templates:', error);
-        }
-    };
-
-    const handleSettingChange = (setting: keyof EmailNotificationSettings, value: boolean) => {
-        setSettings(prev => ({ ...prev, [setting]: value }));
-    };
-
-    const handleTemplateToggle = (templateId: string) => {
-        setTemplates(prev => prev.map(template =>
-            template.id === templateId
-                ? { ...template, enabled: !template.enabled }
-                : template
-        ));
+    const handleTemplateToggle = async (templateId: string, enabled: boolean) => {
+        await updateTemplate(templateId, { enabled });
     };
 
     const saveSettings = async () => {
-        setSaving(true);
         try {
-            // TODO: Save settings to backend
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-            console.log('Email settings saved:', { settings, templates });
+            setSaving(true);
+            const result = await saveAll(settings, templates);
+
+            if (!result.success) {
+                console.error('Failed to save settings:', result.error);
+            }
         } catch (error) {
-            console.error('Error saving email settings:', error);
+            console.error('Error saving settings:', error);
         } finally {
             setSaving(false);
         }
     };
 
-    const canUseTemplate = (template: NotificationTemplate): boolean => {
+    const canUseTemplate = (template: BusinessEmailTemplate): boolean => {
         if (template.requiredPlan === 'all') return true;
-        if (!currentPlan) return false;
 
-        const planHierarchy = {
-            personal: 0,
-            starter: 1,
-            pro: 2,
-            business: 3,
-            enterprise: 4
+        const planHierarchy: Record<string, number> = {
+            personal: 1,
+            starter: 2,
+            pro: 3,
+            business: 4,
+            enterprise: 5
         };
 
-        const currentPlanLevel = planHierarchy[currentPlan.id as BusinessSubscriptionPlan] || 0;
+        const currentLevel = planHierarchy[currentPlan?.toString() || 'personal'] || 0;
         const requiredLevel = planHierarchy[template.requiredPlan] || 0;
 
-        return currentPlanLevel >= requiredLevel;
+        return currentLevel >= requiredLevel;
     };
 
-    const getTemplatesByType = (type: NotificationTemplate['type']) => {
+    const getTemplatesByType = (type: BusinessEmailTemplate['type']) => {
         return templates.filter(template => template.type === type);
     };
 
@@ -200,7 +85,19 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                 <div className="card-body">
                     <div className="flex justify-center items-center h-32">
                         <span className="loading loading-spinner loading-lg"></span>
+                        <span className="ml-2">Loading email settings...</span>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={`alert alert-error ${className}`}>
+                <div>
+                    <i className="fas fa-exclamation-triangle"></i>
+                    <span>Failed to load email settings: {error}</span>
                 </div>
             </div>
         );
@@ -213,7 +110,10 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                 <div className="card-body">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h3 className="card-title">Email Notification Settings</h3>
+                            <h3 className="card-title flex items-center gap-2">
+                                <i className="far fa-envelope"></i>
+                                Email Notification Settings
+                            </h3>
                             <p className="text-sm text-base-content/70">
                                 Manage your subscription-related email preferences
                             </p>
@@ -242,9 +142,12 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Payment Reminders</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-credit-card"></i>
+                                            Payment Reminders
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Receive reminders about upcoming payments
+                                            Notifications about upcoming payments and billing issues
                                         </div>
                                     </div>
                                 </span>
@@ -261,9 +164,12 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Upgrade Prompts</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-arrow-up"></i>
+                                            Upgrade Prompts
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Get notified about plan upgrade opportunities
+                                            Suggestions to upgrade your plan based on usage
                                         </div>
                                     </div>
                                 </span>
@@ -280,9 +186,12 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Feature Announcements</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-bullhorn"></i>
+                                            Feature Announcements
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Stay updated on new features and improvements
+                                            Updates about new features and improvements
                                         </div>
                                     </div>
                                 </span>
@@ -299,9 +208,12 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Usage Alerts</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-exclamation-triangle"></i>
+                                            Usage Alerts
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Get alerts when approaching plan limits
+                                            Warnings when approaching plan limits
                                         </div>
                                     </div>
                                 </span>
@@ -318,9 +230,12 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Security Updates</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-shield"></i>
+                                            Security Updates
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Important security notifications (recommended)
+                                            Critical security and maintenance notifications
                                         </div>
                                     </div>
                                 </span>
@@ -337,9 +252,15 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                             <label className="label cursor-pointer">
                                 <span className="label-text">
                                     <div>
-                                        <div className="font-medium">Monthly Reports</div>
+                                        <div className="font-medium flex items-center gap-2">
+                                            <i className="far fa-file-alt"></i>
+                                            Monthly Reports
+                                            {!canUseTemplate({ requiredPlan: 'pro' } as BusinessEmailTemplate) && (
+                                                <span className="badge badge-primary badge-sm ml-2">Pro+</span>
+                                            )}
+                                        </div>
                                         <div className="text-sm text-base-content/70">
-                                            Detailed usage and analytics reports
+                                            Monthly usage and performance reports (Pro+ only)
                                         </div>
                                     </div>
                                 </span>
@@ -348,7 +269,7 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                                     className="toggle toggle-primary"
                                     checked={settings.monthlyReports}
                                     onChange={(e) => handleSettingChange('monthlyReports', e.target.checked)}
-                                    disabled={!canUseTemplate({ requiredPlan: 'pro' } as NotificationTemplate)}
+                                    disabled={!canUseTemplate({ requiredPlan: 'pro' } as BusinessEmailTemplate)}
                                 />
                             </label>
                         </div>
@@ -359,7 +280,13 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
             {/* Email Templates */}
             <div className="card bg-base-100 shadow-lg">
                 <div className="card-body">
-                    <h3 className="card-title mb-6">Email Templates</h3>
+                    <h3 className="card-title mb-6 flex items-center gap-2">
+                        <i className="far fa-file-alt"></i>
+                        Email Templates
+                    </h3>
+                    <p className="text-sm text-base-content/70 mb-6">
+                        Manage individual email templates and their status
+                    </p>
 
                     <div className="space-y-8">
                         {/* Payment Notifications */}
@@ -369,109 +296,121 @@ export const SubscriptionEmailManager: React.FC<SubscriptionEmailManagerProps> =
                                 Payment Notifications
                             </h4>
                             <div className="space-y-3">
-                                {getTemplatesByType('payment').map(template => (
-                                    <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                        <div className="flex-1">
-                                            <div className="font-medium">{template.name}</div>
-                                            <div className="text-sm text-base-content/70">{template.description}</div>
-                                            <div className="text-xs text-base-content/50 mt-1">
-                                                Subject: {template.subject}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {template.requiredPlan !== 'all' && (
-                                                <div className="badge badge-primary badge-sm">
-                                                    {template.requiredPlan}+ only
-                                                </div>
-                                            )}
-                                            <input
-                                                type="checkbox"
-                                                className="toggle toggle-sm"
-                                                checked={template.enabled && canUseTemplate(template)}
-                                                onChange={() => handleTemplateToggle(template.id)}
-                                                disabled={!canUseTemplate(template)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Usage Notifications */}
-                        <div>
-                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <i className="far fa-chart-bar text-secondary"></i>
-                                Usage Notifications
-                            </h4>
-                            <div className="space-y-3">
-                                {getTemplatesByType('usage').map(template => (
-                                    <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                        <div className="flex-1">
-                                            <div className="font-medium">{template.name}</div>
-                                            <div className="text-sm text-base-content/70">{template.description}</div>
-                                            <div className="text-xs text-base-content/50 mt-1">
-                                                Subject: {template.subject}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {template.requiredPlan !== 'all' && (
-                                                <div className="badge badge-primary badge-sm">
-                                                    {template.requiredPlan}+ only
-                                                </div>
-                                            )}
-                                            <input
-                                                type="checkbox"
-                                                className="toggle toggle-sm"
-                                                checked={template.enabled && canUseTemplate(template)}
-                                                onChange={() => handleTemplateToggle(template.id)}
-                                                disabled={!canUseTemplate(template)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Other Notifications */}
-                        {['upgrade', 'feature', 'security', 'report'].map(type => (
-                            <div key={type}>
-                                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <i className={`far ${type === 'upgrade' ? 'fa-arrow-up text-warning' :
-                                            type === 'feature' ? 'fa-star text-info' :
-                                                type === 'security' ? 'fa-shield-alt text-error' :
-                                                    'fa-file-alt text-success'
-                                        }`}></i>
-                                    {type.charAt(0).toUpperCase() + type.slice(1)} Notifications
-                                </h4>
-                                <div className="space-y-3">
-                                    {getTemplatesByType(type as NotificationTemplate['type']).map(template => (
+                                {getTemplatesByType('payment').map(template => {
+                                    const canUseThisTemplate = canUseTemplate(template);
+                                    return (
                                         <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
                                             <div className="flex-1">
-                                                <div className="font-medium">{template.name}</div>
-                                                <div className="text-sm text-base-content/70">{template.description}</div>
+                                                <div className="font-medium flex items-center gap-2">
+                                                    {template.name}
+                                                    {template.requiredPlan !== 'all' && (
+                                                        <span className={`badge badge-sm ${canUseThisTemplate ? 'badge-primary' : 'badge-secondary'}`}>
+                                                            {template.requiredPlan}+
+                                                        </span>
+                                                    )}
+                                                    {template.enabled ? (
+                                                        <span className="badge badge-success badge-sm">
+                                                            <i className="far fa-check mr-1"></i>
+                                                            Active
+                                                        </span>
+                                                    ) : (
+                                                        <span className="badge badge-ghost badge-sm">
+                                                            <i className="far fa-times mr-1"></i>
+                                                            Disabled
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-base-content/70 mt-1">{template.description}</div>
                                                 <div className="text-xs text-base-content/50 mt-1">
                                                     Subject: {template.subject}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                {template.requiredPlan !== 'all' && (
-                                                    <div className="badge badge-primary badge-sm">
-                                                        {template.requiredPlan}+ only
-                                                    </div>
-                                                )}
-                                                <input
-                                                    type="checkbox"
-                                                    className="toggle toggle-sm"
-                                                    checked={template.enabled && canUseTemplate(template)}
-                                                    onChange={() => handleTemplateToggle(template.id)}
-                                                    disabled={!canUseTemplate(template)}
-                                                />
-                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="toggle toggle-sm"
+                                                checked={template.enabled}
+                                                onChange={(e) => handleTemplateToggle(template.id, e.target.checked)}
+                                                disabled={!canUseThisTemplate}
+                                            />
                                         </div>
-                                    ))}
-                                </div>
+                                    );
+                                })}
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Other template types */}
+                        {[
+                            { type: 'upgrade', icon: 'fa-arrow-up', label: 'Upgrade', color: 'text-warning' },
+                            { type: 'feature', icon: 'fa-star', label: 'Feature', color: 'text-info' },
+                            { type: 'usage', icon: 'fa-chart-bar', label: 'Usage', color: 'text-secondary' },
+                            { type: 'security', icon: 'fa-shield-alt', label: 'Security', color: 'text-error' },
+                            { type: 'report', icon: 'fa-file-alt', label: 'Report', color: 'text-success' }
+                        ].map(({ type, icon, label, color }) => {
+                            const typeTemplates = getTemplatesByType(type as BusinessEmailTemplate['type']);
+
+                            if (typeTemplates.length === 0) return null;
+
+                            return (
+                                <div key={type}>
+                                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <i className={`far ${icon} ${color}`}></i>
+                                        {label} Notifications
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {typeTemplates.map(template => {
+                                            const canUseThisTemplate = canUseTemplate(template);
+                                            return (
+                                                <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium flex items-center gap-2">
+                                                            {template.name}
+                                                            {template.requiredPlan !== 'all' && (
+                                                                <span className={`badge badge-sm ${canUseThisTemplate ? 'badge-primary' : 'badge-secondary'}`}>
+                                                                    {template.requiredPlan}+
+                                                                </span>
+                                                            )}
+                                                            {template.enabled ? (
+                                                                <span className="badge badge-success badge-sm">
+                                                                    <i className="far fa-check mr-1"></i>
+                                                                    Active
+                                                                </span>
+                                                            ) : (
+                                                                <span className="badge badge-ghost badge-sm">
+                                                                    <i className="far fa-times mr-1"></i>
+                                                                    Disabled
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm text-base-content/70 mt-1">{template.description}</div>
+                                                        <div className="text-xs text-base-content/50 mt-1">
+                                                            Subject: {template.subject}
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="toggle toggle-sm"
+                                                        checked={template.enabled}
+                                                        onChange={(e) => handleTemplateToggle(template.id, e.target.checked)}
+                                                        disabled={!canUseThisTemplate}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* Current Plan Info */}
+            <div className="card bg-base-100 shadow-lg">
+                <div className="card-body pt-6">
+                    <div className="flex items-center gap-2 text-sm text-base-content/70">
+                        <span className="badge badge-outline">Current Plan: {currentPlan?.toString() || 'Personal'}</span>
+                        <span>•</span>
+                        <span>Some features require higher tier plans</span>
                     </div>
                 </div>
             </div>

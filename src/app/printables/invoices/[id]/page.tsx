@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { getInvoiceWitDetailsById } from "@/app/actions/invoices";
 import { useBusiness } from "@/lib/business-context";
 import QRCode from "@/components/qrcode";
 
@@ -24,7 +23,20 @@ export default function InvoiceDetailPage() {
             try {
                 setLoading(true);
                 setError(null);
-                const invoiceData = await getInvoiceWitDetailsById(businessId, id as string);
+
+                // Fetch invoice via dedicated API route
+                const response = await fetch(`/api/invoices/${id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch invoice');
+                }
+
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to fetch invoice');
+                }
+
+                // The API now returns the specific invoice directly
+                const invoiceData = result.data;
 
                 if (!invoiceData) {
                     setError("Invoice not found.");

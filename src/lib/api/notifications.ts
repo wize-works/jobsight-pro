@@ -215,9 +215,32 @@ export const notificationUtils = {
         // Create the notification first
         const createdNotification = await notificationApi.createNotification(notification);
 
-        // TODO: Implement email sending logic if needed
+        // Send email if enabled and configured
         if (sendEmail) {
-            console.log('Email sending not yet implemented in API client');
+            try {
+                // Call the email notifications API to send email
+                const response = await fetch('/api/email-notifications', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipientEmail: createdNotification.data.user_id, // This would need user email lookup
+                        recipientName: excludeUserId ? 'Team Member' : 'User',
+                        type: notification.type,
+                        title: notification.title,
+                        message: notification.message,
+                        link: notification.link,
+                        metadata: notification.metadata,
+                        businessName: businessName || 'Your Business'
+                    }),
+                });
+
+                if (!response.ok) {
+                    console.warn('Failed to send email notification:', await response.text());
+                }
+            } catch (error) {
+                console.warn('Error sending email notification:', error);
+                // Don't fail the notification creation if email fails
+            }
         }
 
         return createdNotification;

@@ -6,7 +6,7 @@ import { Project, ProjectInsert, ProjectStatus, projectStatusOptions, ProjectTyp
 import { User } from "@/types/users";
 import { useProjectMutations } from "@/hooks/useProjects";
 import { formatDateForInput } from "@/utils/date";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";

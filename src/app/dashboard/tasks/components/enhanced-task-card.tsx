@@ -11,7 +11,6 @@ import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 import "./task-animations.css";
 import { QuickUpdateTaskRequest } from "@/lib/api/tasks";
-import { updateTask } from "@/app/actions/client/tasks";
 
 interface EnhancedTaskCardProps {
     task: TaskWithDetails;

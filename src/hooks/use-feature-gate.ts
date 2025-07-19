@@ -1,214 +1,221 @@
 'use client';
 
+import { useSubscription } from '@/hooks/use-subscription';
+import { BusinessSubscriptionPlan } from '@/types/business_subscriptions';
 import { useMemo } from 'react';
-import { useSubscription } from './use-subscription';
-import type { SubscriptionPlan } from '@/types/subscription';
 
-export type FeatureName =
-    | 'ai_assistance'
-    | 'invoicing'
-    | 'scheduling'
-    | 'custom_branding'
-    | 'report_exports'
-    | 'priority_support'
-    | 'user_limit'
-    | 'storage_limit';
+// Feature definitions based on pricing structure
+const PLAN_FEATURES = {
+    personal: ['basic_project_management', 'crew_tracking', 'equipment_tracking', 'mobile_access'],
+    starter: ['ai_assistant', 'basic_reporting', 'email_support', 'all_personal_features'],
+    pro: ['ai_assistant', 'invoicing', 'scheduling', 'custom_branding', 'all_starter_features'],
+    business: ['ai_assistant', 'advanced_analytics', 'priority_support', 'report_exports', 'all_pro_features'],
+    enterprise: ['ai_assistant', 'all_business_features', 'custom_integrations', 'dedicated_support']
+} as const;
 
-export interface FeatureLimits {
-    maxUsers: number;
-    maxStorageGB: number;
-    hasAIAssistance: boolean;
-    hasInvoicing: boolean;
-    hasScheduling: boolean;
-    hasCustomBranding: boolean;
-    hasReportExports: boolean;
-    hasPrioritySupport: boolean;
-}
+// Extract all possible feature names from the plan features
+type AllFeatures = typeof PLAN_FEATURES[keyof typeof PLAN_FEATURES][number];
+type LimitFeatures = 'user_limit' | 'storage_limit';
+export type FeatureName = AllFeatures | LimitFeatures;
 
-export interface FeatureGateResult {
-    allowed: boolean;
-    reason?: string;
-    upgradeRequired?: boolean;
-    currentLimit?: number;
-    planLimit?: number;
-}
-
-// Plan feature definitions based on the pricing JSON
-const PLAN_FEATURES: Record<string, FeatureLimits> = {
-    personal: {
-        maxUsers: 1,
-        maxStorageGB: 0.1, // 100MB
-        hasAIAssistance: false,
-        hasInvoicing: false,
-        hasScheduling: false,
-        hasCustomBranding: false,
-        hasReportExports: false,
-        hasPrioritySupport: false,
-    },
-    starter: {
-        maxUsers: 3,
-        maxStorageGB: 1, // 1GB
-        hasAIAssistance: true,
-        hasInvoicing: false,
-        hasScheduling: false,
-        hasCustomBranding: false,
-        hasReportExports: false,
-        hasPrioritySupport: false,
-    },
-    pro: {
-        maxUsers: 10,
-        maxStorageGB: 5, // 5GB
-        hasAIAssistance: true,
-        hasInvoicing: true,
-        hasScheduling: true,
-        hasCustomBranding: true,
-        hasReportExports: false,
-        hasPrioritySupport: false,
-    },
-    business: {
-        maxUsers: 50,
-        maxStorageGB: 20, // 20GB
-        hasAIAssistance: true,
-        hasInvoicing: true,
-        hasScheduling: true,
-        hasCustomBranding: true,
-        hasReportExports: true,
-        hasPrioritySupport: true,
-    },
+// Plan hierarchy for upgrade logic
+const PLAN_HIERARCHY: Record<BusinessSubscriptionPlan, number> = {
+    personal: 0,
+    starter: 1,
+    pro: 2,
+    business: 3,
+    enterprise: 4,
 };
 
-export const useFeatureGate = () => {
-    const { currentSubscription, getCurrentPlan, hasActiveSubscription } = useSubscription();
+// Storage limits by plan (in MB)
+const STORAGE_LIMITS = {
+    personal: 100,
+    starter: 1024, // 1GB
+    pro: 5120, // 5GB
+    business: 20480, // 20GB
+    enterprise: 51200, // 50GB
+} as const;
 
-    const currentPlan = getCurrentPlan();
-    const planId = currentPlan?.id || 'personal'; // Default to personal if no subscription
+// User limits by plan
+const USER_LIMITS = {
+    personal: 1,
+    starter: 3,
+    pro: 10,
+    business: 50,
+    enterprise: 100,
+} as const;
 
-    const featureLimits = useMemo((): FeatureLimits => {
-        return PLAN_FEATURES[planId] || PLAN_FEATURES.personal;
-    }, [planId]);
+export function useFeatureGate() {
+    const { currentSubscription, isLoading, error } = useSubscription();
 
-    const checkFeature = (feature: FeatureName, currentUsage?: number): FeatureGateResult => {
-        if (!hasActiveSubscription() && planId !== 'personal') {
+    const currentPlan: BusinessSubscriptionPlan = useMemo(() => {
+        if (!currentSubscription?.plan_id) return 'personal';
+        return currentSubscription.plan_id as BusinessSubscriptionPlan;
+    }, [currentSubscription?.plan_id]);
+
+    const currentPlanLevel = PLAN_HIERARCHY[currentPlan];
+    const hasFeature = (feature: string): boolean => {
+        if (isLoading) return false;
+
+        // Check if current plan includes the feature
+        const planFeatures = PLAN_FEATURES[currentPlan] || [];
+
+        // Hierarchical feature inheritance
+        switch (feature) {
+            case 'ai_assistant':
+                return currentPlanLevel >= PLAN_HIERARCHY.starter;
+            case 'invoicing':
+            case 'scheduling':
+            case 'custom_branding':
+                return currentPlanLevel >= PLAN_HIERARCHY.pro;
+            case 'advanced_analytics':
+            case 'priority_support':
+                return currentPlanLevel >= PLAN_HIERARCHY.business;
+            case 'basic_project_management':
+            case 'crew_tracking':
+            case 'equipment_tracking':
+            case 'mobile_access':
+                return true; // Available on all plans
+            default:
+                return false;
+        }
+    };
+
+    const canAddUsers = (currentUserCount: number, usersToAdd: number = 1): boolean => {
+        const limit = USER_LIMITS[currentPlan];
+        return (currentUserCount + usersToAdd) <= limit;
+    };
+
+    const canUploadFile = (currentStorageUsed: number, fileSizeInMB: number): boolean => {
+        const limit = STORAGE_LIMITS[currentPlan];
+        return (currentStorageUsed + fileSizeInMB) <= limit;
+    };
+
+    const getStorageLimit = (): number => {
+        return STORAGE_LIMITS[currentPlan];
+    };
+
+    const getUserLimit = (): number => {
+        return USER_LIMITS[currentPlan];
+    };
+
+    const getRequiredPlanForFeature = (feature: string): BusinessSubscriptionPlan => {
+        switch (feature) {
+            case 'ai_assistant':
+                return 'starter';
+            case 'invoicing':
+            case 'scheduling':
+            case 'custom_branding':
+                return 'pro';
+            case 'advanced_analytics':
+            case 'priority_support':
+                return 'business';
+            default:
+                return 'personal';
+        }
+    };
+
+    const getUpgradeUrl = (targetPlan?: BusinessSubscriptionPlan): string => {
+        // This would typically redirect to your billing/upgrade page
+        const plan = targetPlan || 'pro';
+        return `/dashboard/billing/upgrade?plan=${plan}`;
+    };
+
+    const checkFeature = (feature: FeatureName, currentUsage?: number) => {
+        // Handle special limit features
+        if (feature === 'user_limit') {
+            const limit = getUserLimit();
+            const current = currentUsage || 0;
             return {
-                allowed: false,
-                reason: 'No active subscription',
-                upgradeRequired: true,
+                allowed: current < limit,
+                currentLimit: current,
+                planLimit: limit,
+                message: current >= limit ? 'User limit reached' : undefined
             };
         }
 
-        switch (feature) {
-            case 'ai_assistance':
-                return {
-                    allowed: featureLimits.hasAIAssistance,
-                    reason: featureLimits.hasAIAssistance ? undefined : 'AI assistance requires Starter plan or higher',
-                    upgradeRequired: !featureLimits.hasAIAssistance,
-                };
-
-            case 'invoicing':
-                return {
-                    allowed: featureLimits.hasInvoicing,
-                    reason: featureLimits.hasInvoicing ? undefined : 'Invoicing requires Pro plan or higher',
-                    upgradeRequired: !featureLimits.hasInvoicing,
-                };
-
-            case 'scheduling':
-                return {
-                    allowed: featureLimits.hasScheduling,
-                    reason: featureLimits.hasScheduling ? undefined : 'Scheduling requires Pro plan or higher',
-                    upgradeRequired: !featureLimits.hasScheduling,
-                };
-
-            case 'custom_branding':
-                return {
-                    allowed: featureLimits.hasCustomBranding,
-                    reason: featureLimits.hasCustomBranding ? undefined : 'Custom branding requires Pro plan or higher',
-                    upgradeRequired: !featureLimits.hasCustomBranding,
-                };
-
-            case 'report_exports':
-                return {
-                    allowed: featureLimits.hasReportExports,
-                    reason: featureLimits.hasReportExports ? undefined : 'Report exports require Business plan',
-                    upgradeRequired: !featureLimits.hasReportExports,
-                };
-
-            case 'user_limit':
-                const userAllowed = currentUsage ? currentUsage <= featureLimits.maxUsers : true;
-                return {
-                    allowed: userAllowed,
-                    reason: userAllowed ? undefined : `User limit exceeded (${currentUsage}/${featureLimits.maxUsers})`,
-                    upgradeRequired: !userAllowed,
-                    currentLimit: currentUsage,
-                    planLimit: featureLimits.maxUsers,
-                };
-
-            case 'storage_limit':
-                const storageAllowed = currentUsage ? currentUsage <= featureLimits.maxStorageGB : true;
-                return {
-                    allowed: storageAllowed,
-                    reason: storageAllowed ? undefined : `Storage limit exceeded (${currentUsage?.toFixed(2)}GB/${featureLimits.maxStorageGB}GB)`,
-                    upgradeRequired: !storageAllowed,
-                    currentLimit: currentUsage,
-                    planLimit: featureLimits.maxStorageGB,
-                };
-
-            default:
-                return {
-                    allowed: false,
-                    reason: 'Unknown feature',
-                };
+        if (feature === 'storage_limit') {
+            const limit = getStorageLimit();
+            const current = currentUsage || 0;
+            return {
+                allowed: current < limit,
+                currentLimit: current,
+                planLimit: limit,
+                message: current >= limit ? 'Storage limit reached' : undefined
+            };
         }
-    };
 
-    const canUseFeature = (feature: FeatureName, currentUsage?: number): boolean => {
-        return checkFeature(feature, currentUsage).allowed;
+        // Handle regular features
+        const allowed = hasFeature(feature as string);
+        return {
+            allowed,
+            message: allowed ? undefined : `Feature not available in ${currentPlan} plan`
+        };
     };
 
     const getUpgradeMessage = (feature: FeatureName): string => {
-        const result = checkFeature(feature);
-        if (result.allowed) return '';
-
-        switch (feature) {
-            case 'ai_assistance':
-                return 'Upgrade to Starter plan to unlock AI assistance';
-            case 'invoicing':
-            case 'scheduling':
-            case 'custom_branding':
-                return 'Upgrade to Pro plan to unlock invoicing, scheduling, and custom branding';
-            case 'report_exports':
-                return 'Upgrade to Business plan to unlock report exports';
-            default:
-                return 'Upgrade your plan to unlock this feature';
+        if (feature === 'user_limit') {
+            return 'Upgrade to add more users to your business';
         }
+        if (feature === 'storage_limit') {
+            return 'Upgrade for more storage space';
+        }
+
+        const requiredPlan = getRequiredPlanForFeature(feature as string);
+        return `Upgrade to ${requiredPlan} to access this feature`;
     };
 
-    const getNextPlanForFeature = (feature: FeatureName): SubscriptionPlan | null => {
-        // Logic to determine which plan includes the feature
-        switch (feature) {
-            case 'ai_assistance':
-                return currentPlan?.id === 'personal' ?
-                    PLAN_FEATURES.starter && getCurrentPlan() : null;
-            case 'invoicing':
-            case 'scheduling':
-            case 'custom_branding':
-                return ['personal', 'starter'].includes(planId) ?
-                    PLAN_FEATURES.pro && getCurrentPlan() : null;
-            case 'report_exports':
-                return ['personal', 'starter', 'pro'].includes(planId) ?
-                    PLAN_FEATURES.business && getCurrentPlan() : null;
-            default:
-                return null;
-        }
+    const canUseFeature = (feature: FeatureName): boolean => {
+        return checkFeature(feature).allowed;
+    };
+
+    const isSubscriptionActive = (): boolean => {
+        if (!currentSubscription) return false;
+        return currentSubscription.status === 'active' || currentSubscription.status === 'trialing' || currentSubscription.status === 'past_due';
+    };
+
+    const isInGracePeriod = (): boolean => {
+        return currentSubscription?.status === 'past_due';
+    };
+
+    const getDaysUntilExpiry = (): number | null => {
+        if (!currentSubscription?.end_date) return null;
+        const expiryDate = new Date(currentSubscription.end_date);
+        const today = new Date();
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
     };
 
     return {
-        featureLimits,
-        currentPlan,
-        planId,
+        // Core functionality
+        hasFeature,
         checkFeature,
         canUseFeature,
+        currentPlan,
+        subscription: currentSubscription,
+        loading: isLoading,
+        error,
+
+        // Limits and checks
+        canAddUsers,
+        canUploadFile,
+        getStorageLimit,
+        getUserLimit,
+
+        // Plan information
+        getRequiredPlanForFeature,
+        upgradeUrl: getUpgradeUrl(),
         getUpgradeMessage,
-        getNextPlanForFeature,
-        hasActiveSubscription: hasActiveSubscription(),
+
+        // Subscription status
+        isSubscriptionActive: isSubscriptionActive(),
+        isInGracePeriod: isInGracePeriod(),
+        daysUntilExpiry: getDaysUntilExpiry(),
+
+        // Helper functions
+        getUpgradeUrl,
     };
-};
+}
+
+export default useFeatureGate;

@@ -457,9 +457,56 @@ class SyncOrchestrator {
     }
 
     private async updatePendingItemsCount(): Promise<void> {
-        // This would need to be implemented based on your Dexie schema
-        // For now, using a placeholder
-        this.status.systemHealth.pendingItems = 0;
+        try {
+            // Enhanced pending items counting using Dexie database
+            const { db } = await import('@/lib/offline/dexie-db');
+
+            let pendingCount = 0;
+
+            // Count items in various sync-related tables
+            const syncMetadata = await db.syncMetadata.toArray();
+            const lastSyncTimes = syncMetadata.reduce((acc: Record<string, number>, meta: any) => {
+                acc[meta.table] = meta.lastSync;
+                return acc;
+            }, {});
+
+            // Tables that typically have pending sync items
+            const syncableTables = ['projects', 'tasks', 'dailyLogs', 'projectCrews', 'projectMilestones', 'crews'];
+
+            for (const tableName of syncableTables) {
+                try {
+                    const table = (db as any)[tableName];
+                    if (table) {
+                        const lastSync = lastSyncTimes[tableName] || 0;
+                        // Count items modified since last sync
+                        const modifiedCount = await table
+                            .where('updated_at')
+                            .above(new Date(lastSync).toISOString())
+                            .count();
+                        pendingCount += modifiedCount;
+                    }
+                } catch (tableError) {
+                    console.warn(`Failed to count pending items for ${tableName}:`, tableError);
+                }
+            }
+
+            // Also check for items in upload queues
+            try {
+                const uploadQueueCount = await db.mediaUploadQueue
+                    .where('uploadStatus')
+                    .equals('pending')
+                    .count();
+                pendingCount += uploadQueueCount;
+            } catch (uploadError) {
+                console.warn('Failed to count upload queue items:', uploadError);
+            }
+
+            this.status.systemHealth.pendingItems = pendingCount;
+        } catch (error) {
+            console.warn('Failed to update pending items count:', error);
+            // Fallback to zero if database access fails
+            this.status.systemHealth.pendingItems = 0;
+        }
     }
 
     private updateScheduledSyncs(): void {

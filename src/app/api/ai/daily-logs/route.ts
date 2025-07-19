@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import { openai, AI_MODELS } from "@/lib/ai/client";
-import { createDailyLog } from "@/app/actions/daily-logs";
+import { serverInsertWithBusiness } from "@/lib/db";
 import { DailyLogInsert } from "@/types/daily-logs";
 import { getAIContextData } from '@/lib/ai-context';
 
@@ -127,37 +127,44 @@ Only include information that is actually present in the input. Be precise and f
             }
         }
 
-        // Create the daily log using existing action with enhanced data
-        const result = await createDailyLog(
+        // Create the daily log using direct database call
+        const dailyLogData: Partial<DailyLogInsert> = {
+            project_id: projectId,
+            crew_id: crewId || undefined,
+            date: new Date().toISOString().split('T')[0],
+            work_completed: extractedData.work_completed || workSummary,
+            work_planned: extractedData.work_planned || "",
+            start_time: extractedData.start_time || "",
+            end_time: extractedData.end_time || "",
+            hours_worked: hoursWorked,
+            overtime: overtime,
+            weather: extractedData.weather || "",
+            safety: extractedData.safety || "",
+            quality: extractedData.quality || "",
+            delays: extractedData.delays || "",
+            notes: `Created via AI Assistant from: "${workSummary}"${extractedData.materials?.length ? `\n\nMaterials mentioned: ${extractedData.materials.join(', ')}` : ''}${extractedData.equipment?.length ? `\n\nEquipment mentioned: ${extractedData.equipment.join(', ')}` : ''}${extractedData.crew_info ? `\n\nCrew info: ${extractedData.crew_info}` : ''}`,
+            author_id: user.id,
+        };
+
+        const result = await serverInsertWithBusiness(
+            "daily_logs",
+            dailyLogData as DailyLogInsert,
             businessId,
-            {
-                project_id: projectId,
-                crew_id: crewId,
-                date: new Date().toISOString().split('T')[0],
-                work_completed: extractedData.work_completed || workSummary,
-                work_planned: extractedData.work_planned || "",
-                start_time: extractedData.start_time || "",
-                end_time: extractedData.end_time || "",
-                hours_worked: hoursWorked,
-                overtime: overtime,
-                weather: extractedData.weather || "",
-                safety: extractedData.safety || "",
-                quality: extractedData.quality || "",
-                delays: extractedData.delays || "",
-                notes: `Created via AI Assistant from: "${workSummary}"${extractedData.materials?.length ? `\n\nMaterials mentioned: ${extractedData.materials.join(', ')}` : ''}${extractedData.equipment?.length ? `\n\nEquipment mentioned: ${extractedData.equipment.join(', ')}` : ''}${extractedData.crew_info ? `\n\nCrew info: ${extractedData.crew_info}` : ''}`,
-                author_id: user.id,
-                created_by: user.id,
-                updated_by: user.id,
-                business_id: "",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            } as DailyLogInsert
+            user.id
         );
 
-        if (result && result.id) {
+        if (result.error) {
+            console.error('Database error creating daily log:', result.error);
+            return NextResponse.json({
+                success: false,
+                error: "Failed to create daily log in database"
+            }, { status: 500 });
+        }
+
+        if (result.data && Array.isArray(result.data) && result.data.length > 0) {
             return NextResponse.json({
                 success: true,
-                data: { logId: result.id }
+                data: { logId: result.data[0].id }
             }, { status: 200 });
         } else {
             return NextResponse.json({

@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { invoicesApi, Invoice, InvoiceQuery, CreateInvoiceData, UpdateInvoiceData } from '@/lib/api/invoices';
 import { InvoiceWithDetails } from '@/types/invoices';
+import {
+    approveInvoiceApi,
+    rejectInvoiceApi,
+    bulkApproveInvoicesApi,
+    getPendingApprovalsApi
+} from '@/lib/api/invoice-approval';
 
 // Hook for fetching invoices
 export const useInvoices = (query?: InvoiceQuery) => {
@@ -363,5 +369,107 @@ export const useInvoiceFilters = () => {
         error,
         applyFilters,
         clearFilters,
+    };
+};
+
+// Hook for invoice approval functionality
+export const useInvoiceApproval = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const approveInvoiceAction = async (businessId: string, invoiceId: string, approvedBy: string, comments?: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await approveInvoiceApi(businessId, invoiceId, approvedBy, comments);
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to approve invoice');
+            }
+            return result.data;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to approve invoice');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const rejectInvoiceAction = async (businessId: string, invoiceId: string, rejectedBy: string, comments: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await rejectInvoiceApi(businessId, invoiceId, rejectedBy, comments);
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to reject invoice');
+            }
+            return result.data;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to reject invoice');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const bulkApproveInvoicesAction = async (businessId: string, invoiceIds: string[], approvedBy: string, comments?: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await bulkApproveInvoicesApi(businessId, invoiceIds, approvedBy, comments);
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to bulk approve invoices');
+            }
+            return result.data;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to bulk approve invoices');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        approveInvoice: approveInvoiceAction,
+        rejectInvoice: rejectInvoiceAction,
+        bulkApproveInvoices: bulkApproveInvoicesAction,
+        loading,
+        error,
+    };
+};
+
+// Hook for pending invoice approvals
+export const usePendingInvoiceApprovals = (businessId: string) => {
+    const [pendingInvoices, setPendingInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchPendingApprovals = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await getPendingApprovalsApi(businessId);
+            if (result.success) {
+                setPendingInvoices(result.data || []);
+            } else {
+                setError(result.error || 'Failed to fetch pending approvals');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch pending approvals');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (businessId) {
+            fetchPendingApprovals();
+        }
+    }, [businessId]);
+
+    return {
+        pendingInvoices,
+        loading,
+        error,
+        refetch: fetchPendingApprovals,
     };
 };

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getEquipmentPrintableDetail } from "@/app/actions/equipments";
 import { useBusiness } from "@/lib/business-context";
 import { EquipmentMaintenance } from "@/types/equipment-maintenance";
 import { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
@@ -55,8 +54,20 @@ export default function EquipmentPrintPage() {
             try {
                 setLoading(true);
                 setError(null);
-                const result = await getEquipmentPrintableDetail(businessId, id);
-                setData(result);
+
+                // Fetch equipment via API route
+                const response = await fetch(`/api/equipment?id=${encodeURIComponent(id)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch equipment');
+                }
+
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to fetch equipment');
+                }
+
+                // The equipment API should return detailed data including assignments, etc.
+                setData(result.data);
             } catch (err) {
                 console.error("Failed to fetch equipment data:", err);
                 setError("Failed to load equipment data");

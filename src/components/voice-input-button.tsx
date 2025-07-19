@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { transcribeAudio } from '@/app/actions/ai';
+import { transcribeAudioClient } from '@/lib/ai/client-functions';
 import { useMediaRecorder } from '@/hooks/use-media-recorder';
 
 interface VoiceInputButtonProps {
@@ -44,7 +44,7 @@ export function VoiceInputButton({
     const processVoiceNote = async (audioBlob: Blob) => {
         setIsProcessing(true);
         try {
-            const transcriptionResult = await transcribeAudio(audioBlob);
+            const transcriptionResult = await transcribeAudioClient(audioBlob);
 
             if (transcriptionResult.error) {
                 onTranscriptionError?.(transcriptionResult.error);

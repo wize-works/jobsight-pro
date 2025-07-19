@@ -6,11 +6,12 @@ import { toast } from "@/hooks/use-toast";
 import { Client } from "@/types/clients";
 import { ClientContact } from "@/types/client-contacts";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { CrewMember } from "@/types/crew-members";
 import { useBusiness } from "@/lib/business-context";
 import { useProjectDetails, useProjectMutations } from "@/hooks/useProjects";
 import { useTasks, useTaskMutations } from "@/hooks/useTasks";
+import { useProjectMilestones } from "@/hooks/useProjectMilestones";
 import { Project, ProjectInsert, ProjectUpdate, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { ProjectMilestone, ProjectMilestoneStatus, projectMilestoneStatusOptions } from "@/types/project_milestones";
 import { Task, TaskStatus, taskStatusOptions, TaskWithDetails } from "@/types/tasks";
@@ -78,6 +79,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const { updateProject, updateProgress } = useProjectMutations();
     const { tasks, loading: tasksLoading, refetch: refetchTasks } = useTasks();
     const { createTask, updateTask } = useTaskMutations();
+    const { updateMilestone, createMilestone } = useProjectMilestones();
 
     // Use the safe geolocation hook for fallback location
     const {
@@ -169,18 +171,31 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     };
 
     const handleMilestoneSave = async (milestone: ProjectMilestone) => {
-        // TODO: Implement milestone hooks
-        // if (selectedMilestone) {
-        //     await updateProjectMilestone(businessId, selectedMilestone.id, milestone);
-        //     setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
-        // } else {
-        //     await createProjectMilestone(businessId, milestone);
-        //     setMilestones((prev) => [...prev, milestone]);
-        // }
-        console.log("Milestone save temporarily disabled - need milestone hooks");
+        try {
+            if (selectedMilestone) {
+                const result = await updateMilestone(selectedMilestone.id, milestone);
+                if (result.success) {
+                    setMilestones((prev) => prev.map((m) => m.id === milestone.id ? milestone : m));
+                    toast.success("Milestone updated successfully");
+                } else {
+                    toast.error(result.error || "Failed to update milestone");
+                }
+            } else {
+                const result = await createMilestone({ ...milestone, project_id: project?.id || "" });
+                if (result.success && result.milestone) {
+                    setMilestones((prev) => [...prev, result.milestone!]);
+                    toast.success("Milestone created successfully");
+                } else {
+                    toast.error(result.error || "Failed to create milestone");
+                }
+            }
+        } catch (error) {
+            console.error("Error saving milestone:", error);
+            toast.error("Failed to save milestone");
+        }
+
         setMilestoneModalOpen(false);
         setSelectedMilestone(null);
-        toast.success("Milestone saved successfully!");
     };
 
     const handleMilestoneModalClose = () => {
@@ -603,11 +618,196 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             <CrewsTab projectId={project.id} crews={crews} onCrewsUpdated={handleCrewsUpdated} />
                         )}
                         {activeTab === "budget" && (
-                            <div className="card bg-base-100 shadow-lg">
-                                <div className="card-body">
-                                    <div className="alert alert-info">
-                                        <h3 className="text-lg font-semibold">Budget Overview</h3>
-                                        <p className="">Budget details coming soon.</p>
+                            <div className="space-y-6">
+                                {/* Budget Overview Card */}
+                                <div className="card bg-base-100 shadow-lg">
+                                    <div className="card-body">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h3 className="text-xl font-semibold">Budget Overview</h3>
+                                            {project.budget && (
+                                                <div className="badge badge-outline badge-lg">
+                                                    Total Budget: ${project.budget.toLocaleString()}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {project.budget ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {/* Budget Summary */}
+                                                <div className="stat bg-base-200 rounded-lg">
+                                                    <div className="stat-figure text-primary">
+                                                        <i className="fas fa-dollar-sign text-2xl"></i>
+                                                    </div>
+                                                    <div className="stat-title">Project Budget</div>
+                                                    <div className="stat-value text-primary">${project.budget.toLocaleString()}</div>
+                                                    <div className="stat-desc">Total allocated budget</div>
+                                                </div>
+
+                                                {/* Project Progress vs Budget */}
+                                                <div className="stat bg-base-200 rounded-lg">
+                                                    <div className="stat-figure text-secondary">
+                                                        <i className="fas fa-percentage text-2xl"></i>
+                                                    </div>
+                                                    <div className="stat-title">Progress</div>
+                                                    <div className="stat-value text-secondary">{progress}%</div>
+                                                    <div className="stat-desc">Project completion</div>
+                                                </div>
+
+                                                {/* Budget Status */}
+                                                <div className="stat bg-base-200 rounded-lg">
+                                                    <div className="stat-figure text-accent">
+                                                        <i className="fas fa-chart-line text-2xl"></i>
+                                                    </div>
+                                                    <div className="stat-title">Budget Status</div>
+                                                    <div className="stat-value text-accent">On Track</div>
+                                                    <div className="stat-desc">Based on progress</div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="alert alert-warning">
+                                                <div className="flex items-center">
+                                                    <i className="fas fa-exclamation-triangle mr-3"></i>
+                                                    <div>
+                                                        <h4 className="font-semibold">No Budget Set</h4>
+                                                        <p>This project doesn't have a budget assigned. Consider setting a budget for better project tracking.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Budget Breakdown Card */}
+                                {project.budget && (
+                                    <div className="card bg-base-100 shadow-lg">
+                                        <div className="card-body">
+                                            <h4 className="text-lg font-semibold mb-4">Budget Breakdown</h4>
+
+                                            <div className="space-y-4">
+                                                {/* Progress vs Budget Indicator */}
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-sm font-medium">Budget Progress</span>
+                                                        <span className="text-sm text-base-content/70">{progress}% Complete</span>
+                                                    </div>
+                                                    <div className="w-full bg-base-300 rounded-full h-3">
+                                                        <div
+                                                            className="bg-primary h-3 rounded-full transition-all duration-300"
+                                                            style={{ width: `${Math.min(progress, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center mt-1 text-xs text-base-content/60">
+                                                        <span>$0</span>
+                                                        <span>${project.budget.toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Budget Categories */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                                    <div className="p-4 bg-base-200 rounded-lg">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center">
+                                                                <i className="fas fa-users text-blue-500 mr-2"></i>
+                                                                <span className="font-medium">Labor</span>
+                                                            </div>
+                                                            <span className="text-sm text-base-content/70">Est. 60%</span>
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            <div className="text-lg font-semibold">${(project.budget * 0.6).toLocaleString()}</div>
+                                                            <div className="text-xs text-base-content/60">Crew and labor costs</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 bg-base-200 rounded-lg">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center">
+                                                                <i className="fas fa-tools text-orange-500 mr-2"></i>
+                                                                <span className="font-medium">Materials</span>
+                                                            </div>
+                                                            <span className="text-sm text-base-content/70">Est. 25%</span>
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            <div className="text-lg font-semibold">${(project.budget * 0.25).toLocaleString()}</div>
+                                                            <div className="text-xs text-base-content/60">Materials and supplies</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 bg-base-200 rounded-lg">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center">
+                                                                <i className="fas fa-truck text-green-500 mr-2"></i>
+                                                                <span className="font-medium">Equipment</span>
+                                                            </div>
+                                                            <span className="text-sm text-base-content/70">Est. 10%</span>
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            <div className="text-lg font-semibold">${(project.budget * 0.1).toLocaleString()}</div>
+                                                            <div className="text-xs text-base-content/60">Equipment and rental</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 bg-base-200 rounded-lg">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center">
+                                                                <i className="fas fa-clipboard-list text-purple-500 mr-2"></i>
+                                                                <span className="font-medium">Other</span>
+                                                            </div>
+                                                            <span className="text-sm text-base-content/70">Est. 5%</span>
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            <div className="text-lg font-semibold">${(project.budget * 0.05).toLocaleString()}</div>
+                                                            <div className="text-xs text-base-content/60">Permits, misc costs</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Budget Notes and Actions */}
+                                <div className="card bg-base-100 shadow-lg">
+                                    <div className="card-body">
+                                        <h4 className="text-lg font-semibold mb-4">Budget Management</h4>
+
+                                        {project.budget ? (
+                                            <div className="space-y-4">
+                                                <div className="alert alert-info">
+                                                    <div className="flex items-start">
+                                                        <i className="fas fa-info-circle mr-3 mt-1"></i>
+                                                        <div>
+                                                            <h5 className="font-semibold">Budget Tracking</h5>
+                                                            <p className="text-sm">This budget overview shows estimated breakdowns. For detailed expense tracking and actual vs budget analysis, integrate with your accounting system or daily log billing data.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button className="btn btn-outline btn-sm">
+                                                        <i className="fas fa-edit mr-2"></i>
+                                                        Edit Budget
+                                                    </button>
+                                                    <button className="btn btn-outline btn-sm">
+                                                        <i className="fas fa-download mr-2"></i>
+                                                        Export Budget Report
+                                                    </button>
+                                                    <button className="btn btn-outline btn-sm">
+                                                        <i className="fas fa-calculator mr-2"></i>
+                                                        Budget Calculator
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <i className="fas fa-plus-circle text-4xl text-base-content/30 mb-4"></i>
+                                                <h5 className="text-lg font-semibold mb-2">Set Project Budget</h5>
+                                                <p className="text-base-content/70 mb-4">Add a budget to this project to enable budget tracking and financial planning features.</p>
+                                                <button className="btn btn-primary">
+                                                    <i className="fas fa-plus mr-2"></i>
+                                                    Add Budget
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { InvoiceAutomationRule, RateValidationResult } from '@/types/invoice-automation';
 import { Client } from '@/types/clients';
 import { Project } from '@/types/projects';
-import { useInvoiceAutomationMutation } from '@/hooks/useInvoiceAutomation';
+import { useInvoiceAutomationMutation } from '@/hooks/use-invoice-automation';
 import { rateUtils } from '@/lib/api/rate-management';
 import { useBusiness } from '@/lib/business-context';
 import { toast } from '@/hooks/use-toast';

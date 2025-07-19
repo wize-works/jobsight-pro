@@ -6,19 +6,17 @@ import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMainte
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
-import { useEquipmentMutation } from "@/hooks/useEquipment";
+import { useEquipmentMutation } from "@/hooks/use-equipment";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Media, MediaType } from "@/types/media";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, getAllMediaByEquipmentId, getAvailableMediaForEquipment, linkExistingMediaToEquipment, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
 import UniversalMediaManager from "@/components/universal-media-manager";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import ModalLoading from "@/components/modal-loading";
 import LocationDisplay from "@/components/location-display";
@@ -108,16 +106,16 @@ export default function EquipmentDetail({
     // Load media data for UniversalMediaManager
     const loadMediaData = async () => {
         try {
-            setIsLoadingMedia(true)
-            const [linked, available] = await Promise.all([
-                getAllMediaByEquipmentId(businessId, equipment.id),
-                getAvailableMediaForEquipment(businessId, equipment.id)
-            ])
-            setEquipmentMedia(linked)
-            setAvailableMedia(available)
+            setIsLoadingMedia(true);
+            const [linkedRes, availableRes] = await Promise.all([
+                fetch(`/api/media?business_id=${businessId}&equipment_id=${equipment.id}`).then(r => r.json()),
+                fetch(`/api/media?business_id=${businessId}&type=available&equipment_id=${equipment.id}`).then(r => r.json())
+            ]);
+            setEquipmentMedia(linkedRes.data || []);
+            setAvailableMedia(availableRes.data || []);
         } catch (error) {
-            console.error("Error loading equipment media:", error)
-            toast.error("Failed to load media data")
+            console.error("Error loading equipment media:", error);
+            toast.error("Failed to load media data");
         } finally {
             setIsLoadingMedia(false)
         }
@@ -129,63 +127,98 @@ export default function EquipmentDetail({
         metadata: { name: string; description: string; type: MediaType }
     ): Promise<boolean> => {
         try {
-            const success = await uploadEquipmentImage(businessId, equipment.id, file)
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('equipment_id', equipment.id);
+            formData.append('business_id', businessId);
+            formData.append('name', metadata.name);
+            formData.append('description', metadata.description);
+            formData.append('type', metadata.type);
 
-            if (success) {
-                await loadMediaData() // Refresh data
-                toast.success("Media uploaded successfully")
-                return true
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await loadMediaData(); // Refresh data
+                toast.success("Media uploaded successfully");
+                return true;
             } else {
-                throw new Error("Upload failed")
+                throw new Error(result.error || "Upload failed");
             }
         } catch (error) {
-            console.error("Error uploading media:", error)
-            toast.error("Failed to upload media")
-            return false
+            console.error("Error uploading media:", error);
+            toast.error("Failed to upload media");
+            return false;
         }
-    }
+    };
 
     const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await linkExistingMediaToEquipment(businessId, mediaIds, equipment.id)
+            const response = await fetch('/api/media-links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    business_id: businessId,
+                    media_ids: mediaIds,
+                    linked_id: equipment.id,
+                    linked_type: "equipment"
+                })
+            });
 
-            if (success) {
-                await loadMediaData() // Refresh data
-                toast.success(`Linked ${mediaIds.length} media item(s)`)
-                return { success: true }
+            const result = await response.json();
+
+            if (result.success) {
+                await loadMediaData(); // Refresh data
+                toast.success(`Linked ${mediaIds.length} media item(s)`);
+                return { success: true };
             } else {
-                throw new Error("Link failed")
+                throw new Error(result.error || "Link failed");
             }
         } catch (error) {
-            console.error("Error linking media:", error)
-            const errorMessage = "Failed to link media"
-            toast.error(errorMessage)
-            return { success: false, error: errorMessage }
+            console.error("Error linking media:", error);
+            const errorMessage = "Failed to link media";
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
         }
-    }
+    };
 
     const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            let success = true
+            let success = true;
             for (const mediaId of mediaIds) {
-                const result = await unlinkMediaFromEquipment(businessId, mediaId, equipment.id)
-                if (!result) {
-                    success = false
-                    break
+                const response = await fetch('/api/media-links', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        business_id: businessId,
+                        media_id: mediaId,
+                        linked_id: equipment.id,
+                        linked_type: "equipment"
+                    })
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    success = false;
+                    break;
                 }
             }
 
             if (success) {
-                await loadMediaData() // Refresh data
-                toast.success(`Unlinked ${mediaIds.length} media item(s)`)
-                return { success: true }
+                await loadMediaData(); // Refresh data
+                toast.success(`Unlinked ${mediaIds.length} media item(s)`);
+                return { success: true };
             } else {
-                throw new Error("Unlink failed")
+                throw new Error("Unlink failed");
             }
         } catch (error) {
-            console.error("Error unlinking media:", error)
-            const errorMessage = "Failed to unlink media"
-            toast.error(errorMessage)
+            console.error("Error unlinking media:", error);
+            const errorMessage = "Failed to unlink media";
+            toast.error(errorMessage);
             return { success: false, error: errorMessage }
         }
     }
@@ -199,10 +232,25 @@ export default function EquipmentDetail({
     const handleSetPrimaryImage = async (mediaId: string) => {
         setIsLoadingMedia(true);
         try {
-            await setEquipmentPrimaryImage(businessId, equipment.id, mediaId); toast.success("Primary image updated");
+            const response = await fetch('/api/equipment', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    business_id: businessId,
+                    equipment_id: equipment.id,
+                    primary_image_id: mediaId
+                })
+            });
 
-            // Refresh the page to show updated image
-            window.location.reload();
+            const result = await response.json();
+
+            if (result.success) {
+                toast.success("Primary image updated");
+                // Refresh the page to show updated image
+                window.location.reload();
+            } else {
+                throw new Error(result.error || "Failed to set primary image");
+            }
         } catch (error) {
             console.error("Error setting primary image:", error);
             toast.error("Failed to set primary image");
@@ -214,7 +262,9 @@ export default function EquipmentDetail({
     // Handle image upload
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file) return;        // Validate file type
+        if (!file) return;
+
+        // Validate file type
         if (!file.type.startsWith('image/')) {
             toast.error("Please select an image file");
             return;
@@ -222,14 +272,30 @@ export default function EquipmentDetail({
 
         setIsUploadingImage(true);
         try {
-            await uploadEquipmentImage(businessId, equipment.id, file);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('equipment_id', equipment.id);
+            formData.append('business_id', businessId);
+            formData.append('type', 'image');
 
-            toast.success("Equipment image uploaded successfully");
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData
+            });
 
-            // Refresh media list and page
-            const updatedMedia = await getMediaByEquipmentId(businessId, equipment.id, "");
-            setEquipmentMedia(updatedMedia);
-            window.location.reload();
+            const result = await response.json();
+
+            if (result.success) {
+                toast.success("Equipment image uploaded successfully");
+
+                // Refresh media list and page
+                const mediaResponse = await fetch(`/api/media?business_id=${businessId}&equipment_id=${equipment.id}`);
+                const mediaResult = await mediaResponse.json();
+                setEquipmentMedia(mediaResult.data || []);
+                window.location.reload();
+            } else {
+                throw new Error(result.error || "Upload failed");
+            }
         } catch (error) {
             console.error("Error uploading image:", error);
             toast.error("Failed to upload image");
@@ -745,13 +811,44 @@ export default function EquipmentDetail({
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-2">Cost Breakdown</h3>
-                                    {/* <ul> TODO: Implement cost breakdown
-                                        <li>Maintenance Costs: {maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) ? `$${maintenances.reduce((acc, m) => acc + (m.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
-                                        <li>Usage Costs: {usages.reduce((acc, u: EquipmentUsage) => acc + (u.cost || 0), 0) ? `$${usages.reduce((acc, u) => acc + (u.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
-                                        <li>Total Cost: {equipment.purchase_price && equipment.current_value
-                                            ? `$${(equipment.purchase_price - equipment.current_value + maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) + usages.reduce((acc, u) => acc + (u.cost || 0), 0)).toLocaleString()}`
-                                            : "Not set"}</li>
-                                    </ul> */}
+                                    <ul className="space-y-2">
+                                        <li className="flex justify-between">
+                                            <span>Maintenance Costs:</span>
+                                            <span className="font-semibold">
+                                                {maintenances.reduce((acc: number, m: any) => acc + (m.cost || 0), 0) > 0
+                                                    ? `$${maintenances.reduce((acc: number, m: any) => acc + (m.cost || 0), 0).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        <li className="flex justify-between">
+                                            <span>Usage Costs:</span>
+                                            <span className="font-semibold">
+                                                {usages.reduce((acc: number, u: any) => acc + (u.cost || 0), 0) > 0
+                                                    ? `$${usages.reduce((acc: number, u: any) => acc + (u.cost || 0), 0).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        <li className="flex justify-between border-t pt-2">
+                                            <span className="font-semibold">Total Operating Cost:</span>
+                                            <span className="font-bold">
+                                                {equipment.purchase_price || maintenances.length > 0 || usages.length > 0
+                                                    ? `$${((equipment.purchase_price || 0) +
+                                                        maintenances.reduce((acc: number, m: any) => acc + (m.cost || 0), 0) +
+                                                        usages.reduce((acc: number, u: any) => acc + (u.cost || 0), 0)).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        {equipment.current_value && (
+                                            <li className="flex justify-between">
+                                                <span>Current Depreciation:</span>
+                                                <span className="font-semibold text-error">
+                                                    {equipment.purchase_price
+                                                        ? `-$${(equipment.purchase_price - equipment.current_value).toLocaleString()}`
+                                                        : "Not set"}
+                                                </span>
+                                            </li>
+                                        )}
+                                    </ul>
                                 </div>
                             </div>
                         )}                        {/* Media Tab */}

@@ -3,19 +3,20 @@
 
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { sendPasswordResetEmail } from "@/app/actions/auth";
-import { sendEmailVerification } from "@/app/actions/email-verification";
-import { sendProjectUpdateNotification, sendEquipmentAlert } from "@/app/actions/email-notifications";
-import { useBusiness } from "@/lib/business-context";
+import {
+    sendPasswordResetEmailClient,
+    sendEmailVerificationClient,
+    sendProjectUpdateNotificationClient,
+    sendEquipmentAlertClient
+} from "@/lib/email/client-functions";
 
 export function useEmailSystem() {
-    const { businessId } = useBusiness();
     const [isLoading, setIsLoading] = useState(false);
 
     const sendPasswordReset = async (email: string) => {
         setIsLoading(true);
         try {
-            const result = await sendPasswordResetEmail(email);
+            const result = await sendPasswordResetEmailClient(email);
 
             if (result.success) {
                 toast.success({
@@ -45,7 +46,7 @@ export function useEmailSystem() {
     const sendVerificationEmail = async (userId: string) => {
         setIsLoading(true);
         try {
-            const result = await sendEmailVerification(userId);
+            const result = await sendEmailVerificationClient(userId);
 
             if (result.success) {
                 toast.success({
@@ -80,7 +81,7 @@ export function useEmailSystem() {
     ) => {
         setIsLoading(true);
         try {
-            const result = await sendProjectUpdateNotification(businessId, projectId, updateType, updateDetails, updatedBy);
+            const result = await sendProjectUpdateNotificationClient(projectId, updateType, updateDetails, updatedBy);
 
             if (result.success) {
                 toast.success({
@@ -115,7 +116,7 @@ export function useEmailSystem() {
     ) => {
         setIsLoading(true);
         try {
-            const result = await sendEquipmentAlert(businessId, equipmentId, alertType, description, priority);
+            const result = await sendEquipmentAlertClient(equipmentId, alertType, description, priority);
 
             if (result.success) {
                 toast.success({

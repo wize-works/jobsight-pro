@@ -1,5 +1,5 @@
 "use client";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews } from "@/hooks/use-crews";
 import CrewDetailComponent from "../components/detail";
 import { useBusiness } from "@/lib/business-context";
 import { useEffect, useState } from "react";

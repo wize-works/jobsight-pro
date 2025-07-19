@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { useFeatureGate } from '@/hooks/use-feature-gate';
 import { formatStorageSize, calculateStorageUsagePercentage, getPlanDisplayName } from '@/lib/subscription-limits';
-import { getAIUsageData } from '@/app/actions/ai';
+import { getAIUsageDataClient } from '@/lib/ai/client-functions';
 import { useBusiness } from '@/lib/business-context';
 
 interface UsageData {
@@ -45,7 +45,7 @@ export const SubscriptionAnalyticsDashboard: React.FC<SubscriptionAnalyticsDashb
 
             setAiUsageLoading(true);
             try {
-                const result = await getAIUsageData(businessId);
+                const result = await getAIUsageDataClient();
                 if (result.success && result.data) {
                     setAiUsage(result.data);
                     setAiUsageLoaded(true);

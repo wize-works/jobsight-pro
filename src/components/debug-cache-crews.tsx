@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { debugCacheAndCrews } from '@/app/actions/debug-cache';
+import { debugCacheAndCrewsClient } from '@/lib/debug/client';
 import { useBusiness } from '@/lib/business-context';
 
 export function DebugCacheCrews() {
@@ -14,7 +14,7 @@ export function DebugCacheCrews() {
 
         setLoading(true);
         try {
-            const result = await debugCacheAndCrews(businessId);
+            const result = await debugCacheAndCrewsClient();
             setResult(result);
         } catch (error) {
             setResult({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });

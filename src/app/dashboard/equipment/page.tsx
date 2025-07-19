@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEquipment, useEquipmentMutation } from "@/hooks/useEquipment";
-import { useEquipmentSpecifications } from "@/hooks/useEquipment";
+import { useEquipment, useEquipmentMutation } from "@/hooks/use-equipment";
+import { useEquipmentSpecifications } from "@/hooks/use-equipment";
 import type { Equipment as DbEquipment, EquipmentStatus, EquipmentType, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { equipmentStatusOptions, equipmentTypeOptions } from "@/types/equipment";

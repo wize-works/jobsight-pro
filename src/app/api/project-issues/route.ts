@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectIssues,
-    createProjectIssue,
-    searchProjectIssues,
-    getProjectIssuesWithDetailsByProjectId
-} from '@/app/actions/projects-issues';
+    getProjectIssuesServer,
+    createProjectIssueServer,
+    searchProjectIssuesServer,
+    getProjectIssuesWithDetailsByProjectIdServer
+} from '@/lib/project-issues/server';
 
 /**
  * GET /api/project-issues
@@ -43,15 +43,15 @@ export async function GET(request: NextRequest) {
         let issues;
 
         if (searchQuery) {
-            issues = await searchProjectIssues(profile.business_id, searchQuery);
+            issues = await searchProjectIssuesServer(profile.business_id, searchQuery);
         } else if (projectId && includeDetails) {
-            issues = await getProjectIssuesWithDetailsByProjectId(profile.business_id, projectId);
+            issues = await getProjectIssuesWithDetailsByProjectIdServer(profile.business_id, projectId);
         } else {
-            issues = await getProjectIssues(profile.business_id);
+            issues = await getProjectIssuesServer(profile.business_id);
 
             // Filter by project if specified
             if (projectId) {
-                issues = issues.filter(issue => issue.project_id === projectId);
+                issues = issues.filter((issue: any) => issue.project_id === projectId);
             }
         }
 
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const issue = await createProjectIssue(profile.business_id, {
+        const issue = await createProjectIssueServer(profile.business_id, user.id, {
             ...issueData,
             business_id: profile.business_id,
             created_by: user.id,

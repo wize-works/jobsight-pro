@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withBusinessServer } from "@/lib/auth/with-business-server";
 import { stripe } from "@/lib/stripe";
 import { createServerClient } from "@/lib/supabase";
-import { getSubscriptionPlans } from "@/app/actions/subscriptions";
+import { loadSubscriptionPlans } from "@/lib/subscriptions/plans";
 import type { StripeCustomerInsert } from "@/types/stripe-customers";
 import { revalidatePath } from "next/cache";
 
@@ -115,8 +115,8 @@ async function createStripeCustomer(businessId: string) {
 async function createCheckoutSession(businessId: string, planId: string, billingInterval: "monthly" | "annual") {
     try {
         // Get subscription plans
-        const plans = await getSubscriptionPlans();
-        const plan = plans.find(p => p.id === planId);
+        const plans = await loadSubscriptionPlans();
+        const plan = plans.find((p: any) => p.id === planId);
 
         if (!plan) {
             return NextResponse.json({ success: false, error: "Plan not found" }, { status: 404 });
@@ -215,8 +215,8 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
         }
 
         // Get subscription plans
-        const plans = await getSubscriptionPlans();
-        const plan = plans.find(p => p.id === planId);
+        const plans = await loadSubscriptionPlans();
+        const plan = plans.find((p: any) => p.id === planId);
 
         if (!plan) {
             return NextResponse.json({ success: false, error: "Plan not found" }, { status: 404 });

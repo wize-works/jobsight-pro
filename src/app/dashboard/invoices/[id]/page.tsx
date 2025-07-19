@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { Invoice, InvoiceStatus, invoiceStatusOptions, InvoiceWithDetails } from "@/types/invoices";
-import { useInvoiceWithDetails } from "@/hooks/useInvoices";
+import { useInvoiceWithDetails } from "@/hooks/use-invoices";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/error-boundary";
@@ -43,14 +43,25 @@ export default function InvoiceDetailPage() {
 
         setDownloadingPdf(true);
         try {
-            const filename = `Invoice-${invoice.invoice_number}.pdf`;            // Call the server action directly
-            const { generateInvoicePdf } = await import('@/app/actions/pdf-generation-gotenberg');
-            const result = await generateInvoicePdf(invoice.business_id, invoice.id, filename); if (!result.success || !result.buffer) {
-                throw new Error(result.error || 'Failed to generate PDF');
+            const filename = `Invoice-${invoice.invoice_number}.pdf`;
+
+            // Generate PDF via API
+            const response = await fetch('/api/pdf-generation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'invoice',
+                    invoiceId: invoice.id,
+                    fileName: filename
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate PDF');
             }
 
-            // Convert buffer to blob and download
-            const pdfBlob = new Blob([result.buffer], { type: 'application/pdf' });
+            // Download the PDF
+            const pdfBlob = await response.blob();
             const downloadUrl = window.URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = downloadUrl;

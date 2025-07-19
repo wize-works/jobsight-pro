@@ -135,10 +135,19 @@ export class TaskSyncService {
                         result.performanceMetrics!.batchOperations += tableResult.performanceMetrics.batchOperations;
                     }
 
+                    // Clear error metadata if table sync was successful
+                    if (tableResult.success && tableResult.errors.length === 0) {
+                        await this.clearSyncErrorMetadata(table, businessId);
+                    }
+
                 } catch (error) {
                     console.error(`Task sync failed for table ${table}:`, error);
-                    result.errors.push(`${table}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    const errorMessage = `${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+                    result.errors.push(errorMessage);
                     result.success = false;
+
+                    // Track the error in metadata
+                    await this.updateSyncErrorMetadata(table, businessId, errorMessage);
                 }
             }
 
@@ -256,7 +265,11 @@ export class TaskSyncService {
 
         } catch (error) {
             tableResult.success = false;
-            tableResult.errors.push(`Table ${table} sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const errorMessage = `Table ${table} sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            tableResult.errors.push(errorMessage);
+
+            // Track the error in metadata
+            await this.updateSyncErrorMetadata(table, businessId, errorMessage);
         }
 
         return tableResult;
@@ -324,7 +337,11 @@ export class TaskSyncService {
 
         } catch (error) {
             result.success = false;
-            result.errors.push(`Sync error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const errorMessage = `Sync error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            result.errors.push(errorMessage);
+
+            // Track the error in metadata
+            await this.updateSyncErrorMetadata(table, businessId, errorMessage);
         }
 
         return result;
@@ -698,7 +715,7 @@ export class TaskSyncService {
                 lastSync: metadata?.lastSync || null,
                 pendingOperations: pendingCount,
                 pendingConflicts: this.conflictService.getPendingConflicts(table).length,
-                lastError: undefined, // TODO: Track last error in metadata
+                lastError: (metadata as any)?.lastError, // Now tracking last error from metadata
                 isOptimized: this.performanceService.getMetrics().cacheHitRate > 0.3,
                 networkQuality: this.statusManager.getConnectionQuality().quality
             };
@@ -901,6 +918,54 @@ export class TaskSyncService {
             });
         } catch (error) {
             console.error('Failed to update sync metadata:', error);
+        }
+    }
+
+    /**
+     * Clear sync error metadata for a specific table and business (when sync succeeds)
+     * @param table - Table name
+     * @param businessId - Business ID
+     */
+    private static async clearSyncErrorMetadata(table: TaskTable, businessId: string): Promise<void> {
+        try {
+            const metadataId = `${table}_${businessId}`;
+            const existingMetadata = await db.syncMetadata.get(metadataId);
+
+            if (existingMetadata && (existingMetadata as any).lastError) {
+                await db.syncMetadata.put({
+                    id: metadataId,
+                    lastSync: existingMetadata.lastSync || 0,
+                    businessId,
+                    table: table,
+                    checksum: existingMetadata.checksum
+                } as any);
+            }
+        } catch (err) {
+            console.error('Failed to clear sync error metadata:', err);
+        }
+    }
+
+    /**
+     * Update sync error metadata for a specific table and business
+     * @param table - Table name
+     * @param businessId - Business ID
+     * @param error - Error message to store
+     */
+    private static async updateSyncErrorMetadata(table: TaskTable, businessId: string, error: string): Promise<void> {
+        try {
+            const metadataId = `${table}_${businessId}`;
+            const existingMetadata = await db.syncMetadata.get(metadataId);
+
+            await db.syncMetadata.put({
+                id: metadataId,
+                lastSync: existingMetadata?.lastSync || 0,
+                lastError: error,
+                lastErrorTimestamp: Date.now(),
+                businessId,
+                table: table
+            } as any); // Type assertion until interface is updated
+        } catch (err) {
+            console.error('Failed to update sync error metadata:', err);
         }
     }
 

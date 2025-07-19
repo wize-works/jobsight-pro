@@ -1,10 +1,10 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useDailyLogs } from "@/hooks/useDailyLogs";
-import { useCrews } from "@/hooks/useCrews";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useCrews } from "@/hooks/use-crews";
 import { useProjects } from "@/hooks/useProjects";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { useBusiness } from "@/lib/business-context";
 import DailyLogDetailLoading from "./loading";
 import ModalLoading from "@/components/modal-loading";

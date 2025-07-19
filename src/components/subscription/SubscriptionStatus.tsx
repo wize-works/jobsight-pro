@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { useFeatureGate } from '@/hooks/use-feature-gate';
 
 interface SubscriptionStatusProps {
     variant?: 'badge' | 'card' | 'inline';

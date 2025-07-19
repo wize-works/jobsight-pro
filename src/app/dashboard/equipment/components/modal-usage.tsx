@@ -5,9 +5,9 @@ import { Project } from '@/types/projects';
 import { CrewWithDetails } from '@/types/crews';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useEquipmentUsageMutation } from '@/hooks/useEquipment';
+import { useEquipmentUsageMutation } from '@/hooks/use-equipment';
 import { useProjects } from '@/hooks/useProjects';
-import { useCrews } from '@/hooks/useCrews';
+import { useCrews } from '@/hooks/use-crews';
 import { toast } from '@/hooks/use-toast';
 import { useBusiness } from '@/lib/business-context';
 

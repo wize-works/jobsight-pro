@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
-import { getProjectsByClientId } from '@/app/actions/projects';
 
 /**
  * GET /api/projects/client/[clientId]
@@ -34,9 +33,28 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const projects = await getProjectsByClientId(profile.business_id, clientId);
+        // Get projects for this client using direct database query
+        const { data: projects, error: projectsError } = await supabase
+            .from('projects')
+            .select(`
+                *,
+                client:clients(
+                    id,
+                    name,
+                    contact_name,
+                    contact_email,
+                    contact_phone
+                )
+            `)
+            .eq('business_id', profile.business_id)
+            .eq('client_id', clientId);
 
-        return NextResponse.json({ success: true, data: projects }, { status: 200 });
+        if (projectsError) {
+            console.error('Database error fetching projects:', projectsError);
+            return NextResponse.json({ success: false, error: 'Failed to fetch projects' }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, data: projects || [] }, { status: 200 });
 
     } catch (error) {
         console.error('Error in GET /api/projects/client/[clientId]:', error);

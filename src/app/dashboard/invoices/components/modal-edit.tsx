@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useUpdateInvoice } from "@/hooks/useInvoices";
-import { useInvoiceItemsByInvoice, useInvoiceItemMutations } from "@/hooks/useInvoiceItems";
-import { useClients } from "@/hooks/useClients";
+import { useUpdateInvoice } from "@/hooks/use-invoices";
+import { useInvoiceItemsByInvoice, useInvoiceItemMutations } from "@/hooks/use-invoice-items";
+import { useClients } from "@/hooks/use-clients";
 import { useProjects } from "@/hooks/useProjects";
 import { InvoiceUpdate, InvoiceStatus, invoiceStatusOptions, InvoiceWithClient } from "@/types/invoices";
 import { InvoiceItem, InvoiceItemInsert } from "@/types/invoice-items";

@@ -1,7 +1,7 @@
 "use client";
 
-import { useDailyLogs } from "@/hooks/useDailyLogs";
-import { useCrews } from "@/hooks/useCrews";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useCrews } from "@/hooks/use-crews";
 import { useProjects } from "@/hooks/useProjects";
 
 import DailyLogsList from "./components/list";
