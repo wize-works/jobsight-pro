@@ -3,8 +3,7 @@
 import { Resend } from "resend";
 import { NotificationInsert, NotificationTypeOptions } from "@/types/notifications";
 import { getUsers } from "@/app/actions/users";
-import { getUserNotificationPreferences } from "@/app/actions/notification-preferences";
-import { getAllNotificationTypePreferences } from "@/app/actions/notification-type-preferences";
+import { getUserNotificationPreferencesServer, getAllNotificationTypePreferencesServer } from "@/lib/notifications/server";
 import { GeneralNotificationEmail } from "@/components/email-templates/general-notification";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -91,7 +90,7 @@ export async function sendBulkEmailNotifications(
                 }
 
                 // Check if user has email notifications enabled globally
-                const globalPrefs = await getUserNotificationPreferences(businessId, user.auth_id);
+                const globalPrefs = await getUserNotificationPreferencesServer(businessId, user.auth_id);
                 const globalSettings = globalPrefs[0];
 
                 if (globalSettings && !globalSettings.email_enabled) {
@@ -100,8 +99,8 @@ export async function sendBulkEmailNotifications(
                 }
 
                 // Check if user has email notifications enabled for this notification type
-                const typePrefs = await getAllNotificationTypePreferences(businessId, user.auth_id);
-                const typePref = typePrefs.find(pref => pref.notification_type === notification.type);
+                const typePrefs = await getAllNotificationTypePreferencesServer(businessId, user.auth_id);
+                const typePref = typePrefs.find((pref: any) => pref.notification_type === notification.type);
 
                 if (typePref && !typePref.email_enabled) {
                     console.log(`User ${user.email} has email notifications disabled for type: ${notification.type}`);

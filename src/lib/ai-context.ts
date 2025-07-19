@@ -6,7 +6,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get projects with enhanced relational data and analytics
         const { data: projects, error: projectsError } = await fetchByBusinessWithQuery(businessId, {
             from: "projects",
-            select: ["id", "name", "status", "client_id", "manager_id", "location", "description", "budget", "start_date", "end_date", "progress"],
+            select: ["id", "name", "status", "client_id", "manager_id", "description", "budget", "start_date", "end_date", "progress"],
             joins: [
                 {
                     table: "clients",
@@ -33,7 +33,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get clients with enhanced data
         const { data: clients, error: clientsError } = await fetchByBusinessWithQuery(businessId, {
             from: "clients",
-            select: ["id", "name", "type", "industry", "status", "location", "description", "notes"],
+            select: ["id", "name", "type", "industry", "status", "contact_name", "contact_email", "contact_phone", "address", "city", "state", "website", "notes", "notes"],
             aggregates: [
                 { function: "count", table: "projects", alias: "project_count" },
                 { function: "count", table: "projects", alias: "active_projects", where: { status: { neq: "completed" } } },
@@ -53,7 +53,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get crews with operational data
         const { data: crews, error: crewsError } = await fetchByBusinessWithQuery(businessId, {
             from: "crews",
-            select: ["id", "name", "type", "status", "location", "description", "capacity", "hourly_rate"],
+            select: ["id", "name", "status", "notes", "specialty"],
             aggregates: [
                 { function: "count", table: "crew_members", alias: "member_count" },
                 { function: "count", table: "crew_members", alias: "active_members", where: { status: "active" } },
@@ -72,7 +72,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get recent daily logs with enhanced context
         const { data: dailyLogs, error: dailyLogsError } = await fetchByBusinessWithQuery(businessId, {
             from: "daily_logs",
-            select: ["id", "date", "description", "hours_worked", "weather", "issues", "achievements", "project_id", "crew_id"],
+            select: ["id", "date", "work_completed", "work_planned", "hours_worked", "weather", "achievements", "project_id", "crew_id", "safety", "quality", "delays", "notes"],
             joins: [
                 {
                     table: "projects",
@@ -81,7 +81,7 @@ export const getAIContextData = async (businessId: string) => {
                 },
                 {
                     table: "crews",
-                    select: ["id", "name", "type"],
+                    select: ["id", "name", "specialty"],
                     alias: "crews"
                 }
             ],
@@ -99,7 +99,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get active tasks with priority and progress information
         const { data: tasks, error: tasksError } = await fetchByBusinessWithQuery(businessId, {
             from: "tasks",
-            select: ["id", "title", "description", "status", "priority", "progress", "due_date", "project_id", "assigned_to"],
+            select: ["id", "name", "description", "status", "priority", "progress", "start_date", "end_date", "project_id", "assigned_to"],
             joins: [
                 {
                     table: "projects",
@@ -121,7 +121,7 @@ export const getAIContextData = async (businessId: string) => {
         // Get equipment with operational status
         const { data: equipment, error: equipmentError } = await fetchByBusinessWithQuery(businessId, {
             from: "equipment",
-            select: ["id", "name", "type", "status", "location", "description", "hourly_rate", "purchase_date", "last_maintenance"],
+            select: ["id", "name", "type", "status", "location", "description", "hourly_rate", "purchase_date"],
             aggregates: [
                 { function: "count", table: "equipment_assignments", alias: "assignment_count" },
                 { function: "count", table: "equipment_maintenance", alias: "maintenance_count" },

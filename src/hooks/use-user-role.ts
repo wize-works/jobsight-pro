@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useBusiness } from '@/lib/business-context';
-import { getUserByAuthId } from '@/app/actions/users';
+import { getUserByAuthIdClient } from '@/lib/users/client';
 import type { UserRole } from '@/types/users';
 
 export interface UserRoleHookReturn {
@@ -37,7 +37,7 @@ export function useUserRole(): UserRoleHookReturn {
             setError(null);
 
             try {
-                const userData = await getUserByAuthId(businessId, clerkUser.id);
+                const userData = await getUserByAuthIdClient(clerkUser.id);
 
                 if (userData && 'role' in userData && userData.role) {
                     setUserRole(userData.role as UserRole);

@@ -80,7 +80,7 @@ export default function TimeTrackingModal({ isOpen, onClose }: TimeTrackingModal
         localStorage.setItem('activeTimeEntry', JSON.stringify(newEntry));
     };
 
-    const stopTracking = () => {
+    const stopTracking = async () => {
         if (!currentEntry) return;
 
         const endTime = new Date();
@@ -107,8 +107,34 @@ export default function TimeTrackingModal({ isOpen, onClose }: TimeTrackingModal
         setElapsedTime(0);
         setDescription('');
 
-        // TODO: Here you would typically sync with your backend API
-        console.log('Time entry completed:', completedEntry);
+        // Sync with backend API
+        try {
+            const response = await fetch('/api/time-entries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: completedEntry.description,
+                    start_time: completedEntry.startTime.toISOString(),
+                    end_time: completedEntry.endTime?.toISOString(),
+                    duration_minutes: completedEntry.duration || 0,
+                    project_id: completedEntry.projectId,
+                    is_billable: true,
+                    notes: `Time tracked via modal on ${new Date().toLocaleDateString()}`
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Time entry synced to server:', result.data);
+            } else {
+                console.error('Failed to sync time entry to server');
+            }
+        } catch (error) {
+            console.error('Error syncing time entry:', error);
+            // Entry is still saved locally, will be available in recent entries
+        }
     };
 
     const pauseTracking = () => {

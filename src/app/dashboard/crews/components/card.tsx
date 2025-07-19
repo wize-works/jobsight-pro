@@ -174,7 +174,7 @@ export const CrewCard = ({
                                     title="Assign to project"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // TODO: Open project assignment modal
+                                        alert(`Project assignment feature for ${crew.name} will be implemented soon!`);
                                     }}
                                 >
                                     <i className="fas fa-plus-circle text-sm" />

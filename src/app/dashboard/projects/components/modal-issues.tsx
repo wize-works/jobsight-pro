@@ -1,9 +1,6 @@
 "use client";
 
-import { useBusinessData } from "@/hooks/useBusinessData";
-// TODO: Create project issues hooks to replace server actions
-// import { useProjectIssuesMutations } from "@/hooks/useProjectIssues";
-import { createProjectIssue, updateProjectIssue } from "@/app/actions/projects-issues";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { CrewMember } from "@/types/crew-members";
@@ -109,13 +106,37 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
             } as ProjectIssue;
 
             if (initialIssue?.id) {
-                await updateProjectIssue(businessId, initialIssue.id, issueData);
+                // Update existing issue
+                const response = await fetch(`/api/project-issues/${initialIssue.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(issueData),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update issue');
+                }
+
                 toast.success({
                     title: "Success",
                     description: "Issue updated successfully"
                 });
             } else {
-                await createProjectIssue(businessId, issueData);
+                // Create new issue
+                const response = await fetch('/api/project-issues', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(issueData),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create issue');
+                }
+
                 toast.success({
                     title: "Success",
                     description: "Issue created successfully"

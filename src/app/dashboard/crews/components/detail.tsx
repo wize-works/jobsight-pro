@@ -9,12 +9,7 @@ import type { Crew, CrewWithDetails } from "@/types/crews";
 import { CrewMemberRole, crewMemberRoleOptions, type CrewMember, type CrewMemberInsert } from "@/types/crew-members";
 import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus, type EquipmentAssignmentInsert, type EquipmentAssignmentUpdate, type EquipmentAssignmentWithEquipmentDetails } from "@/types/equipment-assignments";
 import { toast } from "@/hooks/use-toast";
-import { assignCrewLeader, updateCrewNotes, updateCrew } from "@/app/actions/crews";
-import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
-import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
-import { createProjectCrew, updateProjectCrew, deleteProjectCrew } from "@/app/actions/project-crews";
-import { updateEquipmentAssignment, deleteEquipmentAssignment, createEquipmentAssignment } from "@/app/actions/equipment-assignments";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews, useCrewMembers } from "@/hooks/use-crews";
 import { Project, projectStatusOptions } from "@/types/projects";
 import { ProjectCrewInsert, ProjectCrewUpdate } from "@/types/project-crews";
 import { Equipment } from "@/types/equipment";
@@ -72,6 +67,7 @@ export default function CrewDetailComponent({
 }: CrewDetailProps) {
     const { businessId } = useBusiness();
     const { updateCrew: updateCrewAPI } = useCrews();
+    const { deleteCrewMember } = useCrewMembers();
 
     const [mounted, setMounted] = useState(false);
 
@@ -126,7 +122,18 @@ export default function CrewDetailComponent({
         } as CrewMemberInsert;
 
         try {
-            const member = await createCrewMember(businessId, memberData);
+            // Create crew member via API
+            const response = await fetch('/api/crew-members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(memberData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create crew member');
+            }
+
+            const member = await response.json();
 
             if (!member) {
                 toast.error({
@@ -137,7 +144,16 @@ export default function CrewDetailComponent({
             }
 
             if (member) {
-                await addCrewMemberToCrew(businessId, crew.id, member.id);
+                // Add member to crew via API
+                const addResponse = await fetch(`/api/crews/${crew.id}/members`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ memberId: member.id })
+                });
+
+                if (!addResponse.ok) {
+                    throw new Error('Failed to add member to crew');
+                }
 
                 toast.success({
                     title: "Success",
@@ -159,7 +175,17 @@ export default function CrewDetailComponent({
     const handleLinkMember = async (formData: any) => {
         try {
             if (formData.memberId) {
-                await addCrewMemberToCrew(businessId, crew.id, formData.memberId);
+                // Link member to crew via API
+                const response = await fetch(`/api/crews/${crew.id}/members`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ memberId: formData.memberId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to link member to crew');
+                }
+
                 toast.success({
                     title: "Success",
                     description: `Linked ${formData.member?.name || 'member'} to the crew.`,
@@ -184,7 +210,18 @@ export default function CrewDetailComponent({
 
     const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, formData.id, formData);
+            // Update crew member via API
+            const response = await fetch('/api/crew-members', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...formData, id: formData.id })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update crew member');
+            }
+
+            const result = await response.json();
 
             if (result) {
                 toast({
@@ -219,7 +256,16 @@ export default function CrewDetailComponent({
         } as ProjectCrewInsert;
 
         try {
-            await createProjectCrew(businessId, projectCrewInsert);
+            // Create project crew assignment via API
+            const response = await fetch('/api/project-crews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(projectCrewInsert)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create project crew assignment');
+            }
             toast.success({
                 title: "Assignment added",
                 description: `Assignment for crew scheduled from ${formData.startDate} to ${formData.endDate || 'ongoing'}.`,
@@ -248,7 +294,16 @@ export default function CrewDetailComponent({
         } as ProjectCrewUpdate;
 
         try {
-            await updateProjectCrew(businessId, editingAssignment.id, projectCrewUpdate);
+            // Update project crew assignment via API
+            const response = await fetch(`/api/project-crews/${editingAssignment.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(projectCrewUpdate)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update project crew assignment');
+            }
             toast.success({
                 title: "Assignment updated",
                 description: `Assignment updated successfully.`,
@@ -286,7 +341,14 @@ export default function CrewDetailComponent({
         }
 
         try {
-            await deleteProjectCrew(businessId, assignment.id);
+            // Delete project crew assignment via API
+            const response = await fetch(`/api/project-crews/${assignment.id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete project crew assignment');
+            }
             toast.success({
                 title: "Assignment deleted",
                 description: "The assignment has been successfully removed from the crew's schedule.",
@@ -413,7 +475,16 @@ export default function CrewDetailComponent({
         } as EquipmentAssignmentInsert;
 
         try {
-            await createEquipmentAssignment(businessId, equipmentAssignment);
+            // Create equipment assignment via API
+            const response = await fetch('/api/equipment-assignments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(equipmentAssignment)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create equipment assignment');
+            }
             toast.success({
                 title: "Equipment assigned",
                 description: "Equipment has been successfully assigned to the crew.",
@@ -449,7 +520,16 @@ export default function CrewDetailComponent({
         } as EquipmentAssignmentUpdate;
 
         try {
-            await updateEquipmentAssignment(businessId, editingEquipment.id, equipmentAssignmentUpdate);
+            // Update equipment assignment via API
+            const response = await fetch('/api/equipment-assignments', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...equipmentAssignmentUpdate, id: editingEquipment.id })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update equipment assignment');
+            }
             toast.success({
                 title: "Equipment assignment updated",
                 description: "Equipment assignment has been successfully updated.",
@@ -470,7 +550,16 @@ export default function CrewDetailComponent({
     const handleDeleteEquipmentAssignment = async (assignmentId: string) => {
         if (window.confirm("Are you sure you want to delete this equipment assignment?")) {
             try {
-                await deleteEquipmentAssignment(businessId, assignmentId);
+                // Delete equipment assignment via API
+                const response = await fetch('/api/equipment-assignments', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: assignmentId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete equipment assignment');
+                }
                 toast({
                     title: "Success",
                     description: "Equipment assignment deleted successfully.",
@@ -745,10 +834,30 @@ export default function CrewDetailComponent({
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-ghost btn-xs text-error"
-                                                                            onClick={() => {
+                                                                            onClick={async () => {
                                                                                 if (window.confirm("Are you sure you want to remove this member from the crew?")) {
-                                                                                    // TODO: Implement remove member functionality
-                                                                                    console.log("Remove member:", member.id, "from crew:", crew.id);
+                                                                                    try {
+                                                                                        const success = await deleteCrewMember(crew.id, member.id);
+                                                                                        if (success) {
+                                                                                            toast({
+                                                                                                title: "Success",
+                                                                                                description: "Crew member removed successfully",
+                                                                                            });
+                                                                                            // Refresh the page to update the member list
+                                                                                            router.refresh();
+                                                                                        } else {
+                                                                                            toast({
+                                                                                                title: "Error",
+                                                                                                description: "Failed to remove crew member",
+                                                                                            });
+                                                                                        }
+                                                                                    } catch (error) {
+                                                                                        console.error("Error removing crew member:", error);
+                                                                                        toast({
+                                                                                            title: "Error",
+                                                                                            description: "Failed to remove crew member",
+                                                                                        });
+                                                                                    }
                                                                                 }
                                                                             }}
                                                                         >

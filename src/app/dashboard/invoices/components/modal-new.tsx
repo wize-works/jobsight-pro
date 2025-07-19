@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useCreateInvoice } from "@/hooks/useInvoices";
-import { useCreateInvoiceItem } from "@/hooks/useInvoiceItems";
+import { useCreateInvoice } from "@/hooks/use-invoices";
+import { useCreateInvoiceItem } from "@/hooks/use-invoice-items";
 import { clientsApi } from "@/lib/api/clients";
 import { getProjects } from "@/lib/api/projects";
 import { CreateInvoiceData } from "@/lib/api/invoices";

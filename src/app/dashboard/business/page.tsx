@@ -6,14 +6,16 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBusiness } from "@/lib/business-context";
-import { useBusiness as useBusinessApi } from "@/hooks/useBusiness";
+import { useBusiness as useBusinessApi } from "@/hooks/use-business";
 import { useUsers } from "@/hooks/useUsers";
 import { useProjects } from "@/hooks/useProjects";
-import { useEquipment } from "@/hooks/useEquipment";
-import { useInvoices } from "@/hooks/useInvoices";
-import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { useEquipment } from "@/hooks/use-equipment";
+import { useInvoices } from "@/hooks/use-invoices";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useMedia } from "@/hooks/use-media";
 import { useSubscriptionManager } from "@/hooks/useSubscriptions";
 import { toast } from "@/hooks/use-toast";
+import { getAIUsageDataClient } from "@/lib/ai/client-functions";
 import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
 import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
@@ -28,7 +30,8 @@ export default function BusinessPage() {
     const { business, businessId, loading, error, refreshBusiness } = useBusiness();
     const { updateBusinessFromForm } = useBusinessApi();
 
-    // Use hooks for data fetching
+    // Import useMedia hook
+    const { media } = useMedia();
     const { users, loading: usersLoading } = useUsers();
     const { projects, loading: projectsLoading } = useProjects();
     const { data: equipment, loading: equipmentLoading } = useEquipment();
@@ -37,6 +40,14 @@ export default function BusinessPage() {
     const { subscription, loading: subscriptionLoading } = useSubscriptionManager(businessId || '');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [aiUsage, setAiUsage] = useState({
+        currentUsage: 0,
+        limit: 0,
+        percentageUsed: 0,
+        canUseAI: false,
+        remainingTokens: 0
+    });
+    const [aiUsageLoading, setAiUsageLoading] = useState(false);
 
     // Calculate counts from hook data
     const userCount = Array.isArray(users) ? users.length : 0;
@@ -46,14 +57,14 @@ export default function BusinessPage() {
     // Calculate usage data from hook data
     const usageData = {
         userCount: userCount,
-        storageUsedMB: 0, // TODO: Calculate from media
+        storageUsedMB: Array.isArray(media) ? media.reduce((total, item) => total + ((item.size || 0) / (1024 * 1024)), 0) : 0,
         invoicesThisMonth: Array.isArray(invoices) ? invoices.filter(invoice => {
             const invoiceDate = new Date(invoice.created_at || '');
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
             return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
         }).length : 0,
-        aiQueriesThisMonth: 0, // TODO: Track AI usage
+        aiQueriesThisMonth: aiUsage.currentUsage, // Actual AI usage tracking - tokens used this month
         projectsActive: Array.isArray(projects) ? projects.filter(p => p.status === 'active' || p.status === 'in-progress').length : 0,
         dailyLogsThisMonth: Array.isArray(dailyLogs) ? dailyLogs.filter(log => {
             const logDate = new Date(log.created_at || '');
@@ -75,6 +86,29 @@ export default function BusinessPage() {
             refreshBusiness();
         }
     }, [business, refreshBusiness]);
+
+    // Load AI usage data
+    useEffect(() => {
+        if (businessId && !aiUsageLoading) {
+            setAiUsageLoading(true);
+            getAIUsageDataClient()
+                .then((result) => {
+                    if (result.success && result.data) {
+                        setAiUsage(result.data);
+                    } else {
+                        console.error('Error loading AI usage:', result.error);
+                        // Keep default values on error
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading AI usage:', error);
+                    // Keep default values on error
+                })
+                .finally(() => {
+                    setAiUsageLoading(false);
+                });
+        }
+    }, [businessId, aiUsageLoading]);
 
     const handleSaveChanges = async (formData: FormData) => {
         setIsSubmitting(true);

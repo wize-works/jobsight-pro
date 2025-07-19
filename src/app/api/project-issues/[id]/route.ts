@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectIssueById,
-    updateProjectIssue,
-    deleteProjectIssue
-} from '@/app/actions/projects-issues';
+    getProjectIssueByIdServer,
+    updateProjectIssueServer,
+    deleteProjectIssueServer
+} from '@/lib/project-issues/server';
 
 /**
  * GET /api/project-issues/[id]
@@ -39,7 +39,7 @@ export async function GET(
         }
 
         try {
-            const issue = await getProjectIssueById(profile.business_id, id);
+            const issue = await getProjectIssueByIdServer(profile.business_id, id);
             return NextResponse.json({ success: true, data: issue }, { status: 200 });
         } catch (error) {
             if (error instanceof Error && error.message.includes('not found')) {
@@ -91,7 +91,7 @@ export async function PUT(
         const updateData = await request.json();
 
         try {
-            const issue = await updateProjectIssue(profile.business_id, id, {
+            const issue = await updateProjectIssueServer(profile.business_id, user.id, id, {
                 ...updateData,
                 updated_by: user.id
             });
@@ -145,7 +145,7 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const success = await deleteProjectIssue(profile.business_id, id);
+        const success = await deleteProjectIssueServer(profile.business_id, user.id, id);
 
         if (!success) {
             return NextResponse.json({ success: false, error: 'Failed to delete issue' }, { status: 500 });

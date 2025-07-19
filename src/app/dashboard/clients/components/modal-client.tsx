@@ -4,7 +4,7 @@ import { Client, ClientIndustry, clientIndustryOptions, ClientStatus, clientStat
 import { useState, useEffect, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
-import { useClientLogo } from "@/hooks/useMedia";
+import { useClientLogo } from "@/hooks/use-media";
 
 interface ClientModalProps {
     client?: Client | null;

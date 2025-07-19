@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentSubscription, getSubscriptionPlans } from '@/app/actions/subscriptions';
 import type { BusinessSubscription, SubscriptionPlan } from '@/types/subscription';
 import { useBusiness } from '@/lib/business-context';
 
@@ -21,13 +20,26 @@ export const useSubscription = () => {
             setIsLoading(true);
             setError(null);
 
-            const [subscription, subscriptionPlans] = await Promise.all([
-                getCurrentSubscription(businessId),
-                getSubscriptionPlans()
-            ]);
+            // Fetch current subscription
+            const subscriptionResponse = await fetch(`/api/subscriptions?action=get-current-subscription&businessId=${businessId}`);
+            const subscriptionData = await subscriptionResponse.json();
 
-            setCurrentSubscription(subscription);
-            setPlans(subscriptionPlans);
+            // Fetch subscription plans
+            const plansResponse = await fetch('/api/subscriptions?action=get-subscription-plans');
+            const plansData = await plansResponse.json();
+
+            if (subscriptionData.success) {
+                setCurrentSubscription(subscriptionData.subscription);
+            } else {
+                console.warn('No subscription found:', subscriptionData.error);
+                setCurrentSubscription(null);
+            }
+
+            if (plansData.success) {
+                setPlans(plansData.plans);
+            } else {
+                throw new Error(plansData.error);
+            }
         } catch (err) {
             console.error('Error loading subscription data:', err);
             setError('Failed to load subscription data');

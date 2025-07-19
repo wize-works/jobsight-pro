@@ -627,20 +627,52 @@ async function processUploadQueue(businessId: string): Promise<void> {
                     uploadProgress: 10
                 });
 
-                // TODO: Implement actual file upload to Supabase Storage
-                // This would include:
-                // 1. Upload file to Supabase Storage
-                // 2. Create media metadata record
-                // 3. Update upload queue status
-                // 4. Clean up temporary blob URL
+                // 1. Convert blob URL back to File for upload
+                const response = await fetch(upload.tempBlobUrl);
+                const blob = await response.blob();
+                const file = new File([blob], upload.name, { type: upload.type });
 
-                console.log('Upload queue processing not yet implemented for:', upload.name);
+                await db.mediaUploadQueue.update(upload.id, { uploadProgress: 25 });
 
-                // For now, mark as completed (this should be replaced with actual upload logic)
+                // 2. Determine media type for upload URL
+                const mediaType = upload.type.startsWith('image/') ? 'images' :
+                    upload.type.startsWith('video/') ? 'videos' :
+                        upload.type.startsWith('audio/') ? 'audios' : 'documents';
+
+                // 3. Get upload URL from Azure Blob Storage
+                const { mediaApi } = await import('@/lib/api/media');
+                const uploadData = await mediaApi.getUploadUrl(mediaType, upload.name);
+
+                await db.mediaUploadQueue.update(upload.id, { uploadProgress: 50 });
+
+                // 4. Upload file to Azure Blob Storage
+                await mediaApi.uploadFile(uploadData.uploadUrl, file);
+
+                await db.mediaUploadQueue.update(upload.id, { uploadProgress: 75 });
+
+                // 5. Create media metadata record
+                const mediaRecord = await mediaApi.createMedia({
+                    url: uploadData.fileUrl,
+                    name: upload.name,
+                    description: upload.description,
+                    type: upload.type,
+                    size: upload.size,
+                    uploaded_by: upload.uploadedBy,
+                    project_id: upload.projectId
+                });
+
+                await db.mediaUploadQueue.update(upload.id, { uploadProgress: 90 });
+
+                // 6. Clean up temporary blob URL
+                URL.revokeObjectURL(upload.tempBlobUrl);
+
+                // 7. Mark as completed
                 await db.mediaUploadQueue.update(upload.id, {
                     uploadStatus: 'completed',
                     uploadProgress: 100
                 });
+
+                console.log('Successfully uploaded file:', upload.name);
 
             } catch (uploadError) {
                 console.error('Upload failed:', uploadError);

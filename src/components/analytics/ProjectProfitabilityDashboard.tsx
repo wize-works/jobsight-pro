@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatters';
 import { useBusiness } from '@/lib/business-context';
-// TODO: Create project profitability hooks to replace server actions
-// import { useProjectProfitability } from '@/hooks/useProjectProfitability';
 import {
-    getProjectProfitabilityData,
+    getProjectProfitabilityDataClient
+} from '@/lib/project-profitability/client';
+import type {
     ProjectProfitabilityData,
     ProjectProfitabilitySummary
-} from '@/app/actions/project-profitability';
+} from '@/lib/project-profitability/server';
 
 interface ProjectProfitabilityDashboardProps {
     className?: string;
@@ -48,7 +48,7 @@ const ProjectProfitabilityDashboard: React.FC<ProjectProfitabilityDashboardProps
                 riskLevel: riskFilter !== 'all' ? riskFilter : undefined,
             };
 
-            const data = await getProjectProfitabilityData(businessId, filters);
+            const data = await getProjectProfitabilityDataClient(filters);
             setProjects(data.projects);
             setSummary(data.summary);
         } catch (error) {

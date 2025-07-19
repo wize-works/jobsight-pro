@@ -4,9 +4,7 @@ import { createServerClient } from "@/lib/supabase";
 import { z } from "zod";
 import { Resend } from "resend";
 import { NotificationInsert, NotificationTypeOptions } from "@/types/notifications";
-import { getUsers } from "@/app/actions/users";
-import { getUserNotificationPreferences } from "@/app/actions/notification-preferences";
-import { getAllNotificationTypePreferences } from "@/app/actions/notification-type-preferences";
+import { getBusinessUsers, getUserNotificationPreferencesServer, getAllNotificationTypePreferencesServer } from "@/lib/notifications/server";
 import { GeneralNotificationEmail } from "@/components/email-templates/general-notification";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -147,7 +145,7 @@ export async function POST(request: NextRequest) {
         const { notification, excludeUserId, businessName } = BulkEmailSchema.parse(body);
 
         // Get all users in the business
-        const users = await getUsers(businessId);
+        const users = await getBusinessUsers(businessId);
 
         if (users.length === 0) {
             return NextResponse.json({
@@ -161,7 +159,7 @@ export async function POST(request: NextRequest) {
         let failed = 0;
 
         // Send emails to all users (excluding the triggering user)
-        const emailPromises = users.map(async (user) => {
+        const emailPromises = users.map(async (user: any) => {
             try {
                 // Skip users without email or auth_id, or the triggering user
                 if (!user.email || !user.auth_id || user.auth_id === excludeUserId) {
@@ -169,7 +167,7 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Check if user has email notifications enabled globally
-                const globalPrefs = await getUserNotificationPreferences(businessId, user.auth_id);
+                const globalPrefs = await getUserNotificationPreferencesServer(businessId, user.auth_id);
                 const globalSettings = globalPrefs[0];
 
                 if (globalSettings && !globalSettings.email_enabled) {
@@ -178,8 +176,8 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Check if user has email notifications enabled for this notification type
-                const typePrefs = await getAllNotificationTypePreferences(businessId, user.auth_id);
-                const typePref = typePrefs.find(pref => pref.notification_type === notification.type);
+                const typePrefs = await getAllNotificationTypePreferencesServer(businessId, user.auth_id);
+                const typePref = typePrefs.find((pref: any) => pref.notification_type === notification.type);
 
                 if (typePref && !typePref.email_enabled) {
                     console.log(`User ${user.email} has email notifications disabled for type: ${notification.type}`);

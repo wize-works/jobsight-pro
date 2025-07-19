@@ -18,7 +18,7 @@ export async function getActiveSubscription(businessId: string) {
         .from("business_subscriptions")
         .select("*")
         .eq("business_id", businessId)
-        .eq("status", "active")
+        .in("status", ["active", "trialing"])
         .single();
 
     if (error) {

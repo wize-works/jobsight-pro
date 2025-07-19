@@ -175,6 +175,42 @@ export const mediaApi = {
     async getMediaByDailyLog(dailyLogId: string): Promise<MediaResponse> {
         return mediaApi.getMedia({ daily_log_id: dailyLogId });
     },
+
+    // Get upload URL for Azure Blob Storage
+    async getUploadUrl(type: string, filename: string): Promise<UploadUrlResponse> {
+        const response = await fetch('/api/media/upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, filename }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to get upload URL');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to get upload URL');
+        }
+
+        return result.data;
+    },
+
+    // Upload file to Azure Blob Storage
+    async uploadFile(uploadUrl: string, file: File): Promise<void> {
+        const response = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type || 'application/octet-stream',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to upload file: ${response.status} ${response.statusText}`);
+        }
+    },
 };
 
 // Utility functions

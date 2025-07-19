@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/utils/formatters';
-import { getTasksWithDetails, quickUpdateTask, deleteTask } from '@/app/actions/tasks';
-import { getProjects } from '@/app/actions/projects';
-import { getCrews } from '@/app/actions/crews';
+import { getTasksWithDetailsClient, quickUpdateTaskClient, deleteTaskClient } from '@/lib/tasks/client';
+import { getProjectsClient } from '@/lib/projects/client';
+import { getCrewsClient } from '@/lib/crews/client';
 import { TaskWithDetails, Task as TaskType, TaskStatus, taskStatusOptions, TaskPriority, taskPriorityOptions } from '@/types/tasks';
 import { Project } from '@/types/projects';
 import { Crew } from '@/types/crews';
@@ -37,9 +37,9 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
             try {
                 setLoading(true);
                 const [tasksData, projectsData, crewsData] = await Promise.all([
-                    getTasksWithDetails(businessId),
-                    getProjects(businessId),
-                    getCrews(businessId)
+                    getTasksWithDetailsClient(),
+                    getProjectsClient(),
+                    getCrewsClient()
                 ]);
 
                 setTasks(tasksData);
@@ -130,7 +130,7 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
 
     const markTaskComplete = async (taskId: string) => {
         try {
-            const updatedTask = await quickUpdateTask(businessId, taskId, {
+            const updatedTask = await quickUpdateTaskClient(taskId, {
                 status: 'completed',
                 progress: 100
             });
@@ -150,7 +150,7 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
 
     const startTask = async (taskId: string) => {
         try {
-            const updatedTask = await quickUpdateTask(businessId, taskId, {
+            const updatedTask = await quickUpdateTaskClient(taskId, {
                 status: 'in_progress'
             });
             setTasks(prevTasks =>

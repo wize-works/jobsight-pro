@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { sendPushNotification, subscribeUser, unsubscribeUser } from "@/lib/push/actions";
+import { useUser } from "@clerk/nextjs";
 
 export default function PushManager() {
     const [isSupported, setIsSupported] = useState(false);
     const [subscription, setSubscription] = useState<PushSubscription | null>(null);
     const [message, setMessage] = useState("");
+    const { user } = useUser();
 
     useEffect(() => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -50,7 +51,24 @@ export default function PushManager() {
 
             console.log('User subscribed to push notifications:', sub);
             const serializedSub = JSON.parse(JSON.stringify(sub));
-            await subscribeUser(serializedSub);
+
+            // Subscribe user via API
+            const response = await fetch('/api/push-subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: user?.id,
+                    endpoint: serializedSub.endpoint,
+                    p256dh: serializedSub.keys.p256dh,
+                    auth: serializedSub.keys.auth,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save subscription');
+            }
         } catch (error) {
             console.error('Failed to subscribe to push notifications:', error);
         }
@@ -64,7 +82,23 @@ export default function PushManager() {
         try {
             await subscription.unsubscribe();
             setSubscription(null);
-            await unsubscribeUser();
+
+            // Find and delete subscription via API
+            if (user?.id) {
+                const response = await fetch(`/api/push-subscriptions?userId=${user.id}`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data.length > 0) {
+                        // Delete each subscription for this user
+                        for (const sub of result.data) {
+                            await fetch(`/api/push-subscriptions/${sub.id}`, {
+                                method: 'DELETE',
+                            });
+                        }
+                    }
+                }
+            }
+
             console.log('User unsubscribed from push notifications');
         } catch (error) {
             console.error('Error unsubscribing from push notifications:', error);
@@ -73,9 +107,25 @@ export default function PushManager() {
 
     async function sendTestNotification() {
         if (subscription) {
-            await sendPushNotification('Test Notification', message, {});
-            setMessage('');
-            console.log('Test notification sent:', message);
+            // Send test notification via API
+            const response = await fetch('/api/test-push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: 'Test Notification',
+                    body: message || 'This is a test push notification from JobSight Pro',
+                    url: '/dashboard'
+                }),
+            });
+
+            if (response.ok) {
+                setMessage('');
+                console.log('Test notification sent:', message);
+            } else {
+                console.error('Failed to send test notification');
+            }
         }
     }
 

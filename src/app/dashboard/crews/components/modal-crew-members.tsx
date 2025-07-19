@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { CrewWithDetails } from "@/types/crews";
 import { CrewMember, CrewMemberInsert } from "@/types/crew-members";
 import { CrewMemberAssignment } from "@/types/crew-member-assignments";
-import { useCrews, useCrewMembers, useCrewAssignments } from "@/hooks/useCrews";
+import { useCrews, useCrewMembers, useCrewAssignments } from "@/hooks/use-crews";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 import ModalLoading from "@/components/modal-loading";

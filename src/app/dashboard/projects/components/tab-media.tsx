@@ -5,15 +5,6 @@ import { Media, MediaType } from "@/types/media"
 import { useBusiness } from "@/lib/business-context"
 import ErrorBoundary from "@/components/error-boundary"
 import UniversalMediaManager from "@/components/universal-media-manager"
-// TODO: Migrate to media hooks for project media operations
-// import { useMedia } from "@/hooks/useMedia";
-import {
-    getMediaByProjectId,
-    uploadProjectMedia,
-    linkExistingMediaToProject,
-    unlinkMediaFromProject,
-    getAvailableMediaForProject
-} from "@/app/actions/media"
 import { toast } from "@/hooks/use-toast"
 
 interface MediaTabProps {
@@ -31,16 +22,23 @@ export default function MediaTab({ projectId }: MediaTabProps) {
     const loadMediaData = async () => {
         try {
             setLoading(true)
-            // Get all media types for this project
-            const [images, videos, documents, audios, available] = await Promise.all([
-                getMediaByProjectId(businessId, projectId, "images"),
-                getMediaByProjectId(businessId, projectId, "videos"),
-                getMediaByProjectId(businessId, projectId, "documents"),
-                getMediaByProjectId(businessId, projectId, "audios"),
-                getAvailableMediaForProject(businessId, projectId)
-            ])
 
-            const allLinked = [...images, ...videos, ...documents, ...audios]
+            // Get linked media for this project
+            const linkedResponse = await fetch(`/api/media?project_id=${projectId}`);
+            if (!linkedResponse.ok) {
+                throw new Error('Failed to fetch linked media');
+            }
+            const linkedData = await linkedResponse.json();
+            const allLinked = linkedData.data || [];
+
+            // Get available media that can be linked to this project
+            const availableResponse = await fetch('/api/media');
+            if (!availableResponse.ok) {
+                throw new Error('Failed to fetch available media');
+            }
+            const availableData = await availableResponse.json();
+            const available = availableData.data || [];
+
             setLinkedMedia(allLinked)
             setAvailableMedia(available)
         } catch (error) {
@@ -56,61 +54,92 @@ export default function MediaTab({ projectId }: MediaTabProps) {
         metadata: { name: string; description: string; type: MediaType }
     ): Promise<boolean> => {
         try {
-            const success = await uploadProjectMedia(
-                businessId,
-                projectId,
-                file,
-                metadata.type,
-                metadata.description
-            )
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('name', metadata.name);
+            formData.append('description', metadata.description);
+            formData.append('type', metadata.type);
+            formData.append('project_id', projectId);
 
-            if (success) {
-                await loadMediaData() // Refresh data
-                toast.success("Media uploaded successfully")
-                return true
-            } else {
-                throw new Error("Upload failed")
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
             }
+
+            await loadMediaData(); // Refresh data
+            toast.success("Media uploaded successfully");
+            return true;
         } catch (error) {
-            console.error("Error uploading media:", error)
-            toast.error("Failed to upload media")
-            return false
+            console.error("Error uploading media:", error);
+            toast.error("Failed to upload media");
+            return false;
         }
     }
 
     const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await linkExistingMediaToProject(businessId, mediaIds, projectId)
+            // Link each media item to the project
+            const linkPromises = mediaIds.map(media_id =>
+                fetch('/api/media-links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        media_id,
+                        linked_id: projectId,
+                        linked_type: 'project',
+                    }),
+                })
+            );
 
-            if (success) {
-                await loadMediaData() // Refresh data
-                toast.success(`Linked ${mediaIds.length} media item(s)`)
-                return { success: true }
+            const responses = await Promise.all(linkPromises);
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (allSuccessful) {
+                await loadMediaData(); // Refresh data
+                toast.success(`Linked ${mediaIds.length} media item(s)`);
+                return { success: true };
             } else {
-                throw new Error("Link failed")
+                throw new Error("Some links failed");
             }
         } catch (error) {
-            console.error("Error linking media:", error)
-            const errorMessage = "Failed to link media"
-            toast.error(errorMessage)
-            return { success: false, error: errorMessage }
+            console.error("Error linking media:", error);
+            const errorMessage = "Failed to link media";
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
         }
     }
 
     const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await unlinkMediaFromProject(businessId, mediaIds, projectId); if (success) {
-                await loadMediaData() // Refresh data
-                toast.success(`Unlinked ${mediaIds.length} media item(s)`)
-                return { success: true }
+            // Unlink each media item from the project
+            const unlinkPromises = mediaIds.map(media_id =>
+                fetch(`/api/media-links?media_id=${media_id}&linked_id=${projectId}&linked_type=project`, {
+                    method: 'DELETE',
+                })
+            );
+
+            const responses = await Promise.all(unlinkPromises);
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (allSuccessful) {
+                await loadMediaData(); // Refresh data
+                toast.success(`Unlinked ${mediaIds.length} media item(s)`);
+                return { success: true };
             } else {
-                throw new Error("Unlink failed")
+                throw new Error("Some unlinks failed");
             }
         } catch (error) {
-            console.error("Error unlinking media:", error)
-            const errorMessage = "Failed to unlink media"
-            toast.error(errorMessage)
-            return { success: false, error: errorMessage }
+            console.error("Error unlinking media:", error);
+            const errorMessage = "Failed to unlink media";
+            toast.error(errorMessage);
+            return { success: false, error: errorMessage };
         }
     }
 

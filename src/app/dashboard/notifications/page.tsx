@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { useUserNotifications, useNotificationMutations } from "@/hooks/useNotifications";
+import { useUserNotifications, useNotificationMutations } from "@/hooks/use-notifications";
 import type { Notification } from "@/types/notifications";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";

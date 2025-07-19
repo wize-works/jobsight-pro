@@ -1,7 +1,7 @@
 import React, { use, useEffect, useState } from "react";
 import { Crew } from "@/types/crews";
 import { CrewMember } from "@/types/crew-members";
-import { useCrews, useCrewMembers } from "@/hooks/useCrews";
+import { useCrews, useCrewMembers } from "@/hooks/use-crews";
 import { useBusiness } from "@/lib/business-context";
 
 interface ModalEditProps {

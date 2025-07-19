@@ -6,7 +6,7 @@ import { Project } from "@/types/projects";
 import { Crew } from "@/types/crews";
 import { useTasksWithDetails, useTaskMutations } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews } from "@/hooks/use-crews";
 import { useBusiness } from "@/lib/business-context";
 import EnhancedTaskCard from "./enhanced-task-card";
 import TaskDetailsModal from "./task-details-modal";

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useState } from 'react';
-import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { useFeatureGate } from '@/hooks/use-feature-gate';
 import { formatStorageSize, calculateStorageUsagePercentage } from '@/lib/subscription-limits';
 
 interface StorageLimitGuardProps {
@@ -62,8 +62,8 @@ export const StorageLimitGuard: React.FC<StorageLimitGuardProps> = ({
                     <div className="w-full bg-base-300 rounded-full h-2">
                         <div
                             className={`h-2 rounded-full transition-all duration-300 ${isAtLimit ? 'bg-error' :
-                                    isApproachingLimit ? 'bg-warning' :
-                                        'bg-success'
+                                isApproachingLimit ? 'bg-warning' :
+                                    'bg-success'
                                 }`}
                             style={{ width: `${Math.min(usagePercentage, 100)}%` }}
                         ></div>

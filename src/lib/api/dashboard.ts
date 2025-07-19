@@ -94,6 +94,12 @@ export interface DashboardData {
     teamMetrics: TeamMetric[];
     financialOverview: FinancialOverview;
     equipmentStatus: EquipmentStatus;
+    dailyLogsData?: {
+        dates: string[];
+        delays: number[];
+        issues: number[];
+        safetyReports: number[];
+    };
 }
 
 // API Response types

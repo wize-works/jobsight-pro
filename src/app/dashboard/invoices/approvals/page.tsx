@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Invoice } from '@/types/invoices';
 import { Client } from '@/types/clients';
 import { Project } from '@/types/projects';
-import { useClients } from '@/hooks/useClients';
+import { useClients } from '@/hooks/use-clients';
 import { useProjects } from '@/hooks/useProjects';
+import { useInvoiceApproval, usePendingInvoiceApprovals } from '@/hooks/use-invoices';
 import { useBusiness } from '@/lib/business-context';
 import { useUser } from '@clerk/nextjs';
 import { toast } from '@/hooks/use-toast';
@@ -16,14 +17,21 @@ export default function InvoiceApprovalsPage() {
     const { businessId } = useBusiness();
     const { user } = useUser();
 
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    // Use the new hooks
+    const { pendingInvoices, loading: pendingLoading, error: pendingError, refetch: refetchPending } = usePendingInvoiceApprovals(businessId || '');
+    const { getClients, loading: clientsLoading } = useClients();
+    const { projects, loading: projectsLoading } = useProjects();
+    const { approveInvoice, rejectInvoice, bulkApproveInvoices, loading: approvalLoading, error: approvalError } = useInvoiceApproval();
+
+    // Local state for fetched data
     const [clients, setClients] = useState<Client[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [processingInvoice, setProcessingInvoice] = useState<string | null>(null);
     const [rejectModal, setRejectModal] = useState<{ invoiceId: string; show: boolean }>({ invoiceId: '', show: false });
     const [rejectComments, setRejectComments] = useState('');
+
+    // Combined loading state
+    const loading = pendingLoading || clientsLoading || projectsLoading;
 
     useEffect(() => {
         if (businessId) {
@@ -33,52 +41,26 @@ export default function InvoiceApprovalsPage() {
 
     const loadData = async () => {
         try {
-            setLoading(true);
-            // TODO: Create hooks for invoice approval functionality
-            // const [invoicesData, clientsData, projectsData] = await Promise.all([
-            //     getPendingApprovals(businessId),
-            //     getClients(businessId),
-            //     getProjects(businessId)
-            // ]);
-
-            // Temporarily set empty data until hooks are created
-            const [invoicesData, clientsData, projectsData] = [
-                { data: [], success: true },
-                { data: [], success: true },
-                { data: [], success: true }
-            ];
-
-            if (invoicesData.success) {
-                setInvoices(invoicesData.data || []);
+            // Load clients data since we still need it for display
+            const clientsData = await getClients();
+            if (clientsData) {
+                setClients(clientsData);
             }
-            setClients(clientsData.data || []);
-            setProjects(projectsData.data || []);
+            // pendingInvoices are automatically loaded by the hook
         } catch (error) {
             console.error('Error loading data:', error);
             toast.error('Failed to load approval data');
-        } finally {
-            setLoading(false);
         }
     };
 
     const handleApprove = async (invoiceId: string) => {
-        if (!user) return;
+        if (!user || !businessId) return;
 
         try {
             setProcessingInvoice(invoiceId);
-            // TODO: Create hook for approveInvoice functionality
-            // const result = await approveInvoice(businessId, invoiceId, user.id);
-            toast.info('Invoice approval feature needs hook migration');
-
-            // Temporary success simulation
-            const result = { success: true };
-
-            if (result.success) {
-                toast.success('Invoice approved successfully');
-                await loadData();
-            } else {
-                toast.error('Failed to approve invoice');
-            }
+            const result = await approveInvoice(businessId, invoiceId, user.id);
+            toast.success('Invoice approved successfully');
+            await refetchPending(); // Refresh pending invoices list
         } catch (error) {
             console.error('Error approving invoice:', error);
             toast.error('Failed to approve invoice');
@@ -88,25 +70,15 @@ export default function InvoiceApprovalsPage() {
     };
 
     const handleReject = async () => {
-        if (!user || !rejectComments.trim()) return;
+        if (!user || !businessId || !rejectComments.trim()) return;
 
         try {
             setProcessingInvoice(rejectModal.invoiceId);
-            // TODO: Create hook for rejectInvoice functionality  
-            // const result = await rejectInvoice(businessId, rejectModal.invoiceId, user.id, rejectComments);
-            toast.info('Invoice rejection feature needs hook migration');
-
-            // Temporary success simulation
-            const result = { success: true };
-
-            if (result.success) {
-                toast.success('Invoice rejected successfully');
-                await loadData();
-                setRejectModal({ invoiceId: '', show: false });
-                setRejectComments('');
-            } else {
-                toast.error('Failed to reject invoice');
-            }
+            const result = await rejectInvoice(businessId, rejectModal.invoiceId, user.id, rejectComments);
+            toast.success('Invoice rejected successfully');
+            await refetchPending(); // Refresh pending invoices list
+            setRejectModal({ invoiceId: '', show: false });
+            setRejectComments('');
         } catch (error) {
             console.error('Error rejecting invoice:', error);
             toast.error('Failed to reject invoice');
@@ -116,24 +88,14 @@ export default function InvoiceApprovalsPage() {
     };
 
     const handleBulkApprove = async () => {
-        if (!user || selectedInvoices.length === 0) return;
+        if (!user || !businessId || selectedInvoices.length === 0) return;
 
         try {
             setProcessingInvoice('bulk');
-            // TODO: Create hook for bulkApproveInvoices functionality
-            // const result = await bulkApproveInvoices(businessId, selectedInvoices, user.id);
-            toast.info('Bulk invoice approval feature needs hook migration');
-
-            // Temporary success simulation
-            const result = { success: true };
-
-            if (result.success) {
-                toast.success(`${selectedInvoices.length} invoices approved successfully`);
-                setSelectedInvoices([]);
-                await loadData();
-            } else {
-                toast.error('Failed to bulk approve invoices');
-            }
+            const result = await bulkApproveInvoices(businessId, selectedInvoices, user.id);
+            toast.success(`${selectedInvoices.length} invoices approved successfully`);
+            setSelectedInvoices([]);
+            await refetchPending(); // Refresh pending invoices list
         } catch (error) {
             console.error('Error bulk approving invoices:', error);
             toast.error('Failed to bulk approve invoices');
@@ -151,10 +113,10 @@ export default function InvoiceApprovalsPage() {
     };
 
     const toggleSelectAll = () => {
-        if (selectedInvoices.length === invoices.length) {
+        if (selectedInvoices.length === pendingInvoices.length) {
             setSelectedInvoices([]);
         } else {
-            setSelectedInvoices(invoices.map(invoice => invoice.id));
+            setSelectedInvoices(pendingInvoices.map((invoice: any) => invoice.id));
         }
     };
 
@@ -219,7 +181,7 @@ export default function InvoiceApprovalsPage() {
             </div>
 
             {/* Invoices List */}
-            {invoices.length === 0 ? (
+            {pendingInvoices.length === 0 ? (
                 <div className="text-center py-12">
                     <div className="text-6xl text-gray-300 mb-4">✅</div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">No pending approvals</h3>
@@ -234,7 +196,7 @@ export default function InvoiceApprovalsPage() {
                         <div className="flex items-center">
                             <input
                                 type="checkbox"
-                                checked={selectedInvoices.length === invoices.length}
+                                checked={selectedInvoices.length === pendingInvoices.length}
                                 onChange={toggleSelectAll}
                                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
@@ -244,7 +206,7 @@ export default function InvoiceApprovalsPage() {
 
                     {/* Table Body */}
                     <div className="divide-y divide-gray-200">
-                        {invoices.map((invoice) => (
+                        {pendingInvoices.map((invoice: any) => (
                             <div key={invoice.id} className="px-6 py-4">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-start">

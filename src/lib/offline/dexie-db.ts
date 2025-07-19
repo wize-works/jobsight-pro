@@ -128,6 +128,8 @@ export interface OfflineDB extends Dexie {
         businessId: string;
         table: string;
         checksum?: string;
+        lastError?: string;
+        lastErrorTimestamp?: number;
     }>;
 
     // User-business mappings for efficient offline lookup

@@ -327,8 +327,23 @@ if (typeof window !== 'undefined') {
     window.addEventListener('online', async () => {
         console.log('Device came online, triggering sync...');
 
-        // Get the current authenticated user ID
-        const currentUserId = localStorage.getItem('currentUserId'); // TODO: Replace with actual auth
+        // Get the current authenticated user ID from Clerk auth system
+        let currentUserId: string | null = null;
+
+        try {
+            // First priority: Use initialized Clerk user state (when online and available)
+            if (typeof global !== 'undefined' &&
+                global.authStateInitialized &&
+                global.currentClerkUser?.id) {
+                currentUserId = global.currentClerkUser.id;
+            }
+            // Second priority: Get from cached auth_id (for offline scenarios)
+            else if (typeof window !== 'undefined') {
+                currentUserId = window.localStorage.getItem('cached_auth_id');
+            }
+        } catch (error) {
+            console.error('Error getting current user ID:', error);
+        }
 
         if (currentUserId) {
             try {

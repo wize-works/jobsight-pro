@@ -203,14 +203,23 @@ export default function InvoiceCard({ invoice, onEdit, onSend }: InvoiceCardProp
                             try {
                                 const filename = `Invoice-${invoice.invoice_number}.pdf`;
 
-                                // Call the server action directly
-                                const { generateInvoicePdf } = await import('@/app/actions/pdf-generation-gotenberg');
-                                const result = await generateInvoicePdf(invoice.business_id, invoice.id, filename); if (!result.success || !result.buffer) {
-                                    throw new Error(result.error || 'Failed to generate PDF');
+                                // Generate PDF via API
+                                const response = await fetch('/api/pdf-generation', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        type: 'invoice',
+                                        invoiceId: invoice.id,
+                                        fileName: filename
+                                    })
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Failed to generate PDF');
                                 }
 
-                                // Convert buffer to blob and download
-                                const pdfBlob = new Blob([result.buffer], { type: 'application/pdf' });
+                                // Download the PDF
+                                const pdfBlob = await response.blob();
                                 const downloadUrl = window.URL.createObjectURL(pdfBlob);
                                 const link = document.createElement('a');
                                 link.href = downloadUrl;

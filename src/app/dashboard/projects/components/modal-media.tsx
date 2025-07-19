@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { MediaType } from "@/types/media";
-// TODO: Create project-specific media upload hook to replace server action
-// import { useMediaMutations } from "@/hooks/useMedia";
-import { uploadProjectMedia } from "@/app/actions/media";
 import { useBusiness } from "@/lib/business-context";
 
 interface MediaModalProps {
@@ -138,33 +135,38 @@ export default function MediaModal({ isOpen, onClose, projectId, onSuccess }: Me
             // Auto-detect file type if not explicitly set
             const fileType = getFileTypeFromFile(formData.file);
 
-            const success = await uploadProjectMedia(
-                businessId,
-                projectId,
-                formData.file,
-                formData.type || fileType,
-                formData.description
-            );
+            // Create FormData for file upload
+            const uploadData = new FormData();
+            uploadData.append('file', formData.file);
+            uploadData.append('name', formData.name);
+            uploadData.append('description', formData.description);
+            uploadData.append('type', formData.type || fileType);
+            uploadData.append('project_id', projectId);
 
-            if (success) {
-                toast.success({
-                    title: "Success",
-                    description: "Media uploaded successfully"
-                });
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: uploadData,
+            });
 
-                // Reset form
-                setFormData({
-                    name: "",
-                    description: "",
-                    type: "documents" as MediaType,
-                    file: null,
-                });
-
-                if (onSuccess) onSuccess();
-                onClose();
-            } else {
-                throw new Error("Upload failed");
+            if (!response.ok) {
+                throw new Error('Upload failed');
             }
+
+            toast.success({
+                title: "Success",
+                description: "Media uploaded successfully"
+            });
+
+            // Reset form
+            setFormData({
+                name: "",
+                description: "",
+                type: "documents" as MediaType,
+                file: null,
+            });
+
+            if (onSuccess) onSuccess();
+            onClose();
         } catch (error) {
             console.error("Error uploading media:", error);
             const errorMessage = "Failed to upload media";

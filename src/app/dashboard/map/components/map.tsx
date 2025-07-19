@@ -14,7 +14,7 @@ import { Equipment } from "@/types/equipment";
 import type { Project } from "@/types/projects";
 import React, { useEffect, useState } from "react";
 import { useProjects, useProjectMutations } from "@/hooks/useProjects";
-import { useEquipment, useEquipmentMutation } from "@/hooks/useEquipment";
+import { useEquipment, useEquipmentMutation } from "@/hooks/use-equipment";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import { useRouter } from "next/navigation";

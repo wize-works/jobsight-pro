@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useClients, useClientContacts, useClientInteractions } from "@/hooks/useClients";
+import { useClients, useClientContacts, useClientInteractions } from "@/hooks/use-clients";
 import { useProjects, useProjectMutations } from "@/hooks/useProjects";
-import { useInvoices, useCreateInvoice } from "@/hooks/useInvoices";
-import { useClientLogo } from "@/hooks/useMedia";
+import { useInvoices, useCreateInvoice } from "@/hooks/use-invoices";
+import { useClientLogo } from "@/hooks/use-media";
 import { mediaApi } from "@/lib/api/media";
 import { invoicesApi } from "@/lib/api/invoices";
 import { toast } from "@/hooks/use-toast";
@@ -16,7 +16,6 @@ import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } f
 import { Project, ProjectInsert, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { Client, ClientStatus, clientStatusOptions } from "@/types/clients";
 import { MediaType, Media } from "@/types/media";
-import { InvoiceInsert } from "@/types/invoices";
 import { CreateInvoiceData } from "@/lib/api/invoices";
 import { useBusiness } from "@/lib/business-context";
 import { getProxiedMediaUrl } from "@/lib/media-utils";
@@ -28,9 +27,6 @@ import ModalInvoice from "../components/modal-invoice";
 import ClientDetailLoading from "./loading";
 import ErrorBoundary from "@/components/error-boundary";
 import UniversalMediaManager from "@/components/universal-media-manager";
-
-import { generateClientHTML } from "@/app/actions/generate-html";
-import { generateClientPdf } from "@/app/actions/pdf-generation-gotenberg";
 
 export default function ClientPage({ params }: { params: Promise<{ id: string }> }) {
     const { businessId, business } = useBusiness();
@@ -163,8 +159,22 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
 
         setDownloadingPdf(true);
         try {
-            // Generate PDF using the new service
-            const result = await generateClientPdf(businessId, client.id, client.name);
+            // Generate PDF using API
+            const response = await fetch('/api/pdf-generation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'client',
+                    clientId: client.id,
+                    fileName: client.name
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+
+            const result = await response.json();
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to generate PDF');
@@ -845,8 +855,39 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
         if (!archiveInfo) {
             setArchiveLoading(true);
             try {
-                // TODO: Implement client archive info API
-                // For now, just show placeholder data
+                // Implement client archive info API
+                const response = await fetch(`/api/clients/${client.id}/archive-info?business_id=${businessId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setArchiveInfo({
+                        relatedData: data.relatedData || {
+                            projectCount: projects.length,
+                            contactCount: contacts.length,
+                            interactionCount: interactions.length,
+                            invoiceCount: 0
+                        }
+                    });
+                } else {
+                    // Fallback to local data if API not available
+                    setArchiveInfo({
+                        relatedData: {
+                            projectCount: projects.length,
+                            contactCount: contacts.length,
+                            interactionCount: interactions.length,
+                            invoiceCount: 0
+                        }
+                    });
+                }
+                setArchiveLoading(false);
+            } catch (error) {
+                setArchiveLoading(false);
+                // Use local data as fallback
                 setArchiveInfo({
                     relatedData: {
                         projectCount: projects.length,
@@ -855,14 +896,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                         invoiceCount: 0
                     }
                 });
-                setArchiveLoading(false);
-            } catch (error) {
-                setArchiveLoading(false);
-                toast.error({
-                    title: "Error loading client data",
-                    description: "Please try again or contact support.",
-                });
-                return;
+                console.warn("Archive info API not available, using local data:", error);
             }
         }
 

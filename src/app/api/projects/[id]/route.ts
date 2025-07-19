@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectById,
-    updateProject,
-    deleteProject,
-    getProjectDetailsByID,
-    updateProjectProgress
-} from '@/app/actions/projects';
+    getProjectByIdServer,
+    updateProjectServer,
+    deleteProjectServer,
+    getProjectDetailsByIDServer,
+    updateProjectProgressServer
+} from '@/lib/projects/server';
 
 /**
  * GET /api/projects/[id]
@@ -47,9 +47,9 @@ export async function GET(
             let project;
 
             if (includeDetails) {
-                project = await getProjectDetailsByID(profile.business_id, id);
+                project = await getProjectDetailsByIDServer(profile.business_id, id);
             } else {
-                project = await getProjectById(profile.business_id, id);
+                project = await getProjectByIdServer(profile.business_id, id);
             }
 
             if (!project) {
@@ -114,9 +114,9 @@ export async function PUT(
         let project;
 
         if (progressOnly && updateData.progress !== undefined) {
-            project = await updateProjectProgress(profile.business_id, id, updateData.progress);
+            project = await updateProjectProgressServer(profile.business_id, user.id, id, updateData.progress);
         } else {
-            project = await updateProject(profile.business_id, id, {
+            project = await updateProjectServer(profile.business_id, user.id, id, {
                 ...updateData,
                 updated_by: user.id
             });
@@ -168,7 +168,7 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const success = await deleteProject(profile.business_id, id);
+        const success = await deleteProjectServer(profile.business_id, user.id, id);
 
         if (!success) {
             return NextResponse.json({ success: false, error: 'Failed to delete project' }, { status: 500 });

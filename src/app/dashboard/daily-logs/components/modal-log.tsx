@@ -3,9 +3,8 @@ import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { DailyLogInsert, DailyLogWithDetails } from "@/types/daily-logs";
 import { useState, useEffect } from "react";
-import { useDailyLogs } from "@/hooks/useDailyLogs";
-import { useDailyLogMaterials } from "@/hooks/useDailyLogs";
-import { useDailyLogEquipment } from "@/hooks/useDailyLogs";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useDailyLogMaterials, useDailyLogEquipment } from "@/hooks/use-daily-logs";
 import { format } from "date-fns";
 import { DailyLogMaterialInsert } from "@/types/daily-log-materials";
 import { DailyLogEquipmentInsert } from "@/types/daily-log-equipment";
@@ -14,9 +13,9 @@ import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/type
 import { useUser } from "@clerk/nextjs";
 import { CrewMember } from "@/types/crew-members";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews } from "@/hooks/use-crews";
 import { useProjects } from "@/hooks/useProjects";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { useBusinessData } from "@/hooks/use-business-data";
 import { DailyLogAPI } from "@/lib/api/daily-logs";
 import { useBusiness } from "@/lib/business-context";
 

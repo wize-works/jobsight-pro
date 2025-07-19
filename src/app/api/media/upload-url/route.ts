@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { generateUploadUrl } from '@/app/actions/media';
+import { generateAzureUploadUrl } from '@/lib/media/azure';
 import { MediaType } from '@/types/media';
 
 export async function POST(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const uploadData = await generateUploadUrl(type as MediaType, filename);
+        const uploadData = await generateAzureUploadUrl(type as MediaType, filename);
 
         if (!uploadData) {
             return NextResponse.json({

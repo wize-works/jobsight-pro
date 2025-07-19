@@ -3,7 +3,7 @@ import { DailyLogWithDetails } from "@/types/daily-logs";
 import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { useState, useEffect } from "react";
-import { useDailyLogs } from "@/hooks/useDailyLogs";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { DailyLogAPI } from "@/lib/api/daily-logs";
 import { format } from "date-fns";
 import { DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";

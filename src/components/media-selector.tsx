@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { getMedias, searchMedias } from "@/app/actions/media"
+import { getMediasClient, searchMediasClient } from "@/lib/media/client"
 import { Media } from "@/types/media"
 import { useBusiness } from "@/lib/business-context"
 
@@ -40,7 +40,7 @@ export default function MediaSelector({
         const handleSearch = async () => {
             if (searchQuery.trim()) {
                 try {
-                    const results = await searchMedias(businessId, searchQuery)
+                    const results = await searchMediasClient(searchQuery)
                     setMediaItems(filterMedia(results))
                 } catch (error) {
                     console.error("Error searching media:", error)
@@ -57,7 +57,7 @@ export default function MediaSelector({
     const loadMediaItems = async () => {
         try {
             setLoading(true)
-            const data = await getMedias(businessId)
+            const data = await getMediasClient()
             setMediaItems(filterMedia(data))
         } catch (error) {
             console.error("Error loading media:", error)

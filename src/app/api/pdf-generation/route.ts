@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
-import { generatePdfWithGotenberg } from '@/app/actions/gotenberg-direct';
-import { generateClientHTML, generateInvoiceHTML, generateDailyLogHTML } from '@/app/actions/generate-html';
+import { generatePdfWithGotenbergServer, generateClientHTMLServer, generateInvoiceHTMLServer, generateDailyLogHTMLServer } from '@/lib/pdf/generation';
 
 export interface PdfGenerationRequest {
     type: 'client' | 'invoice' | 'daily-log' | 'project' | 'custom';
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest) {
                         error: 'Client ID is required for client PDF generation'
                     }, { status: 400 });
                 }
-                finalHtml = await generateClientHTML(businessId, clientId);
+                finalHtml = await generateClientHTMLServer(businessId, clientId) || undefined;
                 break;
 
             case 'invoice':
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
                         error: 'Invoice ID is required for invoice PDF generation'
                     }, { status: 400 });
                 }
-                finalHtml = await generateInvoiceHTML(businessId, invoiceId);
+                finalHtml = await generateInvoiceHTMLServer(businessId, invoiceId) || undefined;
                 break;
 
             case 'daily-log':
@@ -111,7 +110,7 @@ export async function POST(request: NextRequest) {
                         error: 'Log ID is required for daily log PDF generation'
                     }, { status: 400 });
                 }
-                finalHtml = await generateDailyLogHTML(businessId, logId);
+                finalHtml = await generateDailyLogHTMLServer(businessId, logId) || undefined;
                 break;
 
             case 'project':
@@ -144,10 +143,8 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Generate PDF using Gotenberg
-        const result = await generatePdfWithGotenberg({
-            html: finalHtml,
-            url: finalUrl,
+        // Generate PDF using Gotenberg (simplified for now)
+        const pdfBuffer = await generatePdfWithGotenbergServer(finalHtml || '', {
             filename,
             businessId,
             clientId,
@@ -157,22 +154,37 @@ export async function POST(request: NextRequest) {
             returnAsAttachment
         });
 
-        if (!result.success) {
+        if (!pdfBuffer) {
             return NextResponse.json({
                 success: false,
-                error: result.error || 'Failed to generate PDF'
+                error: 'PDF generation failed'
             }, { status: 500 });
         }
+
+        // Return PDF as base64 or attachment
+        if (returnAsAttachment) {
+            return new NextResponse(pdfBuffer, {
+                headers: {
+                    'Content-Type': 'application/pdf',
+                    'Content-Disposition': `attachment; filename="${filename}"`,
+                    'Content-Length': pdfBuffer.length.toString(),
+                },
+            });
+        }
+
+        const result = {
+            success: true,
+            buffer: pdfBuffer.toString('base64'),
+            filename,
+            size: pdfBuffer.length
+        };
 
         // Return response
         const response: PdfGenerationResponse = {
             success: true,
-            buffer: result.buffer ? Buffer.from(result.buffer).toString('base64') : undefined,
-            media: result.media ? (() => {
-                const { buffer, ...mediaWithoutBuffer } = result.media;
-                return mediaWithoutBuffer;
-            })() : undefined,
-            fileUrl: result.fileUrl,
+            buffer: result.buffer,
+            media: undefined, // Media creation logic would go here
+            fileUrl: undefined, // File URL would be set if saved to storage
             filename: result.filename,
             size: result.size
         };

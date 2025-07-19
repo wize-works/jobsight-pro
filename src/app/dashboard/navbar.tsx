@@ -5,7 +5,7 @@ import { Notifications } from "./notifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUser, UserButton, SignOutButton } from '@clerk/nextjs';
 import { User } from "@/types/users";
-import { getUserByAuthId } from "../actions/users";
+import { getUserByAuthIdClient } from "@/lib/users/client";
 import { useEffect, useState } from "react";
 import { get } from "http";
 import { useBusiness } from "@/lib/business-context";
@@ -38,7 +38,7 @@ export const Navbar = ({
         const loadUserData = async () => {
             setIsLoadingUser(true);
             try {
-                const dbUser = await getUserByAuthId(businessId, clerkUser.id);
+                const dbUser = await getUserByAuthIdClient(clerkUser.id);
                 setUserData(dbUser);
             } catch (error) {
                 console.error("Error loading user data:", error);

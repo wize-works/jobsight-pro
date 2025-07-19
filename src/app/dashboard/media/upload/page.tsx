@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { generateUploadUrl } from "@/app/actions/media"
-import { useMediaMutations } from "@/hooks/useMedia"
+import { useMediaMutations } from "@/hooks/use-media"
 import { useProjects } from "@/hooks/useProjects"
 import { Project } from "@/types/projects"
 import { MediaInsert, MediaType } from "@/types/media"
@@ -40,11 +39,20 @@ export default function MediaUpload() {
 
     const loadStorageUsage = async () => {
         try {
-            // TODO: Implement actual storage usage calculation
-            // For now, using placeholder data
-            setCurrentStorageUsedMB(150) // 150MB used
+            // Calculate actual storage usage from media data
+            const response = await fetch('/api/media?include=size');
+            if (response.ok) {
+                const mediaData = await response.json();
+                const totalBytes = mediaData.data.reduce((total: number, item: any) => total + (item.size || 0), 0);
+                const totalMB = totalBytes / (1024 * 1024);
+                setCurrentStorageUsedMB(Math.round(totalMB * 100) / 100); // Round to 2 decimal places
+            } else {
+                console.warn('Could not fetch media for storage calculation, using fallback');
+                setCurrentStorageUsedMB(0);
+            }
         } catch (error) {
-            console.error("Error loading storage usage:", error)
+            console.error("Error loading storage usage:", error);
+            setCurrentStorageUsedMB(0);
         }
     }
 
@@ -110,88 +118,48 @@ export default function MediaUpload() {
     // Upload a single file
     const uploadSingleFile = async (fileUpload: FileUpload): Promise<boolean> => {
         try {
-            const mediaType = getMediaTypeFromFile(fileUpload.file)
+            const mediaType = getMediaTypeFromFile(fileUpload.file);
 
-            // Generate upload URL
-            const uploadData = await generateUploadUrl(mediaType, fileUpload.file.name)
-            if (!uploadData) {
-                throw new Error("Failed to generate upload URL")
-            }
-
-            // Update file with upload URL
+            // Update file status to uploading
             setFiles(prev => prev.map(f =>
                 f.id === fileUpload.id
-                    ? { ...f, uploadUrl: uploadData.uploadUrl, url: uploadData.fileUrl, fileName: uploadData.fileName, status: "uploading" }
+                    ? { ...f, status: "uploading" }
                     : f
-            ))
+            ));
 
-            // Upload to Azure Blob Storage
-            const xhr = new XMLHttpRequest()
+            // Create FormData for upload
+            const formData = new FormData();
+            formData.append('file', fileUpload.file);
+            formData.append('name', fileUpload.file.name);
+            formData.append('description', '');
+            formData.append('type', mediaType);
+            if (selectedProject) {
+                formData.append('project_id', selectedProject);
+            }
 
-            return new Promise((resolve, reject) => {
-                xhr.upload.addEventListener("progress", (e) => {
-                    if (e.lengthComputable) {
-                        const progress = Math.round((e.loaded / e.total) * 100)
-                        setFiles(prev => prev.map(f =>
-                            f.id === fileUpload.id ? { ...f, progress } : f
-                        ))
-                    }
-                })
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData,
+            });
 
-                xhr.addEventListener("load", async () => {
-                    if (xhr.status === 201) {
-                        // File uploaded successfully, now create media record
-                        try {
-                            const mediaRecord = await createMedia({
-                                name: fileUpload.file.name,
-                                type: mediaType,
-                                size: fileUpload.file.size,
-                                url: uploadData.fileUrl,
-                                project_id: selectedProject || undefined,
-                            })
-
-                            if (mediaRecord) {
-                                setFiles(prev => prev.map(f =>
-                                    f.id === fileUpload.id ? { ...f, status: "completed", progress: 100 } : f
-                                ))
-                                resolve(true)
-                            } else {
-                                throw new Error("Failed to create media record")
-                            }
-                        } catch (error) {
-                            console.error("Error creating media record:", error)
-                            setFiles(prev => prev.map(f =>
-                                f.id === fileUpload.id ? { ...f, status: "error" } : f
-                            ))
-                            reject(error)
-                        }
-                    } else {
-                        setFiles(prev => prev.map(f =>
-                            f.id === fileUpload.id ? { ...f, status: "error" } : f
-                        ))
-                        reject(new Error(`Upload failed with status ${xhr.status}`))
-                    }
-                })
-
-                xhr.addEventListener("error", () => {
-                    setFiles(prev => prev.map(f =>
-                        f.id === fileUpload.id ? { ...f, status: "error" } : f
-                    ))
-                    reject(new Error("Upload failed"))
-                })
-
-                xhr.open("PUT", uploadData.uploadUrl)
-                xhr.setRequestHeader("x-ms-blob-type", "BlockBlob")
-                xhr.send(fileUpload.file)
-            })
+            if (response.ok) {
+                // Update file status to completed
+                setFiles(prev => prev.map(f =>
+                    f.id === fileUpload.id ? { ...f, status: "completed", progress: 100 } : f
+                ));
+                return true;
+            } else {
+                throw new Error('Upload failed');
+            }
         } catch (error) {
-            console.error("Error uploading file:", error)
+            console.error("Upload error:", error);
+            // Update file status to error
             setFiles(prev => prev.map(f =>
                 f.id === fileUpload.id ? { ...f, status: "error" } : f
-            ))
-            return false
+            ));
+            return false;
         }
-    }
+    };
 
     // Upload all files
     const handleUpload = async () => {

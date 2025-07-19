@@ -6,19 +6,16 @@ import { maintenanceTypeOptions, type EquipmentMaintenance, type EquipmentMainte
 import type { EquipmentUsage, EquipmentUsageWithDetails } from "@/types/equipment_usage";
 import type { EquipmentAssignment, EquipmentAssignmentWithDetails } from "@/types/equipment-assignments";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
-import { getEquipmentPrintableDetail, setEquipmentLocation } from "@/app/actions/equipments";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Media, MediaType } from "@/types/media";
 import QRCode from "@/components/qrcode";
 import { Suspense } from "react";
-import { linkMediaToEquipment, unlinkMediaFromEquipment, getMediaByEquipmentId, getAllMediaByEquipmentId, getAvailableMediaForEquipment, linkExistingMediaToEquipment, setEquipmentPrimaryImage, uploadEquipmentImage } from "@/app/actions/media";
 import UniversalMediaManager from "@/components/universal-media-manager";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 import Loading from "@/app/loading";
-import { getEquipmentSpecificationsByEquipmentId } from "@/app/actions/equipment-specifications";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import ModalLoading from "@/components/modal-loading";
 import EquipmentDetailLoading from "./loading";
@@ -55,7 +52,7 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
         refetch: requestLocation
     } = useCurrentPosition();
 
-    const updateLocationFromGPS = () => {
+    const updateLocationFromGPS = async () => {
         requestLocation();
 
         // Watch for position updates
@@ -63,8 +60,28 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
             const { latitude, longitude } = position.coords;
             const newLocation = `Lat: ${latitude}, Lon: ${longitude}`;
             setLocation(newLocation);
-            setEquipmentLocation(businessId, { id: equipment?.id, location: newLocation } as EquipmentUpdate);
-            toast.success("Equipment location has been updated");
+
+            try {
+                const response = await fetch(`/api/equipment/${equipment?.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        business_id: businessId,
+                        location: newLocation
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    toast.success("Equipment location has been updated");
+                } else {
+                    throw new Error(result.error || "Failed to update location");
+                }
+            } catch (error) {
+                console.error("Error updating equipment location:", error);
+                toast.error("Failed to update equipment location");
+            }
         } else if (geoError) {
             toast.error("Unable to get current location");
         }
@@ -103,27 +120,38 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                 setLoading(true);
                 const { id } = await params;
 
-                // Use the optimized single query to fetch all equipment data
-                const data = await getEquipmentPrintableDetail(businessId, id);
+                // Use API routes to fetch all equipment data
+                const [
+                    equipmentRes,
+                    maintenanceRes,
+                    usageRes,
+                    assignmentRes,
+                    specificationsRes,
+                    mediaRes,
+                    availableMediaRes
+                ] = await Promise.all([
+                    fetch(`/api/equipment/${id}?business_id=${businessId}`).then(r => r.json()),
+                    fetch(`/api/equipment-maintenance?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-usage?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-assignments?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/equipment-specifications?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/media?business_id=${businessId}&equipment_id=${id}`).then(r => r.json()),
+                    fetch(`/api/media?business_id=${businessId}&type=available&equipment_id=${id}`).then(r => r.json())
+                ]);
 
-                if (data) {
+                if (equipmentRes.data) {
+                    const data = equipmentRes.data;
                     setEquipmentData(data);
                     setEquipment(data);
                     setLocation(data.location || "");
 
-                    // Set related data from joined results
-                    setMaintenanceList(data.equipment_maintenance || []);
-                    setUsageList(data.equipment_usage || []);
-                    setAssignmentList(data.equipment_assignments || []);
-                    setEquipmentSpecifications(data.equipment_specifications || []);
-
-                    // Load media separately as it's not included in the main query
-                    const [linked, available] = await Promise.all([
-                        getAllMediaByEquipmentId(businessId, id),
-                        getAvailableMediaForEquipment(businessId, id)
-                    ]);
-                    setEquipmentMedia(linked);
-                    setAvailableMedia(available);
+                    // Set related data from API responses
+                    setMaintenanceList(maintenanceRes.data || []);
+                    setUsageList(usageRes.data || []);
+                    setAssignmentList(assignmentRes.data || []);
+                    setEquipmentSpecifications(specificationsRes.data || []);
+                    setEquipmentMedia(mediaRes.data || []);
+                    setAvailableMedia(availableMediaRes.data || []);
                 } else {
                     setEquipment(null);
                 }
@@ -150,13 +178,13 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
         try {
             console.log('loadMediaData called for equipment:', equipment?.id);
             setIsLoadingMedia(true);
-            const [linked, available] = await Promise.all([
-                getAllMediaByEquipmentId(businessId, equipment?.id || ""),
-                getAvailableMediaForEquipment(businessId, equipment?.id || "")
+            const [linkedRes, availableRes] = await Promise.all([
+                fetch(`/api/media?business_id=${businessId}&equipment_id=${equipment?.id || ""}`).then(r => r.json()),
+                fetch(`/api/media?business_id=${businessId}&type=available&equipment_id=${equipment?.id || ""}`).then(r => r.json())
             ]);
-            console.log('Media data loaded - linked:', linked.length, 'available:', available.length);
-            setEquipmentMedia(linked);
-            setAvailableMedia(available);
+            console.log('Media data loaded - linked:', linkedRes.data?.length || 0, 'available:', availableRes.data?.length || 0);
+            setEquipmentMedia(linkedRes.data || []);
+            setAvailableMedia(availableRes.data || []);
         } catch (error) {
             console.error("Error loading equipment media:", error);
             toast.error("Failed to load media data");
@@ -171,14 +199,27 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
         metadata: { name: string; description: string; type: MediaType }
     ): Promise<boolean> => {
         try {
-            const success = await uploadEquipmentImage(businessId, equipment?.id || "", file);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('equipment_id', equipment?.id || "");
+            formData.append('business_id', businessId);
+            formData.append('name', metadata.name);
+            formData.append('description', metadata.description);
+            formData.append('type', metadata.type);
 
-            if (success) {
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
                 await loadMediaData(); // Refresh data
                 toast.success("Media uploaded successfully");
                 return true;
             } else {
-                throw new Error("Upload failed");
+                throw new Error(result.error || "Upload failed");
             }
         } catch (error) {
             console.error("Error uploading media:", error);
@@ -189,14 +230,25 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
 
     const handleMediaLink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await linkExistingMediaToEquipment(businessId, mediaIds, equipment?.id || "");
+            const response = await fetch('/api/media-links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    business_id: businessId,
+                    media_ids: mediaIds,
+                    linked_id: equipment?.id || "",
+                    linked_type: "equipment"
+                })
+            });
 
-            if (success) {
+            const result = await response.json();
+
+            if (result.success) {
                 await loadMediaData(); // Refresh data
                 toast.success(`Linked ${mediaIds.length} media item(s)`);
                 return { success: true };
             } else {
-                throw new Error("Link failed");
+                throw new Error(result.error || "Link failed");
             }
         } catch (error) {
             console.error("Error linking media:", error);
@@ -210,8 +262,19 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
         try {
             let success = true;
             for (const mediaId of mediaIds) {
-                const result = await unlinkMediaFromEquipment(businessId, mediaId, equipment?.id || "");
-                if (!result) {
+                const response = await fetch('/api/media-links', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        business_id: businessId,
+                        media_id: mediaId,
+                        linked_id: equipment?.id || "",
+                        linked_type: "equipment"
+                    })
+                });
+
+                const result = await response.json();
+                if (!result.success) {
                     success = false;
                     break;
                 }
@@ -236,11 +299,25 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
     const handleSetPrimaryImage = async (mediaId: string) => {
         setIsLoadingMedia(true);
         try {
-            await setEquipmentPrimaryImage(businessId, equipment?.id || "", mediaId);
-            toast.success("Primary image updated");
+            const response = await fetch('/api/equipment', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    business_id: businessId,
+                    equipment_id: equipment?.id || "",
+                    primary_image_id: mediaId
+                })
+            });
 
-            // Refresh the page to show updated image
-            window.location.reload();
+            const result = await response.json();
+
+            if (result.success) {
+                toast.success("Primary image updated");
+                // Refresh the page to show updated image
+                window.location.reload();
+            } else {
+                throw new Error(result.error || "Failed to set primary image");
+            }
         } catch (error) {
             console.error("Error setting primary image:", error);
             toast.error("Failed to set primary image");
@@ -262,14 +339,30 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
 
         setIsUploadingImage(true);
         try {
-            await uploadEquipmentImage(businessId, equipment?.id || "", file);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('equipment_id', equipment?.id || "");
+            formData.append('business_id', businessId);
+            formData.append('type', 'image');
 
-            toast.success("Equipment image uploaded successfully");
+            const response = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: formData
+            });
 
-            // Refresh media list and page
-            const updatedMedia = await getMediaByEquipmentId(businessId, equipment?.id || "", "");
-            setEquipmentMedia(updatedMedia);
-            window.location.reload();
+            const result = await response.json();
+
+            if (result.success) {
+                toast.success("Equipment image uploaded successfully");
+
+                // Refresh media list and page
+                const mediaResponse = await fetch(`/api/media?business_id=${businessId}&equipment_id=${equipment?.id || ""}`);
+                const mediaResult = await mediaResponse.json();
+                setEquipmentMedia(mediaResult.data || []);
+                window.location.reload();
+            } else {
+                throw new Error(result.error || "Upload failed");
+            }
         } catch (error) {
             console.error("Error uploading image:", error);
             toast.error("Failed to upload image");
@@ -793,13 +886,44 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-2">Cost Breakdown</h3>
-                                    {/* <ul> TODO: Implement cost breakdown
-                                        <li>Maintenance Costs: {maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) ? `$${maintenances.reduce((acc, m) => acc + (m.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
-                                        <li>Usage Costs: {usages.reduce((acc, u: EquipmentUsage) => acc + (u.cost || 0), 0) ? `$${usages.reduce((acc, u) => acc + (u.cost || 0), 0).toLocaleString()}` : "Not set"}</li>
-                                        <li>Total Cost: {equipment.purchase_price && equipment.current_value
-                                            ? `$${(equipment.purchase_price - equipment.current_value + maintenances.reduce((acc, m) => acc + (m.cost || 0), 0) + usages.reduce((acc, u) => acc + (u.cost || 0), 0)).toLocaleString()}`
-                                            : "Not set"}</li>
-                                    </ul> */}
+                                    <ul className="space-y-2">
+                                        <li className="flex justify-between">
+                                            <span>Maintenance Costs:</span>
+                                            <span className="font-semibold">
+                                                {maintenanceList.reduce((acc: number, m: any) => acc + (m.cost || 0), 0) > 0
+                                                    ? `$${maintenanceList.reduce((acc: number, m: any) => acc + (m.cost || 0), 0).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        <li className="flex justify-between">
+                                            <span>Usage Costs:</span>
+                                            <span className="font-semibold">
+                                                {usageList.reduce((acc: number, u: any) => acc + (u.cost || 0), 0) > 0
+                                                    ? `$${usageList.reduce((acc: number, u: any) => acc + (u.cost || 0), 0).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        <li className="flex justify-between border-t pt-2">
+                                            <span className="font-semibold">Total Operating Cost:</span>
+                                            <span className="font-bold">
+                                                {equipment.purchase_price || maintenanceList.length > 0 || usageList.length > 0
+                                                    ? `$${((equipment.purchase_price || 0) +
+                                                        maintenanceList.reduce((acc: number, m: any) => acc + (m.cost || 0), 0) +
+                                                        usageList.reduce((acc: number, u: any) => acc + (u.cost || 0), 0)).toLocaleString()}`
+                                                    : "Not set"}
+                                            </span>
+                                        </li>
+                                        {equipment.current_value && (
+                                            <li className="flex justify-between">
+                                                <span>Current Depreciation:</span>
+                                                <span className="font-semibold text-error">
+                                                    {equipment.purchase_price
+                                                        ? `-$${(equipment.purchase_price - equipment.current_value).toLocaleString()}`
+                                                        : "Not set"}
+                                                </span>
+                                            </li>
+                                        )}
+                                    </ul>
                                 </div>
                             </div>
                         )}

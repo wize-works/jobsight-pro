@@ -18,6 +18,7 @@ import {
     createSuccessResponse,
     createErrorResponse
 } from "@/types/client-actions";
+import { getCurrentSubscription } from "./subscriptions";
 import { v4 as uuidv4 } from "uuid";
 
 // Global auth state for client actions
@@ -27,11 +28,11 @@ if (typeof global !== 'undefined') {
     if (!Object.prototype.hasOwnProperty.call(global, 'currentClerkUser')) {
         global.currentClerkUser = null;
     }
-    
+
     if (!Object.prototype.hasOwnProperty.call(global, 'authStateInitialized')) {
         global.authStateInitialized = false;
     }
-    
+
     if (!Object.prototype.hasOwnProperty.call(global, 'currentBusinessId')) {
         global.currentBusinessId = null;
     }
@@ -68,8 +69,8 @@ function isOnline(): boolean {
 async function getCurrentUserId(): Promise<string | null> {
     try {
         // First priority: Use initialized Clerk user state (when online and available)
-        if (typeof global !== 'undefined' && 
-            global.authStateInitialized && 
+        if (typeof global !== 'undefined' &&
+            global.authStateInitialized &&
             global.currentClerkUser?.id) {
             return global.currentClerkUser.id;
         }
@@ -502,14 +503,24 @@ export async function checkBusinessStatus(userId: string): Promise<{
     try {
         const businessResponse = await getUserBusiness(userId);
 
-        // TODO: Implement subscription check from cache/server
-        // For now, we'll return basic business status
+        if (!businessResponse.success || !businessResponse.data) {
+            return {
+                success: true,
+                hasBusiness: false,
+                hasSubscription: false,
+                businessId: null
+            };
+        }
+
+        // Check for active subscription using the business ID
+        const subscription = await getCurrentSubscription(businessResponse.data.id);
+        const hasActiveSubscription = !!(subscription && (subscription.status === 'active' || subscription.status === 'trialing'));
 
         return {
             success: true,
-            hasBusiness: businessResponse.success && !!businessResponse.data,
-            hasSubscription: false, // TODO: Implement subscription check
-            businessId: businessResponse.data?.id || null
+            hasBusiness: true,
+            hasSubscription: hasActiveSubscription,
+            businessId: businessResponse.data.id
         };
     } catch (error) {
         console.error("Error in checkBusinessStatus:", error);
@@ -543,8 +554,6 @@ export async function assignSubscriptionToBusiness(
             updated_by: userId,
         };
 
-        // TODO: Add business_subscriptions table to Dexie schema
-        // For now, we'll queue this for server sync only
         await BusinessOfflineManager.addToSyncQueue(
             'business_subscriptions',
             'insert',

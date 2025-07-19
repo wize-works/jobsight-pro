@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAIQuery } from '@/app/actions/ai';
-import { transcribeAudio } from '@/app/actions/ai';
-import { submitFeedback, getFeedbackForMessage } from '@/app/actions/feedback';
+import { processAIQueryClient, transcribeAudioClient } from '@/lib/ai/client-functions';
+import { submitFeedbackClient, getFeedbackForMessageClient } from '@/lib/feedback/client-functions';
 import { useBusiness } from '@/lib/business-context';
 import { useUser } from '@clerk/nextjs';
 import ErrorBoundary from '@/components/error-boundary';
@@ -129,10 +128,9 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                 return ((hash << 5) - hash) + char.charCodeAt(0);
             }, 0)) % 2147483647; // Max 32-bit signed integer
 
-            const result = await submitFeedback(businessId, {
+            const result = await submitFeedbackClient({
                 messageId: messageIdHash,
-                feedbackType,
-                authId: user.id
+                feedbackType
             });
 
             if (result.success) {
@@ -158,7 +156,7 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
                     return ((hash << 5) - hash) + char.charCodeAt(0);
                 }, 0)) % 2147483647; // Max 32-bit signed integer
 
-                const result = await getFeedbackForMessage(messageIdHash, user.id);
+                const result = await getFeedbackForMessageClient(messageIdHash);
                 if (result.feedbackType) {
                     feedback[message.id] = result.feedbackType;
                 }
@@ -211,7 +209,7 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         try {
             addToConversation("user", "🎙️ Voice message");
 
-            const transcriptionResult = await transcribeAudio(audioBlob);
+            const transcriptionResult = await transcribeAudioClient(audioBlob);
 
             if (transcriptionResult.error) {
                 addToConversation("assistant", `Sorry, I couldn't transcribe your voice message: ${transcriptionResult.error}`);
@@ -252,14 +250,12 @@ export function AIAssistantPanel({ isOpen, onClose, context }: AIAssistantPanelP
         setError("");
 
         try {
-            const result = await processAIQuery(
-                businessId,
+            const result = await processAIQueryClient(
                 message,
                 conversation.slice(-5).map(msg => ({
                     role: msg.type === "user" ? "user" : "assistant",
                     content: msg.content
-                })),
-                user?.id || ""
+                }))
             );
 
             addToConversation("assistant", result.response);

@@ -10,7 +10,7 @@ import { CrewMember } from '@/types/crew-members';
 import { Equipment } from '@/types/equipment';
 import { BillingRate, RateValidationResult } from '@/types/invoice-automation';
 import { useRateManagement } from '@/hooks/useRateManagement';
-import { useBusinessData } from '@/hooks/useBusinessData';
+import { useBusinessData } from '@/hooks/use-business-data';
 import { toast } from '@/hooks/use-toast';
 
 interface RateManagementProps {

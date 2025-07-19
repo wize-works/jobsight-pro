@@ -7,8 +7,7 @@ import { Project } from "@/types/projects";
 import { ProjectMilestone } from "@/types/project_milestones";
 import { Crew } from "@/types/crews";
 import { useTaskMutations } from "@/hooks/useTasks";
-// TODO: Create useProjectMilestones hook
-// import { useProjectMilestones } from "@/hooks/useProjectMilestones";
+import { useProjectMilestones } from "@/hooks/useProjectMilestones";
 import { useBusiness } from "@/lib/business-context";
 import { formatDate } from "@/utils/date";
 import { formatDistance, formatDistanceToNow } from "date-fns";
@@ -46,8 +45,7 @@ export default function TaskDetailsModal({
 
     // Hooks for task mutations
     const { createTask, updateTask, deleteTask } = useTaskMutations();
-    // TODO: Replace with useProjectMilestones hook when available
-    // const { getMilestonesByProject } = useProjectMilestones();
+    const { getMilestonesByProject } = useProjectMilestones();
 
     const isCreating = !task;
 
@@ -60,14 +58,12 @@ export default function TaskDetailsModal({
 
         try {
             setLoadingMilestones(true);
-            // TODO: Replace with hook when useProjectMilestones is available
-            // const result = await getMilestonesByProject(projectId);
-            // if (result.success) {
-            //     setMilestones(result.milestones || []);
-            // } else {
-            //     setMilestones([]);
-            // }
-            setMilestones([]); // Temporary: no milestones until hook is created
+            const result = await getMilestonesByProject(projectId);
+            if (result.success) {
+                setMilestones(result.milestones || []);
+            } else {
+                setMilestones([]);
+            }
         } catch (error) {
             console.error("Error loading milestones:", error);
             setMilestones([]);

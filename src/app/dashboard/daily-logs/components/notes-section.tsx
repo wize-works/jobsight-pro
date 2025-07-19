@@ -1,7 +1,6 @@
 
 "use client";
 import { useState, useEffect } from "react";
-import { getTaskNotes, createTaskNote } from "@/app/actions/task-notes";
 import { TaskNote, TaskNoteInsert } from "@/types/task-notes";
 import { useBusiness } from "@/lib/business-context";
 
@@ -17,32 +16,67 @@ export default function NotesSection({ dailyLogId }: NotesSectionProps) {
 
     useEffect(() => {
         const loadNotes = async () => {
-            const taskNotes = await getTaskNotes(businessId);
-            // Filter notes related to this daily log if needed
-            setNotes(taskNotes);
+            if (!businessId || !dailyLogId) return;
+
+            try {
+                const response = await fetch(`/api/tasks?action=get-notes&id=${encodeURIComponent(dailyLogId)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch task notes');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    setNotes(result.notes || []);
+                } else {
+                    console.error('Error loading notes:', result.error);
+                    setNotes([]);
+                }
+            } catch (error) {
+                console.error('Error loading notes:', error);
+                setNotes([]);
+            }
         };
         loadNotes();
-    }, [dailyLogId]);
+    }, [dailyLogId, businessId]);
 
     const handleAddNote = async () => {
         if (!newNote.trim()) return;
 
         setLoading(true);
         try {
-            const noteData: TaskNoteInsert = {
-                id: crypto.randomUUID(),
-                task_id: dailyLogId, // Using daily log ID as task ID for now
+            const noteData = {
+                task_id: dailyLogId,
                 content: newNote.trim(),
-                business_id: "", // This will be set by the server action
-                created_by: "", // This will be set by the server action
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            } as TaskNoteInsert;
+            };
 
-            const createdNote = await createTaskNote(businessId, noteData);
-            if (createdNote) {
-                setNotes([...notes, createdNote]);
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'create-note',
+                    note: noteData,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create note');
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                // Reload notes to get the updated list
+                const notesResponse = await fetch(`/api/tasks?action=get-notes&id=${encodeURIComponent(dailyLogId)}`);
+                if (notesResponse.ok) {
+                    const notesResult = await notesResponse.json();
+                    if (notesResult.success) {
+                        setNotes(notesResult.notes || []);
+                    }
+                }
                 setNewNote("");
+            } else {
+                throw new Error(result.error || 'Failed to create note');
             }
         } catch (error) {
             console.error("Error adding note:", error);

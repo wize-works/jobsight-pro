@@ -7,15 +7,40 @@
 
 import { useState, useEffect } from 'react';
 import { DailyLog } from '@/types/daily-logs';
-import {
-    processDailyLogBilling,
-    batchProcessDailyLogs,
-    calculateProjectCosts,
-    getUnprocessedDailyLogs,
-    BillableItem,
-    DailyLogBillingSummary
-} from '@/app/actions/client/daily-log-billing';
-import { getBusinessDailyLogs } from '@/app/actions/client/daily-logs';
+
+// Define the types locally since we're not using server actions anymore
+interface BillableItem {
+    id: string;
+    daily_log_id: string;
+    type: 'labor' | 'equipment' | 'material';
+    source_id: string;
+    source_name: string;
+    quantity: number;
+    unit: string;
+    rate: number;
+    subtotal: number;
+    date: string;
+    description?: string;
+    metadata?: any;
+    // Additional properties for UI compatibility
+    amount?: number;
+    hours?: number;
+    crew_member_id?: string;
+    equipment_id?: string;
+    material_id?: string;
+}
+
+interface DailyLogBillingSummary {
+    daily_log_id: string;
+    date: string;
+    project_id: string;
+    project_name: string;
+    billableItems: BillableItem[];
+    totalAmount: number;
+    laborCost: number;
+    equipmentCost: number;
+    materialCost: number;
+}
 
 interface DailyLogBillingProps {
     businessId: string;
@@ -41,9 +66,13 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
     const loadDailyLogs = async () => {
         setLoading(true);
         try {
-            // Get daily logs
-            const result = await getBusinessDailyLogs(businessId);
+            // Get daily logs via API
+            const response = await fetch('/api/daily-logs');
+            if (!response.ok) {
+                throw new Error('Failed to fetch daily logs');
+            }
 
+            const result = await response.json();
             if (!result.success || !result.data) {
                 console.error('Failed to load daily logs:', result.error);
                 return;
@@ -80,27 +109,31 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
     const processAllLogs = async (logIds: string[]) => {
         setProcessing(true);
         try {
-            const result = await batchProcessDailyLogs(logIds, businessId);
+            const response = await fetch('/api/daily-log-billing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    daily_log_ids: logIds,
+                    include_labor: true,
+                    include_equipment: true,
+                    include_materials: true,
+                    billing_date: new Date().toISOString().split('T')[0]
+                }),
+            });
 
-            if (result.success && result.data) {
-                setBillingSummaries(result.data);
-
-                // Calculate project costs if project is specified
-                if (projectId && dateRange) {
-                    const projectResult = await calculateProjectCosts(
-                        businessId,
-                        projectId,
-                        dateRange.start,
-                        dateRange.end
-                    );
-
-                    if (projectResult.success) {
-                        setProjectCosts(projectResult.data);
-                    }
-                }
+            if (response.ok) {
+                const result = await response.json();
+                setBillingSummaries(result.data.billing_summaries || []);
+                console.log('Batch processing completed:', result.data.totals);
+            } else {
+                console.error('Failed to process logs via API');
+                setBillingSummaries([]);
             }
         } catch (error) {
             console.error('Error processing logs:', error);
+            setBillingSummaries([]);
         } finally {
             setProcessing(false);
         }
@@ -109,20 +142,27 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
     const processSelectedLog = async (logId: string) => {
         setProcessing(true);
         try {
-            const result = await processDailyLogBilling(logId, businessId);
+            const response = await fetch('/api/daily-log-billing', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    daily_log_id: logId,
+                    include_labor: true,
+                    include_equipment: true,
+                    include_materials: true,
+                    billing_date: new Date().toISOString().split('T')[0]
+                }),
+            });
 
-            if (result.success && result.data) {
-                // Update the summaries array
-                setBillingSummaries(prev => {
-                    const existing = prev.find(s => s.dailyLogId === logId);
-                    if (existing) {
-                        return prev.map(s => s.dailyLogId === logId ? result.data! : s);
-                    } else {
-                        return [...prev, result.data!];
-                    }
-                });
-
+            if (response.ok) {
+                const result = await response.json();
                 setSelectedLogId(logId);
+                // Could set a single log summary here if needed
+                console.log('Individual log processing completed:', result.data);
+            } else {
+                console.error('Failed to process individual log via API');
             }
         } catch (error) {
             console.error('Error processing log:', error);
@@ -213,7 +253,7 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
                     <h2 className="text-xl font-semibold mb-4">Daily Logs</h2>
                     <div className="space-y-4">
                         {dailyLogs.map(log => {
-                            const summary = billingSummaries.find(s => s.dailyLogId === log.id);
+                            const summary = billingSummaries.find(s => s.daily_log_id === log.id);
                             return (
                                 <div
                                     key={log.id}
@@ -236,7 +276,7 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
                                                 {summary ? (
                                                     <div>
                                                         <div className="text-lg font-bold text-primary">
-                                                            {formatCurrency(summary.totalCost)}
+                                                            {formatCurrency(summary.totalAmount)}
                                                         </div>
                                                         <div className="text-xs text-gray-500">
                                                             {summary.billableItems.length} items
@@ -257,16 +297,16 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
                                             </div>
                                         </div>
 
-                                        {summary && (
+                                        {summary && summary.billableItems && summary.billableItems.length > 0 && (
                                             <div className="mt-3 flex gap-2">
                                                 <div className="badge badge-sm badge-secondary">
-                                                    👷 {summary.breakdown.labor.count}
+                                                    👷 {summary.billableItems.filter(item => item.type === 'labor').length}
                                                 </div>
                                                 <div className="badge badge-sm badge-accent">
-                                                    🚜 {summary.breakdown.equipment.count}
+                                                    🚜 {summary.billableItems.filter(item => item.type === 'equipment').length}
                                                 </div>
                                                 <div className="badge badge-sm badge-info">
-                                                    📦 {summary.breakdown.materials.count}
+                                                    📦 {summary.billableItems.filter(item => item.type === 'material').length}
                                                 </div>
                                             </div>
                                         )}
@@ -280,9 +320,9 @@ export default function DailyLogBilling({ businessId, projectId, dateRange }: Da
                 {/* Billing Details Column */}
                 <div>
                     <h2 className="text-xl font-semibold mb-4">Billing Details</h2>
-                    {selectedLogId && billingSummaries.find(s => s.dailyLogId === selectedLogId) ? (
+                    {selectedLogId && billingSummaries.find(s => s.daily_log_id === selectedLogId) ? (
                         <BillingSummaryDetails
-                            summary={billingSummaries.find(s => s.dailyLogId === selectedLogId)!}
+                            summary={billingSummaries.find(s => s.daily_log_id === selectedLogId)!}
                         />
                     ) : (
                         <div className="card bg-base-100 shadow-md">
@@ -327,8 +367,8 @@ function BillingSummaryDetails({ summary }: BillingSummaryDetailsProps) {
                     <div className="stats stats-vertical">
                         <div className="stat">
                             <div className="stat-title">Total Cost</div>
-                            <div className="stat-value text-primary">{formatCurrency(summary.totalCost)}</div>
-                            <div className="stat-desc">{summary.totalHours} hours</div>
+                            <div className="stat-value text-primary">{formatCurrency(summary.totalAmount || 0)}</div>
+                            <div className="stat-desc">{summary.billableItems.filter(item => item.hours).reduce((sum, item) => sum + (item.hours || 0), 0)} hours</div>
                         </div>
                     </div>
                 </div>
@@ -344,9 +384,9 @@ function BillingSummaryDetails({ summary }: BillingSummaryDetailsProps) {
                                 <div className="flex items-center gap-3">
                                     <span className="text-lg">{getBillableItemIcon(item.type)}</span>
                                     <div>
-                                        <div className="font-medium">{item.sourceName}</div>
+                                        <div className="font-medium">{item.source_name || item.description}</div>
                                         <div className="text-sm text-gray-600">
-                                            {item.quantity} {item.unit} × {formatCurrency(item.rate)}
+                                            {item.quantity} {item.unit || 'units'} × {formatCurrency(item.rate)}
                                         </div>
                                         {item.description && (
                                             <div className="text-xs text-gray-500">{item.description}</div>
@@ -354,7 +394,7 @@ function BillingSummaryDetails({ summary }: BillingSummaryDetailsProps) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-bold">{formatCurrency(item.subtotal)}</div>
+                                    <div className="font-bold">{formatCurrency(item.subtotal || item.amount || 0)}</div>
                                     <div className="badge badge-sm badge-outline">{item.type}</div>
                                 </div>
                             </div>

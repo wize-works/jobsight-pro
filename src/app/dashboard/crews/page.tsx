@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Crew, CrewInsert, CrewStatus, CrewWithDetails, CrewWithStats } from "@/types/crews";
-import { useCrews } from "@/hooks/useCrews";
+import { useCrews } from "@/hooks/use-crews";
 import { toast } from "@/hooks/use-toast";
 import { CrewCard } from "./components/card";
 import { crewStatusOptions, crewTypeOptions } from "@/types/crews";

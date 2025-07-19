@@ -282,9 +282,39 @@ class OfflineStatusManager {
 
     private async updatePendingChanges(): Promise<void> {
         try {
-            // This would integrate with your Dexie database
-            // For now, using placeholder logic
-            this.status.pendingChanges = 0; // await this.countPendingChanges();
+            // Enhanced pending changes tracking using Dexie database
+            const { db } = await import('@/lib/offline/dexie-db');
+
+            // Count pending changes across all tables
+            let pendingChanges = 0;
+
+            // Count items pending sync in various tables
+            const syncMetadata = await db.syncMetadata.toArray();
+            const lastSyncTimes = syncMetadata.reduce((acc: Record<string, number>, meta: any) => {
+                acc[meta.table] = meta.lastSync;
+                return acc;
+            }, {} as Record<string, number>);
+
+            // Check each table for items modified after last sync
+            const tables = ['projects', 'tasks', 'dailyLogs', 'projectCrews', 'projectMilestones'];
+
+            for (const tableName of tables) {
+                try {
+                    const table = (db as any)[tableName];
+                    if (table) {
+                        const lastSync = lastSyncTimes[tableName] || 0;
+                        const modifiedItems = await table
+                            .where('updated_at')
+                            .above(new Date(lastSync).toISOString())
+                            .count();
+                        pendingChanges += modifiedItems;
+                    }
+                } catch (tableError) {
+                    console.warn(`Failed to check pending changes for ${tableName}:`, tableError);
+                }
+            }
+
+            this.status.pendingChanges = pendingChanges;
 
             // Update pending conflicts
             const { ConflictResolutionService } = await import('./conflict-resolution');
@@ -292,6 +322,8 @@ class OfflineStatusManager {
             this.status.pendingConflicts = conflictService.getPendingConflicts().length;
         } catch (error) {
             console.warn('Failed to update pending changes:', error);
+            // Fallback to zero if database access fails
+            this.status.pendingChanges = 0;
         }
     }
 
@@ -379,16 +411,50 @@ class OfflineStatusManager {
         };
 
         try {
-            // This would integrate with your Dexie database to get entity counts
-            // For now, using placeholder data
+            // Enhanced entity storage info using Dexie database
+            const { db } = await import('@/lib/offline/dexie-db');
+
+            // Calculate entity counts and estimated sizes
+            const [
+                tasksCount,
+                clientsCount,
+                mediaCount,
+                projectsCount,
+                dailyLogsCount
+            ] = await Promise.all([
+                db.tasks.count(),
+                db.clients.count(),
+                db.media.count(),
+                db.projects.count(),
+                db.dailyLogs.count()
+            ]);
+
+            // Estimate storage sizes (rough calculation based on typical record sizes)
+            const estimatedSizes = {
+                tasks: tasksCount * 2048,      // ~2KB per task
+                clients: clientsCount * 1024,  // ~1KB per client  
+                media: mediaCount * 512,       // ~512B per media record (metadata only)
+                projects: projectsCount * 1536, // ~1.5KB per project
+                dailyLogs: dailyLogsCount * 3072 // ~3KB per daily log
+            };
+
+            storageInfo.entities = {
+                tasks: { count: tasksCount, size: estimatedSizes.tasks },
+                clients: { count: clientsCount, size: estimatedSizes.clients },
+                media: { count: mediaCount, size: estimatedSizes.media },
+                projects: { count: projectsCount, size: estimatedSizes.projects },
+                dailyLogs: { count: dailyLogsCount, size: estimatedSizes.dailyLogs }
+            };
+        } catch (error) {
+            console.warn('Failed to get detailed storage info:', error);
+            // Fallback to placeholder data
             storageInfo.entities = {
                 tasks: { count: 0, size: 0 },
                 clients: { count: 0, size: 0 },
                 media: { count: 0, size: 0 },
-                documents: { count: 0, size: 0 }
+                projects: { count: 0, size: 0 },
+                dailyLogs: { count: 0, size: 0 }
             };
-        } catch (error) {
-            console.warn('Failed to get detailed storage info:', error);
         }
 
         return storageInfo;

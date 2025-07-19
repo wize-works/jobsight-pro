@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { EquipmentUpdate, EquipmentWithDetails } from "@/types/equipment";
 import type { EquipmentSpecification } from "@/types/equipment-specifications";
 import { useRouter } from "next/navigation";
-import { useEquipmentMutation, useEquipmentSpecificationMutation } from "@/hooks/useEquipment";
+import { useEquipmentMutation, useEquipmentSpecificationMutation } from "@/hooks/use-equipment";
 import { useBusiness } from "@/lib/business-context";
 import { useCurrentPosition } from "@/hooks/use-geolocation";
 import { toast } from "@/hooks/use-toast";

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { InvoiceEmail } from '@/components/email-examples';
-import { generateInvoicePdf } from '@/app/actions/pdf-generation-gotenberg';
+import { generateInvoicePdfServer } from '@/lib/pdf/invoice';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -58,17 +58,19 @@ export async function POST(request: NextRequest) {
         let pdfAttachment = null;
         if (attachPDF) {
             try {
-                // Use our new server action to generate PDF
+                // Use our PDF generation utility
                 const filename = `Invoice-${invoiceData.invoice_number}.pdf`;
-                const pdfResult = await generateInvoicePdf(invoiceData.business_id, invoiceData.id, filename); if (pdfResult.success && pdfResult.buffer) {
+                const pdfBuffer = await generateInvoicePdfServer(invoiceData, businessInfo);
+
+                if (pdfBuffer) {
                     // Convert buffer to base64 for email attachment
-                    const base64Content = Buffer.from(pdfResult.buffer).toString('base64');
+                    const base64Content = Buffer.from(pdfBuffer).toString('base64');
                     pdfAttachment = {
                         filename,
                         content: base64Content,
                     };
                 } else {
-                    console.warn('Failed to generate PDF attachment:', pdfResult.error);
+                    console.warn('Failed to generate PDF attachment');
                 }
             } catch (pdfError) {
                 console.warn('Error generating PDF attachment:', pdfError);

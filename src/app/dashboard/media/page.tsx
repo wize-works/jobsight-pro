@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useMedia, useMediaMutations, useMediaSearch } from "@/hooks/useMedia"
+import { useMedia, useMediaMutations, useMediaSearch } from "@/hooks/use-media"
 import { useProjects } from "@/hooks/useProjects"
 import { Media } from "@/types/media"
 import { Project } from "@/types/projects"

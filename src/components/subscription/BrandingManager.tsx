@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
 import { FeatureGate } from "./FeatureGate";
 import { toast } from "react-hot-toast";
-import { generateUploadUrl, createMedia } from "@/app/actions/media";
+import { generateUploadUrlClient, createMediaClient } from "@/lib/media/client-functions";
 import { MediaInsert } from "@/types/media";
 
 interface BrandingSettings {
@@ -58,7 +58,7 @@ export function BrandingManager({
         setIsLoading(true);
         try {
             // Generate upload URL for images container
-            const uploadData = await generateUploadUrl("images", file.name);
+            const uploadData = await generateUploadUrlClient("images", file.name);
             if (!uploadData) {
                 throw new Error("Failed to generate upload URL");
             }
@@ -78,24 +78,19 @@ export function BrandingManager({
             }
 
             // Create media record for the logo
-            const mediaData: MediaInsert = {
+            const mediaData = {
                 name: `${file.name}-branding-logo`,
                 description: `Custom branding logo for business`,
-                type: "image",
+                type: "image" as const,
                 url: uploadData.fileUrl,
                 size: file.size,
                 id: "",
-                business_id: businessId,
                 project_id: null,
-                uploaded_by: "", // Will be set by server action
-                uploaded_at: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-                created_by: "", // Will be set by server action
-                updated_at: new Date().toISOString(),
-                updated_by: "" // Will be set by server action
+                uploaded_by: "", // Will be set by API route
+                uploaded_at: new Date().toISOString()
             };
 
-            const media = await createMedia(businessId, mediaData);
+            const media = await createMediaClient(mediaData);
             if (!media) {
                 throw new Error("Failed to create media record");
             }            // Update the logo URL in settings

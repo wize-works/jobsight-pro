@@ -9,8 +9,8 @@ import {
 } from '@/types/equipment-assignments';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useEquipmentAssignmentMutation } from '@/hooks/useEquipment';
-import { useCrews } from '@/hooks/useCrews';
+import { useEquipmentAssignmentMutation } from '@/hooks/use-equipment';
+import { useCrews } from '@/hooks/use-crews';
 import { useProjects } from '@/hooks/useProjects';
 import { toast } from '@/hooks/use-toast';
 import type { Crew } from '@/types/crews';

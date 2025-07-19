@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectMilestoneById,
-    updateProjectMilestone,
-    deleteProjectMilestone
-} from '@/app/actions/project-milestones';
+    getProjectMilestoneByIdServer,
+    updateProjectMilestoneServer,
+    deleteProjectMilestoneServer
+} from '@/lib/project-milestones/server';
 
 /**
  * GET /api/project-milestones/[id]
@@ -38,7 +38,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const milestone = await getProjectMilestoneById(profile.business_id, id);
+        const milestone = await getProjectMilestoneByIdServer(profile.business_id, id);
 
         if (!milestone) {
             return NextResponse.json({ success: false, error: 'Milestone not found' }, { status: 404 });
@@ -88,7 +88,7 @@ export async function PUT(
 
         const updateData = await request.json();
 
-        const milestone = await updateProjectMilestone(profile.business_id, id, {
+        const milestone = await updateProjectMilestoneServer(profile.business_id, user.id, id, {
             ...updateData,
             updated_by: user.id
         });
@@ -139,7 +139,7 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const success = await deleteProjectMilestone(profile.business_id, id);
+        const success = await deleteProjectMilestoneServer(profile.business_id, user.id, id);
 
         if (!success) {
             return NextResponse.json({ success: false, error: 'Failed to delete milestone' }, { status: 500 });

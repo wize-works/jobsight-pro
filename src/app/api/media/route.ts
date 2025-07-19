@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
+import { getMediasServer, searchMediasServer } from '@/lib/media/server';
 import { Media, MediaInsert, MediaUpdate, MediaType } from '@/types/media';
 
 export async function GET(request: NextRequest) {

@@ -1,4 +1,4 @@
-import { getProjects } from "@/app/actions/projects";
+import { getProjectsServer } from "@/lib/projects/server";
 import { ChatCompletionMessageParam } from "openai/resources";
 
 export async function getRelevantContext(
@@ -6,9 +6,9 @@ export async function getRelevantContext(
     userInput: string,
     sessionState?: { lastProjectId?: string; lastProjectName?: string }
 ): Promise<ChatCompletionMessageParam[]> {
-    const projects = await getProjects(businessId);
+    const projects = await getProjectsServer(businessId);
 
-    const indexedProjects = projects.map((project, i) => ({
+    const indexedProjects = projects.map((project: any, i: number) => ({
         index: i + 1,
         id: project.id,
         name: project.name,
@@ -20,7 +20,7 @@ export async function getRelevantContext(
 
     // Match referenced project in the userInput
     const matchByNumber = userInput.match(/project (\d+)/i);
-    const matchByName = indexedProjects.find(p =>
+    const matchByName = indexedProjects.find((p: any) =>
         userInput.toLowerCase().includes(p.name.toLowerCase())
     );
 
@@ -33,7 +33,7 @@ export async function getRelevantContext(
     const fallbackProject =
         !matchedProject &&
         sessionState?.lastProjectId &&
-        indexedProjects.find(p => p.id === sessionState.lastProjectId);
+        indexedProjects.find((p: any) => p.id === sessionState.lastProjectId);
 
     const resolvedProject = matchedProject || fallbackProject;
 
@@ -42,7 +42,7 @@ Users can refer to projects by name or number.
 You should maintain conversational context across turns.
 
 Projects:
-${indexedProjects.map(p => `${p.index}. ${p.name} [${p.status}]`).join("\n")}`;
+${indexedProjects.map((p: any) => `${p.index}. ${p.name} [${p.status}]`).join("\n")}`;
 
     const projectContext = resolvedProject
         ? `Context project: ${resolvedProject.name} [${resolvedProject.status}]

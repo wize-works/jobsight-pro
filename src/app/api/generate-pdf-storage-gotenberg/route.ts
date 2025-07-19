@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadPdfBuffer } from '@/app/actions/media';
-import { linkExistingMediaToClient } from '@/app/actions/media';
+import { currentUser } from '@clerk/nextjs/server';
+import { uploadPdfBufferServer, linkExistingMediaToClientServer } from '@/lib/media/server';
 
 const GOTENBERG_URL = process.env.GOTENBERG_URL || 'http://gotenberg-service:3000';
 
@@ -78,8 +78,14 @@ export async function POST(request: NextRequest) {
 
         // If saveToStorage is enabled, upload to media storage
         if (saveToStorage) {
-            const uploadResult = await uploadPdfBuffer(
+            const user = await currentUser();
+            if (!user) {
+                return NextResponse.json({ success: false, error: 'User authentication required' }, { status: 401 });
+            }
+
+            const uploadResult = await uploadPdfBufferServer(
                 businessId,
+                user.id,
                 pdfBuffer,
                 filename,
                 description
@@ -99,7 +105,7 @@ export async function POST(request: NextRequest) {
             // Link to client if clientId is provided
             if (clientId && uploadResult.media) {
                 try {
-                    await linkExistingMediaToClient(businessId, [uploadResult.media.id], clientId);
+                    await linkExistingMediaToClientServer(businessId, user.id, [uploadResult.media.id], clientId);
                 } catch (error) {
                     console.error('Failed to link PDF to client:', error);
                     // Don't fail the request if linking fails

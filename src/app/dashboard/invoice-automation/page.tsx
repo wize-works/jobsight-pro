@@ -8,13 +8,10 @@ import {
 import { Client } from '@/types/clients';
 import { Project } from '@/types/projects';
 import { RateValidationResult } from '@/types/invoice-automation';
-import { validateRates } from '@/app/actions/client/rate-management';
 import { rateUtils } from '@/lib/api/rate-management';
-import { getClients } from '@/app/actions/clients';
-import { getProjects } from '@/app/actions/projects';
 import { useBusiness } from '@/lib/business-context';
 import { toast } from '@/hooks/use-toast';
-import { useInvoiceAutomation } from '@/hooks/useInvoiceAutomation';
+import { useInvoiceAutomation } from '@/hooks/use-invoice-automation';
 import RuleModal from './components/rule-modal';
 
 export default function InvoiceAutomationPage() {
@@ -51,11 +48,17 @@ export default function InvoiceAutomationPage() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [clientsData, projectsData, validationData] = await Promise.all([
-                getClients(businessId),
-                getProjects(businessId),
-                rateUtils.validateBusinessRates(businessId)
-            ]);
+
+            // Fetch clients using API route
+            const clientsResponse = await fetch('/api/clients');
+            const clientsData = clientsResponse.ok ? (await clientsResponse.json()).data || [] : [];
+
+            // Fetch projects using API route
+            const projectsResponse = await fetch('/api/projects');
+            const projectsData = projectsResponse.ok ? (await projectsResponse.json()).data || [] : [];
+
+            // Validate rates using existing utility
+            const validationData = await rateUtils.validateBusinessRates(businessId);
 
             // Fetch rules separately using the hook
             fetchRules();

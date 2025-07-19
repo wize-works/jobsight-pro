@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { useMediaById, useMediaMutations } from "@/hooks/useMedia"
+import { useMediaById, useMediaMutations } from "@/hooks/use-media"
 import { useProjects } from "@/hooks/useProjects"
 import { Media, MediaUpdate } from "@/types/media"
 import { Project } from "@/types/projects"

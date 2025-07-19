@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { createServerClient } from '@/lib/supabase';
 import {
-    getProjectCrewById,
-    updateProjectCrew,
-    deleteProjectCrew,
-    removeCrewFromProject
-} from '@/app/actions/project-crews';
+    getProjectCrewByIdServer,
+    updateProjectCrewServer,
+    deleteProjectCrewServer,
+    removeCrewFromProjectServer
+} from '@/lib/project-crews/server';
 
 /**
  * GET /api/project-crews/[id]
@@ -39,7 +39,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
-        const crew = await getProjectCrewById(profile.business_id, id);
+        const crew = await getProjectCrewByIdServer(profile.business_id, id);
 
         if (!crew) {
             return NextResponse.json({ success: false, error: 'Crew assignment not found' }, { status: 404 });
@@ -89,7 +89,7 @@ export async function PUT(
 
         const updateData = await request.json();
 
-        const crew = await updateProjectCrew(profile.business_id, id, {
+        const crew = await updateProjectCrewServer(profile.business_id, user.id, id, {
             ...updateData,
             updated_by: user.id
         });
@@ -146,8 +146,9 @@ export async function DELETE(
 
         // Check if this is a simple crew removal (remove crew from project)
         if (projectId && crewId) {
-            const success = await removeCrewFromProject(
+            const success = await removeCrewFromProjectServer(
                 profile.business_id,
+                user.id,
                 projectId,
                 crewId
             );
@@ -160,7 +161,7 @@ export async function DELETE(
         }
 
         // Delete crew assignment by ID
-        const success = await deleteProjectCrew(profile.business_id, id);
+        const success = await deleteProjectCrewServer(profile.business_id, user.id, id);
 
         if (!success) {
             return NextResponse.json({ success: false, error: 'Failed to delete crew assignment' }, { status: 500 });

@@ -3,7 +3,7 @@ import { toast } from "@/hooks/use-toast";
 import { User, UserRole, userRoleOptions, UserStatus, userStatusOptions } from "@/types/users";
 import { useUser } from "@clerk/nextjs";
 import { useBusiness } from "@/lib/business-context";
-import { useFeatureGate } from "@/hooks/useFeatureGate";
+import { useFeatureGate } from "@/hooks/use-feature-gate";
 import { useUsers } from "@/hooks/useUsers";
 import { useUserMutations } from "@/hooks/useUsers";
 import { useUserInvitations } from "@/hooks/useUsers";

@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withBusinessServer } from "@/lib/auth/with-business-server";
-import { createServerClient } from "@/lib/supabase";
-import { auth } from "@clerk/nextjs/server";
-import { updateWithBusinessCheck } from "@/lib/db";
-import type {
-    BusinessSubscription,
-    SubscriptionPlan,
-    BillingInterval,
-} from "@/types/subscription";
-import { revalidatePath } from "next/cache";
+import {
+    getCurrentSubscriptionServer,
+    getSubscriptionPlansServer,
+    createSubscriptionServer,
+    cancelSubscriptionServer,
+} from "@/lib/subscriptions/server";
+import type { BillingInterval } from "@/types/subscription";
 
 export async function GET(req: NextRequest) {
     try {
@@ -59,26 +56,13 @@ export async function POST(req: NextRequest) {
 
 async function getCurrentSubscription(businessId: string) {
     try {
-        const supabase = createServerClient();
+        const subscription = await getCurrentSubscriptionServer(businessId);
 
-        if (!supabase) {
-            console.error("Supabase client not initialized");
-            return NextResponse.json({ success: false, error: "Supabase client not initialized" }, { status: 500 });
+        if (!subscription) {
+            return NextResponse.json({ success: false, error: "No active subscription found" }, { status: 404 });
         }
 
-        const { data, error } = await supabase
-            .from("business_subscriptions")
-            .select("*")
-            .eq("business_id", businessId)
-            .in("status", ["active", "trialing"])
-            .single();
-
-        if (error) {
-            console.error("Error fetching current subscription:", error);
-            return NextResponse.json({ success: false, error: error.message }, { status: 404 });
-        }
-
-        return NextResponse.json({ success: true, subscription: data }, { status: 200 });
+        return NextResponse.json({ success: true, subscription }, { status: 200 });
     } catch (error) {
         console.error("Error fetching current subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to fetch subscription" }, { status: 500 });
@@ -87,18 +71,7 @@ async function getCurrentSubscription(businessId: string) {
 
 async function getSubscriptionPlans() {
     try {
-        // For now, we'll load from the static file. Later this could be from database or API
-        const fs = require("fs");
-        const path = require("path");
-
-        const filePath = path.join(
-            process.cwd(),
-            "docs",
-            "jobsight_pricing.json",
-        );
-        const fileContent = fs.readFileSync(filePath, "utf8");
-        const plans = JSON.parse(fileContent);
-
+        const plans = await getSubscriptionPlansServer();
         return NextResponse.json({ success: true, plans }, { status: 200 });
     } catch (error) {
         console.error("Error loading subscription plans:", error);
@@ -112,73 +85,12 @@ async function createSubscription(
     billingInterval: BillingInterval,
 ) {
     try {
-        // For subscription creation during registration, we need to get business manually
-        console.log("Creating subscription for business:", businessId, "with plan:", planId);
-        const supabase = createServerClient();
-        const { userId } = await auth();
+        const result = await createSubscriptionServer(businessId, planId, billingInterval);
 
-        if (!userId) {
-            return NextResponse.json({ success: false, error: "User not authenticated" }, { status: 401 });
+        if (!result.success) {
+            return NextResponse.json({ success: false, error: result.error }, { status: 400 });
         }
 
-        // Get user's business
-        if (!supabase) {
-            console.error("Supabase client is not initialized");
-            return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-        }
-
-        // Check if there's already an active or trialing subscription
-        const { data: existingSubscription, error: subError } = await supabase
-            .from("business_subscriptions")
-            .select("*")
-            .eq("business_id", businessId)
-            .in("status", ["active", "trialing"])
-            .single();
-
-        // Get stripe customer ID for the business
-        const { data: stripeCustomer } = await supabase
-            .from("stripe_customers")
-            .select("stripe_customer_id")
-            .eq("business_id", businessId)
-            .single();
-
-        if (existingSubscription) {
-            // Update existing subscription
-            const { error } = await supabase
-                .from("business_subscriptions")
-                .update({
-                    plan_id: planId,
-                    stripe_customer_id: stripeCustomer?.stripe_customer_id || null,
-                    updated_at: new Date().toISOString(),
-                    updated_by: userId,
-                })
-                .eq("id", existingSubscription.id);
-
-            if (error) {
-                console.error("Error updating subscription:", error);
-                return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-            }
-        } else {
-            // Create new subscription
-            const { error } = await supabase
-                .from("business_subscriptions")
-                .insert({
-                    business_id: businessId,
-                    plan_id: planId,
-                    start_date: new Date().toISOString(),
-                    status: "active",
-                    stripe_customer_id: stripeCustomer?.stripe_customer_id || null,
-                    created_by: userId,
-                    created_at: new Date().toISOString(),
-                });
-
-            if (error) {
-                console.error("Error creating subscription:", error);
-                return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-            }
-        }
-
-        revalidatePath("/dashboard/business");
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error creating subscription:", error);
@@ -188,43 +100,12 @@ async function createSubscription(
 
 async function cancelSubscription(businessId: string) {
     try {
-        const { business, userId } = await withBusinessServer();
+        const result = await cancelSubscriptionServer(businessId);
 
-        const supabase = createServerClient();
-        if (!supabase) {
-            return NextResponse.json({ success: false, error: "Supabase client not initialized" }, { status: 500 });
+        if (!result.success) {
+            return NextResponse.json({ success: false, error: result.error }, { status: 400 });
         }
 
-        // Get current subscription
-        const { data: currentSubscription, error: fetchError } = await supabase
-            .from("business_subscriptions")
-            .select("*")
-            .eq("business_id", businessId)
-            .in("status", ["active", "trialing"])
-            .single();
-
-        if (fetchError || !currentSubscription) {
-            return NextResponse.json({ success: false, error: "No active subscription found" }, { status: 404 });
-        }
-
-        // Update subscription status to canceled
-        const { data, error } = await updateWithBusinessCheck(
-            "business_subscriptions",
-            currentSubscription.id,
-            {
-                status: "canceled",
-                end_date: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                updated_by: userId,
-            } as BusinessSubscription,
-            businessId,
-        );
-
-        if (error) {
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-        }
-
-        revalidatePath("/dashboard/business");
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error canceling subscription:", error);
