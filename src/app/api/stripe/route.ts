@@ -7,9 +7,7 @@ import type { StripeCustomerInsert } from "@/types/stripe-customers";
 import { revalidatePath } from "next/cache";
 
 export async function POST(req: NextRequest) {
-    console.log("=== STRIPE API POST HANDLER CALLED ===");
     try {
-        console.log("Getting user from Clerk...");
         const user = await currentUser();
         if (!user) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -32,15 +30,8 @@ export async function POST(req: NextRequest) {
         }
 
         const businessId = userData.business_id;
-        console.log("Business found:", businessId);
-
-        console.log("Parsing request body...");
         const body = await req.json();
-        console.log("Request body parsed:", body);
-
         const { action, ...data } = body;
-        console.log("Stripe API - Action received:", action);
-        console.log("Stripe API - Data received:", data);
 
         switch (action) {
             case 'create-customer':
@@ -57,9 +48,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
         }
     } catch (error) {
-        console.error("=== STRIPE API POST ERROR ===");
         console.error("Stripe API error:", error);
-        console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
         return NextResponse.json(
             { success: false, error: "Internal server error" },
             { status: 500 }
@@ -264,7 +253,6 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
         const supabase = createServerClient();
 
         if (!supabase) {
-            console.error("Supabase client not initialized");
             return NextResponse.json({ success: false, error: "Supabase client not initialized" }, { status: 500 });
         }
 
@@ -284,16 +272,44 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
             return NextResponse.json({ success: false, error: "Price ID not found for plan" }, { status: 400 });
         }
 
-        // Get current Stripe subscription (active or trialing)
-        const { data: stripeSubscription, error } = await supabase
+        // Get current Stripe subscriptions (active or trialing) - handle multiple rows
+        const { data: stripeSubscriptions, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
             .in("status", ["active", "trialing"])
-            .single();
+            .order("created_at", { ascending: false });
 
-        if (error || !stripeSubscription) {
+        if (error || !stripeSubscriptions || stripeSubscriptions.length === 0) {
             return NextResponse.json({ success: false, error: "No active or trialing subscription found" }, { status: 404 });
+        }
+
+        // Use the most recent subscription
+        const stripeSubscription = stripeSubscriptions[0];
+
+        // If multiple active subscriptions exist, cancel older ones
+        if (stripeSubscriptions.length > 1) {
+            for (let i = 1; i < stripeSubscriptions.length; i++) {
+                const oldSubscription = stripeSubscriptions[i];
+
+                try {
+                    // Cancel immediately in Stripe
+                    await stripe.subscriptions.cancel(oldSubscription.stripe_subscription_id);
+
+                    // Update database record
+                    await supabase
+                        .from("stripe_subscriptions")
+                        .update({
+                            status: "canceled",
+                            canceled_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq("id", oldSubscription.id);
+                } catch (cancelError) {
+                    console.error("Error canceling old subscription:", oldSubscription.stripe_subscription_id, cancelError);
+                    // Continue with the update even if old subscription cancellation fails
+                }
+            }
         }
 
         // Update subscription in Stripe
@@ -301,16 +317,15 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
             stripeSubscription.stripe_subscription_id
         );
 
-        const updatedSubscription = await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
+        await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
             items: [{
                 id: subscription.items.data[0].id,
                 price: priceId,
             }],
             proration_behavior: 'create_prorations',
-            // Don't add trial_end or trial_period_days to avoid re-enabling trial
         });
 
-        // Update database
+        // Update database records
         await supabase
             .from("stripe_subscriptions")
             .update({
@@ -335,9 +350,7 @@ async function updateStripeSubscription(businessId: string, planId: string, bill
         console.error("Error updating Stripe subscription:", error);
         return NextResponse.json({ success: false, error: "Failed to update subscription" }, { status: 500 });
     }
-}
-
-async function getStripeSubscription(businessId: string) {
+} async function getStripeSubscription(businessId: string) {
     try {
         const supabase = createServerClient();
 
@@ -345,17 +358,20 @@ async function getStripeSubscription(businessId: string) {
             return NextResponse.json({ success: false, error: "Supabase client not initialized" }, { status: 500 });
         }
 
-        // Get Stripe subscription from database (active or trialing)
-        const { data: stripeSubscription, error } = await supabase
+        // Get Stripe subscription from database (active or trialing) - handle multiple rows
+        const { data: stripeSubscriptions, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
             .in("status", ["active", "trialing"])
-            .single();
+            .order("created_at", { ascending: false });
 
-        if (error || !stripeSubscription) {
+        if (error || !stripeSubscriptions || stripeSubscriptions.length === 0) {
             return NextResponse.json({ success: false, error: "No active or trialing subscription found" }, { status: 404 });
         }
+
+        // Use the most recent subscription
+        const stripeSubscription = stripeSubscriptions[0];
 
         // Get full subscription from Stripe
         const subscription = await stripe.subscriptions.retrieve(
@@ -377,31 +393,34 @@ async function cancelStripeSubscription(businessId: string) {
             return NextResponse.json({ success: false, error: "Supabase client not initialized" }, { status: 500 });
         }
 
-        // Get current Stripe subscription (active or trialing)
-        const { data: stripeSubscription, error } = await supabase
+        // Get current Stripe subscription (active or trialing) - handle multiple rows
+        const { data: stripeSubscriptions, error } = await supabase
             .from("stripe_subscriptions")
             .select("*")
             .eq("business_id", businessId)
             .in("status", ["active", "trialing"])
-            .single();
+            .order("created_at", { ascending: false });
 
-        if (error || !stripeSubscription) {
+        if (error || !stripeSubscriptions || stripeSubscriptions.length === 0) {
             return NextResponse.json({ success: false, error: "No active or trialing subscription found" }, { status: 404 });
         }
 
-        // Cancel subscription in Stripe (at period end)
-        await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
-            cancel_at_period_end: true,
-        });
-
-        // Update database
-        await supabase
-            .from("stripe_subscriptions")
-            .update({
+        // Cancel all active subscriptions
+        for (const stripeSubscription of stripeSubscriptions) {
+            // Cancel subscription in Stripe (at period end)
+            await stripe.subscriptions.update(stripeSubscription.stripe_subscription_id, {
                 cancel_at_period_end: true,
-                updated_at: new Date().toISOString(),
-            })
-            .eq("id", stripeSubscription.id);
+            });
+
+            // Update database
+            await supabase
+                .from("stripe_subscriptions")
+                .update({
+                    cancel_at_period_end: true,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("id", stripeSubscription.id);
+        }
 
         await supabase
             .from("business_subscriptions")

@@ -77,18 +77,41 @@ export async function POST(request: NextRequest) {
                 const currentPeriodStart = firstItem?.current_period_start;
                 const currentPeriodEnd = firstItem?.current_period_end;
 
-                // Save stripe subscription
-                await supabase.from('stripe_subscriptions').insert({
-                    id: crypto.randomUUID(),
-                    business_id: businessId,
-                    stripe_subscription_id: subscription.id,
-                    plan_id: planId,
-                    status: subscription.status,
-                    current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000).toISOString() : null,
-                    current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
-                    cancel_at_period_end: subscription.cancel_at_period_end,
-                    created_at: new Date().toISOString(),
-                } as StripeSubscriptionInsert);
+                // Check if stripe subscription already exists
+                const { data: existingStripeSub } = await supabase
+                    .from('stripe_subscriptions')
+                    .select('id')
+                    .eq('stripe_subscription_id', subscription.id)
+                    .eq('business_id', businessId)
+                    .single();
+
+                if (existingStripeSub) {
+                    // Update existing stripe subscription
+                    await supabase
+                        .from('stripe_subscriptions')
+                        .update({
+                            plan_id: planId,
+                            status: subscription.status,
+                            current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000).toISOString() : null,
+                            current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+                            cancel_at_period_end: subscription.cancel_at_period_end,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', existingStripeSub.id);
+                } else {
+                    // Save new stripe subscription
+                    await supabase.from('stripe_subscriptions').insert({
+                        id: crypto.randomUUID(),
+                        business_id: businessId,
+                        stripe_subscription_id: subscription.id,
+                        plan_id: planId,
+                        status: subscription.status,
+                        current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000).toISOString() : null,
+                        current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+                        cancel_at_period_end: subscription.cancel_at_period_end,
+                        created_at: new Date().toISOString(),
+                    } as StripeSubscriptionInsert);
+                }
 
                 // Get stripe customer ID
                 const stripeCustomerId = subscription.customer as string;
