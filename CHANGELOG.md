@@ -1,3 +1,10 @@
+# [1.140.0](https://github.com/wize-works/jobsight-pro/compare/v1.139.0...v1.140.0) (2025-07-20)
+
+
+### Features
+
+* update stripe subscription handling to check for existing records and update accordingly ([4b67a9b](https://github.com/wize-works/jobsight-pro/commit/4b67a9b98e6f2a033063fc4babb681fe72dd4bbb))
+
 # [1.139.0](https://github.com/wize-works/jobsight-pro/compare/v1.138.0...v1.139.0) (2025-07-19)
 
 
