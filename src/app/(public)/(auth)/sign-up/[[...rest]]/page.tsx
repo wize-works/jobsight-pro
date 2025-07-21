@@ -359,6 +359,32 @@ export default function SignUpPage() {
                 throw new Error(businessResult.error || "Failed to create business");
             }
 
+            // Create sweepstake entry for eligible plans (starter, pro, business)
+            const eligiblePlans = ['starter', 'pro', 'business'];
+            if (eligiblePlans.includes(planId) && businessResult.businessId) {
+                try {
+                    const sweepstakeResponse = await fetch('/api/sweepstake/entries', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            business_id: businessResult.businessId,
+                            user_id: user.id,
+                            entry_type: 'business_signup',
+                            plan_type: planId,
+                        }),
+                    });
+
+                    if (!sweepstakeResponse.ok) {
+                        console.error('Failed to create sweepstake entry');
+                    }
+                } catch (error) {
+                    console.error('Error creating sweepstake entry:', error);
+                    // Don't fail signup if sweepstake entry fails
+                }
+            }
+
             // Handle referral if one was provided
             if (referralCode.trim() && businessResult.businessId) {
                 try {
