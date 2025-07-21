@@ -393,7 +393,8 @@ export default function BusinessPage() {
                         </div>
                     </div>
                 </form>
-            )}            {activeTab === "users" && <UsersPermissionsTab />}
+            )}
+            {activeTab === "users" && <UsersPermissionsTab />}
 
             {activeTab === "subscription" && <TabSubscription />}
 

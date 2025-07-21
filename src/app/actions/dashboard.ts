@@ -94,7 +94,7 @@ export async function getDashboardData(businessId: string) {
         }
 
         // Calculate comprehensive statistics
-        const activeProjects = projects?.filter(p => p.status === 'active') || [];
+        const activeProjects = projects?.filter(p => p.status === 'active' || p.status === "in_progress") || [];
         const completedProjects = projects?.filter(p => p.status === 'completed') || [];
         const onHoldProjects = projects?.filter(p => p.status === 'on_hold') || [];
         const planningProjects = projects?.filter(p => p.status === 'planning') || [];
