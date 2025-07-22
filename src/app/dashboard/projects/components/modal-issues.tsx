@@ -241,24 +241,26 @@ const IssueModal = ({ isOpen, onClose, initialIssue, projectId }: IssueModalProp
                                         <label className="label">
                                             <span className="label-text font-medium">Priority</span>
                                         </label>
-                                        {projectIssueStatusOptions.select(
-                                            formData.status,
+                                        {projectIssuePriorityOptions.select(
+                                            formData.priority,
                                             (value) => setFormData(prev => ({
                                                 ...prev,
-                                                status: value
-                                            }))
+                                                priority: value
+                                            })),
+                                            "select-secondary w-full"
                                         )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        {projectIssuePriorityOptions.select(
-                                            formData.priority,
+                                        {projectIssueStatusOptions.select(
+                                            formData.status,
                                             (value) => setFormData(prev => ({
                                                 ...prev,
-                                                priority: value
-                                            }))
+                                                status: value
+                                            })),
+                                            "select-secondary w-full"
                                         )}
                                     </div>
                                 </div>

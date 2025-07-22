@@ -259,7 +259,7 @@ export default function TaskDetailsModal({
                                                 >
                                                     {task.project_name}
                                                 </Link>
-                                            ) : null}
+                                            ) : "nothing"}
                                         </div>
                                     </div>
 
@@ -400,7 +400,11 @@ export default function TaskDetailsModal({
                                                     ))}
                                                 </select>
                                             ) : (
-                                                <div className="py-2">{task?.crew_name || "Unassigned"}</div>
+                                                <div className="py-2">
+                                                    {task?.crew_name ||
+                                                        (task?.assigned_to ? crews.find(crew => crew.id === task.assigned_to)?.name : null) ||
+                                                        "Unassigned"}
+                                                </div>
                                             )}
                                         </div>
 
