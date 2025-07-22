@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/wize-works/jobsight-pro/compare/v2.2.0...v2.3.0) (2025-07-22)
+
+
+### Features
+
+* Enhance material input form layout and add supplier and notes fields ([62ba60f](https://github.com/wize-works/jobsight-pro/commit/62ba60f2452078926800ec53c0720c8b98ae5e74))
+
 # [2.2.0](https://github.com/wize-works/jobsight-pro/compare/v2.1.0...v2.2.0) (2025-07-22)
 
 
