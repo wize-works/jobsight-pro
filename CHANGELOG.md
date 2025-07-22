@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/wize-works/jobsight-pro/compare/v2.4.0...v2.4.1) (2025-07-22)
+
+
+### Bug Fixes
+
+* Replace 'profiles' with 'users' in Supabase queries for business ID retrieval ([999a70a](https://github.com/wize-works/jobsight-pro/commit/999a70a93b4207759e60125493f460603de525bb))
+
 # [2.4.0](https://github.com/wize-works/jobsight-pro/compare/v2.3.0...v2.4.0) (2025-07-22)
 
 
