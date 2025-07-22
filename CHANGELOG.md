@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/wize-works/jobsight-pro/compare/v2.8.0...v2.9.0) (2025-07-22)
+
+
+### Features
+
+* Update CrewModal to use getCrewsWithDetails for fetching available crews and add notification for already assigned crews ([7f5dd3f](https://github.com/wize-works/jobsight-pro/commit/7f5dd3fe45c3f95659de1b1c9c8ff39306ce1a17))
+
 # [2.8.0](https://github.com/wize-works/jobsight-pro/compare/v2.7.0...v2.8.0) (2025-07-22)
 
 
