@@ -1,3 +1,11 @@
+# [2.1.0](https://github.com/wize-works/jobsight-pro/compare/v2.0.0...v2.1.0) (2025-07-22)
+
+
+### Features
+
+* Add doubletime rate management across crew members and billing interfaces ([885d8d0](https://github.com/wize-works/jobsight-pro/commit/885d8d0a62e6fee23de561fc06f610becbde3fe3))
+* **sweepstake:** Add API route for creating sweepstake entries on business signup ([e88475c](https://github.com/wize-works/jobsight-pro/commit/e88475c39cad3f7c2dde1c72e9e1ef780ee6b3e0))
+
 # [1.112.0](https://github.com/wize-works/jobsight-pro/compare/v1.111.0...v1.112.0) (2025-07-21)
 
 
