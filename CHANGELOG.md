@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/wize-works/jobsight-pro/compare/v2.1.0...v2.2.0) (2025-07-22)
+
+
+### Features
+
+* improved daily log materials and create/edit dialog. ([5c41810](https://github.com/wize-works/jobsight-pro/commit/5c418105e4bf36b1e1be0845c6f6a0b4bea372a2))
+
 # [2.1.0](https://github.com/wize-works/jobsight-pro/compare/v2.0.0...v2.1.0) (2025-07-22)
 
 
