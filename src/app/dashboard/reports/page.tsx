@@ -89,7 +89,7 @@ export default function ReportsPage() {
 
             {/* Report Tabs */}
             <div className="bg-base-100 rounded-lg shadow-lg">
-                <div className="tabs tabs-boxed bg-base-200 p-2">
+                <div className="tabs tabs-box bg-base-200 p-2">
                     {reportTabs.map((tab) => (
                         <button
                             key={tab.id}

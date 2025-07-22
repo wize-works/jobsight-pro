@@ -219,7 +219,7 @@ export default function ViewMyTasksModal({ isOpen, onClose, onCreateNewTask }: V
                                     <label className="label">
                                         <span className="label-text font-medium">Status filter</span>
                                     </label>
-                                    <div className="tabs tabs-boxed">
+                                    <div className="tabs tabs-box">
                                         {(['all', 'not_started', 'in_progress', 'completed'] as const).map((tab) => (
                                             <button
                                                 key={tab}

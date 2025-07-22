@@ -1011,7 +1011,7 @@ export default function UnifiedDailyLogModal({
                     <div className="p-6 overflow-y-auto max-h-[75vh]">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Tab Navigation */}
-                            <div className="tabs tabs-boxed bg-base-200 p-1">
+                            <div className="tabs tabs-box bg-base-200 p-1">
                                 <button
                                     type="button"
                                     className={`tab ${activeTab === "general" ? "tab-active" : ""}`}
