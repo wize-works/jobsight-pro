@@ -1,3 +1,11 @@
+# [2.7.0](https://github.com/wize-works/jobsight-pro/compare/v2.6.0...v2.7.0) (2025-07-22)
+
+
+### Features
+
+* Enhance project details retrieval and UI components ([dd79b0a](https://github.com/wize-works/jobsight-pro/commit/dd79b0a7c7f83d4a714bb2590b2145f4ccd0e90b))
+* Remove overdue badge display and add cancel button functionality in TaskDetailsModal ([aac5aae](https://github.com/wize-works/jobsight-pro/commit/aac5aaeb4efb001cc6c22f9855eeb3b2387dc9f5))
+
 # [2.6.0](https://github.com/wize-works/jobsight-pro/compare/v2.5.0...v2.6.0) (2025-07-22)
 
 
