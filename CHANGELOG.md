@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/wize-works/jobsight-pro/compare/v2.5.0...v2.6.0) (2025-07-22)
+
+
+### Features
+
+* Implement getAllMediaByProjectId function and update MediaTab to use it for fetching linked media ([c4c3a5a](https://github.com/wize-works/jobsight-pro/commit/c4c3a5a107366708b4b7b741f75a999261f430b9))
+
 # [2.5.0](https://github.com/wize-works/jobsight-pro/compare/v2.4.1...v2.5.0) (2025-07-22)
 
 
