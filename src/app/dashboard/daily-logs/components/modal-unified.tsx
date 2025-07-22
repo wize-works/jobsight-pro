@@ -5,6 +5,7 @@ import { Crew } from "@/types/crews";
 import { Project } from "@/types/projects";
 import { Equipment, EquipmentCondition, equipmentConditionOptions } from "@/types/equipment";
 import { CrewMember } from "@/types/crew-members";
+import { Media } from "@/types/media";
 import { useState, useEffect } from "react";
 import {
     createDailyLog,
@@ -31,6 +32,13 @@ import {
 import {
     getCrewMembers
 } from "@/app/actions/crew-members";
+import {
+    getMedias,
+    getMediaByDailyLogId,
+    uploadDailyLogMedia,
+    linkExistingMediaToDailyLog,
+    unlinkMediaFromDailyLog
+} from "@/app/actions/media";
 import { format } from "date-fns";
 import { DailyLogMaterialInsert, DailyLogMaterialUpdate } from "@/types/daily-log-materials";
 import { DailyLogEquipmentInsert, DailyLogEquipmentUpdate } from "@/types/daily-log-equipment";
@@ -38,6 +46,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { useBusiness } from "@/lib/business-context";
+import UniversalMediaManager from "@/components/universal-media-manager";
 
 // Helper function to extract number from a string with units
 const extractNumber = (str: any) => {
@@ -82,7 +91,7 @@ export default function UnifiedDailyLogModal({
     const [fetchError, setFetchError] = useState<string | null>(null);
 
     // UI states
-    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes">("general");
+    const [activeTab, setActiveTab] = useState<"general" | "materials" | "equipment" | "notes" | "media">("general");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [weatherLoading, setWeatherLoading] = useState(false);
@@ -128,6 +137,11 @@ export default function UnifiedDailyLogModal({
         condition?: string;
         isNew?: boolean;
     }>>([]);
+
+    // Media state
+    const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
+    const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
+    const [mediaLoading, setMediaLoading] = useState(false);
 
     // Fetch dropdown data when component mounts
     useEffect(() => {
@@ -303,6 +317,43 @@ export default function UnifiedDailyLogModal({
         }
     }, [mode, log, isOpen, searchParams]);
 
+    // Load media data when in edit mode or when actively managing media
+    useEffect(() => {
+        const loadMediaData = async () => {
+            if (!businessId || !isOpen) return;
+
+            setMediaLoading(true);
+            try {
+                if (mode === "edit" && log?.id) {
+                    const [linked, available] = await Promise.all([
+                        getMediaByDailyLogId(businessId, log.id),
+                        getMedias(businessId)
+                    ]);
+                    setLinkedMedia(linked);
+                    setAvailableMedia(available);
+                } else {
+                    // In create mode, just load available media for potential linking
+                    const available = await getMedias(businessId);
+                    setLinkedMedia([]);
+                    setAvailableMedia(available);
+                }
+            } catch (error) {
+                console.error("Error loading media data:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to load media data",
+                    variant: "error",
+                });
+            } finally {
+                setMediaLoading(false);
+            }
+        };
+
+        if (isOpen && (mode === "edit" || activeTab === "media")) {
+            loadMediaData();
+        }
+    }, [businessId, isOpen, mode, log?.id, activeTab]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -462,6 +513,102 @@ export default function UnifiedDailyLogModal({
     // Remove equipment
     const removeEquipment = (index: number) => {
         setEquipment(prev => prev.filter((_, i) => i !== index));
+    };
+
+    // Media upload handler
+    const handleMediaUpload = async (file: File, metadata: { name: string; description: string; type: any }) => {
+        if (!businessId) return false;
+
+        try {
+            if (mode === "edit" && log?.id) {
+                // Edit mode: upload and link to existing daily log
+                const success = await uploadDailyLogMedia(businessId, log.id, file, metadata.type, metadata.description);
+                if (success) {
+                    // Reload media data
+                    const [linked, available] = await Promise.all([
+                        getMediaByDailyLogId(businessId, log.id),
+                        getMedias(businessId)
+                    ]);
+                    setLinkedMedia(linked);
+                    setAvailableMedia(available);
+                    return true;
+                }
+            } else {
+                // Create mode: store file for later upload after daily log is created
+                toast({
+                    title: "Note",
+                    description: "Media will be attached after the daily log is saved",
+                });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Error uploading media:", error);
+            return false;
+        }
+    };
+
+    // Media link handler
+    const handleMediaLink = async (mediaIds: string[]) => {
+        if (!businessId || mode !== "edit" || !log?.id) {
+            toast({
+                title: "Error",
+                description: "Can only link media to existing daily logs",
+                variant: "error",
+            });
+            return { success: false, error: "Can only link media to existing daily logs" };
+        }
+
+        try {
+            const success = await linkExistingMediaToDailyLog(businessId, mediaIds, log.id);
+            if (success) {
+                // Reload media data
+                const [linked, available] = await Promise.all([
+                    getMediaByDailyLogId(businessId, log.id),
+                    getMedias(businessId)
+                ]);
+                setLinkedMedia(linked);
+                setAvailableMedia(available);
+                return { success: true };
+            }
+            return { success: false, error: "Failed to link media" };
+        } catch (error) {
+            console.error("Error linking media:", error);
+            return { success: false, error: "Failed to link media" };
+        }
+    };
+
+    // Media unlink handler
+    const handleMediaUnlink = async (mediaIds: string[]) => {
+        if (!businessId || mode !== "edit" || !log?.id) {
+            return { success: false, error: "Can only unlink media from existing daily logs" };
+        }
+
+        try {
+            // Unlink all provided media IDs
+            const unlinkPromises = mediaIds.map(mediaId =>
+                unlinkMediaFromDailyLog(businessId, mediaId, log.id)
+            );
+            const results = await Promise.all(unlinkPromises);
+
+            // Check if all unlinks were successful
+            const allSuccessful = results.every(result => result);
+
+            if (allSuccessful) {
+                // Reload media data
+                const [linked, available] = await Promise.all([
+                    getMediaByDailyLogId(businessId, log.id),
+                    getMedias(businessId)
+                ]);
+                setLinkedMedia(linked);
+                setAvailableMedia(available);
+                return { success: true };
+            }
+            return { success: false, error: "Failed to unlink some media files" };
+        } catch (error) {
+            console.error("Error unlinking media:", error);
+            return { success: false, error: "Failed to unlink media" };
+        }
     };
 
     // Capture current weather
@@ -868,30 +1015,57 @@ export default function UnifiedDailyLogModal({
                                 <button
                                     type="button"
                                     className={`tab ${activeTab === "general" ? "tab-active" : ""}`}
-                                    onClick={() => setActiveTab("general")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveTab("general");
+                                    }}
                                 >
                                     General
                                 </button>
                                 <button
                                     type="button"
                                     className={`tab ${activeTab === "materials" ? "tab-active" : ""}`}
-                                    onClick={() => setActiveTab("materials")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveTab("materials");
+                                    }}
                                 >
                                     Materials
                                 </button>
                                 <button
                                     type="button"
                                     className={`tab ${activeTab === "equipment" ? "tab-active" : ""}`}
-                                    onClick={() => setActiveTab("equipment")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveTab("equipment");
+                                    }}
                                 >
                                     Equipment
                                 </button>
                                 <button
                                     type="button"
                                     className={`tab ${activeTab === "notes" ? "tab-active" : ""}`}
-                                    onClick={() => setActiveTab("notes")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveTab("notes");
+                                    }}
                                 >
                                     Notes
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`tab ${activeTab === "media" ? "tab-active" : ""}`}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveTab("media");
+                                    }}
+                                >
+                                    Media
                                 </button>
                             </div>
 
@@ -1478,6 +1652,59 @@ export default function UnifiedDailyLogModal({
                                                     disabled={loading}
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Media Tab */}
+                            {activeTab === "media" && (
+                                <div className="space-y-6">
+                                    <div className="card bg-base-100 border border-base-300">
+                                        <div className="card-body p-4">
+                                            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                                <i className="far fa-images text-primary"></i>
+                                                Photos & Documents
+                                            </h3>
+
+                                            {mode === "create" ? (
+                                                <div className="text-center py-8">
+                                                    <div className="alert alert-info">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <div>
+                                                            <h4 className="font-bold">Media Upload Available After Save</h4>
+                                                            <div className="text-sm">
+                                                                You can upload photos and documents after creating this daily log.
+                                                                Save the log first, then edit it to add media files.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : mediaLoading ? (
+                                                <div className="flex justify-center py-12">
+                                                    <div className="loading loading-spinner loading-lg"></div>
+                                                    <span className="ml-2">Loading media...</span>
+                                                </div>
+                                            ) : (
+                                                <UniversalMediaManager
+                                                    mode="both"
+                                                    entityType="dailyLog"
+                                                    onUpload={handleMediaUpload}
+                                                    availableMedia={availableMedia}
+                                                    linkedMedia={linkedMedia}
+                                                    onLink={handleMediaLink}
+                                                    onUnlink={handleMediaUnlink}
+                                                    enableCamera={true}
+                                                    cameraQuality="high"
+                                                    title="Daily Log Media"
+                                                    description="Upload photos and documents or link existing media to this daily log"
+                                                    onComplete={() => {
+                                                        // Optional: Handle completion events
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 </div>

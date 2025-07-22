@@ -231,8 +231,13 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
 
                             {multiple && filteredMedia.length > 0 && (
                                 <button
+                                    type="button"
                                     className="btn btn-outline"
-                                    onClick={handleSelectAll}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleSelectAll();
+                                    }}
                                     disabled={disabled || isLinking}
                                 >
                                     {selectedIds.length === filteredMedia.filter(m => !linkedMediaIds.includes(m.id)).length
@@ -252,8 +257,13 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                             {selectedIds.length} file{selectedIds.length !== 1 ? 's' : ''} selected
                         </span>
                         <button
+                            type="button"
                             className="btn btn-primary btn-sm"
-                            onClick={handleLink}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleLink();
+                            }}
                             disabled={disabled || isLinking}
                         >
                             {isLinking ? (
@@ -291,8 +301,13 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                                 </div>
                                 {onUnlink && (
                                     <button
+                                        type="button"
                                         className="btn btn-ghost btn-xs btn-circle"
-                                        onClick={() => handleUnlink([media.id])}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleUnlink([media.id]);
+                                        }}
                                         disabled={disabled || isLinking}
                                         title="Unlink file"
                                     >
@@ -337,7 +352,13 @@ const UniversalMediaLinker: React.FC<UniversalMediaLinkerProps> = ({
                                             ? "border-primary bg-primary/5"
                                             : "border-base-300 hover:border-base-400"
                                         } ${disabled ? 'cursor-not-allowed' : ''}`}
-                                    onClick={() => !isLinked && handleMediaSelect(media.id)}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (!isLinked) {
+                                            handleMediaSelect(media.id);
+                                        }
+                                    }}
                                 >
                                     <div className="card-body p-4">
                                         <div className="flex items-start justify-between mb-2">
