@@ -6,7 +6,7 @@ import { useBusiness } from "@/lib/business-context"
 import ErrorBoundary from "@/components/error-boundary"
 import UniversalMediaManager from "@/components/universal-media-manager"
 import {
-    getMediaByProjectId,
+    getAllMediaByProjectId,
     uploadProjectMedia,
     linkExistingMediaToProject,
     unlinkMediaFromProject,
@@ -22,24 +22,22 @@ export default function MediaTab({ projectId }: MediaTabProps) {
     const { businessId } = useBusiness();
     const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
     const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
-    const [loading, setLoading] = useState(true); useEffect(() => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
         loadMediaData()
     }, [projectId])
 
     const loadMediaData = async () => {
         try {
             setLoading(true)
-            // Get all media types for this project
-            const [images, videos, documents, audios, available] = await Promise.all([
-                getMediaByProjectId(businessId, projectId, "images"),
-                getMediaByProjectId(businessId, projectId, "videos"),
-                getMediaByProjectId(businessId, projectId, "documents"),
-                getMediaByProjectId(businessId, projectId, "audios"),
+            // Get all linked media and available media for this project
+            const [linked, available] = await Promise.all([
+                getAllMediaByProjectId(businessId, projectId),
                 getAvailableMediaForProject(businessId, projectId)
             ])
 
-            const allLinked = [...images, ...videos, ...documents, ...audios]
-            setLinkedMedia(allLinked)
+            setLinkedMedia(linked)
             setAvailableMedia(available)
         } catch (error) {
             console.error("Error loading project media:", error)
@@ -64,14 +62,12 @@ export default function MediaTab({ projectId }: MediaTabProps) {
 
             if (success) {
                 await loadMediaData() // Refresh data
-                toast.success("Media uploaded successfully")
                 return true
             } else {
                 throw new Error("Upload failed")
             }
         } catch (error) {
             console.error("Error uploading media:", error)
-            toast.error("Failed to upload media")
             return false
         }
     }
@@ -82,43 +78,36 @@ export default function MediaTab({ projectId }: MediaTabProps) {
 
             if (success) {
                 await loadMediaData() // Refresh data
-                toast.success(`Linked ${mediaIds.length} media item(s)`)
                 return { success: true }
             } else {
                 throw new Error("Link failed")
             }
         } catch (error) {
             console.error("Error linking media:", error)
-            const errorMessage = "Failed to link media"
-            toast.error(errorMessage)
-            return { success: false, error: errorMessage }
+            return { success: false, error: "Failed to link media" }
         }
     }
 
     const handleMediaUnlink = async (mediaIds: string[]): Promise<{ success: boolean; error?: string }> => {
         try {
-            const success = await unlinkMediaFromProject(businessId, mediaIds, projectId); if (success) {
+            const success = await unlinkMediaFromProject(businessId, mediaIds, projectId)
+
+            if (success) {
                 await loadMediaData() // Refresh data
-                toast.success(`Unlinked ${mediaIds.length} media item(s)`)
                 return { success: true }
             } else {
                 throw new Error("Unlink failed")
             }
         } catch (error) {
             console.error("Error unlinking media:", error)
-            const errorMessage = "Failed to unlink media"
-            toast.error(errorMessage)
-            return { success: false, error: errorMessage }
+            return { success: false, error: "Failed to unlink media" }
         }
     }
 
     if (loading) {
         return (
-            <div className="flex flex-col gap-6">
-                <h2 className="text-lg font-semibold">Project Media</h2>
-                <div className="flex items-center justify-center py-12">
-                    <div className="loading loading-spinner loading-lg"></div>
-                </div>
+            <div className="flex items-center justify-center py-12">
+                <div className="loading loading-spinner loading-lg"></div>
             </div>
         )
     }
@@ -133,31 +122,18 @@ export default function MediaTab({ projectId }: MediaTabProps) {
                 </div>
             </div>
         )}>
-            <div className="card bg-base-100 shadow-md p-6">
-                <div className="card-body">
-                    <div className="flex flex-col gap-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Project Media</h2>
-                        </div>
-
-                        <p className="text-base-content/70">
-                            Media files associated with this project
-                        </p>
-
-                        <UniversalMediaManager
-                            mode="both"
-                            entityType="project"
-                            onUpload={handleMediaUpload}
-                            availableMedia={availableMedia}
-                            linkedMedia={linkedMedia}
-                            onLink={handleMediaLink}
-                            onUnlink={handleMediaUnlink}
-                            title="Project Media"
-                            description="Upload images, videos, documents, and other files related to this project."
-                        />
-                    </div>
-                </div>
-            </div>
+            <UniversalMediaManager
+                mode="both"
+                entityType="project"
+                onUpload={handleMediaUpload}
+                availableMedia={availableMedia}
+                linkedMedia={linkedMedia}
+                onLink={handleMediaLink}
+                onUnlink={handleMediaUnlink}
+                title="Project Media"
+                description="Upload images, videos, documents, and other files related to this project."
+                enableCamera={true}
+            />
         </ErrorBoundary>
     )
 }
