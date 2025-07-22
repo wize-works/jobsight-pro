@@ -271,7 +271,6 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
     milestones: any[];
     tasks: any[];
     crews: CrewWithMemberInfo[];
-    projectCrews: any[];
     issues: any[];
     client: any | null;
     contacts: any[];
@@ -472,7 +471,6 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
             milestones,
             tasks,
             crews,
-            projectCrews,
             issues,
             client,
             contacts,

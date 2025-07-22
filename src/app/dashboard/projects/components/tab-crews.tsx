@@ -1,7 +1,6 @@
 "use client";
 
-import { getCrewsByProjectId, getAvailableCrews } from "@/app/actions/crews";
-import { useBusinessData } from "@/hooks/useBusinessData";
+import { getCrewsByProjectId, getAvailableCrews, getCrews, getCrewsWithDetails } from "@/app/actions/crews";
 import { Crew, CrewWithMemberInfo } from "@/types/crews";
 import { set } from "date-fns";
 import Link from "next/link";
@@ -20,14 +19,17 @@ interface CrewsTabProps {
 export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabProps) {
     const { businessId } = useBusiness();
     const [loading, setLoading] = useState(true);
-    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]); useEffect(() => {
+    const [availableCrews, setAvailableCrews] = useState<CrewWithMemberInfo[]>([]);
+
+    useEffect(() => {
         async function loadCrews() {
             try {
                 setLoading(true);
-                const available = await getAvailableCrews(businessId);
+                const allCrews = await getCrewsWithDetails(businessId);
                 // Filter out crews that are already assigned to this project
                 const assignedCrewIds = crews.map(crew => crew.id);
-                const filteredAvailable = available.filter(crew => !assignedCrewIds.includes(crew.id));
+                //const filteredAssigned = crews.filter(crew => assignedCrewIds.includes(crew.id));
+                const filteredAvailable = allCrews.filter(crew => !assignedCrewIds.includes(crew.id));
                 setAvailableCrews(filteredAvailable);
 
             } catch (error) {
@@ -174,7 +176,8 @@ export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabP
                                             <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                                 <i className="far fa-eye"></i>
                                                 View
-                                            </Link>                                            <button className="btn btn-sm btn-error" onClick={() => handleRemoveCrew(crew.id, crew.name)}>
+                                            </Link>
+                                            <button className="btn btn-sm btn-error" onClick={() => handleRemoveCrew(crew.id, crew.name)}>
                                                 <i className="far fa-user-minus"></i>
                                                 Remove
                                             </button>
@@ -205,7 +208,8 @@ export default function CrewsTab({ projectId, crews, onCrewsUpdated }: CrewsTabP
                                             <Link href={`/dashboard/crews/${crew.id}`} className="btn btn-sm btn-ghost">
                                                 <i className="far fa-eye"></i>
                                                 View
-                                            </Link>                                            <button className="btn btn-sm btn-success" onClick={() => handleAssignCrew(crew.id, crew.name)}>
+                                            </Link>
+                                            <button className="btn btn-sm btn-success" onClick={() => handleAssignCrew(crew.id, crew.name)}>
                                                 <i className="far fa-user-plus"></i>
                                                 Assign
                                             </button>
