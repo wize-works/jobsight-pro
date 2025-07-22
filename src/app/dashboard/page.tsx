@@ -25,7 +25,7 @@ import { useEffect, useState } from "react"
 import ProjectModal from "./projects/components/modal-project"
 import TaskDetailsModal from "./tasks/components/task-details-modal"
 import EquipmentNewModal from "./equipment/components/modal-new"
-import DailyLogModal from "./daily-logs/components/modal-log"
+import UnifiedDailyLogModal from "./daily-logs/components/modal-unified"
 import PhotoUploadModal from "@/components/modals/photo-upload-modal"
 import TimeTrackingModal from "@/components/modals/time-tracking-modal"
 import ViewMyTasksModal from "@/components/modals/view-my-tasks-modal"
@@ -785,7 +785,12 @@ EQUIPMENT STATUS:
                         }}
                     />
                 )}
-                {<DailyLogModal isOpen={dailyLogModal} onClose={() => setDailyLogModal(false)} onSave={() => setDailyLogModal(false)} />}
+                {<UnifiedDailyLogModal
+                    mode="create"
+                    isOpen={dailyLogModal}
+                    onClose={() => setDailyLogModal(false)}
+                    onSave={() => setDailyLogModal(false)}
+                />}
                 {<EquipmentNewModal isOpen={equipmentModal} onClose={() => setEquipmentModal(false)} onSave={() => setEquipmentModal(false)} />}
 
                 {/* New Quick Action Modals */}

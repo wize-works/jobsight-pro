@@ -288,6 +288,7 @@ export async function createCrewMember(
             overtime_rate: crewMemberData.overtime_rate || null,
             doubletime_rate: crewMemberData.doubletime_rate || null, // Added doubletime_rate
             is_billable: crewMemberData.is_billable !== undefined ? crewMemberData.is_billable : true,
+            billable_effective_date: crewMemberData.billable_effective_date || null,
             created_at: now,
             created_by: currentUserAuthId,
             updated_at: now,

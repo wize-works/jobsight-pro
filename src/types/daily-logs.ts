@@ -31,6 +31,8 @@ export type DailyLogWithDetails = DailyLog & {
         name: string | null;
         quantity: number | null;
         cost: number;
-        supplier: string | null;
+        unit?: string | null;
+        supplier?: string | null;
+        notes?: string | null;
     }[];
 };

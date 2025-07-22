@@ -22,6 +22,7 @@ export default function TabMaterials({ materials, equipment }: { materials: any[
                                         <th>Quantity</th>
                                         <th>Supplier</th>
                                         <th>Cost</th>
+                                        <th>Unit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -31,6 +32,7 @@ export default function TabMaterials({ materials, equipment }: { materials: any[
                                             <td>{material.quantity}</td>
                                             <td>{material.supplier}</td>
                                             <td className="text-right">{formatCurrency(material.cost?.toFixed(2))}</td>
+                                            <td>{material.unit}</td>
                                         </tr>
                                     )) : (
                                         <tr>
