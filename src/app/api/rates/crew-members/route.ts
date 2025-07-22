@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { crewMemberId, hourlyRate, overtimeRate, businessId } = body;
+        const { crewMemberId, hourlyRate, overtimeRate, doubletimeRate, businessId } = body;
 
         // Validate required fields
         if (!crewMemberId || !businessId || hourlyRate === undefined) {
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
             .update({
                 hourly_rate: hourlyRate,
                 overtime_rate: overtimeRate || null,
+                doubletime_rate: doubletimeRate || null, // Handle double time rate if provided
                 updated_at: new Date().toISOString(),
                 updated_by: user.id
             })
@@ -95,7 +96,8 @@ export async function POST(request: NextRequest) {
                 id: data.id,
                 name: data.name,
                 hourlyRate: data.hourly_rate,
-                overtimeRate: data.overtime_rate
+                overtimeRate: data.overtime_rate,
+                doubletimeRate: data.doubletime_rate
             }
         });
 
@@ -141,7 +143,7 @@ export async function GET(request: NextRequest) {
         // Get crew member rate
         const { data: crewMember, error } = await supabase
             .from('crew_members')
-            .select('id, name, hourly_rate, overtime_rate')
+            .select('id, name, hourly_rate, overtime_rate, doubletime_rate')
             .eq('id', crewMemberId)
             .eq('business_id', businessId)
             .single();
@@ -153,6 +155,7 @@ export async function GET(request: NextRequest) {
         const billingRate: BillingRate = {
             hourlyRate: crewMember.hourly_rate || 0,
             overtimeRate: crewMember.overtime_rate || undefined,
+            doubletimeRate: crewMember.doubletime_rate || undefined,
             effectiveDate: new Date().toISOString()
         };
 

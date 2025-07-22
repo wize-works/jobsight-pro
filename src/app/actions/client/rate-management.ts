@@ -118,6 +118,7 @@ export async function setCrewMemberRate(
             ...crewMember,
             hourly_rate: rate.hourlyRate,
             overtime_rate: rate.overtimeRate || null,
+            doubletime_rate: rate.doubletimeRate || null,
             updated_at: now,
             updated_by: userId
         };
@@ -143,6 +144,7 @@ export async function setCrewMemberRate(
                     body: JSON.stringify({
                         hourly_rate: rate.hourlyRate,
                         overtime_rate: rate.overtimeRate,
+                        doubletime_rate: rate.doubletimeRate,
                         businessId
                     }),
                 });
@@ -210,6 +212,7 @@ export async function getCrewMemberRate(
         const billingRate: BillingRate = {
             hourlyRate: crewMember.hourly_rate || 0,
             overtimeRate: crewMember.overtime_rate || undefined,
+            doubletimeRate: crewMember.doubletime_rate || undefined,
             effectiveDate: date || new Date().toISOString()
         };
 
@@ -400,6 +403,7 @@ export async function getCrewMemberRates(
             rates[crewMember.id] = {
                 hourlyRate: crewMember.hourly_rate || 0,
                 overtimeRate: crewMember.overtime_rate || undefined,
+                doubletimeRate: crewMember.doubletime_rate || undefined,
                 effectiveDate: date || new Date().toISOString()
             };
         });
@@ -514,7 +518,7 @@ export async function validateRates(businessId: string, skipAuth: boolean = fals
 
         // Check for crew members without overtime rates
         const crewMembersWithoutOvertimeRates = crewMembers
-            .filter(cm => cm.is_billable && cm.hourly_rate && cm.hourly_rate > 0 && !cm.overtime_rate)
+            .filter(cm => cm.is_billable && cm.hourly_rate && cm.hourly_rate > 0 && !cm.overtime_rate && !cm.doubletime_rate && cm.overtime_rate !== 0 && !cm.doubletime_rate && cm.doubletime_rate !== 0)
             .length;
 
         if (crewMembersWithoutOvertimeRates > 0) {

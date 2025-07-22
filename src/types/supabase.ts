@@ -702,7 +702,9 @@ export interface Database {
                     notes: string | null
                     hourly_rate: number | null
                     overtime_rate: number | null
+                    doubletime_rate: number | null // Added doubletime_rate
                     is_billable: boolean | null
+                    billable_effective_date: string | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null
@@ -721,7 +723,9 @@ export interface Database {
                     notes: string | null
                     hourly_rate?: number | null
                     overtime_rate?: number | null
+                    doubletime_rate?: number | null // Added doubletime_rate
                     is_billable?: boolean | null
+                    billable_effective_date?: string | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null
@@ -740,7 +744,9 @@ export interface Database {
                     notes: string | null
                     hourly_rate?: number | null
                     overtime_rate?: number | null
+                    doubletime_rate?: number | null // Added doubletime_rate
                     is_billable?: boolean | null
+                    billable_effective_date?: string | null
                     created_at: string | null
                     updated_at: string | null
                     created_by: string | null

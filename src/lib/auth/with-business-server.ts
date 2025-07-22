@@ -55,7 +55,7 @@ export async function withBusinessServer(): Promise<WithBusinessResult> {
         try {
             subscription = await getActiveSubscription(businessData.id);
 
-            if (!subscription || subscription.status !== 'active') {
+            if (!subscription || (subscription.status !== 'active' && subscription.status !== 'trialing')) {
                 console.warn("[withBusinessServer] No active subscription found for user:", userId);
                 // Allow access but could be modified based on business rules
                 redirect("/sign-up"); // Uncomment if subscription is required for dashboard access

@@ -8,6 +8,7 @@ export interface RateUpdateRequest {
     businessId: string;
     hourlyRate: number;
     overtimeRate?: number;
+    doubletimeRate?: number;
 }
 
 export interface CrewMemberRateRequest extends RateUpdateRequest {
@@ -22,6 +23,7 @@ export interface BusinessRateRequest {
     businessId: string;
     defaultHourlyRate: number;
     defaultOvertimeRate?: number;
+    defaultDoubletimeRate?: number;
 }
 
 /**

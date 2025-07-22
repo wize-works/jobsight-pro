@@ -121,6 +121,10 @@ export default function CrewDetailComponent({
             phone: formData.phone || "",
             email: formData.email || "",
             avatar_url: formData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
+            hourly_rate: formData.hourlyRate || 0,
+            overtime_rate: formData.overtimeRate || undefined,
+            doubletime_rate: formData.doubletimeRate || undefined,
+            is_billable: formData.isBillable || false,
         } as CrewMemberInsert;
 
         try {
@@ -182,7 +186,23 @@ export default function CrewDetailComponent({
 
     const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, formData.id, formData);
+
+
+            const memberData = {
+                name: formData.name,
+                role: formData.role,
+                experience: formData.experience || 0,
+                phone: formData.phone || "",
+                email: formData.email || "",
+                avatar_url: formData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
+                hourly_rate: formData.hourlyRate || 0,
+                overtime_rate: formData.overtimeRate || undefined,
+                doubletime_rate: formData.doubletimeRate || undefined,
+                is_billable: formData.isBillable || false,
+                billable_effective_date: formData.billableEffectiveDate || null,
+            } as CrewMemberInsert;
+
+            const result = await updateCrewMember(businessId, formData.id, memberData);
 
             if (result) {
                 toast({
@@ -238,7 +258,9 @@ export default function CrewDetailComponent({
     const handleEditAssignment = async (formData: any) => {
         if (!editingAssignment?.id) {
             throw new Error("No assignment ID provided for editing");
-        } const projectCrewUpdate = {
+        }
+
+        const projectCrewUpdate = {
             project_id: formData.projectId,
             start_date: new Date(formData.startDate).toISOString(),
             end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,

@@ -77,6 +77,7 @@ export interface BillableSummary {
 export interface BillingRate {
     hourlyRate: number;
     overtimeRate?: number;
+    doubletimeRate?: number; // Optional for double time rates
     effectiveDate?: string;
     clientId?: string; // for client-specific rates
     projectId?: string; // for project-specific rates

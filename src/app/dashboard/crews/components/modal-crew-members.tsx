@@ -73,10 +73,13 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
             phone: formData.phone || "",
             email: formData.email || "",
             avatar_url: formData.avatar_url || `/diverse-avatars.png?height=40&width=40&query=avatar${Math.floor(Math.random() * 100)}`,
-        } as CrewMemberInsert;
+            hourly_rate: formData.hourly_rate || 0,
+            overtime_rate: formData.overtime_rate || 0,
+            doubletime_rate: formData.doubletime_rate || 0
+        };
 
         try {
-            const member = await createCrewMember(businessId, memberData);
+            const member = await createCrewMember(businessId, memberData as any);
 
             if (!member) {
                 toast.error({
@@ -137,7 +140,23 @@ const ModalCrewMembers: React.FC<ModalCrewMembersProps> = ({
 
     const handleUpdateMember = async (formData: any) => {
         try {
-            const result = await updateCrewMember(businessId, formData.id, formData);
+            // Include the new billing rate fields in the allowed fields
+            const allowedFields = {
+                id: formData.id,
+                name: formData.name,
+                role: formData.role,
+                experience: formData.experience || 0,
+                phone: formData.phone || "",
+                email: formData.email || "",
+                avatar_url: formData.avatar_url,
+                hourly_rate: formData.hourly_rate || 0,
+                overtime_rate: formData.overtime_rate || 0,
+                doubletime_rate: formData.doubletime_rate || 0,
+                is_billable: formData.is_billable || true,
+                billable_effective_date: formData.billable_effective_date || null
+            };
+
+            const result = await updateCrewMember(businessId, formData.id, allowedFields as any);
 
             if (result) {
                 toast.success({

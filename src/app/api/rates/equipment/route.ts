@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { equipmentId, hourlyRate, overtimeRate, businessId } = body;
+        const { equipmentId, hourlyRate, overtimeRate, doubletimeRate, businessId } = body;
 
         // Validate required fields
         if (!equipmentId || !businessId || hourlyRate === undefined) {
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
             .update({
                 hourly_rate: hourlyRate,
                 overtime_rate: overtimeRate || null,
+                doubletime_rate: doubletimeRate || null, // Handle double time rate if provided
                 updated_at: new Date().toISOString(),
                 updated_by: user.id
             })
@@ -95,7 +96,8 @@ export async function POST(request: NextRequest) {
                 id: data.id,
                 name: data.name,
                 hourlyRate: data.hourly_rate,
-                overtimeRate: data.overtime_rate
+                overtimeRate: data.overtime_rate,
+                doubletimeRate: data.doubletime_rate
             }
         });
 
@@ -141,7 +143,7 @@ export async function GET(request: NextRequest) {
         // Get equipment rate
         const { data: equipment, error } = await supabase
             .from('equipment')
-            .select('id, name, hourly_rate, overtime_rate')
+            .select('id, name, hourly_rate, overtime_rate, doubletime_rate')
             .eq('id', equipmentId)
             .eq('business_id', businessId)
             .single();
@@ -153,6 +155,7 @@ export async function GET(request: NextRequest) {
         const billingRate: BillingRate = {
             hourlyRate: equipment.hourly_rate || 0,
             overtimeRate: equipment.overtime_rate || undefined,
+            doubletimeRate: equipment.doubletime_rate || undefined,
             effectiveDate: new Date().toISOString()
         };
 

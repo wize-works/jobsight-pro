@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { businessId, defaultHourlyRate, defaultOvertimeRate } = body;
+        const { businessId, defaultHourlyRate, defaultOvertimeRate, defaultDoubletimeRate } = body;
 
         // Validate required fields
         if (!businessId || defaultHourlyRate === undefined) {
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
             .update({
                 default_hourly_rate: defaultHourlyRate,
                 default_overtime_rate: defaultOvertimeRate || null,
+                default_doubletime_rate: defaultDoubletimeRate || null,
                 updated_at: new Date().toISOString(),
                 updated_by: user.id
             })
@@ -82,7 +83,8 @@ export async function POST(request: NextRequest) {
                 id: data.id,
                 name: data.name,
                 defaultHourlyRate: data.default_hourly_rate,
-                defaultOvertimeRate: data.default_overtime_rate
+                defaultOvertimeRate: data.default_overtime_rate,
+                defaultDoubletimeRate: data.default_doubletime_rate
             }
         });
 
@@ -127,7 +129,7 @@ export async function GET(request: NextRequest) {
         // Get business default rates
         const { data: business, error } = await supabase
             .from('businesses')
-            .select('id, name, default_hourly_rate, default_overtime_rate')
+            .select('id, name, default_hourly_rate, default_overtime_rate, default_doubletime_rate')
             .eq('id', businessId)
             .single();
 
@@ -138,6 +140,7 @@ export async function GET(request: NextRequest) {
         const billingRate: BillingRate = {
             hourlyRate: business.default_hourly_rate || 0,
             overtimeRate: business.default_overtime_rate || undefined,
+            doubletimeRate: business.default_doubletime_rate || undefined,
             effectiveDate: new Date().toISOString()
         };
 
