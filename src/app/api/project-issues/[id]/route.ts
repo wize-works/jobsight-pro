@@ -29,9 +29,9 @@ export async function GET(
 
         // Get user's business
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('business_id')
-            .eq('user_id', user.id)
+            .eq('auth_id', user.id)
             .single();
 
         if (!profile?.business_id) {
@@ -79,9 +79,9 @@ export async function PUT(
 
         // Get user's business
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('business_id')
-            .eq('user_id', user.id)
+            .eq('auth_id', user.id)
             .single();
 
         if (!profile?.business_id) {
@@ -136,9 +136,9 @@ export async function DELETE(
 
         // Get user's business
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('business_id')
-            .eq('user_id', user.id)
+            .eq('auth_id', user.id)
             .single();
 
         if (!profile?.business_id) {

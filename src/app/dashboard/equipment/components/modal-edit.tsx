@@ -354,7 +354,8 @@ export default function EquipmentEditModal({ isOpen, onClose, onSave, equipment,
                                                     (value) => setFormData(prev => ({ ...prev, type: value })),
                                                     "select-secondary w-full"
                                                 )}
-                                            </div>                                            <div className="form-control">
+                                            </div>
+                                            <div className="form-control">
                                                 <label className="label">
                                                     <span className="label-text font-medium">Status</span>
                                                 </label>
