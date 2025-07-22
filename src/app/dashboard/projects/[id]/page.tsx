@@ -90,6 +90,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [project, setProject] = useState<Project>({} as Project);
     const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
     const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
+    const [projectCrews, setProjectCrews] = useState<CrewWithMemberInfo[]>([]);
     const [crews, setCrews] = useState<CrewWithMemberInfo[]>([]);
     const [issues, setIssues] = useState<ProjectIssueWithDetails[]>([]);
     const [client, setClient] = useState<Client | null>(null);
@@ -154,7 +155,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         milestones,
                         tasks,
                         crews,
-                        projectCrews,
                         issues,
                         client,
                         contacts,
@@ -235,7 +235,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     const handleCrewAssigned = (crew: CrewWithMemberInfo) => {
         setCrews(prev => [...prev, crew]);
-    }; const handleCrewsUpdated = (updatedCrews: CrewWithMemberInfo[]) => {
+    };
+
+    const handleCrewsUpdated = (updatedCrews: CrewWithMemberInfo[]) => {
         setCrews(updatedCrews);
     };
 
@@ -616,7 +618,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                         {activeTab === "tasks" && (
                             <TasksTab tasks={tasks} milestones={milestones} />
-                        )}                        {activeTab === "crew" && (
+                        )}
+                        {activeTab === "crew" && (
                             <CrewsTab projectId={project.id} crews={crews} onCrewsUpdated={handleCrewsUpdated} />
                         )}
                         {activeTab === "budget" && (
