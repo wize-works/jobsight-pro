@@ -1126,8 +1126,8 @@ export default function UnifiedDailyLogModal({
                                                     {materials.map((material, index) => (
                                                         <div key={material.id} className="card bg-base-100 border border-base-300">
                                                             <div className="card-body p-4">
-                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                                    <div className="form-control">
+                                                                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                                                    <div className="form-control md:col-span-3">
                                                                         <label className="label">
                                                                             <span className="label-text">Material Name</span>
                                                                         </label>
@@ -1135,47 +1135,8 @@ export default function UnifiedDailyLogModal({
                                                                             type="text"
                                                                             value={material.name || ""}
                                                                             onChange={(e) => handleMaterialChange(index, "name", e.target.value)}
-                                                                            className="input input-bordered input-sm"
+                                                                            className="input input-bordered input-secondary input-sm w-full"
                                                                             placeholder="Enter material name"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div className="form-control">
-                                                                        <label className="label">
-                                                                            <span className="label-text">Quantity</span>
-                                                                        </label>
-                                                                        <div className="flex gap-2">
-                                                                            <input
-                                                                                type="number"
-                                                                                step="0.1"
-                                                                                value={material.quantityValue}
-                                                                                onChange={(e) => handleMaterialChange(index, "quantityValue", e.target.value)}
-                                                                                className="input input-bordered input-sm flex-1"
-                                                                                placeholder="0"
-                                                                                min="0"
-                                                                            />
-                                                                            <input
-                                                                                type="text"
-                                                                                value={material.quantityUnit}
-                                                                                onChange={(e) => handleMaterialChange(index, "quantityUnit", e.target.value)}
-                                                                                className="input input-bordered input-sm w-20"
-                                                                                placeholder="Unit"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="form-control">
-                                                                        <label className="label">
-                                                                            <span className="label-text">Cost ($)</span>
-                                                                        </label>
-                                                                        <input
-                                                                            type="number"
-                                                                            step="0.01"
-                                                                            value={material.cost || ""}
-                                                                            onChange={(e) => handleMaterialChange(index, "cost", e.target.value)}
-                                                                            className="input input-bordered input-sm"
-                                                                            placeholder="0.00"
-                                                                            min="0"
                                                                         />
                                                                     </div>
 
@@ -1187,22 +1148,71 @@ export default function UnifiedDailyLogModal({
                                                                             type="text"
                                                                             value={material.supplier || ""}
                                                                             onChange={(e) => handleMaterialChange(index, "supplier", e.target.value)}
-                                                                            className="input input-bordered input-sm"
+                                                                            className="input input-bordered input-secondary input-sm"
                                                                             placeholder="Enter supplier name"
                                                                         />
                                                                     </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeMaterial(index)}
+                                                                        className="btn btn-error btn-sm mt-7"
+                                                                    >
+                                                                        Remove
+                                                                    </button>
 
-                                                                    <div className="form-control">
+                                                                    <div className="form-control md:col-span-2">
                                                                         <label className="label">
-                                                                            <span className="label-text">Actions</span>
+                                                                            <span className="label-text">Quantity</span>
                                                                         </label>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => removeMaterial(index)}
-                                                                            className="btn btn-error btn-sm"
-                                                                        >
-                                                                            Remove
-                                                                        </button>
+                                                                        <div className="flex gap-2">
+                                                                            <input
+                                                                                type="number"
+                                                                                step="0.1"
+                                                                                value={material.quantityValue}
+                                                                                onChange={(e) => handleMaterialChange(index, "quantityValue", e.target.value)}
+                                                                                className="input input-bordered input-secondary input-sm flex-1"
+                                                                                placeholder="0"
+                                                                                min="0"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="form-control md:col-span-2">
+                                                                        <label className="label">
+                                                                            <span className="label-text">Unit</span>
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={material.quantityUnit}
+                                                                            onChange={(e) => handleMaterialChange(index, "quantityUnit", e.target.value)}
+                                                                            className="input input-bordered input-secondary input-sm"
+                                                                            placeholder="Unit"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div className="form-control md:col-span-2">
+                                                                        <label className="label">
+                                                                            <span className="label-text">Cost ($)</span>
+                                                                        </label>
+                                                                        <input
+                                                                            type="number"
+                                                                            step="0.01"
+                                                                            value={material.cost || ""}
+                                                                            onChange={(e) => handleMaterialChange(index, "cost", e.target.value)}
+                                                                            className="input input-bordered input-secondary input-sm"
+                                                                            placeholder="0.00"
+                                                                            min="0"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="form-control md:col-span-6">
+                                                                        <label className="label">
+                                                                            <span className="label-text">Notes</span>
+                                                                        </label>
+                                                                        <textarea
+                                                                            value={material.notes || ""}
+                                                                            onChange={(e) => handleMaterialChange(index, "notes", e.target.value)}
+                                                                            className="textarea textarea-bordered textarea-sm w-full textarea-secondary"
+                                                                            placeholder="Additional notes"
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1255,7 +1265,7 @@ export default function UnifiedDailyLogModal({
                                                                                 handleEquipmentChange(index, "equipmentId", e.target.value);
                                                                                 handleEquipmentChange(index, "name", selectedEquipment?.name || "");
                                                                             }}
-                                                                            className="select select-bordered select-sm"
+                                                                            className="select select-bordered select-secondary select-sm"
                                                                         >
                                                                             <option value="">Select Equipment</option>
                                                                             {equipments.map((equipment) => (
@@ -1270,11 +1280,12 @@ export default function UnifiedDailyLogModal({
                                                                                 type="text"
                                                                                 value={equip.name || ""}
                                                                                 onChange={(e) => handleEquipmentChange(index, "name", e.target.value)}
-                                                                                className="input input-bordered input-sm mt-2"
+                                                                                className="input input-bordered input-secondary input-sm mt-2"
                                                                                 placeholder="Enter custom equipment name"
                                                                             />
                                                                         )}
-                                                                    </div>                                                            <div className="form-control">
+                                                                    </div>
+                                                                    <div className="form-control">
                                                                         <label className="label">
                                                                             <span className="label-text">Hours Used</span>
                                                                         </label>
@@ -1283,7 +1294,7 @@ export default function UnifiedDailyLogModal({
                                                                             step="0.5"
                                                                             value={equip.hours || ""}
                                                                             onChange={(e) => handleEquipmentChange(index, "hours", e.target.value)}
-                                                                            className="input input-bordered input-sm"
+                                                                            className="input input-bordered input-secondary input-sm"
                                                                             placeholder="0"
                                                                             min="0"
                                                                         />
@@ -1300,7 +1311,7 @@ export default function UnifiedDailyLogModal({
                                                                                 handleEquipmentChange(index, "crewMemberId", e.target.value);
                                                                                 handleEquipmentChange(index, "operator", selectedMember?.name || "");
                                                                             }}
-                                                                            className="select select-bordered select-sm"
+                                                                            className="select select-bordered select-secondary select-sm"
                                                                         >
                                                                             <option value="">Select Operator</option>
                                                                             {crewMembers.map((member) => (
@@ -1315,7 +1326,7 @@ export default function UnifiedDailyLogModal({
                                                                                 type="text"
                                                                                 value={equip.operator || ""}
                                                                                 onChange={(e) => handleEquipmentChange(index, "operator", e.target.value)}
-                                                                                className="input input-bordered input-sm mt-2"
+                                                                                className="input input-bordered input-secondary input-sm mt-2"
                                                                                 placeholder="Enter operator name"
                                                                             />
                                                                         )}
