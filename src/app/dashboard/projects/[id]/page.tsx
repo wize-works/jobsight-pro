@@ -90,7 +90,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [project, setProject] = useState<Project>({} as Project);
     const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
     const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
-    const [projectCrews, setProjectCrews] = useState<CrewWithMemberInfo[]>([]);
     const [crews, setCrews] = useState<CrewWithMemberInfo[]>([]);
     const [issues, setIssues] = useState<ProjectIssueWithDetails[]>([]);
     const [client, setClient] = useState<Client | null>(null);
@@ -285,7 +284,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             longitude: -87.6298,
             address: "Default Location"
         };
-    }, [project.location, position?.coords.latitude, position?.coords.longitude]); if (loading || !projectId) {
+    }, [project.location, position?.coords.latitude, position?.coords.longitude]);
+
+    if (loading || !projectId) {
         return <ProjectDetailLoading />;
     }
 
@@ -774,7 +775,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </p>
                                     </div>
                                 )) || <p>No crews assigned.</p>}
-                            </div>                        </div>                    <WeatherWidget location={weatherLocation} />
+                            </div>
+                        </div>
+                        <WeatherWidget location={weatherLocation} />
                     </div>
                 </div>
             </ErrorBoundary>
