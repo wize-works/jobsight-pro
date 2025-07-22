@@ -297,7 +297,7 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
                 },
                 {
                     table: "tasks",
-                    select: ["id", "name", "description", "status", "priority", "end_date", "created_at", "updated_at"],
+                    select: ["id", "project_id", "name", "description", "status", "priority", "end_date", "created_at", "updated_at"],
                     alias: "tasks"
                 },
                 {
@@ -307,7 +307,7 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
                 },
                 {
                     table: "project_issues",
-                    select: ["id", "title", "description", "priority", "status", "created_at", "updated_at"],
+                    select: ["id", "title", "description", "priority", "status", "reported_date", "reported_by", "assigned_to", "resolution", "created_at", "updated_at"],
                     alias: "project_issues"
                 }
             ],
@@ -366,9 +366,45 @@ export const getProjectDetailsByID = async (businessId: string, projectId: strin
 
         // Extract related data
         const milestones = projectData.project_milestones || [];
-        const tasks = projectData.tasks || [];
+        const rawTasks = projectData.tasks || [];
         const projectCrews = projectData.project_crews || [];
-        const issues = projectData.project_issues || [];
+        const rawIssues = projectData.project_issues || [];
+
+        // Enhance tasks with project_name
+        const tasks = rawTasks.map((task: any) => ({
+            ...task,
+            project_name: project.name || "Unknown Project"
+        }));
+
+        // Enhance issues with assigned_to_name
+        let issues: any[] = [];
+        if (rawIssues.length > 0) {
+            // Get unique assigned_to IDs
+            const assignedToIds = rawIssues.map((issue: any) => issue.assigned_to).filter(Boolean);
+
+            let assignedUsers: any[] = [];
+            if (assignedToIds.length > 0) {
+                try {
+                    // Try to fetch from crew_members first (most likely case)
+                    const { data: crewMembersData } = await fetchByBusiness("crew_members", businessId, ["id", "name"], {
+                        filter: { id: { in: assignedToIds } }
+                    });
+                    assignedUsers = crewMembersData || [];
+                } catch (error) {
+                    console.error("Error fetching assigned users:", error);
+                }
+            }
+
+            // Map issues with assigned_to_name
+            issues = rawIssues.map((issue: any) => {
+                const assignedUser = assignedUsers.find((user: any) => user.id === issue.assigned_to);
+                return {
+                    ...issue,
+                    assigned_to_name: assignedUser ? assignedUser.name : (issue.assigned_to || "Unassigned"),
+                    project_name: project.name || "Unknown Project"
+                };
+            });
+        }
 
         // Get full crew data for assigned crews
         let crews: CrewWithMemberInfo[] = [];

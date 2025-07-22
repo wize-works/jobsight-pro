@@ -181,16 +181,6 @@ export default function TaskDetailsModal({
                             <h2 className="text-xl font-bold">
                                 {isCreating ? 'Create New Task' : isEditing ? 'Edit Task' : 'Task Details'}
                             </h2>
-                            {task && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    {isOverdue && (
-                                        <div className="badge badge-error badge-sm">
-                                            <i className="far fa-exclamation-triangle mr-1"></i>
-                                            Overdue
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </div>
                         <button
                             onClick={onClose}
@@ -259,7 +249,7 @@ export default function TaskDetailsModal({
                                                 >
                                                     {task.project_name}
                                                 </Link>
-                                            ) : null}
+                                            ) : "nothing"}
                                         </div>
                                     </div>
 
@@ -400,7 +390,11 @@ export default function TaskDetailsModal({
                                                     ))}
                                                 </select>
                                             ) : (
-                                                <div className="py-2">{task?.crew_name || "Unassigned"}</div>
+                                                <div className="py-2">
+                                                    {task?.crew_name ||
+                                                        (task?.assigned_to ? crews.find(crew => crew.id === task.assigned_to)?.name : null) ||
+                                                        "Unassigned"}
+                                                </div>
                                             )}
                                         </div>
 
@@ -615,6 +609,19 @@ export default function TaskDetailsModal({
                     <div className="flex justify-end gap-3">
                         {!isCreating && !isEditing && (
                             <>
+                                <button
+                                    onClick={() => {
+                                        if (isCreating) {
+                                            onClose();
+                                        } else {
+                                            setIsEditing(false);
+                                        }
+                                    }}
+                                    className="btn btn-outline"
+                                    disabled={isUpdating}
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="btn btn-secondary gap-2"

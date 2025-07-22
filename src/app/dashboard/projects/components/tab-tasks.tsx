@@ -19,7 +19,13 @@ const safeFormatDate = (dateValue: string | Date | null | undefined, formatStr: 
     }
 };
 
-export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDetails[], milestones?: ProjectMilestone[] }) {
+interface TasksTabProps {
+    tasks: TaskWithDetails[];
+    milestones?: ProjectMilestone[];
+    onTaskEdit?: (task: TaskWithDetails) => void;
+}
+
+export default function TasksTab({ tasks, milestones = [], onTaskEdit }: TasksTabProps) {
     // Group tasks by milestone
     const tasksByMilestone = tasks.reduce((acc, task) => {
         const milestoneId = task.milestone_id || 'none';
@@ -76,6 +82,7 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                         <th>Assigned To</th>
                                                         <th>Status</th>
                                                         <th>Progress</th>
+                                                        <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -90,6 +97,18 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                             <td>{task.crew_name}</td>
                                                             <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
                                                             <td>{progressBar(task.progress, 100)}</td>
+                                                            <td>
+                                                                {onTaskEdit && (
+                                                                    <button
+                                                                        className="btn btn-sm btn-secondary"
+                                                                        onClick={() => onTaskEdit(task)}
+                                                                        title="View/Edit Task"
+                                                                    >
+                                                                        <i className="far fa-eye mr-1"></i>
+                                                                        View Details
+                                                                    </button>
+                                                                )}
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -116,6 +135,7 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                     <th>Assigned To</th>
                                                     <th>Status</th>
                                                     <th>Progress</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -130,6 +150,18 @@ export default function TasksTab({ tasks, milestones = [] }: { tasks: TaskWithDe
                                                         <td>{task.crew_name}</td>
                                                         <td>{taskStatusOptions.badge(task.status as TaskStatus)}</td>
                                                         <td>{progressBar(task.progress, 100)}</td>
+                                                        <td>
+                                                            {onTaskEdit && (
+                                                                <button
+                                                                    className="btn btn-sm btn-secondary"
+                                                                    onClick={() => onTaskEdit(task)}
+                                                                    title="View/Edit Task"
+                                                                >
+                                                                    <i className="far fa-eye mr-1"></i>
+                                                                    View Details
+                                                                </button>
+                                                            )}
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>

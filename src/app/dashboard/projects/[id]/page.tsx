@@ -102,7 +102,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
-    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null); const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
+    const [selectedIssue, setSelectedIssue] = useState<ProjectIssueWithDetails | null>(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
     const [mediaModalOpen, setMediaModalOpen] = useState(false);
     const [crewModalOpen, setCrewModalOpen] = useState(false);
 
@@ -228,9 +230,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setTaskModalOpen(false);
         setSelectedTask(null);
         toast.success("Task saved successfully!");
-    }; const handleTaskModalClose = () => {
+    };
+
+    const handleTaskModalClose = () => {
         setTaskModalOpen(false);
         setSelectedTask(null);
+    };
+
+    const handleIssueModalOpen = (issue?: ProjectIssueWithDetails) => {
+        setSelectedIssue(issue || null);
+        setIssueModalOpen(true);
+    };
+
+    const handleIssueModalClose = () => {
+        setIssueModalOpen(false);
+        setSelectedIssue(null);
     };
 
     const handleCrewAssigned = (crew: CrewWithMemberInfo) => {
@@ -617,7 +631,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         )}
 
                         {activeTab === "tasks" && (
-                            <TasksTab tasks={tasks} milestones={milestones} />
+                            <TasksTab tasks={tasks} milestones={milestones} onTaskEdit={handleEditTask} />
                         )}
                         {activeTab === "crew" && (
                             <CrewsTab projectId={project.id} crews={crews} onCrewsUpdated={handleCrewsUpdated} />
@@ -633,7 +647,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         )}
                         {activeTab === "issues" && (
-                            <IssuesTab issues={issues} setIssues={setIssues} modalHandler={setIssueModalOpen} />
+                            <IssuesTab issues={issues} setIssues={setIssues} modalHandler={handleIssueModalOpen} />
                         )}
                         {activeTab === "documents" && (
                             <MediaTab projectId={project.id} />
@@ -764,7 +778,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
             </ErrorBoundary>
-            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={() => setIssueModalOpen(false)} initialIssue={{ project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
+            {issueModalOpen && <IssueModal isOpen={issueModalOpen} onClose={handleIssueModalClose} initialIssue={selectedIssue || { project_id: project.id } as ProjectIssueWithDetails} projectId={project.id} />}
             {milestoneModalOpen && <MilestoneModal isOpen={milestoneModalOpen} onClose={handleMilestoneModalClose} projectId={project.id} milestone={selectedMilestone} onSave={handleMilestoneSave} />}
             {taskModalOpen && (
                 <TaskDetailsModal
@@ -773,8 +787,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     task={selectedTask}
                     projects={[project]} // Pass current project for task creation
                     crews={crews}
-                    onTaskUpdate={() => { }} // Not used here, updates handled by handleTaskSave
-                    onTaskDelete={() => { }} // Not used here
+                    onTaskUpdate={(updatedTask) => {
+                        // Update the task in the local state
+                        setTasks((prev) => prev.map((t) =>
+                            t.id === updatedTask.id ? { ...t, ...updatedTask } as TaskWithDetails : t
+                        ));
+                        toast.success("Task updated successfully!");
+                    }}
+                    onTaskDelete={(taskId) => {
+                        // Remove the task from local state
+                        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+                        toast.success("Task deleted successfully!");
+                    }}
                     onTaskCreate={async (taskData) => {
                         await handleTaskSave({ ...taskData, project_id: project.id });
                     }}

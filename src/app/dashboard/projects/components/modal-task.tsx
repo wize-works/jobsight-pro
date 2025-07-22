@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Task, TaskInsert, TaskStatus, TaskPriority, taskStatusOptions, taskPriorityOptions, TaskWithDetails } from "@/types/tasks";
+import { Task, TaskInsert, TaskUpdate, TaskStatus, TaskPriority, taskStatusOptions, taskPriorityOptions, TaskWithDetails } from "@/types/tasks";
 import { createTask, updateTask } from "@/app/actions/tasks";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
@@ -137,12 +137,11 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                 project_id: projectId,
                 assigned_to: formData.assigned_to || null,
                 milestone_id: formData.milestone_id || null,
-            } as TaskInsert;
+            };
 
             if (isEditing && task) {
-                // Update existing task
-                taskData.id = task.id;
-                const updatedTask = await updateTask(businessId, task.id, taskData);
+                // Update existing task - use TaskUpdate type
+                const updatedTask = await updateTask(businessId, task.id, taskData as TaskUpdate);
 
                 if (updatedTask) {
                     toast.success({
@@ -152,8 +151,8 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                     if (onSave) onSave(updatedTask);
                 }
             } else {
-                // Create new task
-                const newTask = await createTask(businessId, taskData);
+                // Create new task - use TaskInsert type
+                const newTask = await createTask(businessId, taskData as TaskInsert);
 
                 if (newTask) {
                     toast.success({
@@ -341,37 +340,21 @@ export default function TaskModal({ isOpen, onClose, projectId, task, onSave, cr
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(taskStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {taskStatusOptions.select(
+                                            formData.status,
+                                            () => handleInputChange,
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text font-medium">Priority</span>
                                         </label>
-                                        <select
-                                            name="priority"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={formData.priority}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(taskPriorityOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {taskPriorityOptions.select(
+                                            formData.priority,
+                                            () => handleInputChange,
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control">
                                         <label className="label">
