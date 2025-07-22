@@ -224,6 +224,45 @@ export const getMediaByProjectId = async (businessId: string, projectId: string,
     return data as unknown as Media[];
 }
 
+export const getAllMediaByProjectId = async (businessId: string, projectId: string): Promise<Media[]> => {
+    try {
+        const { data: linkData, error: linkError } = await fetchByBusiness("media_links", businessId, "*", {
+            filter: { linked_id: projectId, linked_type: "project" },
+            orderBy: { column: "created_at", ascending: false },
+        });
+
+        if (linkError) {
+            console.error("Error fetching media links by project ID:", linkError);
+            return [];
+        }
+
+        if (!linkData || linkData.length === 0) {
+            return [];
+        }
+
+        const mediaIds = (linkData as unknown as MediaLink[]).map((link: { media_id: string }) => link.media_id).filter(Boolean);
+
+        if (mediaIds.length === 0) {
+            return [];
+        }
+
+        const { data, error } = await fetchByBusiness("media", businessId, "*", {
+            filter: { id: { in: mediaIds } },
+            orderBy: { column: "created_at", ascending: false },
+        });
+
+        if (error) {
+            console.error("Error fetching media by project ID:", error);
+            return [];
+        }
+
+        return data as unknown as Media[];
+    } catch (err) {
+        console.error("Error in getAllMediaByProjectId:", err);
+        return [];
+    }
+}
+
 export const linkMediaToEquipment = async (businessId: string, mediaId: string, equipmentId: string): Promise<boolean> => {
     try {
         const { business, userId } = await withBusinessServer();
