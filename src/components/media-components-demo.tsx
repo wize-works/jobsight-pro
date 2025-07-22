@@ -93,7 +93,7 @@ export default function MediaComponentsDemo() {
             </div>
 
             {/* Component Selector */}
-            <div className="tabs tabs-boxed">
+            <div className="tabs tabs-box">
                 <button
                     className={`tab ${activeDemo === "manager" ? "tab-active" : ""}`}
                     onClick={() => setActiveDemo("manager")}

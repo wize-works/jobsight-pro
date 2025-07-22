@@ -252,7 +252,7 @@ export const TabSubscription = () => {
 
             {/* Billing Toggle */}
             <div className="flex justify-center mb-8">
-                <div className="tabs tabs-boxed">
+                <div className="tabs tabs-box">
                     <a
                         className={`tab ${billingInterval === "monthly" ? "tab-active" : ""}`}
                         onClick={() => setBillingInterval("monthly")}

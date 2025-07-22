@@ -209,7 +209,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         ) : (
                                             <select
                                                 name="crew_id"
-                                                className="select select-bordered select-secondary"
+                                                className="select select-bordered select-secondary w-full"
                                                 value={formData.crew_id}
                                                 onChange={handleInputChange}
                                                 required
@@ -235,7 +235,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         ) : (
                                             <select
                                                 name="project_id"
-                                                className="select select-bordered select-secondary"
+                                                className="select select-bordered select-secondary w-full"
                                                 value={formData.project_id}
                                                 onChange={handleInputChange}
                                                 required
@@ -257,7 +257,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         <input
                                             type="date"
                                             name="start_date"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.start_date}
                                             onChange={handleInputChange}
                                             required
@@ -271,7 +271,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         <input
                                             type="date"
                                             name="end_date"
-                                            className="input input-bordered input-secondary"
+                                            className="input input-bordered input-secondary w-full"
                                             value={formData.end_date}
                                             onChange={handleInputChange}
                                             disabled={loading}
@@ -281,19 +281,11 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                         <label className="label">
                                             <span className="label-text font-medium">Status</span>
                                         </label>
-                                        <select
-                                            name="status"
-                                            className="select select-bordered select-secondary"
-                                            value={formData.status}
-                                            onChange={handleInputChange}
-                                            disabled={loading}
-                                        >
-                                            {Object.entries(assignmentStatusOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {assignmentStatusOptions.select(
+                                            formData.status,
+                                            (value) => setFormData(prev => ({ ...prev, status: value })),
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -312,7 +304,7 @@ export const AssignmentModal = ({ isOpen, assignment, onClose, onSave, onDelete 
                                     </label>
                                     <textarea
                                         name="notes"
-                                        className="textarea textarea-bordered textarea-secondary"
+                                        className="textarea textarea-bordered textarea-secondary w-full"
                                         value={formData.notes}
                                         onChange={handleInputChange}
                                         placeholder="Enter any additional notes about this assignment"

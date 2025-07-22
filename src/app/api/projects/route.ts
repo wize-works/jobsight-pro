@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
 
         // Get user's business
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('business_id')
-            .eq('user_id', user.id)
+            .eq('auth_id', user.id)
             .single();
 
         if (!profile?.business_id) {
@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
 
         // Get user's business
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('business_id')
-            .eq('user_id', user.id)
+            .eq('auth_id', user.id)
             .single();
 
         if (!profile?.business_id) {
