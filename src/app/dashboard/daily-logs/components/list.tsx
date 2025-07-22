@@ -11,7 +11,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import ModalLoading from "@/components/modal-loading";
 
 // Lazy load modal component for better performance
-const DailyLogModal = dynamic(() => import("./modal-log"), {
+const UnifiedDailyLogModal = dynamic(() => import("./modal-unified"), {
     loading: () => <ModalLoading message="Loading daily log form..." />,
     ssr: false
 });
@@ -325,7 +325,8 @@ export default function DailyLogsList({
                 </div>
             </ErrorBoundary>
 
-            <DailyLogModal
+            <UnifiedDailyLogModal
+                mode="create"
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSave={handleNewLog}

@@ -24,8 +24,8 @@ import { formatDate } from "@/utils/date";
 import { useBusiness } from "@/lib/business-context";
 import { toast } from "@/hooks/use-toast";
 
-// Dynamic import for the edit modal
-const EditModal = dynamic(() => import("./modal-edit"), {
+// Dynamic import for the unified modal
+const UnifiedDailyLogModal = dynamic(() => import("./modal-unified"), {
     loading: () => <ModalLoading message="Loading edit form..." />,
 });
 
@@ -643,10 +643,9 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
             </div>
 
             {/* Edit Modal */}
-            <EditModal
+            <UnifiedDailyLogModal
+                mode="edit"
                 log={currentLog}
-                crews={crews}
-                projects={projects}
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 onSave={handleLogUpdate}

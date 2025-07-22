@@ -124,6 +124,7 @@ export default function CrewDetailComponent({
             hourly_rate: formData.hourlyRate || 0,
             overtime_rate: formData.overtimeRate || undefined,
             doubletime_rate: formData.doubletimeRate || undefined,
+            billable_effective_date: formData.billableEffectiveDate || null,
             is_billable: formData.isBillable || false,
         } as CrewMemberInsert;
 

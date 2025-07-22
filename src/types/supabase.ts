@@ -980,6 +980,7 @@ export interface Database {
                     name: string
                     quantity: number | null
                     cost: number | null
+                    unit: string | null
                     supplier: string | null
                     notes: string | null
                     created_at: string | null
@@ -994,6 +995,7 @@ export interface Database {
                     name: string
                     quantity: number | null
                     cost: number | null
+                    unit: string | null
                     supplier: string | null
                     notes: string | null
                     created_at: string | null
@@ -1008,6 +1010,7 @@ export interface Database {
                     name: string
                     quantity: number | null
                     cost: number | null
+                    unit: string | null
                     supplier: string | null
                     notes: string | null
                     created_at: string | null
