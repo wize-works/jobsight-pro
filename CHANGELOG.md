@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/wize-works/jobsight-pro/compare/v2.4.1...v2.5.0) (2025-07-22)
+
+
+### Features
+
+* Add projectCrews state management and update crews filtering logic in CrewsTab ([578dfa0](https://github.com/wize-works/jobsight-pro/commit/578dfa0fa9c354dfe30682228d6dedbfc30beb41))
+
 ## [2.4.1](https://github.com/wize-works/jobsight-pro/compare/v2.4.0...v2.4.1) (2025-07-22)
 
 
