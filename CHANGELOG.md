@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/wize-works/jobsight-pro/compare/v2.3.0...v2.4.0) (2025-07-22)
+
+
+### Features
+
+* Implement comprehensive camera integration for media management ([bf440ac](https://github.com/wize-works/jobsight-pro/commit/bf440acc2a6051f002bcd18ac48d53d103d2f1fb))
+
 # [2.3.0](https://github.com/wize-works/jobsight-pro/compare/v2.2.0...v2.3.0) (2025-07-22)
 
 
