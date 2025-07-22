@@ -360,6 +360,7 @@ export default function RateManagement({ businessId }: RateManagementProps) {
                                                 <th>Role</th>
                                                 <th>Hourly Rate</th>
                                                 <th>Overtime Rate</th>
+                                                <th>Doubletime Rate</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -439,6 +440,7 @@ interface CrewMemberRateRowProps {
 function CrewMemberRateRow({ crewMember, onRateChange, saving }: CrewMemberRateRowProps) {
     const [hourlyRate, setHourlyRate] = useState(crewMember.currentRate?.hourlyRate || crewMember.hourly_rate || 0);
     const [overtimeRate, setOvertimeRate] = useState(crewMember.currentRate?.overtimeRate || crewMember.overtime_rate || 0);
+    const [doubletimeRate, setDoubleTimeRate] = useState(crewMember.currentRate?.doubletimeRate || crewMember.doubletime_rate || 0);
     const [hasChanges, setHasChanges] = useState(false);
 
     const handleHourlyRateChange = (value: number) => {
@@ -451,10 +453,16 @@ function CrewMemberRateRow({ crewMember, onRateChange, saving }: CrewMemberRateR
         setHasChanges(true);
     };
 
+    const handleDoubletimeRateChange = (value: number) => {
+        setDoubleTimeRate(value);
+        setHasChanges(true);
+    };
+
     const handleSave = () => {
         onRateChange(crewMember.id, {
             hourlyRate: hourlyRate,
-            overtimeRate: overtimeRate || undefined
+            overtimeRate: overtimeRate || undefined,
+            doubletimeRate: doubletimeRate || undefined,
         });
         setHasChanges(false);
     };
@@ -501,6 +509,20 @@ function CrewMemberRateRow({ crewMember, onRateChange, saving }: CrewMemberRateR
                         className="input input-sm input-bordered w-20"
                         value={overtimeRate}
                         onChange={(e) => handleOvertimeRateChange(parseFloat(e.target.value) || 0)}
+                        disabled={!crewMember.is_billable}
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+            </td>
+            <td>
+                <div className="flex items-center gap-1">
+                    <span className="text-sm">$</span>
+                    <input
+                        type="number"
+                        className="input input-sm input-bordered w-20"
+                        value={doubletimeRate}
+                        onChange={(e) => handleDoubletimeRateChange(parseFloat(e.target.value) || 0)}
                         disabled={!crewMember.is_billable}
                         min="0"
                         step="0.01"

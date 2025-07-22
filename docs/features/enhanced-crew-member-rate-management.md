@@ -61,7 +61,7 @@ const [formData, setFormData] = useState({
     isBillable: true,
     regularRate: 0,
     overtimeRate: 0,
-    doubleTimeRate: 0,
+    doubletimeRate: 0,
     effectiveDate: new Date().toISOString().split('T')[0],
 });
 ```

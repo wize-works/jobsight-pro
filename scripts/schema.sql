@@ -754,6 +754,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'overtime_rate') THEN
         ALTER TABLE public.crew_members ADD COLUMN overtime_rate DECIMAL(10,2) DEFAULT 0.00;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'doubletime_rate') THEN
+        ALTER TABLE public.crew_members ADD COLUMN doubletime_rate DECIMAL(10,2) DEFAULT 0.00;
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'crew_members' AND column_name = 'is_billable') THEN
         ALTER TABLE public.crew_members ADD COLUMN is_billable BOOLEAN DEFAULT true;
     END IF;

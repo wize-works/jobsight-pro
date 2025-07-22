@@ -31,7 +31,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
         isBillable: true,
         regularRate: 0,
         overtimeRate: 0,
-        doubleTimeRate: 0,
+        doubletimeRate: 0,
         effectiveDate: new Date().toISOString().split('T')[0],
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +52,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 isBillable: true,
                 regularRate: 0,
                 overtimeRate: 0,
-                doubleTimeRate: 0,
+                doubletimeRate: 0,
                 effectiveDate: new Date().toISOString().split('T')[0],
             });
 
@@ -73,7 +73,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                     isBillable: true, // Default to billable if rate exists
                     regularRate: currentRate.hourlyRate,
                     overtimeRate: currentRate.overtimeRate || 0,
-                    doubleTimeRate: 0, // Not in current BillingRate type
+                    doubletimeRate: currentRate.doubletimeRate || 0,
                     effectiveDate: currentRate.effectiveDate?.split('T')[0] || new Date().toISOString().split('T')[0],
                 }));
             }
@@ -88,7 +88,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "experience" || name === "regularRate" || name === "overtimeRate" || name === "doubleTimeRate"
+            [name]: name === "experience" || name === "regularRate" || name === "overtimeRate" || name === "doubletimeRate"
                 ? Number(value) : value
         }));
         setError(null); // Clear error when user makes changes
@@ -149,6 +149,7 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                 businessId,
                 hourlyRate: formData.regularRate,
                 overtimeRate: formData.overtimeRate || undefined,
+                doubletimeRate: formData.doubletimeRate || undefined,
             });
         } catch (error) {
             console.error('Error saving rate data:', error);
@@ -369,9 +370,9 @@ const ModalMember: React.FC<ModalMemberProps> = ({ title, loading, onClose, onSu
                                             </label>
                                             <input
                                                 type="number"
-                                                name="doubleTimeRate"
+                                                name="doubletimeRate"
                                                 className="input input-bordered input-secondary"
-                                                value={formData.doubleTimeRate}
+                                                value={formData.doubletimeRate}
                                                 onChange={handleChange}
                                                 disabled={isSubmitting || loadingRates}
                                                 min="0"

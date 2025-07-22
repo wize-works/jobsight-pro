@@ -286,6 +286,7 @@ export async function createCrewMember(
             notes: crewMemberData.notes || null,
             hourly_rate: crewMemberData.hourly_rate || null,
             overtime_rate: crewMemberData.overtime_rate || null,
+            doubletime_rate: crewMemberData.doubletime_rate || null, // Added doubletime_rate
             is_billable: crewMemberData.is_billable !== undefined ? crewMemberData.is_billable : true,
             created_at: now,
             created_by: currentUserAuthId,
@@ -426,6 +427,7 @@ export async function updateCrewMember(
         if (crewMemberData.notes !== undefined) updateData.notes = crewMemberData.notes;
         if (crewMemberData.hourly_rate !== undefined) updateData.hourly_rate = crewMemberData.hourly_rate;
         if (crewMemberData.overtime_rate !== undefined) updateData.overtime_rate = crewMemberData.overtime_rate;
+        if (crewMemberData.doubletime_rate !== undefined) updateData.doubletime_rate = crewMemberData.doubletime_rate; // Added doubletime_rate
         if (crewMemberData.is_billable !== undefined) updateData.is_billable = crewMemberData.is_billable;
 
         // Update locally first (optimistic update)
