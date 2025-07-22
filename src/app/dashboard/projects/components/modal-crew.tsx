@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { CrewWithMemberInfo } from "@/types/crews";
 import { addCrewToProject } from "@/app/actions/project-crews";
-import { getAvailableCrews } from "@/app/actions/crews";
+import { getAvailableCrews, getCrewsWithDetails } from "@/app/actions/crews";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/lib/business-context";
 
@@ -38,9 +38,14 @@ export default function CrewModal({
     const loadAvailableCrews = async () => {
         try {
             setFetchingCrews(true);
-            const crews = await getAvailableCrews(businessId);
+            //const crews = await getAvailableCrews(businessId);
+            const crews = await getCrewsWithDetails(businessId);
+            console.log("Available crews:", crews);
             // Filter out crews that are already assigned to this project
             const filteredCrews = crews.filter(crew => !assignedCrewIds.includes(crew.id));
+            if (filteredCrews.length === 0) {
+                toast.info("All crews are already assigned to this project.");
+            }
             setAvailableCrews(filteredCrews);
         } catch (error) {
             console.error("Error loading available crews:", error);
@@ -92,7 +97,6 @@ export default function CrewModal({
         <div className="modal modal-open">
             <div className="modal-box">
                 <h3 className="font-bold text-lg mb-4">Assign Crew to Project</h3>
-
                 <form onSubmit={handleSubmit}>
                     <div className="form-control w-full mb-4">
                         <label className="label">
