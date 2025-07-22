@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/wize-works/jobsight-pro/compare/v2.7.0...v2.8.0) (2025-07-22)
+
+
+### Features
+
+* Add SubscriptionStatusBanner to BusinessPage and adjust DashboardClient layout ([294085d](https://github.com/wize-works/jobsight-pro/commit/294085d89fa6f5519ba6e32b91c3e4766761acc3))
+
 # [2.7.0](https://github.com/wize-works/jobsight-pro/compare/v2.6.0...v2.7.0) (2025-07-22)
 
 
