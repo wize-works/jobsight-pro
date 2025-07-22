@@ -6,7 +6,7 @@ import UniversalMediaUploader, { UniversalMediaUploaderProps, MEDIA_CONFIGS } fr
 import UniversalMediaLinker, { UniversalMediaLinkerProps } from "./universal-media-linker";
 import { toast } from "@/hooks/use-toast";
 
-export type MediaManagementMode = "upload" | "link" | "both";
+export type MediaManagementMode = "upload" | "view" | "link" | "both";
 
 export interface UniversalMediaManagerProps {
     // Core functionality
@@ -25,6 +25,10 @@ export interface UniversalMediaManagerProps {
     // Configuration overrides
     uploadConfig?: Partial<UniversalMediaUploaderProps>;
     linkConfig?: Partial<UniversalMediaLinkerProps>;
+
+    // Camera configuration
+    enableCamera?: boolean;
+    cameraQuality?: "low" | "medium" | "high" | number;
 
     // UI Configuration
     title?: string;
@@ -46,6 +50,8 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
     onUnlink,
     uploadConfig = {},
     linkConfig = {},
+    enableCamera = false,
+    cameraQuality = "medium",
     title,
     description,
     compact = false,
@@ -53,10 +59,10 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
     onComplete,
 }) => {
     const [activeTab, setActiveTab] = useState<"view" | "upload" | "link">(() => {
-        if (mode === "upload") return "upload";
+        if (mode === "view" || mode === "upload" || mode === "both") return "view";
         if (mode === "link") return "link";
         // For "both" mode, default to "view" if there's linked media, otherwise "upload"
-        return linkedMedia.length > 0 ? "view" : "upload";
+        return linkedMedia.length > 0 ? "view" : "link";
     });
 
     // Utility function for formatting file sizes
@@ -69,11 +75,20 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
     };
 
     // Get base configuration for entity type
-    const baseConfig = entityType === "custom" ? {} : MEDIA_CONFIGS[entityType];// Merge configurations
+    const baseConfig = entityType === "custom" ? {} : MEDIA_CONFIGS[entityType];
+
+    // Convert cameraQuality to number if it's a string
+    const numericCameraQuality = typeof cameraQuality === "string"
+        ? (cameraQuality === "low" ? 0.6 : cameraQuality === "medium" ? 0.8 : 0.9)
+        : cameraQuality;
+
+    // Merge configurations
     const finalUploadConfig: UniversalMediaUploaderProps = {
         onUpload: onUpload!,
         ...baseConfig,
         ...uploadConfig,
+        enableCamera,
+        cameraQuality: numericCameraQuality,
         title: title || (baseConfig as any)?.title || "Upload Media",
         description: description || (baseConfig as any)?.description || "Upload files",
         compact,
@@ -122,18 +137,28 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
     return (
         <div className="space-y-6">
             {/* Tab Navigation */}
-            <div className="tabs tabs-boxed">
+            <div className="tabs tabs-box">
                 <button
+                    type="button"
                     className={`tab ${activeTab === "view" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("view")}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveTab("view");
+                    }}
                     disabled={disabled}
                 >
                     <i className="far fa-eye mr-2"></i>
                     View Media ({linkedMedia.length})
                 </button>
                 <button
+                    type="button"
                     className={`tab ${activeTab === "link" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("link")}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveTab("link");
+                    }}
                     disabled={disabled}
                 >
                     <i className="far fa-link mr-2"></i>
@@ -149,8 +174,11 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
                             <h3 className="font-semibold text-lg">Linked Media Files</h3>
                             {linkedMedia.length > 0 && onUnlink && (
                                 <button
+                                    type="button"
                                     className="btn btn-outline btn-sm"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                         if (confirm(`Remove all ${linkedMedia.length} linked media files?`)) {
                                             onUnlink(linkedMedia.map(m => m.id));
                                         }
@@ -219,7 +247,8 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
                                                     </span>
                                                 </div>
                                             )}
-                                        </figure>                                        <div className="p-4">
+                                        </figure>
+                                        <div className="p-4">
                                             {/* Header Section */}
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -263,7 +292,8 @@ const UniversalMediaManager: React.FC<UniversalMediaManagerProps> = ({
                                                     </div>
                                                     <div className="stat-title text-xs">Size</div>
                                                 </div>
-                                            </div>                                            {/* Action Buttons */}
+                                            </div>
+                                            {/* Action Buttons */}
                                             <div className="flex gap-1 pt-2">
                                                 <a
                                                     href={media.url}

@@ -3,6 +3,8 @@
 import React, { useState, useRef, useCallback } from "react";
 import { MediaType } from "@/types/media";
 import { toast } from "@/hooks/use-toast";
+import { useCamera } from "@/hooks/useCamera";
+import CameraPreview from "@/components/camera-preview";
 
 interface MediaFile {
     file: File;
@@ -34,6 +36,11 @@ export interface UniversalMediaUploaderProps {
 
     // Initial state
     existingFiles?: MediaFile[];
+
+    // Camera configuration
+    enableCamera?: boolean;
+    enableVideoRecording?: boolean;
+    cameraQuality?: number; // 0-1 for JPEG quality
 }
 
 // Default configurations for different contexts
@@ -46,6 +53,9 @@ export const MEDIA_CONFIGS = {
         allowedMediaTypes: ["images", "videos", "documents"] as MediaType[],
         title: "Upload Photos & Documents",
         description: "Add photos and documents to your daily log",
+        enableCamera: true,
+        enableVideoRecording: false,
+        cameraQuality: 0.8,
     },
     project: {
         multiple: true,
@@ -55,6 +65,9 @@ export const MEDIA_CONFIGS = {
         allowedMediaTypes: ["images", "videos", "documents"] as MediaType[],
         title: "Upload Project Media",
         description: "Add images, videos, and documents to your project",
+        enableCamera: true,
+        enableVideoRecording: true,
+        cameraQuality: 0.9,
     },
     client: {
         multiple: true,
@@ -64,6 +77,9 @@ export const MEDIA_CONFIGS = {
         allowedMediaTypes: ["images", "documents"] as MediaType[],
         title: "Upload Client Files",
         description: "Add documents and images for this client",
+        enableCamera: true,
+        enableVideoRecording: false,
+        cameraQuality: 0.8,
     },
     equipment: {
         multiple: false,
@@ -73,6 +89,9 @@ export const MEDIA_CONFIGS = {
         allowedMediaTypes: ["images"] as MediaType[],
         title: "Upload Equipment Image",
         description: "Add a photo of this equipment",
+        enableCamera: true,
+        enableVideoRecording: false,
+        cameraQuality: 0.9,
     }
 };
 
@@ -90,11 +109,19 @@ const UniversalMediaUploader: React.FC<UniversalMediaUploaderProps> = ({
     compact = false,
     disabled = false,
     existingFiles = [],
+    enableCamera = true,
+    enableVideoRecording = false,
+    cameraQuality = 0.8,
 }) => {
     const [files, setFiles] = useState<MediaFile[]>(existingFiles);
     const [dragActive, setDragActive] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [cameraMode, setCameraMode] = useState<'photo' | 'video' | null>(null);
+    const [showFullscreenCamera, setShowFullscreenCamera] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Camera hook
+    const camera = useCamera();
 
     // File validation
     const validateFile = useCallback((file: File): string | null => {
@@ -223,6 +250,59 @@ const UniversalMediaUploader: React.FC<UniversalMediaUploaderProps> = ({
         setFiles(prev => prev.filter(f => f.id !== id));
     }, []);
 
+    // Camera capture functions
+    const handleCameraCapture = useCallback(async (mode: 'photo' | 'video' = 'photo') => {
+        if (!enableCamera) return;
+
+        try {
+            setCameraMode(mode);
+            await camera.startCamera({
+                facingMode: 'environment', // Default to back camera for documentation
+                quality: cameraQuality
+            });
+        } catch (error) {
+            console.error('Failed to start camera:', error);
+            toast.error({
+                title: "Camera Error",
+                description: "Failed to start camera. Please check permissions.",
+            });
+            setCameraMode(null);
+        }
+    }, [enableCamera, camera, cameraQuality]);
+
+    const handlePhotoCapture = useCallback(async (capturedFile: File) => {
+        try {
+            // Stop camera
+            camera.stopCamera();
+            setCameraMode(null);
+            setShowFullscreenCamera(false);
+
+            // Add captured photo to files
+            await addFiles([capturedFile]);
+
+            toast.success({
+                title: "Photo captured",
+                description: "Photo added to upload queue",
+            });
+        } catch (error) {
+            console.error('Failed to handle captured photo:', error);
+            toast.error({
+                title: "Capture Error",
+                description: "Failed to process captured photo",
+            });
+        }
+    }, [camera, addFiles]);
+
+    const handleCameraClose = useCallback(() => {
+        camera.stopCamera();
+        setCameraMode(null);
+        setShowFullscreenCamera(false);
+    }, [camera]);
+
+    const toggleFullscreenCamera = useCallback(() => {
+        setShowFullscreenCamera(prev => !prev);
+    }, []);
+
     // Upload all pending files
     const uploadFiles = useCallback(async () => {
         const pendingFiles = files.filter(f => f.status === "pending");
@@ -334,40 +414,130 @@ const UniversalMediaUploader: React.FC<UniversalMediaUploaderProps> = ({
                 </div>
             )}
 
+            {/* Camera Controls */}
+            {enableCamera && !disabled && (
+                <div className="flex flex-wrap gap-2 justify-center">
+                    <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCameraCapture('photo');
+                        }}
+                        disabled={camera.isActive}
+                    >
+                        <i className="fas fa-camera mr-2"></i>
+                        Take Photo
+                    </button>
+                    {enableVideoRecording && (
+                        <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleCameraCapture('video');
+                            }}
+                            disabled={camera.isActive}
+                        >
+                            <i className="fas fa-video mr-2"></i>
+                            Record Video
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                        }}
+                    >
+                        <i className="fas fa-upload mr-2"></i>
+                        Upload Files
+                    </button>
+                </div>
+            )}
+
+            {/* Camera Preview */}
+            {cameraMode && camera.isActive && !showFullscreenCamera && (
+                <div className="relative">
+                    <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <CameraPreview
+                            camera={camera}
+                            onCapture={handlePhotoCapture}
+                            onClose={handleCameraClose}
+                            captureOptions={{ quality: cameraQuality }}
+                            className="w-full h-full"
+                            showControls={true}
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        className="absolute top-2 right-2 btn btn-circle btn-sm btn-ghost text-white hover:bg-white/20"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleFullscreenCamera();
+                        }}
+                        title="Fullscreen camera"
+                    >
+                        <i className="fas fa-expand"></i>
+                    </button>
+                </div>
+            )}
+
+            {/* Fullscreen Camera Modal */}
+            {showFullscreenCamera && cameraMode && camera.isActive && (
+                <div className="fixed inset-0 z-50">
+                    <CameraPreview
+                        camera={camera}
+                        onCapture={handlePhotoCapture}
+                        onClose={handleCameraClose}
+                        captureOptions={{ quality: cameraQuality }}
+                        fullscreen={true}
+                        showControls={true}
+                    />
+                </div>
+            )}
+
             {/* Upload Zone */}
-            <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${dragActive
+            {(!cameraMode || !camera.isActive) && (
+                <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${dragActive
                         ? 'border-primary bg-primary/10'
                         : files.length > 0
                             ? 'border-success bg-success/5'
                             : 'border-base-300 hover:border-primary/50'
-                    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${compact ? 'p-4' : ''}`}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => !disabled && fileInputRef.current?.click()}
-            >
-                <div className="flex flex-col items-center gap-2">
-                    <i className={`far fa-cloud-upload text-3xl text-base-content/50 ${compact ? 'text-xl' : ''}`}></i>
-                    <p className="font-medium">
-                        {dragActive ? 'Drop files here' : 'Drag & drop files or click to browse'}
-                    </p>
-                    <p className="text-xs text-base-content/60">
-                        {acceptedTypes.join(', ')} • Max {(maxFileSize / 1024 / 1024).toFixed(0)}MB
-                        {multiple && ` • Up to ${maxFiles} files`}
-                    </p>
-                </div>
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${compact ? 'p-4' : ''} ${enableCamera ? 'opacity-75' : ''}`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onClick={() => !disabled && fileInputRef.current?.click()}
+                >
+                    <div className="flex flex-col items-center gap-2">
+                        <i className={`far fa-cloud-upload text-3xl text-base-content/50 ${compact ? 'text-xl' : ''}`}></i>
+                        <p className="font-medium">
+                            {dragActive ? 'Drop files here' : enableCamera ? 'Or drag & drop files' : 'Drag & drop files or click to browse'}
+                        </p>
+                        <p className="text-xs text-base-content/60">
+                            {acceptedTypes.join(', ')} • Max {(maxFileSize / 1024 / 1024).toFixed(0)}MB
+                            {multiple && ` • Up to ${maxFiles} files`}
+                        </p>
+                    </div>
 
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    multiple={multiple}
-                    accept={acceptedTypes.join(',')}
-                    onChange={handleFileInputChange}
-                    disabled={disabled}
-                />
-            </div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        multiple={multiple}
+                        accept={acceptedTypes.join(',')}
+                        onChange={handleFileInputChange}
+                        disabled={disabled}
+                    />
+                </div>
+            )}
 
             {/* File List */}
             {files.length > 0 && (
@@ -378,8 +548,13 @@ const UniversalMediaUploader: React.FC<UniversalMediaUploaderProps> = ({
                         </span>
                         {files.some(f => f.status === "pending") && (
                             <button
+                                type="button"
                                 className="btn btn-primary btn-sm"
-                                onClick={uploadFiles}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    uploadFiles();
+                                }}
                                 disabled={isUploading || disabled}
                             >
                                 {isUploading ? (
@@ -459,8 +634,13 @@ const UniversalMediaUploader: React.FC<UniversalMediaUploaderProps> = ({
 
                                     {(mediaFile.status === "pending" || mediaFile.status === "error") && !isUploading && (
                                         <button
+                                            type="button"
                                             className="btn btn-ghost btn-xs btn-circle"
-                                            onClick={() => removeFile(mediaFile.id)}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                removeFile(mediaFile.id);
+                                            }}
                                             disabled={disabled}
                                         >
                                             <i className="far fa-times"></i>

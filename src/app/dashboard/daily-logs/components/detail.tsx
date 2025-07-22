@@ -631,6 +631,8 @@ export default function DailyLogDetail({ log, crews, projects, crewMembers }: Da
                                 linkedMedia={linkedMedia}
                                 onLink={handleMediaLink}
                                 onUnlink={handleMediaUnlink}
+                                enableCamera={true}
+                                cameraQuality="high"
                                 title="Daily Log Media"
                                 description="Manage photos and documents for this daily log"
                                 onComplete={() => {
