@@ -17,7 +17,7 @@ import UsersPermissionsTab from "./components/tab-users";
 import { TabSubscription } from "./components/tab-subscription";
 import { getCurrentSubscription } from "@/app/actions/subscriptions";
 import { BusinessSubscription } from "@/types/subscription";
-import { SubscriptionAnalyticsDashboard, BrandingManager } from "@/components/subscription";
+import { SubscriptionAnalyticsDashboard, BrandingManager, SubscriptionStatusBanner } from "@/components/subscription";
 import { ReferralCodeGenerator } from "@/components/referral/ReferralCodeGenerator";
 import { formatDate } from "@/utils/formatters";
 
@@ -146,6 +146,7 @@ export default function BusinessPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Business Management</h1>
             </div>
+            <SubscriptionStatusBanner className="m-4" />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="stat bg-base-100 shadow">
