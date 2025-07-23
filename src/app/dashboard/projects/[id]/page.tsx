@@ -501,13 +501,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
-                        <div className="tabs tabs-box mb-6">
-                            <button className={`tab ${activeTab === "overview" ? "tab-active" : ""}`} onClick={() => setActiveTab("overview")} >Overview</button>
-                            <button className={`tab ${activeTab === "tasks" ? "tab-active" : ""}`} onClick={() => setActiveTab("tasks")}>Tasks</button>
-                            <button className={`tab ${activeTab === "crew" ? "tab-active" : ""}`} onClick={() => setActiveTab("crew")}>Crew</button>
-                            <button className={`tab ${activeTab === "budget" ? "tab-active" : ""}`} onClick={() => setActiveTab("budget")}>Budget</button>
-                            <button className={`tab ${activeTab === "issues" ? "tab-active" : ""}`} onClick={() => setActiveTab("issues")}>Issues</button>
-                            <button className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Media</button>
+                        <div className="tabs tabs-box mb-6" role="tablist">
+                            <button role="tab" className={`tab ${activeTab === "overview" ? "tab-active" : ""}`} onClick={() => setActiveTab("overview")} >Overview</button>
+                            <button role="tab" className={`tab ${activeTab === "tasks" ? "tab-active" : ""}`} onClick={() => setActiveTab("tasks")}>Tasks</button>
+                            <button role="tab" className={`tab ${activeTab === "crew" ? "tab-active" : ""}`} onClick={() => setActiveTab("crew")}>Crew</button>
+                            <button role="tab" className={`tab ${activeTab === "budget" ? "tab-active" : ""}`} onClick={() => setActiveTab("budget")}>Budget</button>
+                            <button role="tab" className={`tab ${activeTab === "issues" ? "tab-active" : ""}`} onClick={() => setActiveTab("issues")}>Issues</button>
+                            <button role="tab" className={`tab ${activeTab === "documents" ? "tab-active" : ""}`} onClick={() => setActiveTab("documents")}>Media</button>
                         </div>
                         {activeTab === "overview" && (
                             <>

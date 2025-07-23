@@ -41,13 +41,43 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
             if (!isOpen) return;
 
             try {
+                // Check basic API support
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     console.log('Camera API not supported');
                     setCameraSupported(false);
                     return;
                 }
 
+                // Check if we're on HTTPS (required for camera access, except localhost)
+                const isSecure = location.protocol === 'https:' ||
+                    location.hostname === 'localhost' ||
+                    location.hostname === '127.0.0.1';
+
+                if (!isSecure) {
+                    console.log('Camera requires HTTPS connection');
+                    setCameraSupported(false);
+                    return;
+                }
+
+                // Check permission status if available
+                if ('permissions' in navigator) {
+                    try {
+                        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+                        console.log('Camera permission status:', permissionStatus.state);
+
+                        if (permissionStatus.state === 'denied') {
+                            console.log('Camera permission denied by user');
+                            setCameraSupported(false);
+                            return;
+                        }
+                    } catch (permError) {
+                        console.log('Could not check camera permission status:', permError);
+                        // Continue anyway - not all browsers support permission queries
+                    }
+                }
+
                 // Check if any video input devices are available
+                // Note: Device labels may be empty until permission is granted
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
@@ -72,20 +102,32 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
             setCapturedPhoto(null);
             setUploadMethod(null);
         }
-    }, [isOpen]); const startCamera = async () => {
+    }, [isOpen]);
+
+    const startCamera = async () => {
         try {
             setIsLoading(true);
             setIsCapturing(true);
             setUploadMethod('camera');
+
+            console.log('Starting camera initialization...');
 
             // First check if mediaDevices is supported
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error('Camera API not supported in this browser');
             }
 
+            console.log('MediaDevices API available');
+            console.log('Current location:', {
+                protocol: location.protocol,
+                hostname: location.hostname,
+                secure: location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+            });
+
             // Request camera access with simplified constraints
             let stream: MediaStream;
             try {
+                console.log('Attempting to access back camera...');
                 // Try with back camera first
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -95,8 +137,11 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                     },
                     audio: false
                 });
+                console.log('Back camera stream obtained successfully');
             } catch (backCameraError) {
+                console.log('Back camera failed:', backCameraError);
                 try {
+                    console.log('Attempting to access front camera...');
                     // Try front camera
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
@@ -106,6 +151,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                         },
                         audio: false
                     });
+                    console.log('Front camera stream obtained successfully');
                 } catch (frontCameraError) {
                     console.log('Front camera failed, trying any camera:', frontCameraError);
                     // Fallback to any available camera
@@ -113,6 +159,7 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                         video: true,
                         audio: false
                     });
+                    console.log('Any camera stream obtained successfully');
                     console.log('Any camera stream obtained');
                 }
             }
@@ -168,28 +215,52 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
             }
         } catch (error) {
             console.error('Error accessing camera:', error);
+            console.error('Error details:', {
+                name: error instanceof Error ? error.name : 'Unknown',
+                message: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : 'No stack trace'
+            });
+
             setIsCapturing(false);
             setUploadMethod(null);
             setCameraSupported(false);
 
             // Provide more specific error messages
             let errorMessage = 'Unable to access camera. ';
+            let actionMessage = '';
+
             if (error instanceof Error) {
+                console.log('Processing error type:', error.name);
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    errorMessage += 'Camera permission was denied. Please allow camera access and try again.';
+                    errorMessage += 'Camera permission was denied.';
+                    actionMessage = 'To fix this:\n1. Look for a camera icon in your browser\'s address bar and click it\n2. Or go to your browser settings and allow camera access for this site\n3. Then refresh the page and try again';
                 } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
                     errorMessage += 'No camera found on this device.';
+                    actionMessage = 'Please make sure:\n1. Your camera is connected and working\n2. No other applications are using the camera\n3. Your camera drivers are installed';
                 } else if (error.name === 'NotSupportedError') {
                     errorMessage += 'Camera is not supported in this browser.';
+                    actionMessage = 'Try using a modern browser like Chrome, Firefox, or Edge';
                 } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
                     errorMessage += 'Camera is already in use by another application.';
+                    actionMessage = 'Please close other applications that might be using your camera (like Zoom, Teams, Skype, etc.) and try again';
                 } else if (error.message.includes('not supported')) {
                     errorMessage += 'Camera API not supported in this browser.';
+                    actionMessage = 'Make sure you\'re using HTTPS or try a different browser';
                 } else {
                     errorMessage += error.message;
                 }
             }
-            errorMessage += ' You can try uploading a file instead.';
+
+            // Check if we're on HTTP (not HTTPS)
+            if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                errorMessage += '\n\nCamera access requires a secure connection (HTTPS).';
+                actionMessage = 'Please access this site using HTTPS or contact your administrator.';
+            }
+
+            errorMessage += '\n\nYou can try uploading a file instead.';
+            if (actionMessage) {
+                errorMessage += '\n\n' + actionMessage;
+            }
 
             alert(errorMessage);
         } finally {
@@ -364,11 +435,35 @@ export default function PhotoUploadModal({ isOpen, onClose, onPhotoCapture, cont
                                                 <i className="fas fa-exclamation-triangle text-warning"></i>
                                                 <div>
                                                     <h4 className="font-semibold">Camera Not Available</h4>
-                                                    <p className="text-sm opacity-80">Camera not supported or not available on this device. You can upload a file instead.</p>
+                                                    <p className="text-sm opacity-80">
+                                                        Camera may not be supported, permission denied, or not available.
+                                                    </p>
+                                                    <details className="mt-2">
+                                                        <summary className="text-xs cursor-pointer text-warning hover:underline">
+                                                            Why might this happen?
+                                                        </summary>
+                                                        <div className="text-xs mt-1 opacity-70">
+                                                            • Browser blocked camera access<br />
+                                                            • Site needs HTTPS connection<br />
+                                                            • Camera in use by another app<br />
+                                                            • No camera device found
+                                                        </div>
+                                                    </details>
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4">
+                                            <div className="mt-4 space-y-2">
+                                                <button
+                                                    className="btn btn-outline btn-sm w-full gap-2"
+                                                    onClick={() => {
+                                                        setCameraSupported(true);
+                                                        // This will re-run the camera support check and potentially trigger permission request
+                                                    }}
+                                                    disabled={isLoading}
+                                                >
+                                                    <i className="fas fa-refresh"></i>
+                                                    Try Camera Again
+                                                </button>
                                                 <button
                                                     className="btn btn-primary btn-lg w-full gap-2"
                                                     onClick={() => fileInputRef.current?.click()}
