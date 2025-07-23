@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/wize-works/jobsight-pro/compare/v2.9.0...v2.10.0) (2025-07-23)
+
+
+### Features
+
+* Enhance camera access handling and add debug information component ([c6178f4](https://github.com/wize-works/jobsight-pro/commit/c6178f45679cead3869cc5a32e0e331a1a080ff1))
+
 # [2.9.0](https://github.com/wize-works/jobsight-pro/compare/v2.8.0...v2.9.0) (2025-07-22)
 
 
