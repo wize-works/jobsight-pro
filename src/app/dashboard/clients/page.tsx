@@ -93,7 +93,8 @@ export default function ClientsPage() {
                 <h1 className="text-2xl font-semibold">Client Management</h1>
                 <button className="btn btn-primary" onClick={() => setShowAddClientModal(true)}>
                     <i className="far fa-plus mr-2"></i> Add Client
-                </button>            </div>
+                </button>
+            </div>
 
             {/* Client Statistics */}
             <ErrorBoundary fallback={(error) => (

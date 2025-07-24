@@ -108,21 +108,11 @@ export default function InteractionModal({
                                         <label className="label">
                                             <span className="label-text font-medium">Type *</span>
                                         </label>
-                                        <select
-                                            name="type"
-                                            className="select select-bordered select-secondary w-full"
-                                            value={form.type}
-                                            onChange={handleChange}
-                                            required
-                                            disabled={loading}
-                                        >
-                                            <option value="">Select interaction type</option>
-                                            {Object.entries(clientInteractionTypeOptions).map(([key, { label }]) => (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {clientInteractionTypeOptions.select(
+                                            form.type as ClientInteractionType,
+                                            () => handleChange,
+                                            "select-secondary w-full"
+                                        )}
                                     </div>
                                     <div className="form-control md:col-span-2">
                                         <label className="label">
