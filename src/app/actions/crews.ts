@@ -653,9 +653,9 @@ export const getCrewDetailsByID = async (businessId: string, crewId: string): Pr
             };
         });
 
-        // Separate current schedule from history
+        // Separate current/upcoming schedule from history
         const currentSchedule = schedule.filter((item: any) =>
-            item.start_date <= today && (!item.end_date || item.end_date >= today)
+            !item.end_date || item.end_date >= today
         );
         const history = schedule.filter((item: any) =>
             item.end_date && item.end_date < today

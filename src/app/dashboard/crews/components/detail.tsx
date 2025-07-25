@@ -268,7 +268,7 @@ export default function CrewDetailComponent({
             end_date: formData.endDate ? new Date(formData.endDate).toISOString() : null,
             notes: formData.notes,
         } as ProjectCrewInsert;
-
+        console.log("Project Crew Insert Data:", projectCrewInsert);
         try {
             await createProjectCrew(businessId, projectCrewInsert);
             toast.success({
