@@ -1,3 +1,12 @@
+# [2.11.0](https://github.com/wize-works/jobsight-pro/compare/v2.10.0...v2.11.0) (2025-07-25)
+
+
+### Features
+
+* Add getInvoicesByClientId function and integrate invoice fetching in ClientPage ([b92dde0](https://github.com/wize-works/jobsight-pro/commit/b92dde05d2f0af4377e35f02fc7052909ef110ec))
+* Implement remove member functionality in CrewDetailComponent ([f0620df](https://github.com/wize-works/jobsight-pro/commit/f0620df5fe73670d5e02098ea3c968c55772ab0c))
+* Refactor InteractionModal to use a functional select component for interaction type ([e4b1971](https://github.com/wize-works/jobsight-pro/commit/e4b197179c0f2d0480c9de04d89185c293fb2e6c))
+
 # [2.10.0](https://github.com/wize-works/jobsight-pro/compare/v2.9.0...v2.10.0) (2025-07-23)
 
 
