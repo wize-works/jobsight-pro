@@ -11,7 +11,7 @@ import { assignmentStatusOptions, EquipmentAssignment, EquipmentAssignmentStatus
 import { toast } from "@/hooks/use-toast";
 import { assignCrewLeader, updateCrewNotes, updateCrew } from "@/app/actions/crews";
 import { createCrewMember, updateCrewMember } from "@/app/actions/crew-members";
-import { addCrewMemberToCrew } from "@/app/actions/crew-member-assignment";
+import { addCrewMemberToCrew, getCrewMemberAssignments, deleteCrewMemberAssignment } from "@/app/actions/crew-member-assignment";
 import { createProjectCrew, updateProjectCrew, deleteProjectCrew } from "@/app/actions/project-crews";
 import { updateEquipmentAssignment, deleteEquipmentAssignment, createEquipmentAssignment } from "@/app/actions/equipment-assignments";
 import { Project, projectStatusOptions } from "@/types/projects";
@@ -224,6 +224,38 @@ export default function CrewDetailComponent({
                 description: "Error updating crew member. Please try again.",
             });
             return { success: false };
+        }
+    };
+
+    const handleRemoveMember = async (memberId: string, memberName: string) => {
+        if (!window.confirm(`Are you sure you want to remove ${memberName} from the crew?`)) {
+            return;
+        }
+
+        try {
+            // Find the assignment first
+            const assignments = await getCrewMemberAssignments(businessId);
+            const assignment = assignments.find(a => a.crew_id === crew.id && a.crew_member_id === memberId);
+
+            if (assignment) {
+                const success = await deleteCrewMemberAssignment(businessId, assignment.id);
+                if (success) {
+                    toast.success({
+                        title: "Success",
+                        description: `Removed ${memberName} from the crew.`,
+                    });
+                    router.refresh();
+                } else {
+                    throw new Error("Failed to delete assignment");
+                }
+            } else {
+                throw new Error("Assignment not found");
+            }
+        } catch (error) {
+            toast.error({
+                title: "Error",
+                description: "Failed to remove crew member. Please try again.",
+            });
         }
     };
 
@@ -748,10 +780,7 @@ export default function CrewDetailComponent({
                                                                         <button
                                                                             className="btn btn-ghost btn-xs text-error"
                                                                             onClick={() => {
-                                                                                if (window.confirm("Are you sure you want to remove this member from the crew?")) {
-                                                                                    // TODO: Implement remove member functionality
-                                                                                    console.log("Remove member:", member.id, "from crew:", crew.id);
-                                                                                }
+                                                                                handleRemoveMember(member.id, member.name);
                                                                             }}
                                                                         >
                                                                             <i className="far fa-trash fa-xl"></i>

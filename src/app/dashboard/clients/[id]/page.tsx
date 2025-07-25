@@ -8,7 +8,7 @@ import { getClientById, updateClientNotes, updateClient, archiveClient, unarchiv
 import { getClientContactsByClientId, createClientContact, updateClientContact } from "@/app/actions/client-contacts";
 import { getClientInteractionsByClientId, createClientInteraction, updateClientInteraction } from "@/app/actions/client-interactions";
 import { getProjectsByClientId, createProject } from "@/app/actions/projects";
-import { createInvoice } from "@/app/actions/invoices";
+import { createInvoice, getInvoicesWithClient, getInvoicesByClientId } from "@/app/actions/invoices";
 import { uploadClientMedia, getMediaByClientId, getAvailableMediaForClient, linkExistingMediaToClient, unlinkMediaFromClient, uploadClientLogo } from "@/app/actions/media";
 import { toast } from "@/hooks/use-toast";
 import { ClientContact, ClientContactInsert, ClientContactUpdate } from "@/types/client-contacts";
@@ -16,7 +16,7 @@ import { ClientInteraction, ClientInteractionInsert, ClientInteractionUpdate } f
 import { Project, ProjectStatus, projectStatusOptions } from "@/types/projects";
 import { Client, ClientStatus, clientStatusOptions } from "@/types/clients";
 import { MediaType, Media } from "@/types/media";
-import { InvoiceInsert } from "@/types/invoices";
+import { InvoiceInsert, InvoiceWithClient, invoiceStatusOptions } from "@/types/invoices";
 import { useBusiness } from "@/lib/business-context";
 import { getProxiedMediaUrl } from "@/lib/media-utils";
 import ClientModal from "../components/modal-client";
@@ -40,6 +40,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
     const [projects, setProjects] = useState<Project[]>([]);
     const [contacts, setContacts] = useState<ClientContact[]>([]);
     const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
+    const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
     const [linkedMedia, setLinkedMedia] = useState<Media[]>([]);
     const [availableMedia, setAvailableMedia] = useState<Media[]>([]);
 
@@ -86,6 +87,10 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     setInteractions(interactions);
                     // Can also use stats for dashboard metrics
                 }
+
+                // Load invoices for this client
+                const clientInvoices = await getInvoicesByClientId(businessId, id);
+                setInvoices(clientInvoices);
 
                 // Get archive info in the background
                 getClientArchiveInfo(businessId, id).then(info => {
@@ -560,6 +565,11 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                     description: "Your invoice has been created successfully.",
                     autoClose: true,
                 });
+
+                // Refresh the invoices list
+                const updatedInvoices = await getInvoicesByClientId(businessId, client.id);
+                setInvoices(updatedInvoices);
+
                 router.refresh();
                 return { success: true };
             } else {
@@ -839,7 +849,7 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                         className={`tab ${activeTab === "invoices" ? "tab-active" : ""}`}
                         onClick={() => setActiveTab("invoices")}
                     >
-                        Invoices
+                        Invoices ({invoices.length})
                     </a>
                 </div>
                 {activeTab === "overview" && (
@@ -1281,16 +1291,55 @@ export default function ClientPage({ params }: { params: Promise<{ id: string }>
                                     <i className="far fa-file-invoice mr-2"></i> Create Invoice
                                 </button>
                             </div>
-                            <div className="text-center py-8">
-                                <h3 className="text-xl font-semibold mb-2">No invoices found</h3>
-                                <p className="text-base-content/70 mb-4">Create your first invoice for this client</p>
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => setShowInvoiceModal(true)}
-                                >
-                                    <i className="far fa-file-invoice mr-2"></i> Create Invoice
-                                </button>
-                            </div>                    </div>
+                            {invoices.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="table table-zebra w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Invoice #</th>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Due Date</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {invoices.map((invoice) => (
+                                                <tr key={invoice.id}>
+                                                    <td>
+                                                        <Link href={`/dashboard/invoices/${invoice.id}`} className="link link-hover font-medium">
+                                                            {invoice.invoice_number}
+                                                        </Link>
+                                                    </td>
+                                                    <td>{invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : "Not set"}</td>
+                                                    <td>${(invoice.amount || 0).toLocaleString()}</td>
+                                                    <td>
+                                                        {invoiceStatusOptions.badge(invoice.status as any)}
+                                                    </td>
+                                                    <td>{invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "Not set"}</td>
+                                                    <td className="text-right">
+                                                        <Link href={`/dashboard/invoices/${invoice.id}`} className="btn btn-ghost btn-xs">
+                                                            <i className="far fa-eye"></i>
+                                                        </Link>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <h3 className="text-xl font-semibold mb-2">No invoices found</h3>
+                                    <p className="text-base-content/70 mb-4">Create your first invoice for this client</p>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => setShowInvoiceModal(true)}
+                                    >
+                                        <i className="far fa-file-invoice mr-2"></i> Create Invoice
+                                    </button>
+                                </div>
+                            )}                    </div>
                     </div>
                 )}
             </ErrorBoundary>

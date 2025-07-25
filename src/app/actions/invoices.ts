@@ -304,6 +304,43 @@ export const getInvoicesWithClient = async (businessId: string): Promise<Invoice
     return detailData;
 };
 
+export const getInvoicesByClientId = async (businessId: string, clientId: string): Promise<InvoiceWithClient[]> => {
+
+    const { data, error } = await fetchByBusiness("invoices", businessId, "*", {
+        filter: { client_id: clientId },
+        orderBy: { column: "created_at", ascending: false },
+    });
+
+    if (error) {
+        console.error("Error fetching invoices by client ID:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        return [];
+    }
+
+    // Get client data
+    const { data: clientData, error: clientError } = await fetchByBusiness("clients", businessId, "*", {
+        filter: { id: { eq: clientId } },
+    });
+
+    if (clientError) {
+        console.error("Error fetching client for invoices:", clientError);
+        return data as unknown as InvoiceWithClient[];
+    }
+
+    const client = clientData?.[0] || null;
+    const detailData = data.map((invoice: Invoice) => {
+        return {
+            ...invoice,
+            client: client,
+        } as InvoiceWithClient;
+    });
+
+    return detailData;
+};
+
 export const getInvoiceWitDetailsById = async (businessId: string, id: string): Promise<InvoiceWithDetails | null> => {
     const { business } = await withBusinessServer();
 
