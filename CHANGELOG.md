@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/wize-works/jobsight-pro/compare/v2.11.0...v2.12.0) (2025-07-25)
+
+
+### Features
+
+* Enhance schedule filtering logic and add debug logging in CrewDetailComponent ([f25aad7](https://github.com/wize-works/jobsight-pro/commit/f25aad73f91309ee2715956a293bc918894b6138))
+
 # [2.11.0](https://github.com/wize-works/jobsight-pro/compare/v2.10.0...v2.11.0) (2025-07-25)
 
 
