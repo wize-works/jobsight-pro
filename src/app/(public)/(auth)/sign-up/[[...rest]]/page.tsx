@@ -17,6 +17,60 @@ import { BusinessReferralInput } from "@/components/referral/BusinessReferralInp
 import type { SubscriptionPlan } from "@/types/subscription";
 import type { UserInsert } from "@/types/users";
 
+// Enhanced features for each plan
+const getEnhancedFeatures = (planId: string): string[] => {
+    switch (planId) {
+        case 'personal':
+            return [
+                '1 user included',
+                'Core project management',
+                'Basic time tracking',
+                'Mobile app access',
+                'Email support',
+                '100MB file storage',
+                'Basic reporting'
+            ];
+        case 'starter':
+            return [
+                'Up to 3 team members',
+                '🤖 AI Assistant included',
+                'Advanced project tracking',
+                'Team collaboration tools',
+                'Mobile & web access',
+                'Email support',
+                '1GB file storage',
+                'Custom project templates'
+            ];
+        case 'pro':
+            return [
+                'Up to 10 team members',
+                '🤖 AI Assistant included',
+                'Professional invoicing',
+                'Advanced scheduling',
+                'Custom branding & logos',
+                'Priority email support',
+                '5GB file storage',
+                'Advanced reporting & exports',
+                'Client portal access'
+            ];
+        case 'business':
+            return [
+                'Up to 50 team members',
+                '🤖 AI Assistant included',
+                'Advanced analytics dashboard',
+                'Priority phone support',
+                'Dedicated account manager',
+                'Team management tools',
+                '20GB file storage',
+                'Custom integrations',
+                'Advanced security features',
+                'Multi-project management'
+            ];
+        default:
+            return [];
+    }
+};
+
 // Password validation component
 const PasswordField = () => {
     const [password, setPassword] = useState('');
@@ -765,63 +819,108 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-                        {plans.map((plan) => (
-                            <div
-                                key={plan.id}
-                                className={`card bg-base-100 shadow-xl ${selectedPlan === plan.id ? "ring-2 ring-primary" : ""}`}
-                            >
-                                <div className="card-body">
-                                    <h2 className="card-title text-2xl justify-center">
-                                        {plan.name}
-                                    </h2>
-                                    <div className="text-center my-4">
-                                        <span className="text-4xl font-bold">
-                                            $
-                                            {billingInterval === "monthly"
-                                                ? plan.monthly_price
-                                                : plan.annual_price}
-                                        </span>
-                                        <span className="text-base-content/70">
-                                            /{billingInterval === "monthly" ? "month" : "year"}
-                                        </span>
-                                    </div>
+                        {plans.map((plan) => {
+                            const isPopular = plan.id === 'pro';
+                            const enhancedFeatures = getEnhancedFeatures(plan.id);
+                            const monthlyPrice = typeof plan.monthly_price === 'number' ? plan.monthly_price : 0;
+                            const annualPrice = typeof plan.annual_price === 'number' ? plan.annual_price : 0;
 
-                                    <div className="divider"></div>
+                            // Plan descriptions
+                            const planDescriptions: Record<string, string> = {
+                                personal: "Start your journey with powerful project management tools designed for solo professionals and freelancers.",
+                                starter: "Supercharge your small team's productivity with AI-powered project management that grows with you.",
+                                pro: "Unlock your team's full potential with advanced features, custom branding, and professional-grade tools.",
+                                business: "Scale with confidence using enterprise-level analytics, priority support, and comprehensive team management."
+                            };
 
-                                    <ul className="space-y-2 mb-6">
-                                        {plan.features.map((feature, index) => (
-                                            <li
-                                                key={index}
-                                                className="flex items-start text-sm"
-                                            >
-                                                <svg
-                                                    className="h-4 w-4 text-success mt-0.5 mr-2 flex-shrink-0"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
+                            return (
+                                <div
+                                    key={plan.id}
+                                    className={`card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer ${selectedPlan === plan.id ? "ring-2 ring-primary" : ""
+                                        } ${isPopular ? 'relative scale-105 border-2 border-accent/20' : ''}`}
+                                    onClick={() => handlePlanSelect(plan.id)}
+                                >
+                                    {isPopular && (
+                                        <div className="badge badge-accent absolute -top-3 left-1/2 transform -translate-x-1/2 font-semibold z-10 shadow-lg">
+                                            Most Popular
+                                        </div>
+                                    )}
+
+                                    <div className={`card-body ${isPopular ? 'bg-gradient-to-br from-base-100 to-accent/5' : ''}`}>
+                                        <div className="text-center">
+                                            <h2 className={`card-title text-2xl justify-center mb-2 ${isPopular ? 'text-accent' : ''}`}>
+                                                {plan.name}
+                                            </h2>
+                                            <p className="text-sm text-base-content/70 mb-4 min-h-[3rem] leading-relaxed">
+                                                {planDescriptions[plan.id] || ''}
+                                            </p>
+                                        </div>
+
+                                        <div className="text-center my-6">
+                                            <div className="flex items-baseline justify-center">
+                                                <span className={`text-4xl font-bold ${isPopular ? 'text-accent' : 'text-primary'}`}>
+                                                    $
+                                                    {billingInterval === "monthly"
+                                                        ? monthlyPrice
+                                                        : annualPrice}
+                                                </span>
+                                                <span className="text-base-content/70 text-sm ml-1">
+                                                    /{billingInterval === "monthly" ? "month" : "year"}
+                                                </span>
+                                            </div>
+                                            {billingInterval === "annual" && monthlyPrice > 0 && (
+                                                <div className="text-xs text-success mt-1">
+                                                    Save ${(monthlyPrice * 12 - annualPrice).toFixed(0)}/year
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="divider my-4"></div>
+
+                                        <ul className="space-y-3 mb-6 flex-grow">
+                                            {enhancedFeatures.map((feature, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="flex items-start text-sm"
                                                 >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M5 13l4 4L19 7"
-                                                    />
-                                                </svg>
-                                                <span>{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                                    <svg
+                                                        className="h-4 w-4 text-success mt-0.5 mr-3 flex-shrink-0"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M5 13l4 4L19 7"
+                                                        />
+                                                    </svg>
+                                                    <span className="leading-relaxed">{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
 
-                                    <button
-                                        onClick={() => handlePlanSelect(plan.id)}
-                                        className="btn btn-primary btn-block"
-                                        disabled={isProcessing}
-                                    >
-                                        {isProcessing ? "Processing..." : `Choose ${plan.name}`}
-                                    </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePlanSelect(plan.id);
+                                            }}
+                                            className={`btn btn-block transition-all duration-200 ${isPopular
+                                                    ? 'btn-accent hover:btn-accent-focus shadow-lg hover:shadow-xl'
+                                                    : 'btn-primary hover:btn-primary-focus'
+                                                }`}
+                                            disabled={isProcessing}
+                                        >
+                                            {isProcessing ? (
+                                                <span className="loading loading-spinner loading-sm mr-2"></span>
+                                            ) : null}
+                                            {isProcessing ? "Processing..." : monthlyPrice === 0 ? 'Get Started Free' : 'Start Free Trial'}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className="text-center mt-8">
