@@ -5,7 +5,6 @@ import Link from "next/link"
 import pricingPlans from '../../../../docs/jobsight_pricing.json'
 import Image from "next/image"
 import { useState } from "react";
-import ROICalculator from "./components/roi";
 
 const pricingData = pricingPlans
 
@@ -100,9 +99,24 @@ export default function Pricing() {
                     </div>
                 </div>
             </section>
-            <section className="py-12 bg-base-100">
-                <div className="container mx-auto px-4">
-                    <ROICalculator />
+
+            <section className="py-16 bg-base-100">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold mb-4">Calculate Your ROI</h2>
+                    <p className="text-lg text-base-content/70 mb-8 max-w-2xl mx-auto">
+                        See how much time and money you could save with JobSight Pro using our comprehensive ROI calculator.
+                    </p>
+                    <Link
+                        href="https://jobsight.co/roi-calculator"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary btn-lg"
+                    >
+                        Calculate Your ROI
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </Link>
                 </div>
             </section>
 
