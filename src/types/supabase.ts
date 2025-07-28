@@ -72,6 +72,7 @@ export interface Database {
                     updated_by: string | null
                     created_at: string
                     created_by: string | null
+                    feature_flags: string | null
                 }
                 Insert: {
                     id: string
@@ -93,6 +94,7 @@ export interface Database {
                     updated_by: string | null
                     created_at: string
                     created_by: string | null
+                    feature_flags: string | null
                 }
                 Update: {
                     id: string
@@ -114,6 +116,7 @@ export interface Database {
                     updated_by: string | null
                     created_at: string
                     created_by: string | null
+                    feature_flags: string | null
                 }
                 Relationships: []
             }
