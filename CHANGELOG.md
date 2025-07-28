@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/wize-works/jobsight-pro/compare/v2.13.0...v2.14.0) (2025-07-28)
+
+
+### Features
+
+* Update pricing plans with enhanced features and descriptions ([fa062cd](https://github.com/wize-works/jobsight-pro/commit/fa062cd055e1e28676ad7aba20960df616b38494))
+
 # [2.13.0](https://github.com/wize-works/jobsight-pro/compare/v2.12.0...v2.13.0) (2025-07-28)
 
 
