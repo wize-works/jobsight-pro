@@ -1,3 +1,11 @@
+# [2.13.0](https://github.com/wize-works/jobsight-pro/compare/v2.12.0...v2.13.0) (2025-07-28)
+
+
+### Features
+
+* Add feature_flags to business data and conditionally render sweepstake campaign dashboard ([05cb2a6](https://github.com/wize-works/jobsight-pro/commit/05cb2a65dd9396bed05ea0e32eb683e02f5d4644))
+* Remove ROICalculator component and update pricing page with ROI calculator link ([410652c](https://github.com/wize-works/jobsight-pro/commit/410652c14080a6f29743d5d2914a52f1e9cbe719))
+
 # [2.12.0](https://github.com/wize-works/jobsight-pro/compare/v2.11.0...v2.12.0) (2025-07-25)
 
 
