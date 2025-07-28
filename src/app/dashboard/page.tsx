@@ -134,7 +134,7 @@ interface DashboardData {
 
 export default function Dashboard() {
     const router = useRouter();
-    const { businessId, loading } = useBusiness();
+    const { businessId, loading, business } = useBusiness();
     const { userRole, loading: roleLoading } = useUserRole();
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
     const [projectModal, setProjectModal] = useState(false);
@@ -1013,7 +1013,24 @@ EQUIPMENT STATUS:
                     </div>
                 </ErrorBoundary>
 
-                {/* Sweepstake Campaign Dashboard */}
+                {/* Sweepstake Campaign Dashboard */}           
+                {(() => {
+                    try {
+                        if (!business.feature_flags) return false;
+                        
+                        let flags;
+                        if (typeof business.feature_flags === 'string') {
+                            flags = JSON.parse(business.feature_flags);
+                        } else {
+                            flags = business.feature_flags;
+                        }
+                        
+                        // Only render when sweepstake_campaign is explicitly true
+                        return flags.sweepstake_campaign === true;
+                    } catch (error) {
+                        return false;
+                    }
+                })() && (
                 <ErrorBoundary fallback={(error) => (
                     <div className="alert alert-error">
                         <i className="fas fa-exclamation-triangle"></i>
@@ -1021,7 +1038,7 @@ EQUIPMENT STATUS:
                             <h3 className="font-bold">Failed to load sweepstake campaign</h3>
                             <div className="text-xs">Sweepstake data is temporarily unavailable.</div>
                         </div>
-                    </div>
+                    </div>  
                 )}>
                     <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
@@ -1033,6 +1050,7 @@ EQUIPMENT STATUS:
                         </div>
                     </div>
                 </ErrorBoundary>
+                )}
 
                 {/* Weather widget */}
                 <ErrorBoundary fallback={(error) => (
