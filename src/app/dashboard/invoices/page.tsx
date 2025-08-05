@@ -335,15 +335,15 @@ export default function InvoicesPage() {
 
                     {/* Edit Invoice Modal */}
                     {selectedInvoice && (
-                        <InvoiceEditModal
-                            isOpen={showEditModal}
-                            onClose={() => {
-                                setShowEditModal(false);
-                                setSelectedInvoice(null);
-                            }}
-                            onSave={handleSaveEditInvoice}
-                            invoice={selectedInvoice}
-                        />
+                            <InvoiceEditModal
+                                isOpen={showEditModal}
+                                onClose={() => {
+                                    setShowEditModal(false);
+                                    setSelectedInvoice(null);
+                                }}
+                                onSave={handleSaveEditInvoice}
+                                invoice={selectedInvoice}
+                            />
                     )}
                     {/* Send Invoice Modal */}
                     {selectedInvoiceDetails && business && (

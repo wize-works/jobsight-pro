@@ -1336,7 +1336,7 @@ export interface Database {
                     business_id: string
                     invoice_number: string
                     client_id: string
-                    project_id: string
+                    project_id?: string | null
                     amount: number | null
                     tax_rate: number | null
                     status: string | null
@@ -1359,7 +1359,7 @@ export interface Database {
                     business_id: string
                     invoice_number: string
                     client_id: string
-                    project_id: string
+                    project_id?: string | null
                     amount: number | null
                     tax_rate: number | null
                     status: string | null
@@ -1382,7 +1382,7 @@ export interface Database {
                     business_id: string
                     invoice_number: string
                     client_id: string
-                    project_id: string
+                    project_id?: string | null
                     amount: number | null
                     tax_rate: number | null
                     status: string | null
