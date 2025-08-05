@@ -800,7 +800,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'status') THEN
         ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
         ALTER TABLE public.invoices ADD CONSTRAINT invoices_status_check 
-            CHECK (status IN ('draft', 'pending_approval', 'approved', 'sent', 'paid', 'cancelled'));
+            CHECK (status IN ('draft', 'pending_approval', 'approved', 'sent', 'paid', 'cancelled', 'overdue', 'pending'));
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'approved_by') THEN
