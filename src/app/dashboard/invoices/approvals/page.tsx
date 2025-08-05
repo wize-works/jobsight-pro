@@ -253,10 +253,12 @@ export default function InvoiceApprovalsPage() {
                                                     <label className="text-sm font-medium text-gray-600">Client</label>
                                                     <p className="text-sm text-gray-900">{getClientName(invoice.client_id)}</p>
                                                 </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-600">Project</label>
-                                                    <p className="text-sm text-gray-900">{getProjectName(invoice.project_id)}</p>
-                                                </div>
+                                                {invoice.project_id && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-600">Project</label>
+                                                        <p className="text-sm text-gray-900">{getProjectName(invoice.project_id)}</p>
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <label className="text-sm font-medium text-gray-600">Amount</label>
                                                     <p className="text-sm text-gray-900 font-semibold">
