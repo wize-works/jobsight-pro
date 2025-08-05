@@ -1,3 +1,10 @@
+# [2.16.0](https://github.com/wize-works/jobsight-pro/compare/v2.15.0...v2.16.0) (2025-08-05)
+
+
+### Features
+
+* Conditionally render project information in InvoiceApprovalsPage ([522d428](https://github.com/wize-works/jobsight-pro/commit/522d4283f7dd8621766c2b991df3cdb600da3e9e))
+
 # [2.15.0](https://github.com/wize-works/jobsight-pro/compare/v2.14.0...v2.15.0) (2025-08-05)
 
 
