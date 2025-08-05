@@ -1,3 +1,11 @@
+# [2.15.0](https://github.com/wize-works/jobsight-pro/compare/v2.14.0...v2.15.0) (2025-08-05)
+
+
+### Features
+
+* Update invoice status check to include 'sent' status in InvoiceEditModal ([ce21a67](https://github.com/wize-works/jobsight-pro/commit/ce21a6720212eb537a3740a68a1415882e6cff6c))
+* Update project_id handling to allow null values in InvoiceNewModal and supabase types ([5748919](https://github.com/wize-works/jobsight-pro/commit/57489192c628e724e915bc6d3525f33f0fd6972c))
+
 # [2.14.0](https://github.com/wize-works/jobsight-pro/compare/v2.13.0...v2.14.0) (2025-07-28)
 
 
