@@ -164,7 +164,7 @@ export default function InvoiceNewModal({ isOpen, onClose, onSave }: InvoiceNewM
                 id: crypto.randomUUID(),
                 business_id: businessId,
                 client_id: formData.client_id,
-                project_id: formData.project_id || formData.client_id, // Use client_id as fallback
+                project_id: formData.project_id || null,
                 invoice_number: formData.invoice_number,
                 issue_date: formData.issue_date,
                 due_date: formData.due_date,
