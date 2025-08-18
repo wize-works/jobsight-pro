@@ -324,7 +324,7 @@ export default function InvoiceEditModal({ isOpen, onClose, onSave, invoice }: I
         }
     };
 
-    if (invoice.status !== "draft" && invoice.status !== "pending" && invoice.status !== "sent" && invoice.status !== "paid") {
+    if (invoice.status === "paid") {
         isOpen = false;
     }
 
